@@ -78,7 +78,8 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerXNoise(
       double _dynamicBiasCorrelationTime)
 {
   UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Magnetometer>(
         this->inspector->GetEntity());
@@ -112,7 +113,8 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerYNoise(
       double _dynamicBiasCorrelationTime)
 {
   UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Magnetometer>(
         this->inspector->GetEntity());
@@ -146,7 +148,8 @@ Q_INVOKABLE void Magnetometer::OnMagnetometerZNoise(
       double _dynamicBiasCorrelationTime)
 {
   UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _mean, _meanBias, _stdDev, _stdDevBias, _dynamicBiasStdDev,
+       _dynamicBiasCorrelationTime](EntityComponentManager &_ecm)
   {
     auto comp = _ecm.Component<components::Magnetometer>(
         this->inspector->GetEntity());

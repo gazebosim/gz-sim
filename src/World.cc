@@ -30,10 +30,10 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/World.hh"
 
-class gz::sim::WorldPrivate
+class gz::sim::World::Implementation
 {
   /// \brief Id of world entity.
-  public: Entity id{kNullEntity};
+  public: sim::Entity id{kNullEntity};
 };
 
 using namespace gz;
@@ -41,32 +41,10 @@ using namespace sim;
 
 //////////////////////////////////////////////////
 World::World(sim::Entity _entity)
-  : dataPtr(std::make_unique<WorldPrivate>())
+  : dataPtr(utils::MakeImpl<Implementation>())
 {
   this->dataPtr->id = _entity;
 }
-
-/////////////////////////////////////////////////
-World::World(const World &_world)
-  : dataPtr(std::make_unique<WorldPrivate>(*_world.dataPtr))
-{
-}
-
-/////////////////////////////////////////////////
-World::World(World &&_world) noexcept = default;
-
-//////////////////////////////////////////////////
-World::~World() = default;
-
-/////////////////////////////////////////////////
-World &World::operator=(const World &_world)
-{
-  *this->dataPtr = (*_world.dataPtr);
-  return *this;
-}
-
-/////////////////////////////////////////////////
-World &World::operator=(World &&_world) noexcept = default;
 
 //////////////////////////////////////////////////
 Entity World::Entity() const

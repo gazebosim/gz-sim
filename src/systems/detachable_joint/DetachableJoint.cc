@@ -309,6 +309,23 @@ void DetachableJoint::GetChildModelAndLinkEntities(
             << " could not be found.\n";
   }
 }
+
+//////////////////////////////////////////////////
+void DetachableJoint::Reset(const UpdateInfo &,
+                            EntityComponentManager &_ecm)
+{
+  this->GetChildModelAndLinkEntities(_ecm);
+  if (this->detachableJointEntity != kNullEntity &&
+      _ecm.HasEntity(this->detachableJointEntity))
+  {
+    _ecm.RequestRemoveEntity(this->detachableJointEntity);
+  }
+  this->detachableJointEntity = kNullEntity;
+  this->detachRequested = false;
+  this->attachRequested = true;
+  this->isAttached = false;
+}
+
 //////////////////////////////////////////////////
 void DetachableJoint::PreUpdate(
   const UpdateInfo &/*_info*/,
@@ -395,6 +412,7 @@ void DetachableJoint::OnDetachRequest(const msgs::Empty &)
 GZ_ADD_PLUGIN(DetachableJoint,
                     System,
                     DetachableJoint::ISystemConfigure,
+                    DetachableJoint::ISystemReset,
                     DetachableJoint::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(DetachableJoint,

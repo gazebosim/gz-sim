@@ -37,9 +37,17 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
+#include <gz/utils/SuppressWarning.hh>
+
+GZ_UTILS_WARN_IGNORE__SWITCH_NO_DEFAULT_STATEMENT
+#include <gz/sim/detail/vendor/entt/entity/registry.hpp>
+GZ_UTILS_WARN_RESUME__SWITCH_NO_DEFAULT_STATEMENT
 
 #include "gz/sim/components/Component.hh"
-#include "gz/sim/detail/View.hh"
+
+// Custom implementation
+// TODO(anyone) switch to std <flat_set> when migrating to C++-23
+#include "gz/sim/detail/FlatSet.hh"
 
 namespace gz
 {
@@ -56,6 +64,22 @@ namespace gz
     /// its children.
     /// All edges are positive booleans.
     using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
+
+    namespace detail
+    {
+      class GroupQueuer;
+    }
+
+    /// \brief Marker component for newly created entities.
+    struct NewEntity { };
+
+    /// \brief Marker component for entities marked for removal.
+    struct RemoveEntity { };
+
+    /// \brief Component containing all the children of an entity.
+    struct Children {
+      detail::FlatSet<Entity> data;
+    };
 
     /** \class EntityComponentManager EntityComponentManager.hh \
      * gz/sim/EntityComponentManager.hh
@@ -184,8 +208,6 @@ namespace gz
 
       /// \brief Get the first parent of the given entity.
       /// \details Entities are not expected to have multiple parents.
-      /// TODO(louise) Either prevent multiple parents or provide full support
-      /// for multiple parents.
       /// \param[in] _entity Entity.
       /// \return The parent entity or kNullEntity if there's none.
       public: Entity ParentEntity(const Entity _entity) const;
@@ -202,9 +224,9 @@ namespace gz
       /// \return True if successful. Will fail if entities don't exist.
       public: bool SetParentEntity(const Entity _child, const Entity _parent);
 
-      /// \brief Get whether a component type has ever been created.
+      /// \brief Get whether a component type is present in the ECM.
       /// \param[in] _typeId ID of the component type to check.
-      /// \return True if the provided _typeId has been created.
+      /// \return True if the provided _typeId is present.
       public: bool HasComponentType(const ComponentTypeId _typeId) const;
 
       /// \brief Check whether an entity has a specific component type.
@@ -237,10 +259,6 @@ namespace gz
       ///  removed.
       public: template<typename ComponentTypeT>
               bool RemoveComponent(Entity _entity);
-
-      /// \brief Rebuild all the views. This could be an expensive
-      /// operation.
-      public: void RebuildViews();
 
       /// \brief Create a component of a particular type. This will copy the
       /// _data parameter.
@@ -366,10 +384,6 @@ namespace gz
               std::vector<Entity> ChildrenByComponents(Entity _parent,
                    const ComponentTypeTs &..._desiredComponents) const;
 
-      /// why is this required?
-      private: template <typename T>
-               struct identity;  // NOLINT
-
       /// \brief Helper function for cloning an entity and its children (this
       /// includes cloning components attached to these entities). This method
       /// should never be called directly - it is called internally from the
@@ -397,10 +411,9 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
-      public: template<typename ...ComponentTypeTs>
-              void EachNoCache(typename identity<std::function<
-                  bool(const Entity &_entity,
-                       const ComponentTypeTs *...)>>::type _f) const;
+      /// \deprecated Use Each instead.
+      public: template<typename ...ComponentTypeTs, typename Func>
+              void GZ_DEPRECATED(11) EachNoCache(Func &&_f) const;
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -414,10 +427,9 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired mutable component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
-      public: template<typename ...ComponentTypeTs>
-              void EachNoCache(typename identity<std::function<
-                  bool(const Entity &_entity,
-                       ComponentTypeTs *...)>>::type _f);
+      /// \deprecated Use Each instead.
+      public: template<typename ...ComponentTypeTs, typename Func>
+              void GZ_DEPRECATED(11) EachNoCache(Func &&_f);
 
       /// \brief Get all entities which contain given component types, as well
       /// as the components. Note that an entity marked for removal (but not
@@ -431,10 +443,8 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
-      public: template<typename ...ComponentTypeTs>
-              void Each(typename identity<std::function<
-                  bool(const Entity &_entity,
-                       const ComponentTypeTs *...)>>::type _f) const;
+      public: template<typename ...ComponentTypeTs, typename Func>
+              void Each(Func &&_f) const;
 
       /// \brief Get all entities which contain given component types, as well
       /// as the mutable components. Note that an entity marked for removal (but
@@ -448,17 +458,16 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired mutable component types.
       /// \warning This function should not be called outside of System's
       /// PreUpdate, Update, or PostUpdate callbacks.
-      public: template<typename ...ComponentTypeTs>
-              void Each(typename identity<std::function<
-                  bool(const Entity &_entity,
-                       ComponentTypeTs *...)>>::type _f);
+      public: template<typename ...ComponentTypeTs, typename Func>
+              void Each(Func &&_f);
 
       /// \brief Call a function for each parameter in a pack.
       /// \param[in] _f Function to be called.
       /// \param[in] _components Parameters which should be passed to the
       /// function.
       public: template <class Function, class... ComponentTypeTs>
-      static void ForEach(Function _f, const ComponentTypeTs &... _components);
+      static void GZ_DEPRECATED(11) ForEach(Function _f,
+          const ComponentTypeTs &... _components);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
@@ -474,10 +483,8 @@ namespace gz
       /// call this function in the Update callback). If you need to call this
       /// function in a system's PostUpdate callback, you should use the const
       /// version of this method.
-      public: template <typename... ComponentTypeTs>
-              void EachNew(typename identity<std::function<
-                           bool(const Entity &_entity,
-                                ComponentTypeTs *...)>>::type _f);
+      public: template <typename... ComponentTypeTs, typename Func>
+              void EachNew(Func &&_f);
 
       /// \brief Get all newly created entities which contain given component
       /// types, as well as the components. This "newness" is cleared at the end
@@ -491,10 +498,8 @@ namespace gz
       /// \warning Since entity creation occurs during PreUpdate, this function
       /// should not be called in a System's PreUpdate callback (it's okay to
       /// call this function in the Update or PostUpdate callback).
-      public: template <typename... ComponentTypeTs>
-              void EachNew(typename identity<std::function<
-                           bool(const Entity &_entity,
-                                const ComponentTypeTs *...)>>::type _f) const;
+      public: template <typename... ComponentTypeTs, typename Func>
+              void EachNew(Func &&_f) const;
 
       /// \brief Get all entities which contain given component types and are
       /// about to be removed, as well as the components.
@@ -506,15 +511,20 @@ namespace gz
       /// \tparam ComponentTypeTs All the desired component types.
       /// \warning This function should not be called outside of System's
       /// PostUpdate callback.
-      public: template<typename ...ComponentTypeTs>
-              void EachRemoved(typename identity<std::function<
-                  bool(const Entity &_entity,
-                       const ComponentTypeTs *...)>>::type _f) const;
+      public: template<typename ...ComponentTypeTs, typename Func>
+              void EachRemoved(Func &&_f) const;
 
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.
+      /// \note This method generates the graph on demand. For better
+      /// performance when only iterating over entities, use \sa EntitiesVector.
       /// \return Entity graph.
-      public: const EntityGraph &Entities() const;
+      /// \deprecated See EntitiesVector
+      public: GZ_DEPRECATED(11) EntityGraph Entities() const;
+
+      /// \brief Get all entities.
+      /// \return Vector of all entities.
+      public: std::vector<Entity> EntitiesVector() const;
 
       /// \brief Get all entities which are descendants of a given entity,
       /// including the entity itself.
@@ -570,7 +580,7 @@ namespace gz
       /// \brief Get the components types that are marked as periodic changes.
       /// \return All the components that at least one entity marked as
       /// periodic changes.
-      public: std::unordered_set<ComponentTypeId>
+      public: std::unordered_set<ComponentTypeId> GZ_DEPRECATED(11)
           ComponentTypesWithPeriodicChanges() const;
 
       /// \brief Get a cache of components with periodic changes.
@@ -699,6 +709,9 @@ namespace gz
       /// EachAdded after this will have no entities to iterate.
       public: void ClearNewlyCreatedEntities();
 
+      /// \brief Create groups that were enqueued in previous calls to Each.
+      public: void CreatePendingGroups();
+
       /// \brief Clear the list of removed components so that a call to
       /// RemoveComponent doesn't make the list grow indefinitely.
       public: void ClearRemovedComponents();
@@ -709,6 +722,12 @@ namespace gz
 
       /// \brief Mark all components as not changed.
       public: void SetAllComponentsUnchanged();
+
+      /// \brief Enqueue a group to be created.
+      /// \param[in] _types Component type IDs.
+      /// \param[in] _queuer Queuer that will create the group.
+      private: void EnqueueGroup(const std::vector<ComponentTypeId> &_types,
+                   std::unique_ptr<detail::GroupQueuer> _queuer) const;
 
       /// Compute the diff between this EntityComponentManager and _other at the
       /// entity level. This does not compute the diff between components of an
@@ -730,14 +749,6 @@ namespace gz
       protected: void ApplyEntityDiff(const EntityComponentManager &_other,
                                       const EntityComponentManagerDiff &_diff);
 
-      /// \brief Get whether an Entity exists and is new.
-      ///
-      /// Entities are considered new in the time between their creation and a
-      /// call to ClearNewlyCreatedEntities
-      /// \param[in] _entity Entity id to check.
-      /// \return True if the Entity is new.
-      private: bool IsNewEntity(const Entity _entity) const;
-
       /// \brief Get whether an Entity has been marked to be removed.
       /// \param[in] _entity Entity id to check.
       /// \return True if the Entity has been marked to be removed.
@@ -748,9 +759,8 @@ namespace gz
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
       /// \param[in] _data Data used to construct the component.
-      /// \return True if the component's data needs to be set externally; false
-      /// otherwise.
-      private: bool CreateComponentImplementation(
+      /// \return Pointer to the created component, or nullptr on failure.
+      private: components::BaseComponent *CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
                    const components::BaseComponent *_data);
@@ -773,32 +783,6 @@ namespace gz
                    const Entity _entity,
                    const ComponentTypeId _type);
 
-      /// \brief Find a View that matches the set of ComponentTypeIds. If
-      /// a match is not found, then a new view is created.
-      /// \tparam ComponentTypeTs All the component types that define a view.
-      /// \return A pointer to the view.
-      private: template<typename ...ComponentTypeTs>
-          detail::View *FindView() const;
-
-      /// \brief Find a view based on the provided component type ids.
-      /// \param[in] _types The component type ids that serve as a key into
-      /// a map of views.
-      /// \return A pair containing a the view itself and a mutex that can be
-      /// used for locking the view while entities are being added to it.
-      /// If a view defined by _types does not exist, the pair will contain
-      /// nullptrs.
-      private: std::pair<detail::BaseView *, std::mutex *> FindView(
-                   const std::vector<ComponentTypeId> &_types) const;
-
-      /// \brief Add a new view to the set of stored views.
-      /// \param[in] _types The set of component type ids that act as the key
-      /// for the view.
-      /// \param[in] _view The view to add.
-      /// \return A pointer to the view.
-      private: detail::BaseView *AddView(
-                   const detail::ComponentTypeKey &_types,
-                   std::unique_ptr<detail::BaseView> _view) const;
-
       /// \brief Add an entity and its components to a serialized state message.
       /// \param[out] _msg The state message.
       /// \param[in] _entity The entity to be added.
@@ -807,6 +791,14 @@ namespace gz
       private: void AddEntityToMessage(msgs::SerializedState &_msg,
           Entity _entity,
           const std::unordered_set<ComponentTypeId> &_types = {}) const;
+
+      /// \brief Get the registry.
+      /// \return Reference to the registry.
+      private: entt::basic_registry<Entity> &Registry();
+
+      /// \brief Get the registry.
+      /// \return Constant reference to the registry.
+      private: const entt::basic_registry<Entity> &Registry() const;
 
       /// \brief Private data pointer.
       private: std::unique_ptr<EntityComponentManagerPrivate> dataPtr;
@@ -833,13 +825,15 @@ namespace gz
       /// reading/writing from the same data).
       /// \param[in] _lock Whether the views should lock while entities are
       /// being added to them (true) or not (false).
-      private: void LockAddingEntitiesToViews(bool _lock);
+      /// \deprecated This function is a noop and will be removed.
+      private: GZ_DEPRECATED(11) void LockAddingEntitiesToViews(bool _lock);
 
       /// \brief Get whether views should be locked when entities are being
       /// added to them.
       /// \return True if views should be locked during entity addition, false
       /// otherwise.
-      private: bool LockAddingEntitiesToViews() const;
+      /// \deprecated This function is a noop and will be removed.
+      private: GZ_DEPRECATED(11) bool LockAddingEntitiesToViews() const;
 
       // Make runners friends so that they can manage entity creation and
       // removal. This should be safe since runners are internal

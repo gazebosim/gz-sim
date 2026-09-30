@@ -17,7 +17,9 @@
 
 #include "SdfGenerator.hh"
 
+#include <algorithm>
 #include <ctype.h>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -327,6 +329,7 @@ namespace sdf_generator
     auto worldDir = common::parentPath(worldSdf->Data().Element()->FilePath());
 
     // models
+    std::map<Entity, const components::ModelSdf*> modelEntities;
     _ecm.Each<components::Model, components::ModelSdf>(
         [&](const Entity &_modelEntity, const components::Model *,
             const components::ModelSdf *_modelSdf)
@@ -334,105 +337,117 @@ namespace sdf_generator
           // skip nested models as they are not direct children of world
           auto parentComp = _ecm.Component<components::ParentEntity>(
               _modelEntity);
-          if (parentComp && parentComp->Data() != _entity)
-            return true;
-
-          auto modelDir =
-              common::parentPath(_modelSdf->Data().Element()->FilePath());
-
-          const std::string modelName =
-              scopedName(_modelEntity, _ecm, "::", false);
-
-          bool modelFromInclude = isModelFromInclude(modelDir, worldDir);
-
-          auto uriMapIt = _includeUriMap.find(modelDir);
-
-          auto modelConfig = _config.global_entity_gen_config();
-          auto modelConfigIt =
-              _config.override_entity_gen_configs().find(modelName);
-          if (modelConfigIt != _config.override_entity_gen_configs().end())
+          if (parentComp && parentComp->Data() == _entity)
           {
-            mergeWithOverride(modelConfig, modelConfigIt->second);
-          }
-
-          if (modelConfig.expand_include_tags().data() || !modelFromInclude)
-          {
-            auto modelElem = _elem->AddElement("model");
-            updateModelElement(modelElem, _ecm, _modelEntity);
-
-            // Check & update possible //model/include(s)
-            if (!modelConfig.expand_include_tags().data())
-            {
-              updateModelElementWithNestedInclude(modelElem,
-                    modelConfig.save_fuel_version().data(), _includeUriMap);
-            }
-          }
-          else if (uriMapIt != _includeUriMap.end())
-          {
-            // The fuel URI might have a version number. If it does, we remove
-            // it unless saveFuelModelVersion is set to true.
-            // Check if this is a fuel URI. We assume that it is a fuel URI if
-            // the scheme is http or https.
-            common::URI uri(uriMapIt->second);
-            if (uri.Scheme() == "http" || uri.Scheme() == "https")
-            {
-              removeVersionFromUri(uri);
-            }
-
-            if (modelConfig.save_fuel_version().data())
-            {
-              // Find out the model version from the file path. Note that we
-              // do this from the file path instead of the Fuel URI because the
-              // URI may not contain version information.
-              //
-              // We are assuming here that, for Fuel models, the directory
-              // containing the sdf file has the same name as the model version.
-              // For example, if the uri is
-              // https://example.org/1.0/test/models/Backpack
-              // the path to the directory containing the sdf file (modelDir)
-              // will be:
-              // $HOME/.gz/fuel/example.org/test/models/Backpack/2/
-              // and the basename of the directory is "1", which is the model
-              // version.
-              //
-              // However, if symlinks (or other types of indirection) are used,
-              // the pattern of modelDir will be different. The assumption here
-              // is that regardless of the indirection, the name of the
-              // directory containing the sdf file can be used as the version
-              // number
-              //
-              uri.Path() /= common::basename(modelDir);
-            }
-
-            auto includeElem = _elem->AddElement("include");
-            updateIncludeElement(includeElem, _ecm, _modelEntity, uri.Str());
-          }
-          else
-          {
-            // The model is not in the includeUriMap, but expandIncludeTags =
-            // false, so we will assume that its uri is the file path of the
-            // model on the local machine
-            auto includeElem = _elem->AddElement("include");
-            const std::string uri = "file://" + modelDir;
-            updateIncludeElement(includeElem, _ecm, _modelEntity, uri);
+            modelEntities.insert({_modelEntity, _modelSdf});
           }
           return true;
         });
 
+    for (const auto &[modelEntity, modelSdf] : modelEntities)
+    {
+      auto modelDir =
+          common::parentPath(modelSdf->Data().Element()->FilePath());
+
+      const std::string modelName =
+          scopedName(modelEntity, _ecm, "::", false);
+
+      bool modelFromInclude = isModelFromInclude(modelDir, worldDir);
+
+      auto uriMapIt = _includeUriMap.find(modelDir);
+
+      auto modelConfig = _config.global_entity_gen_config();
+      auto modelConfigIt =
+          _config.override_entity_gen_configs().find(modelName);
+      if (modelConfigIt != _config.override_entity_gen_configs().end())
+      {
+        mergeWithOverride(modelConfig, modelConfigIt->second);
+      }
+
+      if (modelConfig.expand_include_tags().data() || !modelFromInclude)
+      {
+        auto modelElem = _elem->AddElement("model");
+        updateModelElement(modelElem, _ecm, modelEntity);
+
+        // Check & update possible //model/include(s)
+        if (!modelConfig.expand_include_tags().data())
+        {
+          updateModelElementWithNestedInclude(modelElem,
+                modelConfig.save_fuel_version().data(), _includeUriMap);
+        }
+      }
+      else if (uriMapIt != _includeUriMap.end())
+      {
+        // The fuel URI might have a version number. If it does, we remove
+        // it unless saveFuelModelVersion is set to true.
+        // Check if this is a fuel URI. We assume that it is a fuel URI if
+        // the scheme is http or https.
+        common::URI uri(uriMapIt->second);
+        if (uri.Scheme() == "http" || uri.Scheme() == "https")
+        {
+          removeVersionFromUri(uri);
+        }
+
+        if (modelConfig.save_fuel_version().data())
+        {
+          // Find out the model version from the file path. Note that we
+          // do this from the file path instead of the Fuel URI because the
+          // URI may not contain version information.
+          //
+          // We are assuming here that, for Fuel models, the directory
+          // containing the sdf file has the same name as the model version.
+          // For example, if the uri is
+          // https://example.org/1.0/test/models/Backpack
+          // the path to the directory containing the sdf file (modelDir)
+          // will be:
+          // $HOME/.gz/fuel/example.org/test/models/Backpack/2/
+          // and the basename of the directory is "1", which is the model
+          // version.
+          //
+          // However, if symlinks (or other types of indirection) are used,
+          // the pattern of modelDir will be different. The assumption here
+          // is that regardless of the indirection, the name of the
+          // directory containing the sdf file can be used as the version
+          // number
+          //
+          uri.Path() /= common::basename(modelDir);
+        }
+
+        auto includeElem = _elem->AddElement("include");
+        updateIncludeElement(includeElem, _ecm, modelEntity, uri.Str());
+      }
+      else
+      {
+        // The model is not in the includeUriMap, but expandIncludeTags =
+        // false, so we will assume that its uri is the file path of the
+        // model on the local machine
+        auto includeElem = _elem->AddElement("include");
+        const std::string uri = "file://" + modelDir;
+        updateIncludeElement(includeElem, _ecm, modelEntity, uri);
+      }
+    }
+
     // lights
+    std::vector<Entity> lightEntities;
     _ecm.Each<components::Light, components::ParentEntity>(
         [&](const Entity &_lightEntity,
             const components::Light *,
             const components::ParentEntity *_parent) -> bool
         {
-          if (_parent->Data() != _entity)
-            return true;
-
-           auto lightElem = _elem->AddElement("light");
-           updateLightElement(lightElem, _ecm, _lightEntity);
+          if (_parent->Data() == _entity)
+          {
+            lightEntities.push_back(_lightEntity);
+          }
 
           return true;
         });
+    std::sort(lightEntities.begin(), lightEntities.end());
+
+    for (const auto &lightEntity : lightEntities)
+    {
+       auto lightElem = _elem->AddElement("light");
+       updateLightElement(lightElem, _ecm, lightEntity);
+    }
 
     return true;
   }
@@ -927,6 +942,7 @@ namespace sdf_generator
 
     auto sensorEntities = _ecm.EntitiesByComponents(
         components::ParentEntity(_entity), components::Sensor());
+    std::sort(sensorEntities.begin(), sensorEntities.end());
 
     for (const auto &sensorEnt : sensorEntities)
     {

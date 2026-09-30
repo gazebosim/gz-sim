@@ -70,6 +70,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
@@ -526,6 +527,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
+  const auto ns = _model->Namespace();
+  if (ns.has_value() && !ns->empty())
+  {
+    this->dataPtr->ecm->CreateComponent(modelEntity,
+        components::Namespace(ns.value()));
+  }
   bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Static(isStatic));
@@ -1292,8 +1299,7 @@ void SdfEntityCreator::RequestRemoveEntity(Entity _entity, bool _recursive)
         components::ParentEntity(_entity));
     for (const auto childEntity : childEntities)
     {
-      this->dataPtr->ecm->RemoveComponent<components::ParentEntity>(
-          childEntity);
+      this->dataPtr->ecm->SetParentEntity(childEntity, kNullEntity);
     }
   }
 
@@ -1306,6 +1312,4 @@ void SdfEntityCreator::SetParent(Entity _child, Entity _parent)
   // TODO(louise) Figure out a way to avoid duplication while keeping all
   // state in components and also keeping a convenient graph in the ECM
   this->dataPtr->ecm->SetParentEntity(_child, _parent);
-  this->dataPtr->ecm->CreateComponent(_child,
-      components::ParentEntity(_parent));
 }

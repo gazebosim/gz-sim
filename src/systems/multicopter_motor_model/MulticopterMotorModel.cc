@@ -297,7 +297,7 @@ void MulticopterMotorModel::Configure(const Entity &_entity,
   }
   else
   {
-    gzerr << "Please specify a actuator_number.\n";
+    gzerr << "Please specify an actuator_number.\n";
   }
 
   if (sdfClone->HasElement("turningDirection"))

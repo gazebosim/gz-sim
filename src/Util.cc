@@ -35,6 +35,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
+#include <sdf/Element.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
@@ -48,6 +49,7 @@
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/Projector.hh"
@@ -140,8 +142,10 @@ std::string scopedName(const Entity &_entity,
     const EntityComponentManager &_ecm, const std::string &_delim,
     bool _includePrefix)
 {
-  std::string result;
-
+  std::vector<std::string_view> parts;
+  // Pre-allocate 10 entries, a sensible default that will prevent reallocation
+  // without occupying significant memory (string view is just a pointer + size)
+  parts.reserve(10);
   auto entity = _entity;
 
   while (true)
@@ -150,10 +154,10 @@ std::string scopedName(const Entity &_entity,
     auto nameComp = _ecm.Component<components::Name>(entity);
     if (nullptr == nameComp)
       break;
-    auto name = nameComp->Data();
+    const auto &name = nameComp->Data();
 
     // Get entity type
-    std::string prefix = entityTypeStr(entity, _ecm);
+    std::string_view prefix = entityTypeStrView(entity, _ecm);
     if (prefix.empty())
     {
       gzwarn << "Skipping entity [" << name
@@ -164,24 +168,168 @@ std::string scopedName(const Entity &_entity,
     auto parentComp = _ecm.Component<components::ParentEntity>(entity);
     if (!prefix.empty())
     {
-      result.insert(0, name);
+      parts.push_back(name);
       if (_includePrefix)
       {
-        result.insert(0, _delim);
-        result.insert(0, prefix);
+        parts.push_back(prefix);
       }
     }
 
     if (nullptr == parentComp)
       break;
 
-    if (!prefix.empty())
-      result.insert(0, _delim);
-
     entity = parentComp->Data();
   }
 
+  if (parts.empty())
+    return "";
+
+  std::string result;
+  size_t totalSize = 0;
+  for (const auto &part : parts)
+  {
+    totalSize += part.size();
+  }
+  totalSize += (parts.size() - 1) * _delim.size();
+  result.reserve(totalSize);
+
+  for (auto it = parts.rbegin(); it != parts.rend(); ++it)
+  {
+    if (it != parts.rbegin())
+    {
+      result += _delim;
+    }
+    result += *it;
+  }
+
   return result;
+}
+
+//////////////////////////////////////////////////
+std::string scopedNamespace(const EntityComponentManager &_ecm,
+    const Entity &_entity)
+{
+  std::vector<std::string_view> namespaces;
+  namespaces.reserve(10);
+
+  auto entity = _entity;
+  bool isAbsolute = false;
+  while (true)
+  {
+    const auto ns = _ecm.Component<components::Namespace>(entity);
+    if (ns && !ns->Data().empty())
+    {
+      std::string_view nsStr = ns->Data();
+      isAbsolute = nsStr.front() == '/';
+      const auto begin = nsStr.find_first_not_of('/');
+      if (begin != std::string::npos)
+      {
+        const auto end = nsStr.find_last_not_of('/');
+        nsStr = nsStr.substr(begin, end - begin + 1);
+
+        namespaces.push_back(nsStr);
+      }
+
+      if (isAbsolute)
+      {
+        break;
+      }
+    }
+
+    const auto parentEntity = _ecm.Component<components::ParentEntity>(entity);
+    if (!parentEntity)
+    {
+      break;
+    }
+    entity = parentEntity->Data();
+  }
+
+  if (namespaces.empty() && !isAbsolute)
+  {
+    return "";
+  }
+  else if (namespaces.empty() && isAbsolute)
+  {
+    return "/";
+  }
+
+  std::string result;
+  size_t totalSize = 0;
+  for (const auto &ns : namespaces)
+  {
+    totalSize += ns.size();
+  }
+  // Add 1 for each '/' separator
+  totalSize += namespaces.size() * 1;
+  result.reserve(totalSize);
+
+  if (isAbsolute)
+  {
+    result += "/";
+  }
+
+  for (auto it = namespaces.rbegin(); it != namespaces.rend(); ++it)
+  {
+    result += *it;
+    result += "/";
+  }
+
+  // Remove trailing '/'
+  if (!result.empty() && result.back() == '/')
+  {
+    result.pop_back();
+  }
+
+  return result;
+}
+
+std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,
+    const TopicNameOptions &_options)
+{
+  std::vector<std::string> topics;
+
+  if (_sdf->HasElement(_options.sdfElementName))
+  {
+    std::string customTopic = _sdf->Get<std::string>(_options.sdfElementName);
+
+    if (!customTopic.empty())
+    {
+      // Only prepend namespace to relative topic name.
+      // Absolute topic name (starting with '/') are left unchanged.
+      if (customTopic.front() != '/')
+      {
+        std::string prefix = _options.topicNamespace;
+        if (!_options.topicNamespace.empty() &&
+            _options.topicNamespace.back() != '/')
+        {
+          prefix = prefix + "/";
+        }
+
+        customTopic = prefix + customTopic;
+      }
+      topics.push_back(customTopic);
+    }
+  }
+
+  std::string defaultTopic = _options.defaultTopicSuffix;
+  if (!defaultTopic.empty())
+  {
+    // Only prepend namespace to relative default topic name.
+    // Absolute default topic name (starting with '/') are left unchanged.
+    if (defaultTopic.front() != '/')
+    {
+      std::string prefix = _options.topicNamespace.empty() ?
+        _options.defaultTopicPrefix : _options.topicNamespace;
+      if (!prefix.empty() && prefix.back() != '/')
+      {
+        prefix = prefix + "/";
+      }
+      defaultTopic = prefix + defaultTopic;
+    }
+    topics.push_back(defaultTopic);
+  }
+
+  return validTopic(topics);
 }
 
 //////////////////////////////////////////////////
@@ -330,11 +478,10 @@ ComponentTypeId entityTypeId(const Entity &_entity,
   return type;
 }
 
-//////////////////////////////////////////////////
-std::string entityTypeStr(const Entity &_entity,
+std::string_view entityTypeStrView(const Entity &_entity,
     const EntityComponentManager &_ecm)
 {
-  std::string type;
+  std::string_view type;
 
   if (_ecm.Component<components::World>(_entity))
   {
@@ -382,6 +529,13 @@ std::string entityTypeStr(const Entity &_entity,
   }
 
   return type;
+}
+
+//////////////////////////////////////////////////
+std::string entityTypeStr(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  return std::string(entityTypeStrView(_entity, _ecm));
 }
 
 //////////////////////////////////////////////////

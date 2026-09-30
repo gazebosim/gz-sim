@@ -148,7 +148,7 @@ tags will be added to a `<plugin name="gz::sim" filename="dummy">` tag.
 The plugin name `gz::sim` will be fixed so that a simulation runner
 would know to check for that name in each plugin tag.
 
-### <level>
+### `<level>`
 
 The `<level>` tag contains information about the volume occupied by the level
 and the entities inside the level. The volume is given by a `<box>` geometry
@@ -184,7 +184,7 @@ Example snippet:
 </level>
 ```
 
-### <performer>
+### `<performer>`
 
 \note See Runtime performers, the next section, for information about specifying performers without using the SDF `<performer>` tag.
 
