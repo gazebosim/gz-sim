@@ -346,6 +346,10 @@ void DiffDrive::Configure(const Entity &_entity,
 
   // Subscribe to enable/disable
   std::vector<std::string> enableTopics;
+  if (_sdf->HasElement("enable_topic"))
+  {
+    enableTopics.push_back(_sdf->Get<std::string>("enable_topic"));
+  }
   enableTopics.push_back(
     "/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
   auto enableTopic = validTopic(enableTopics);
