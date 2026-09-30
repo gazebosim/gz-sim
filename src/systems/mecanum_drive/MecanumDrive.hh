@@ -82,71 +82,63 @@ namespace systems
   /// `ignition.msgs.Odometry` message. This element if optional, and the
   /// default value is `{name_of_model}/odom`.
   ///
-<<<<<<< HEAD
   /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
-  /// the target of the odometry trasnform in both the `<tf_topic>`
+  /// the target of the odometry transform in both the `<tf_topic>`
   /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
   /// `ignition.msgs.Odometry` message. This element if optional,
-  ///  and the default value is `{name_of_model}/{name_of_link}`.
-=======
-  /// - `<child_frame_id>`: Custom `child_frame_id` that this system will use as
-  /// the target of the odometry transform in both the `<tf_topic>`
-  /// `gz.msgs.Pose_V` message and the `<odom_topic>`
-  /// `gz.msgs.Odometry` message. This element if optional,
   /// and the default value is `{name_of_model}/{name_of_link}`.
   ///
-  /// - `<min_velocity>`: Sets both the minimum linear and minimum angular
+  /// `<min_velocity>`: Sets both the minimum linear and minimum angular
   ///  velocity.
   ///
-  /// - `<max_velocity>`: Sets both the maximum linear and maximum angular
+  /// `<max_velocity>`: Sets both the maximum linear and maximum angular
   /// velocity.
   ///
-  /// - `<min_acceleration>`: Sets both the minimum linear and minimum angular
+  /// `<min_acceleration>`: Sets both the minimum linear and minimum angular
   /// acceleration.
   ///
-  /// - `<max_acceleration>`: Sets both the maximum linear and maximum angular
+  /// `<max_acceleration>`: Sets both the maximum linear and maximum angular
   /// acceleration.
   ///
-  /// - `<min_jerk>`: Sets both the minimum linear and minimum angular jerk.
+  /// `<min_jerk>`: Sets both the minimum linear and minimum angular jerk.
   ///
-  /// - `<max_jerk>`: Sets both the maximum linear and maximum angular jerk.
+  /// `<max_jerk>`: Sets both the maximum linear and maximum angular jerk.
   ///
-  /// - `<min_linear_velocity>`: Sets the minimum linear velocity. Overrides
+  /// `<min_linear_velocity>`: Sets the minimum linear velocity. Overrides
   /// `<min_velocity>` if set.
   ///
-  /// - `<max_linear_velocity>`: Sets the maximum linear velocity. Overrides
+  /// `<max_linear_velocity>`: Sets the maximum linear velocity. Overrides
   /// `<max_velocity>` if set.
   ///
-  /// - `<min_angular_velocity>`: Sets the minimum angular velocity. Overrides
+  /// `<min_angular_velocity>`: Sets the minimum angular velocity. Overrides
   /// `<min_velocity>` if set.
   ///
-  /// - `<max_angular_velocity>`: Sets the maximum angular velocity. Overrides
+  /// `<max_angular_velocity>`: Sets the maximum angular velocity. Overrides
   /// `<max_velocity>` if set.
   ///
-  /// - `<min_linear_acceleration>`: Sets the minimum linear acceleration.
+  /// `<min_linear_acceleration>`: Sets the minimum linear acceleration.
   /// Overrides `<min_acceleration>` if set.
   ///
-  /// - `<max_linear_acceleration>`: Sets the maximum linear acceleration.
+  /// `<max_linear_acceleration>`: Sets the maximum linear acceleration.
   /// Overrides `<max_acceleration>` if set.
   ///
-  /// - `<min_angular_acceleration>`: Sets the minimum angular acceleration.
+  /// `<min_angular_acceleration>`: Sets the minimum angular acceleration.
   /// Overrides `<min_acceleration>` if set.
   ///
-  /// - `<max_angular_acceleration>`: Sets the maximum angular acceleration.
+  /// `<max_angular_acceleration>`: Sets the maximum angular acceleration.
   /// Overrides `<max_acceleration>` if set.
   ///
-  /// - `<min_linear_jerk>`: Sets the minimum linear jerk. Overrides
+  /// `<min_linear_jerk>`: Sets the minimum linear jerk. Overrides
   /// `<min_jerk>` if set.
   ///
-  /// - `<max_linear_jerk>`: Sets the maximum linear jerk. Overrides
+  /// `<max_linear_jerk>`: Sets the maximum linear jerk. Overrides
   /// `<max_jerk>` if set.
   ///
-  /// - `<min_angular_jerk>`: Sets the minimum angular jerk. Overrides
+  /// `<min_angular_jerk>`: Sets the minimum angular jerk. Overrides
   /// `<min_jerk>` if set.
   ///
-  /// - `<max_angular_jerk>`: Sets the maximum angular jerk. Overrides
+  /// `<max_angular_jerk>`: Sets the maximum angular jerk. Overrides
   /// `<max_jerk>` if set.
->>>>>>> be07aed (Decouple linear and angular limits in MecanumDrive (#3344))
   class MecanumDrive
       : public System,
         public ISystemConfigure,
