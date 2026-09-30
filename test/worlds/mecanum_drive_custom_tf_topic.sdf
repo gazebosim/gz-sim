@@ -328,6 +328,11 @@
         </axis>
       </joint>
 
+      <!--
+        This test intentionally keeps using the legacy limiter
+        parameters (e.g. <max_velocity>, <max_acceleration>) to ensure
+        backward compatibility coverage.
+      -->
       <plugin
         filename="gz-sim-mecanum-drive-system"
         name="gz::sim::systems::MecanumDrive">
