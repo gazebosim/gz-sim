@@ -673,11 +673,13 @@ diff_drive_test_sources = glob([
     srcs = [src],
     copts = ["-Wno-private-header"],
     deps = [
+        ":gz-sim",
         ":gz-sim-diff-drive-system-static",
         "//test:Helpers",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
     ],
 ) for src in diff_drive_test_sources]
 
