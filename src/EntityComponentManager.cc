@@ -38,7 +38,6 @@
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
-#include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
@@ -341,7 +340,7 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename, const std::string &_ns)
+    const std::string &_name, bool _allowRename, const std::string &_namespace)
 {
   // Clear maps so they're populated for the entity being cloned
   this->dataPtr->oldToClonedCanonicalLink.clear();
@@ -350,7 +349,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
   this->dataPtr->clonedToOriginalJointLinks.clear();
 
   auto clonedEntity =
-    this->CloneImpl(_entity, _parent, _name, _allowRename, _ns);
+    this->CloneImpl(_entity, _parent, _name, _allowRename, _namespace);
 
   if (kNullEntity != clonedEntity)
   {
@@ -403,7 +402,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename, const std::string &_ns)
+    const std::string &_name, bool _allowRename, const std::string &_namespace)
 {
   auto uniqueNameGenerated = false;
 
@@ -477,9 +476,9 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
   auto originalNsComp = this->Component<components::Namespace>(_entity);
-  if (!_ns.empty())
+  if (!_namespace.empty())
   {
-    this->CreateComponent(clonedEntity, components::Namespace(_ns));
+    this->CreateComponent(clonedEntity, components::Namespace(_namespace));
   }
   else if (nullptr != originalNsComp)
   {

@@ -3004,7 +3004,7 @@ TEST_P(EntityComponentManagerFixture,
   // Try cloning an entity with a name that already exists, but allow renaming
   // and without a namespace provided.
   // This should succeed and generate a cloned entity with a unique name
-  // and a same namespace.
+  // and the same namespace.
   const auto existingName = "grandChildEntity1";
   EXPECT_NE(kNullEntity,
       manager.EntityByComponents(components::Name(existingName)));
