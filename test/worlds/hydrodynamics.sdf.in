@@ -115,7 +115,7 @@
         <water_density>918</water_density>
         <xDotU>0</xDotU>
         <yDotV>0</yDotV>
-        <zDotW>15.381</zDotW>
+        <zDotW>-15.381</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
@@ -123,8 +123,8 @@
         <xU>0</xU>
         <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWabsW>11.5359</zWabsW>
-        <zW>0.211869</zW>
+        <zWabsW>-11.5359</zWabsW>
+        <zW>-0.211869</zW>
         <kPabsP>0</kPabsP>
         <kP>0</kP>
         <mQabsQ>0</mQabsQ>
@@ -174,7 +174,7 @@
         <water_density>1000</water_density>
         <xDotU>0</xDotU>
         <yDotV>0</yDotV>
-        <zDotW>12.5664</zDotW>
+        <zDotW>-12.5664</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
@@ -182,8 +182,8 @@
         <xU>0</xU>
         <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWabsW>94.2475</zWabsW>
-        <zW>0.0037699</zW>
+        <zWabsW>-94.2475</zWabsW>
+        <zW>-0.0037699</zW>
         <kPabsP>0</kPabsP>
         <kP>0</kP>
         <mQabsQ>0</mQabsQ>
@@ -233,7 +233,7 @@
         <water_density>1000</water_density>
         <xDotU>0</xDotU>
         <yDotV>0</yDotV>
-        <zDotW>12.5664</zDotW>
+        <zDotW>-12.5664</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
@@ -241,8 +241,8 @@
         <xU>0</xU>
         <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWabsW>94.2475</zWabsW>
-        <zW>0.0037699</zW>
+        <zWabsW>-94.2475</zWabsW>
+        <zW>-0.0037699</zW>
         <kPabsP>0</kPabsP>
         <kP>0</kP>
         <mQabsQ>0</mQabsQ>
@@ -292,7 +292,7 @@
         <water_density>1000</water_density>
         <xDotU>0</xDotU>
         <yDotV>0</yDotV>
-        <zDotW>12.5664</zDotW>
+        <zDotW>-12.5664</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
@@ -300,8 +300,8 @@
         <xU>0</xU>
         <yVabsV>0</yVabsV>
         <yV>0</yV>
-        <zWabsW>94.2475</zWabsW>
-        <zW>0.0037699</zW>
+        <zWabsW>-94.2475</zWabsW>
+        <zW>-0.0037699</zW>
         <kPabsP>0</kPabsP>
         <kP>0</kP>
         <mQabsQ>0</mQabsQ>
@@ -347,23 +347,23 @@
         name="gz::sim::systems::Hydrodynamics">
         <link_name>sphere_current_link</link_name>
         <water_density>918</water_density>
-        <xDotU>15.381</xDotU>
-        <yDotV>15.381</yDotV>
-        <zDotW>15.381</zDotW>
+        <xDotU>-15.381</xDotU>
+        <yDotV>-15.381</yDotV>
+        <zDotW>-15.381</zDotW>
         <kDotP>0</kDotP>
         <mDotQ>0</mDotQ>
         <nDotR>0</nDotR>
-        <xUU>94.2475</xUU>
+        <xUabsU>-94.2475</xUabsU>
         <xU>0</xU>
-        <yVV>94.2475</yVV>
+        <yVabsV>-94.2475</yVabsV>
         <yV>0</yV>
-        <zWW>94.2475</zWW>
+        <zWabsW>-94.2475</zWabsW>
         <zW>0</zW>
-        <kPP>0</kPP>
+        <kPabsP>0</kPabsP>
         <kP>0</kP>
-        <mQQ>0</mQQ>
+        <mQabsQ>0</mQabsQ>
         <mQ>0</mQ>
-        <nRR>0</nRR>
+        <nRabsR>0</nRabsR>
         <nR>0</nR>
         <lookup_current_x>current_x</lookup_current_x>
         <lookup_current_y>current_y</lookup_current_y>
