@@ -141,16 +141,27 @@ namespace gz
       /// _name is not unique, _entity will not be cloned. If _name is an
       /// empty string, _allowRename is ignored since the cloned entity will
       /// have an auto-generated unique name.
-      /// \param[in] _namespace The namespace that should be given to the
-      /// cloned entity.
       /// \return The cloned entity, which will have a unique name. kNullEntity
       /// is returned if cloning failed. Failure could occur if _entity does not
       /// exist, or if a unique name could not be generated for the entity to be
       /// cloned.
       /// \sa Clone
       public: Entity Clone(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename);
+
+      /// \brief Overload of Clone that accepts a namespace override.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// \param[in] _allowRename Whether _name can be modified to make it
+      /// unique.
+      /// \param[in] _namespace The namespace that should be given to the
+      /// cloned entity.
+      /// \return The cloned entity, or kNullEntity if cloning failed.
+      /// \sa Clone
+      public: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename,
-                  const std::string &_namespace = "");
+                  const std::string &_namespace);
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.

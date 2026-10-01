@@ -340,6 +340,13 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
+    const std::string &_name, bool _allowRename)
+{
+  return this->Clone(_entity, _parent, _name, _allowRename, "");
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     const std::string &_name, bool _allowRename, const std::string &_namespace)
 {
   // Clear maps so they're populated for the entity being cloned
