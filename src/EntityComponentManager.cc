@@ -39,6 +39,7 @@
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Recreate.hh"
@@ -341,13 +342,21 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     const std::string &_name, bool _allowRename)
 {
+  return this->Clone(_entity, _parent, _name, _allowRename, "");
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
+    const std::string &_name, bool _allowRename, const std::string &_namespace)
+{
   // Clear maps so they're populated for the entity being cloned
   this->dataPtr->oldToClonedCanonicalLink.clear();
   this->dataPtr->oldModelCanonicalLink.clear();
   this->dataPtr->originalToClonedLink.clear();
   this->dataPtr->clonedToOriginalJointLinks.clear();
 
-  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _allowRename);
+  auto clonedEntity =
+    this->CloneImpl(_entity, _parent, _name, _allowRename, _namespace);
 
   if (kNullEntity != clonedEntity)
   {
@@ -400,7 +409,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename)
+    const std::string &_name, bool _allowRename, const std::string &_namespace)
 {
   auto uniqueNameGenerated = false;
 
@@ -473,13 +482,25 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
+  if (!_namespace.empty())
+  {
+    this->CreateComponent(clonedEntity, components::Namespace(_namespace));
+  }
+  else if (auto originalNsComp =
+    this->Component<components::Namespace>(_entity))
+  {
+    this->CreateComponent(clonedEntity,
+      components::Namespace(originalNsComp->Data()));
+  }
+
   // copy all components from _entity to clonedEntity
   for (const auto &type : this->ComponentTypes(_entity))
   {
-    // skip the Name and ParentEntity components since those were already
-    // handled above
+    // skip the Name, Namespace and ParentEntity components since those were
+    // already handled above
     if ((type == components::Name::typeId) ||
-        (type == components::ParentEntity::typeId))
+        (type == components::ParentEntity::typeId) ||
+        (type == components::Namespace::typeId))
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
