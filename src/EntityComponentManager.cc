@@ -589,7 +589,6 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
         name = nameComp->Data();
       }
     }
-
     auto clonedChild = this->CloneImpl(childEntity, clonedEntity, name,
         _allowRename);
     if (kNullEntity == clonedChild)
