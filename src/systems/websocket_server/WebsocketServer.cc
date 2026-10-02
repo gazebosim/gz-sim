@@ -643,6 +643,14 @@ void WebsocketServer::OnDisconnect(int _socketId)
   if (this->connections.find(_socketId) == this->connections.end())
     return;
 
+  // Discarded messages must no longer keep the run loop awake.
+  {
+    std::lock_guard<std::mutex> connectionLock(
+        this->connections[_socketId]->mutex);
+    std::lock_guard<std::mutex> runLock(this->runMutex);
+    this->messageCount -= static_cast<int>(
+        this->connections[_socketId]->buffer.size());
+  }
   this->connections.erase(_socketId);
 
   // Somewhat slow operation.
