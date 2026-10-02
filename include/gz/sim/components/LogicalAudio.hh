@@ -283,7 +283,7 @@ namespace serializers
 
 // using separate namespace blocks so all components appear in Doxygen
 // (appears as if Doxygen can't parse multiple components in a single
-// namespace block since GZ_SIM_REGISTER_COMPONENT doesn't have a
+// namespace block since GZ_SIM_DECLARE_COMPONENT doesn't have a
 // trailing semicolon)
 namespace components
 {
