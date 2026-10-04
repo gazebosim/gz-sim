@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="hydrodynamics_reset">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <gravity>0 0 0</gravity>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="reset_body">
+      <link name="body">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>25</mass>
+          <inertia>
+            <ixx>0.4</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.4</iyy>
+            <iyz>0</iyz>
+            <izz>0.4</izz>
+          </inertia>
+        </inertial>
+
+        <visual name="visual">
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </visual>
+
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.2</radius>
+            </sphere>
+          </geometry>
+        </collision>
+      </link>
+
+      <plugin
+        filename="gz-sim-hydrodynamics-system"
+        name="gz::sim::systems::Hydrodynamics">
+        <namespace>reset_body</namespace>
+        <link_name>body</link_name>
+        <water_density>918</water_density>
+        <disable_coriolis>true</disable_coriolis>
+        <disable_added_mass>true</disable_added_mass>
+        <xUabsU>0</xUabsU>
+        <xU>10</xU>
+        <yVabsV>0</yVabsV>
+        <yV>10</yV>
+        <zWabsW>0</zWabsW>
+        <zW>10</zW>
+        <kPabsP>0</kPabsP>
+        <kP>0</kP>
+        <mQabsQ>0</mQabsQ>
+        <mQ>0</mQ>
+        <nRabsR>0</nRabsR>
+        <nR>0</nR>
+      </plugin>
+    </model>
+  </world>
+</sdf>

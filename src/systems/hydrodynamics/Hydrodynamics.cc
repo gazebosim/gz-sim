@@ -14,9 +14,11 @@
  * limitations under the License.
  *
  */
+#include <chrono>
 #include <cmath>
+#include <cstddef>
 #include <string>
-
+#include <iterator>
 #include <Eigen/Eigen>
 
 #include <gz/msgs/vector3d.pb.h>
@@ -72,6 +74,9 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Ocean current experienced by this body
   public: math::Vector3d currentVector {0, 0, 0};
 
+  /// \brief Configured default current restored on reset.
+  public: math::Vector3d defaultCurrentVector {0, 0, 0};
+
   /// \brief Added mass of vehicle;
   /// See: https://en.wikipedia.org/wiki/Added_mass
   public: Eigen::Matrix<double, 6, 6> Ma;
@@ -107,6 +112,68 @@ class gz::sim::systems::HydrodynamicsPrivateData
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
   /////////////////////////////////////////////////
+  /// \brief Initialize the environment lookup sessions for the current table.
+  /// \param[in] _environment The environment component holding lookup fields.
+  /// \param[in] _currTime The current simulation time.
+  public: bool InitializeWaterCurrentTable(
+    const components::Environment *_environment,
+    const std::chrono::steady_clock::duration &_currTime)
+  {
+    if (nullptr == _environment)
+      return false;
+
+    this->gridField = _environment->Data();
+    if (!this->gridField)
+      return false;
+
+    for (std::size_t i = 0; i < std::size(this->axisComponents); ++i)
+    {
+      this->session[i].reset();
+
+      if (this->axisComponents[i].empty())
+        continue;
+
+      if (!this->gridField->frame.Has(this->axisComponents[i]))
+      {
+        gzwarn << "Environmental sensor could not find field "
+          << this->axisComponents[i] << "\n";
+        continue;
+      }
+
+      this->session[i] =
+        this->gridField->frame[this->axisComponents[i]].CreateSession();
+      if (!this->gridField->staticTime)
+      {
+        this->session[i] =
+          this->gridField->frame[this->axisComponents[i]].StepTo(
+            *this->session[i],
+            std::chrono::duration<double>(_currTime).count());
+      }
+
+      if (!this->session[i].has_value())
+      {
+        gzerr << "Exceeded time stamp." << std::endl;
+      }
+    }
+
+    return true;
+  }
+
+  /// \brief Whether a current-table session is ready to be queried.
+  public: bool HasCurrentTableSession() const
+  {
+    if (!this->gridField)
+      return false;
+
+    for (const auto &sessionValue : this->session)
+    {
+      if (sessionValue.has_value())
+        return true;
+    }
+
+    return false;
+  }
+
   /// \brief Set the current table
   /// \param[in] _ecm - The Entity Component Manager
   /// \param[in] _currTime - The current time
@@ -114,39 +181,25 @@ class gz::sim::systems::HydrodynamicsPrivateData
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime)
   {
+    auto refreshFromEnvironment =
+      [&](const components::Environment *_environment) -> bool
+      {
+        return this->InitializeWaterCurrentTable(_environment, _currTime);
+      };
+
     _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
       const components::Environment *_environment) -> bool
     {
-      this->gridField = _environment->Data();
+      return !refreshFromEnvironment(_environment);
+    });
 
-      for (std::size_t i = 0; i < 3; i++)
-      {
-        if (!this->axisComponents[i].empty())
-        {
-          if (!this->gridField->frame.Has(this->axisComponents[i]))
-          {
-            gzwarn << "Environmental sensor could not find field "
-              << this->axisComponents[i] << "\n";
-            continue;
-          }
+    if (this->HasCurrentTableSession())
+      return;
 
-          this->session[i] =
-            this->gridField->frame[this->axisComponents[i]].CreateSession();
-          if (!this->gridField->staticTime)
-          {
-            this->session[i] =
-              this->gridField->frame[this->axisComponents[i]].StepTo(
-                *this->session[i],
-                std::chrono::duration<double>(_currTime).count());
-          }
-
-          if(!this->session[i].has_value())
-          {
-            gzerr << "Exceeded time stamp." << std::endl;
-          }
-        }
-      }
-      return true;
+    _ecm.Each<components::Environment>([&](const Entity &/*_entity*/,
+      const components::Environment *_environment) -> bool
+    {
+      return !refreshFromEnvironment(_environment);
     });
   }
 
@@ -170,7 +223,7 @@ class gz::sim::systems::HydrodynamicsPrivateData
       return current;
     }
 
-    for (std::size_t i = 0; i < 3; i++)
+    for (std::size_t i = 0; i < std::size(this->axisComponents); ++i)
     {
       if (!this->axisComponents[i].empty())
       {
@@ -444,8 +497,10 @@ void Hydrodynamics::Configure(
 
   if(_sdf->HasElement("default_current"))
   {
-    this->dataPtr->currentVector = _sdf->Get<math::Vector3d>("default_current");
+    this->dataPtr->defaultCurrentVector =
+      _sdf->Get<math::Vector3d>("default_current");
   }
+  this->dataPtr->currentVector = this->dataPtr->defaultCurrentVector;
 
   this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
 
@@ -649,6 +704,15 @@ void Hydrodynamics::Reset(
 {
   this->dataPtr->prevState = Eigen::Matrix<double, 6, 1>::Zero();
   this->dataPtr->firstIteration = true;
+  {
+    std::lock_guard lock(this->dataPtr->mtx);
+    this->dataPtr->currentVector = this->dataPtr->defaultCurrentVector;
+  }
+  this->dataPtr->gridField.reset();
+  for (auto &session : this->dataPtr->session)
+  {
+    session.reset();
+  }
 }
 
 GZ_ADD_PLUGIN(
