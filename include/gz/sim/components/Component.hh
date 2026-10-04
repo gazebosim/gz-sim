@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <type_traits>
 #include <utility>
 
 #include <gz/common/Console.hh>
@@ -28,6 +29,8 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
+
+#include <gz/sim/detail/vendor/entt/core/type_info.hpp>
 
 namespace gz
 {
@@ -607,4 +610,20 @@ namespace components
 }
 }
 }
+
+namespace entt
+{
+template <typename T>
+struct type_hash<T, std::void_t<
+    std::enable_if_t<std::is_base_of_v<gz::sim::components::BaseComponent, T>>,
+    decltype(T::typeId)
+>>
+{
+  static constexpr ENTT_ID_TYPE value() noexcept
+  {
+    return T::typeId;
+  }
+};
+}
+
 #endif

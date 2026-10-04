@@ -400,6 +400,7 @@ void GuiRunner::UpdateSystems()
       if (system)
         system->PostUpdate(this->dataPtr->updateInfo, this->dataPtr->ecm);
     }
+    this->dataPtr->ecm.CreatePendingGroups();
   }
 }
 
