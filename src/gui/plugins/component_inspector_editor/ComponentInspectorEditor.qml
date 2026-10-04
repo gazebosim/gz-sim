@@ -322,12 +322,14 @@ Rectangle {
           id: linkAddPausePopup
           modal: true
           focus: true
-          x: parent.width - linkAdPopupContentText.width
-          y: parent.height + linkAdPopupContentText.height
           contentItem: Text {
             id: linkAdPopupContentText
             padding: 10
             text: "Pause simulation to add a link, light, or joint"
+          }
+          onOpened: {
+            x = parent.width - implicitWidth
+            y = parent.height + 4
           }
           closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
@@ -603,12 +605,14 @@ Rectangle {
           id: sensorAddPausePopup
           modal: true
           focus: true
-          x: parent.width - sensorAddPopupContentText.width
-          y: parent.height + sensorAddPopupContentText.height
           contentItem: Text {
             id: sensorAddPopupContentText
             padding: 10
             text: "Pause simulation to add a sensor"
+          }
+          onOpened: {
+            x = parent.width - implicitWidth
+            y = parent.height + 4
           }
           closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
         }
