@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2022 Open Source Robotics Foundation
+ * Copyright (C) 2026 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,13 @@
 */
 
 #include <gtest/gtest.h>
+
+#include <memory>
+#include <string>
+
+#include <gz/common/Filesystem.hh>
+#include <sdf/Element.hh>
+#include <sdf/Plugin.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/System.hh"
@@ -388,4 +396,118 @@ TEST(SystemManager, AddSystemWithInfo)
         return true;
       });
   EXPECT_EQ(1, entityCount);
+}
+
+// Adapted from peachtree0222's reproduction in
+// https://github.com/gazebosim/gz-sim/issues/3976.
+namespace
+{
+SystemLoaderPtr CreateLoader()
+{
+  auto loader = std::make_shared<SystemLoader>();
+#ifdef _WIN32
+  const std::string pluginDir = "bin";
+#else
+  const std::string pluginDir = "lib";
+#endif
+  loader->AddSystemPluginPath(
+      gz::common::joinPaths(PROJECT_BINARY_PATH, pluginDir));
+  return loader;
+}
+
+sdf::Plugin PluginSpec(const std::string &_filename, const std::string &_name)
+{
+  sdf::Plugin spec;
+  spec.SetFilename(_filename);
+  spec.SetName(_name);
+  return spec;
+}
+
+void ExpectPriorityInterface(const std::string &_filename,
+    const std::string &_name, System::PriorityType _expected)
+{
+  auto loader = CreateLoader();
+  auto plugin = loader->LoadPlugin(PluginSpec(_filename, _name));
+  ASSERT_TRUE(plugin.has_value());
+  ASSERT_TRUE(static_cast<bool>(*plugin));
+
+  // Query the dynamic plugin metadata, not the concrete C++ class.
+  auto priority = (*plugin)->QueryInterface<ISystemConfigurePriority>();
+  ASSERT_NE(nullptr, priority);
+  EXPECT_EQ(_expected, priority->ConfigurePriority());
+}
+
+void SetPriority(sdf::Plugin &_plugin, System::PriorityType _priority)
+{
+  auto element = std::make_shared<sdf::Element>();
+  element->SetName(std::string(System::kPriorityElementName));
+  element->AddValue("int", std::to_string(_priority), false, "");
+  _plugin.InsertContent(element);
+}
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, PhysicsDynamicPriorityInterface)
+{
+  ExpectPriorityInterface("gz-sim-physics-system",
+      "gz::sim::systems::Physics", systems::kPhysicsPriority);
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, UserCommandsDynamicPriorityInterface)
+{
+  ExpectPriorityInterface("gz-sim-user-commands-system",
+      "gz::sim::systems::UserCommands", systems::kUserCommandsPriority);
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, ForceTorqueDynamicPriorityInterface)
+{
+  // Positive control: this plugin already registers its priority interface.
+  ExpectPriorityInterface("gz-sim-forcetorque-system",
+      "gz::sim::systems::ForceTorque", systems::kPostPhysicsSensorPriority);
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, DynamicPluginsUseDeclaredDefaults)
+{
+  // No ECM or event manager is needed to inspect scheduling: leave the
+  // systems unconfigured so this does not require a physics engine or world.
+  SystemManager manager(CreateLoader());
+  manager.LoadPlugin(kNullEntity, PluginSpec("gz-sim-physics-system",
+      "gz::sim::systems::Physics"));
+  manager.LoadPlugin(kNullEntity, PluginSpec("gz-sim-user-commands-system",
+      "gz::sim::systems::UserCommands"));
+
+  ASSERT_EQ(2u, manager.ActivatePendingSystems());
+  EXPECT_EQ(1u, manager.SystemsUpdate().count(systems::kPhysicsPriority));
+  EXPECT_EQ(0u, manager.SystemsUpdate().count(System::kDefaultPriority));
+  EXPECT_EQ(1u,
+      manager.SystemsPreUpdate().count(systems::kUserCommandsPriority));
+  EXPECT_EQ(0u,
+      manager.SystemsPreUpdate().count(System::kDefaultPriority));
+}
+
+/////////////////////////////////////////////////
+TEST(SystemManager, ExplicitPriorityOverridesDeclaredDefaults)
+{
+  SystemManager manager(CreateLoader());
+  auto physics = PluginSpec("gz-sim-physics-system",
+      "gz::sim::systems::Physics");
+  auto userCommands = PluginSpec("gz-sim-user-commands-system",
+      "gz::sim::systems::UserCommands");
+  constexpr System::PriorityType physicsPriority = 123;
+  constexpr System::PriorityType userCommandsPriority = 456;
+  SetPriority(physics, physicsPriority);
+  SetPriority(userCommands, userCommandsPriority);
+  manager.LoadPlugin(kNullEntity, physics);
+  manager.LoadPlugin(kNullEntity, userCommands);
+
+  ASSERT_EQ(2u, manager.ActivatePendingSystems());
+  ASSERT_EQ(1u, manager.SystemsUpdate().size());
+  ASSERT_EQ(1u, manager.SystemsUpdate().count(physicsPriority));
+  EXPECT_EQ(1u, manager.SystemsUpdate().at(physicsPriority).size());
+  ASSERT_EQ(1u, manager.SystemsPreUpdate().size());
+  ASSERT_EQ(1u, manager.SystemsPreUpdate().count(userCommandsPriority));
+  EXPECT_EQ(1u, manager.SystemsPreUpdate().at(userCommandsPriority).size());
 }

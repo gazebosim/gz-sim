@@ -260,7 +260,10 @@ genrule(
         ":server.config",
         "//test:media",
         "//test:worlds",
-    ],
+    ] + ([
+        ":gz-sim-forcetorque-system.so",
+        ":gz-sim-user-commands-system.so",
+    ] if src == "src/SystemManager_TEST.cc" else []),
     env = {
         "GZ_BAZEL": "1",
         "GZ_SIM_PHYSICS_ENGINE_PATH": "physics_engine",
