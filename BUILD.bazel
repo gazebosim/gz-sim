@@ -186,7 +186,7 @@ test_sources = glob(
         # Bazel build.
         "src/SystemLoader_TEST.cc",
     ],
-)
+) + ["test/integration/physics_late_removal.cc"]
 
 # Genrule to copy the default server config to the test execroot.
 genrule(
