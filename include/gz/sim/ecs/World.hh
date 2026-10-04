@@ -23,6 +23,7 @@
 #include "gz/sim/ecs/ComponentTypeRegistry.hh"
 #include "gz/sim/ecs/Entity.hh"
 #include "gz/sim/ecs/Query.hh"
+#include "gz/sim/ecs/detail/EntityIndex.hh"
 
 namespace gz::common { class WorkerPool; }
 
@@ -180,6 +181,12 @@ namespace gz::sim::ecs
 
     public: size_t NumEntities() const;
     public: size_t NumArchetypes() const;
+
+    /// \brief Resolve the archetype currently owning this entity.
+    /// kInvalidArchetypeId for dead/unknown entities. O(1) — the
+    /// facade uses it to answer ComponentTypes(entity) without
+    /// scanning the archetype graph.
+    public: ArchetypeId ArchetypeOf(Entity _e) const;
 
     public: unsigned int NumThreads() const { return this->num_threads_; }
 

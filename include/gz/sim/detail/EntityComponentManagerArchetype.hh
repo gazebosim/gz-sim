@@ -210,59 +210,62 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   //----------------------------------------------------------
   // Each<T...>
   //
-  // The archetype backend's Each walks every entity the facade knows
-  // about (via AllEntitiesArchetypeFacade) and tests each for the
-  // requested component tuple via the non-template
-  // ComponentImplementation. That helper already unifies the shadow
-  // store + archetype World, so both storage paths are covered in
-  // one pass.
+  // Delegates to ecs::World::Each<Cs...> for chunk-contiguous SoA
+  // iteration. The Phase 0a archetype core handles the
+  // matching-archetype lookup, the per-chunk column-pointer hoist,
+  // and the straight-line row loop. The facade's only job here is
+  // the per-row ecs::Entity -> gz::sim::Entity translation, which is
+  // an O(1) unordered_map lookup against coreToLegacy.
   //
-  // Performance trade-off: the Phase 0a archetype core's Each<T>
-  // gets chunk-contiguous iteration (~3 ns/entity). This per-entity
-  // loop is closer to the legacy ECM's per-entity-map-lookup cost
-  // (~30-50 ns/entity). For Phase 0b that's acceptable — we're
-  // trading raw speed for correctness across both storage paths.
-  // Phase 0b completion (Factory ↔ ComponentTypeRegistry bridge)
-  // eliminates the shadow store and lets Each<T> go back to the
-  // archetype-native fast path.
+  // This replaces the earlier Phase 0b stepping-stone that walked
+  // AllEntitiesArchetypeFacade() and called the type-erased
+  // ComponentImplementation per row + per requested type — that path
+  // collapsed to ~30–50 ns/entity and made the archetype backend
+  // measurably slower than the legacy ECM on physics-heavy worlds
+  // (see grid-1000 regression diagnosis, doc/archetype_ecs_architecture.md).
+  // With the Factory ↔ ComponentTypeRegistry bridge in
+  // include/gz/sim/components/Factory.hh, every in-tree component
+  // type is registered with the archetype core at static-init time,
+  // so the shadow store is empty in normal operation and World::Each
+  // sees every component.
 
   template<typename ...ComponentTypeTs>
   void EntityComponentManager::Each(typename identity<std::function<
       bool(const Entity &_entity,
            const ComponentTypeTs *...)>>::type _f) const
   {
-    for (Entity e : this->AllEntitiesArchetypeFacade())
-    {
-      auto comps = std::make_tuple(
-          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
-      bool hasAll = true;
-      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
-                 comps);
-      if (!hasAll) continue;
-      bool keep = std::apply([&](auto*... ps) {
-        return _f(e, ps...);
-      }, comps);
-      if (!keep) break;
-    }
+    if (!this->dataPtr) return;
+    // World::Each is non-const because EachParallel writes through
+    // thread-local command buffers; this Each<...> is logically
+    // const (we hand the user const pointers via the facade
+    // signature) so the cast is safe.
+    auto &w = const_cast<gz::sim::ecs::World&>(*this->ArchetypeWorld());
+    bool stop = false;
+    w.template Each<std::remove_const_t<ComponentTypeTs>...>(
+        [&](gz::sim::ecs::Entity core,
+            std::remove_const_t<ComponentTypeTs>&... comps)
+        {
+          if (stop) return;
+          Entity legacy = detail_archetype::FromCore(this, core);
+          if (!_f(legacy, (&comps)...)) stop = true;
+        });
   }
 
   template<typename ...ComponentTypeTs>
   void EntityComponentManager::Each(typename identity<std::function<
       bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
   {
-    for (Entity e : this->AllEntitiesArchetypeFacade())
-    {
-      auto comps = std::make_tuple(
-          this->Component<std::remove_const_t<ComponentTypeTs>>(e)...);
-      bool hasAll = true;
-      std::apply([&](auto*... ps) { hasAll = ((ps != nullptr) && ...); },
-                 comps);
-      if (!hasAll) continue;
-      bool keep = std::apply([&](auto*... ps) {
-        return _f(e, ps...);
-      }, comps);
-      if (!keep) break;
-    }
+    if (!this->dataPtr) return;
+    bool stop = false;
+    this->ArchetypeWorld()->template Each<
+        std::remove_const_t<ComponentTypeTs>...>(
+        [&](gz::sim::ecs::Entity core,
+            std::remove_const_t<ComponentTypeTs>&... comps)
+        {
+          if (stop) return;
+          Entity legacy = detail_archetype::FromCore(this, core);
+          if (!_f(legacy, (&comps)...)) stop = true;
+        });
   }
 
   //----------------------------------------------------------

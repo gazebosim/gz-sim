@@ -35,6 +35,10 @@
 #include <gz/sim/Types.hh>
 #include <gz/utils/NeverDestroyed.hh>
 
+#if defined(GZ_SIM_USE_ARCHETYPE_ECM)
+#include <gz/sim/ecs/ComponentTypeRegistry.hh>
+#endif
+
 namespace gz
 {
 namespace sim
@@ -260,6 +264,20 @@ namespace components
       this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
+
+#if defined(GZ_SIM_USE_ARCHETYPE_ECM)
+      // Bridge into the archetype core: register this component type
+      // with ecs::ComponentTypeRegistry so the type-erased
+      // CreateComponentImplementation path in
+      // EntityComponentManagerArchetype.cc can route into World::AddRaw
+      // (i.e., the SoA archetype storage) instead of falling back to a
+      // shadow heap map. Without this, every SdfEntityCreator-created
+      // component lives off-archetype and World::Each<T> can't see it.
+      // Idempotent — ecs::ComponentTypeRegistry::Register short-circuits
+      // if the id is already known.
+      gz::sim::ecs::ComponentTypeRegistry::Instance()
+          .template Register<ComponentTypeT>(_type);
+#endif
     }
 
     /// \brief Unregister a component so that the factory can't create instances

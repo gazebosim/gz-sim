@@ -659,7 +659,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   EntityComponentManager::ComponentTypes(Entity _entity) const
   {
     std::unordered_set<ComponentTypeId> out;
-    // Shadow map contributions first.
+    // Shadow map contributions first. With the Factory ↔ archetype
+    // registry bridge in place this is empty in normal operation,
+    // but the lookup is cheap and keeps any plugin-side edge case
+    // working until the shadow store is fully retired.
     auto eit = this->dataPtr->shadowComponents.find(_entity);
     if (eit != this->dataPtr->shadowComponents.end())
     {
@@ -668,29 +671,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
 
     gz::sim::ecs::Entity core;
     if (!this->dataPtr->CoreFor(_entity, core)) return out;
-    // Pull the archetype and iterate its types.
-    const auto &graph = this->dataPtr->world.Graph();
-    graph.ForEach([&](const gz::sim::ecs::Archetype &_a)
-    {
-      // We don't have a direct Entity -> Archetype accessor on the
-      // World public API, so we identify the owning archetype by
-      // asking which archetype contains this entity. A lightweight
-      // way: iterate all archetypes and ask each if it contains
-      // the entity.
-      for (size_t ci = 0; ci < _a.NumChunks(); ++ci)
-      {
-        const auto &chunk = _a.ChunkAt(ci);
-        const auto *entities = chunk.Entities();
-        for (uint32_t r = 0; r < chunk.Count(); ++r)
-        {
-          if (entities[r] == core)
-          {
-            for (auto t : _a.Types()) out.insert(t);
-            return;
-          }
-        }
-      }
-    });
+    auto aid = this->dataPtr->world.ArchetypeOf(core);
+    if (aid == gz::sim::ecs::kInvalidArchetypeId) return out;
+    for (auto t : this->dataPtr->world.Graph().Get(aid).Types())
+      out.insert(t);
     return out;
   }
 

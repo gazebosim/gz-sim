@@ -90,6 +90,12 @@ namespace gz::sim::ecs
     return this->graph_->Size();
   }
 
+  ArchetypeId World::ArchetypeOf(Entity _e) const
+  {
+    if (!this->entity_index_->IsAlive(_e)) return kInvalidArchetypeId;
+    return this->entity_index_->Get(_e).archetype;
+  }
+
   bool World::IsAlive(Entity _e) const
   {
     return this->entity_index_->IsAlive(_e);

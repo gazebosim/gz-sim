@@ -74,7 +74,7 @@ _WORLD_HEADER = """\
   <world name="{world_name}">
 
     <physics name="1ms" type="ignored">
-      <max_step_size>0.001</max_step_size>
+      <max_step_size>0.01</max_step_size>
       <real_time_factor>0</real_time_factor>
     </physics>
 {plugin_block}
