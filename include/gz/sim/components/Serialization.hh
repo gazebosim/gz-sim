@@ -22,7 +22,7 @@
 #pragma warning(disable: 4251)
 #endif
 
-#include <google/protobuf/message_lite.h>
+#include <google/protobuf/message.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -30,6 +30,8 @@
 
 #include <gz/msgs/double_v.pb.h>
 
+#include <ios>
+#include <memory>
 #include <string>
 #include <vector>
 #include <sdf/Sensor.hh>
@@ -125,8 +127,10 @@ namespace serializers
         msg = gz::msgs::Convert(_data);
       }
 
-      auto result = msg.SerializeToOstream(&_out);
-      (void)result;
+      if (!msg.SerializeToOstream(&_out))
+      {
+        _out.setstate(std::ios_base::failbit);
+      }
       return _out;
     }
 
@@ -140,6 +144,7 @@ namespace serializers
       MsgType msg;
       if (!msg.ParseFromIstream(&_in))
       {
+        _in.setstate(std::ios_base::failbit);
         return _in;
       }
 
@@ -170,8 +175,10 @@ namespace serializers
     {
       gz::msgs::Double_V msg;
       *msg.mutable_data() = {_vec.begin(), _vec.end()};
-      auto result = msg.SerializeToOstream(&_out);
-      (void)result;
+      if (!msg.SerializeToOstream(&_out))
+      {
+        _out.setstate(std::ios_base::failbit);
+      }
       return _out;
     }
 
@@ -185,6 +192,7 @@ namespace serializers
       gz::msgs::Double_V msg;
       if (!msg.ParseFromIstream(&_in))
       {
+        _in.setstate(std::ios_base::failbit);
         return _in;
       }
 
@@ -203,8 +211,10 @@ namespace serializers
     public: static std::ostream &Serialize(std::ostream &_out,
         const google::protobuf::Message &_msg)
     {
-      auto result = _msg.SerializeToOstream(&_out);
-      (void)result;
+      if (!_msg.SerializeToOstream(&_out))
+      {
+        _out.setstate(std::ios_base::failbit);
+      }
       return _out;
     }
 
@@ -215,8 +225,16 @@ namespace serializers
     public: static std::istream &Deserialize(std::istream &_in,
         google::protobuf::Message &_msg)
     {
-      auto result = _msg.ParseFromIstream(&_in);
-      (void)result;
+      // Parse into a temporary message so malformed data can't leave the
+      // component partially updated.
+      std::unique_ptr<google::protobuf::Message> parsed(_msg.New());
+      if (!parsed->ParseFromIstream(&_in))
+      {
+        _in.setstate(std::ios_base::failbit);
+        return _in;
+      }
+
+      _msg.CopyFrom(*parsed);
       return _in;
     }
   };
