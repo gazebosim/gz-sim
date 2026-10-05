@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_DIFFDRIVE_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
@@ -55,11 +56,15 @@ namespace systems
   /// element is optional, and the default value is 50Hz.
   ///
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
+  /// receive command velocity messages. This element is optional, and the
   /// default value is `/model/{name_of_model}/cmd_vel`.
   ///
+  /// - `<enable_topic>`: Custom topic that this system will subscribe to in
+  /// order to receive enable messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/enable`.
+  ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
+  /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
@@ -135,11 +140,27 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Enable/disable topic name
+      public: std::string enableTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+    };
+
     /// \brief Constructor
     public: DiffDrive();
 
     /// \brief Destructor
-    public: ~DiffDrive() override = default;
+    public: ~DiffDrive();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -156,6 +177,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<DiffDrivePrivate> dataPtr;
