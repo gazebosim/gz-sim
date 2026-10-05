@@ -1726,11 +1726,55 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
   std::string sensorScopedName =
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdfDataCopy.SetName(sensorScopedName);
+
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
   // check topic
-  if (sdfDataCopy.Topic().empty())
+  TopicNameOptions topicOptions;
+  topicOptions.sdfElementName = "topic";
+  topicOptions.topicNamespace = ns;
+  if (!_topicSuffix.empty())
   {
-    sdfDataCopy.SetTopic(scopedName(_entity, _ecm) + _topicSuffix);
+    topicOptions.defaultTopicPrefix = defaultPrefix;
+    topicOptions.defaultTopicSuffix = _topicSuffix;
   }
+  else
+  {
+    topicOptions.defaultTopicSuffix = defaultPrefix;
+  }
+
+  // ToElement() adds the "__default__" topic placeholder. Remove it when no
+  // topic was specified so resolvedTopicName() uses the configured default.
+  auto sdfElement = _sdfData.ToElement();
+  if (_sdfData.Topic().empty())
+  {
+    sdfElement->RemoveChild(sdfElement->GetElement("topic"));
+  }
+  sdfDataCopy.SetTopic(resolvedTopicName(sdfElement, topicOptions));
+
+  if (auto *camera = sdfDataCopy.CameraSensor())
+  {
+    if (!camera->CameraInfoTopic().empty())
+    {
+      TopicNameOptions cameraInfoTopicOptions;
+      cameraInfoTopicOptions.sdfElementName = "camera_info_topic";
+      cameraInfoTopicOptions.topicNamespace = ns;
+      camera->SetCameraInfoTopic(resolvedTopicName(
+          camera->ToElement(), cameraInfoTopicOptions));
+    }
+
+    if (camera->Triggered() && !camera->TriggerTopic().empty())
+    {
+      TopicNameOptions triggerTopicOptions;
+      triggerTopicOptions.sdfElementName = "trigger_topic";
+      triggerTopicOptions.topicNamespace = ns;
+      camera->SetTriggerTopic(resolvedTopicName(
+          camera->ToElement(), triggerTopicOptions));
+    }
+  }
+
   this->newSensorTopics[_entity] = sdfDataCopy.Topic();
   this->newSensors.push_back(
       std::make_tuple(_entity, std::move(sdfDataCopy), _parent));
@@ -1741,14 +1785,14 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
 void RenderUtilPrivate::CreateEntitiesFirstUpdate(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
-  const std::string cameraSuffix{"/image"};
-  const std::string depthCameraSuffix{"/depth_image"};
+  const std::string cameraSuffix{"image"};
+  const std::string depthCameraSuffix{"depth_image"};
   const std::string rgbdCameraSuffix{""};
-  const std::string thermalCameraSuffix{"/image"};
-  const std::string gpuLidarSuffix{"/scan"};
-  const std::string segmentationCameraSuffix{"/segmentation"};
-  const std::string boundingBoxCameraSuffix{"/boundingbox"};
-  const std::string wideAngleCameraSuffix{"/image"};
+  const std::string thermalCameraSuffix{"image"};
+  const std::string gpuLidarSuffix{"scan"};
+  const std::string segmentationCameraSuffix{"segmentation"};
+  const std::string boundingBoxCameraSuffix{"boundingbox"};
+  const std::string wideAngleCameraSuffix{"image"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
@@ -2029,14 +2073,14 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
 void RenderUtilPrivate::CreateEntitiesRuntime(
     const EntityComponentManager &_ecm, const UpdateInfo &_info)
 {
-  const std::string cameraSuffix{"/image"};
-  const std::string depthCameraSuffix{"/depth_image"};
+  const std::string cameraSuffix{"image"};
+  const std::string depthCameraSuffix{"depth_image"};
   const std::string rgbdCameraSuffix{""};
-  const std::string thermalCameraSuffix{"/image"};
-  const std::string gpuLidarSuffix{"/scan"};
-  const std::string segmentationCameraSuffix{"/segmentation"};
-  const std::string boundingBoxCameraSuffix{"/boundingbox"};
-  const std::string wideAngleCameraSuffix{"/image"};
+  const std::string thermalCameraSuffix{"image"};
+  const std::string gpuLidarSuffix{"scan"};
+  const std::string segmentationCameraSuffix{"segmentation"};
+  const std::string boundingBoxCameraSuffix{"boundingbox"};
+  const std::string wideAngleCameraSuffix{"image"};
 
   // Get all the new worlds
   // TODO(anyone) Only one scene is supported for now
