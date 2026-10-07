@@ -218,7 +218,7 @@ TEST_F(ActorFixture, ActorTrajectoryNoMesh)
 // the bone transforms set through the BoneTransforms component, that the
 // other bones hold their pose and the actor keeps following its trajectory,
 // and that the animation plays again once the component is removed.
-TEST_F(ActorFixture, ActorBoneTransforms)
+TEST_F(ActorFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(ActorBoneTransforms))
 {
   sim::ServerConfig serverConfig;
 

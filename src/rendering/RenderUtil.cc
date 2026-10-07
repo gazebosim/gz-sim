@@ -627,6 +627,13 @@ class gz::sim::RenderUtilPrivate
               AnimationUpdateData> &_actorAnimationData,
               const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
               const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
+
+  /// \brief Stop any animation still playing on an actor, it would
+  /// overwrite bone transforms set on its skeleton
+  /// \param[in] _id Actor entity id
+  /// \param[in] _actorMesh Mesh of the actor
+  public: void DisableActorAnimations(Entity _id,
+              const rendering::MeshPtr &_actorMesh);
 };
 
 //////////////////////////////////////////////////
@@ -1431,20 +1438,7 @@ void RenderUtil::Update()
       if (!actorMesh)
         continue;
 
-      // Stop any animation still playing, it would overwrite the bones
-      auto actorSkel = this->dataPtr->sceneManager.ActorSkeletonById(tf.first);
-      if (actorSkel)
-      {
-        for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
-        {
-          const std::string &animName = actorSkel->Animation(i)->Name();
-          if (actorMesh->SkeletonAnimationEnabled(animName))
-          {
-            actorMesh->SetSkeletonAnimationEnabled(animName, false, false,
-                0.0);
-          }
-        }
-      }
+      this->dataPtr->DisableActorAnimations(tf.first, actorMesh);
       actorMesh->SetSkeletonLocalTransforms(tf.second);
     }
 
@@ -3192,6 +3186,22 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
                 << ", " << camera->MaxTemperature() << "]." << std::endl;
       }
     }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::DisableActorAnimations(Entity _id,
+    const rendering::MeshPtr &_actorMesh)
+{
+  auto actorSkel = this->sceneManager.ActorSkeletonById(_id);
+  if (!actorSkel)
+    return;
+
+  for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+  {
+    const std::string &animName = actorSkel->Animation(i)->Name();
+    if (_actorMesh->SkeletonAnimationEnabled(animName))
+      _actorMesh->SetSkeletonAnimationEnabled(animName, false, false, 0.0);
   }
 }
 
