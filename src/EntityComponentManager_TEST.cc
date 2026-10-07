@@ -2999,7 +2999,7 @@ TEST_P(EntityComponentManagerFixture,
       grandChildParentComp->Data(), "", allowRename, "clonedGrandChildNs");
   EXPECT_EQ(9u, manager.EntityCount());
   clonedEntities.insert(clonedGrandChildEntity);
-  validateGrandChildClone(clonedGrandChildEntity, false, true);
+  validateGrandChildClone(clonedGrandChildEntity, false, false, true);
 
   // Try cloning an entity into a parent that already has a child with the
   // requested name, but allow renaming. This should succeed and generate a
@@ -3028,7 +3028,7 @@ TEST_P(EntityComponentManagerFixture,
       childEntity2, existingName, noAllowRename);
   EXPECT_EQ(11u, manager.EntityCount());
   clonedEntities.insert(noRenameClonedEntity);
-  validateGrandChildClone(noRenameClonedEntity, true, false);
+  validateGrandChildClone(noRenameClonedEntity, true, true, false);
 
   // create a joint with a parent and child link
   const std::string parentModelEntityName = "parentModelEntity";
