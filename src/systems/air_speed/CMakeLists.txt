@@ -16,7 +16,6 @@ gz_build_tests(TYPE UNIT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
-
 if (TARGET UNIT_AirSpeed_TEST)
   target_sources(UNIT_AirSpeed_TEST PRIVATE AirSpeed.cc)
   target_include_directories(UNIT_AirSpeed_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
