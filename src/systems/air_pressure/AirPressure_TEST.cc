@@ -15,7 +15,6 @@
  *
  */
 
-
 #include "AirPressure.hh"
 
 #include <gtest/gtest.h>
