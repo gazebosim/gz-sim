@@ -98,7 +98,8 @@ namespace systems
     public ISystemConfigure,
     public ISystemConfigurePriority,
     public ISystemReset,
-    public ISystemUpdate
+    public ISystemUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: explicit Physics();
@@ -122,6 +123,10 @@ namespace systems
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
                 EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+                const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<PhysicsPrivate> dataPtr;
