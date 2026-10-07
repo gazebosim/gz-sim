@@ -244,6 +244,7 @@ gz_build_tests(TYPE UNIT
     gz-sim${PROJECT_VERSION_MAJOR}
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 # Some server unit tests require rendering.
