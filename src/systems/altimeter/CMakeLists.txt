@@ -6,3 +6,17 @@ gz_add_system(altimeter
   PRIVATE_LINK_LIBS
     gz-sensors::altimeter
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    Altimeter_TEST.cc
+  LIB_DEPS
+    gz-sensors::altimeter
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
+
+if (TARGET UNIT_Altimeter_TEST)
+  target_sources(UNIT_Altimeter_TEST PRIVATE Altimeter.cc)
+  target_include_directories(UNIT_Altimeter_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
+endif()
