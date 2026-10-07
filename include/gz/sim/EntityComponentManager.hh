@@ -150,6 +150,20 @@ namespace gz
       public: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
 
+      /// \brief Overload of Clone that accepts a namespace override.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// \param[in] _allowRename Whether _name can be modified to make it
+      /// unique.
+      /// \param[in] _namespace The namespace that should be given to the
+      /// cloned entity.
+      /// \return The cloned entity, or kNullEntity if cloning failed.
+      /// \sa Clone
+      public: Entity Clone(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename,
+                  const std::string &_namespace);
+
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
       public: size_t EntityCount() const;
@@ -395,10 +409,13 @@ namespace gz
       /// \param[in] _allowRename True if _name can be modified to be a unique
       /// name if it isn't already a unique name. False if _name cannot be
       /// modified to be a unique name.
+      /// \param[in] _namespace The namespace that should be given to the
+      /// cloned entity.
       /// \return The cloned entity. kNullEntity is returned if cloning failed.
       /// \sa Clone
       private: Entity CloneImpl(Entity _entity, Entity _parent,
-                  const std::string &_name, bool _allowRename);
+                  const std::string &_name, bool _allowRename,
+                  const std::string &_namespace = "");
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.

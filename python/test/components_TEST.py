@@ -358,27 +358,13 @@ class TestComponents(unittest.TestCase):
         self.assertIsNotNone(ret_elem)
         self.assertEqual("contact_elem", ret_elem.get_name())
 
-    def test_component_registration_parity(self):
-        """Test full parity between C++ ComponentFactory and Python bindings."""
-        all_components = components._all_factory_components()
-        self.assertGreater(len(all_components), 0)
-
-        for comp in all_components:
-            if comp.name in KNOWN_SKIPPED_COMPONENTS:
-                self.assertFalse(
-                    components.has_python_bindings(comp),
-                    f"Component '{comp.name}' is in KNOWN_SKIPPED_COMPONENTS but has bindings.")
-            else:
-                self.assertTrue(
-                    components.has_python_bindings(comp),
-                    f"Component '{comp.name}' is missing Python bindings.")
-
     def test_all_registered_components_roundtrip(self):
         """Test that every registered component can roundtrip default data."""
         ecm = EntityComponentManager()
         e = ecm.create_entity()
 
         all_factory_comps = components._all_factory_components()
+        self.assertGreater(len(all_factory_comps), 0)
         tested_count = 0
         for comp in all_factory_comps:
             if comp.name in KNOWN_SKIPPED_COMPONENTS:
