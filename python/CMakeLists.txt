@@ -43,6 +43,8 @@ pybind11_add_module(${BINDINGS_MODULE_NAME} MODULE
   src/gz/sim/Util.cc
   src/gz/sim/World.cc
   src/gz/sim/InstallationDirectories.cc
+  src/gz/sim/Components.cc
+  src/gz/sim/PyComponents.cc
 )
 
 target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
@@ -53,7 +55,8 @@ target_link_libraries(${BINDINGS_MODULE_NAME} PRIVATE
 set_target_properties(${BINDINGS_MODULE_NAME} PROPERTIES CXX_VISIBILITY_PRESET "hidden")
 
 target_compile_definitions(${BINDINGS_MODULE_NAME} PRIVATE
-  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME})
+  BINDINGS_MODULE_NAME=${BINDINGS_MODULE_NAME}
+  HAVE_PYBIND11)
 
 # TODO(ahcorde): Move this module to gz-common
 
@@ -76,6 +79,7 @@ configure_build_install_location(${GZ_COMMON_BINDINGS_MODULE_NAME})
 if (BUILD_TESTING)
   set(python_tests
     actor_TEST
+    components_TEST
     joint_TEST
     light_TEST
     link_TEST
