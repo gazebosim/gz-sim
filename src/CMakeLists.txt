@@ -207,7 +207,14 @@ ign_build_tests(TYPE UNIT
   LIB_DEPS
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${EXTRA_TEST_LIB_DEPS}
+<<<<<<< HEAD
     ignition-gazebo${PROJECT_VERSION_MAJOR}
+=======
+    gz-sim
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
+>>>>>>> c46e470 (fix: Set GZ_IP on all types of tests (#4047))
 )
 
 # Command line tests need extra settings

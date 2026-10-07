@@ -24,5 +24,13 @@ ign_build_tests(TYPE UNIT
   SOURCES
   ${gtest_sources}
   LIB_DEPS
+<<<<<<< HEAD
   ignition-physics${IGN_PHYSICS_VER}::core
+=======
+  gz-physics::core
+  gz-plugin::loader
+  ENVIRONMENT
+  GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  GZ_IP=127.0.0.1
+>>>>>>> c46e470 (fix: Set GZ_IP on all types of tests (#4047))
 )

@@ -73,7 +73,16 @@ ign_build_tests(TYPE UNIT
     ${PROJECT_LIBRARY_TARGET_NAME}
     ${gui_target}
     ${EXTRA_TEST_LIB_DEPS}
+<<<<<<< HEAD
     ignition-gazebo${PROJECT_VERSION_MAJOR}
     ignition-common${IGN_COMMON_VER}::ignition-common${IGN_COMMON_VER}
     ignition-transport${IGN_TRANSPORT_VER}::ignition-transport${IGN_TRANSPORT_VER}
+=======
+    gz-sim
+    gz-common::gz-common
+    gz-transport::gz-transport
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
+>>>>>>> c46e470 (fix: Set GZ_IP on all types of tests (#4047))
 )

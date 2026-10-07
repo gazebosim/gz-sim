@@ -26,6 +26,12 @@ ign_build_tests(TYPE PERFORMANCE
     ${tests}
   LIB_DEPS
     ${EXTRA_TEST_LIB_DEPS}
+<<<<<<< HEAD
+=======
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
+>>>>>>> c46e470 (fix: Set GZ_IP on all types of tests (#4047))
 )
 
 add_executable(
