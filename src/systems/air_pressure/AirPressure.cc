@@ -54,9 +54,6 @@ class gz::sim::systems::AirPressurePrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AirPressureSensor>> entitySensorMap;
 
-  /// \brief Resolved topic names
-  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
-
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -174,12 +171,6 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> AirPressure::ResolvedTopicNames() const
-{
-  return this->dataPtr->resolvedTopicNames;
-}
-
-//////////////////////////////////////////////////
 void AirPressurePrivate::AddAirPressure(
   const EntityComponentManager &_ecm,
   const Entity _entity,
@@ -191,21 +182,12 @@ void AirPressurePrivate::AddAirPressure(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _airPressure->Data();
   data.SetName(sensorScopedName);
-
-  // generate namespace
-  std::string ns = scopedNamespace(_ecm, _entity);
-  std::string defaultPrefix = scopedName(_entity, _ecm);
-
   // check topic
-  TopicNameOptions topicNameOptions;
-  topicNameOptions.sdfElementName = "topic";
-  topicNameOptions.topicNamespace = ns;
-  topicNameOptions.defaultTopicPrefix = defaultPrefix;
-  topicNameOptions.defaultTopicSuffix = "air_pressure";
-  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
-  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
-  data.SetTopic(topic);
-
+  if (data.Topic().empty())
+  {
+    std::string topic = scopedName(_entity, _ecm) + "/air_pressure";
+    data.SetTopic(topic);
+  }
   std::unique_ptr<sensors::AirPressureSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::AirPressureSensor>(data);
@@ -306,16 +288,6 @@ void AirPressurePrivate::RemoveAirPressureEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
-
-        auto topicId = this->resolvedTopicNames.find(_entity);
-        if (topicId == this->resolvedTopicNames.end())
-        {
-          gzerr << "Internal error, missing resolved air pressure sensor topic"
-                << " name for entity [" << _entity << "]" << std::endl;
-          return true;
-        }
-
-        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });
