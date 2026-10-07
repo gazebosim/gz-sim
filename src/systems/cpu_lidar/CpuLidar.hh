@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_CPU_LIDAR_HH_
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -64,6 +65,9 @@ namespace systems
 
     private: void Update(const EntityComponentManager &_ecm);
 
+    /// Get the resolved topic names
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+
     private: void AddSensor(
       const EntityComponentManager &_ecm,
       const Entity _entity,
@@ -74,6 +78,8 @@ namespace systems
 
     private: std::unordered_map<Entity,
         std::unique_ptr<sensors::CpuLidarSensor>> entitySensorMap;
+
+    public: std::unordered_map<Entity, std::string> resolvedTopicNames;
 
     private: sensors::SensorFactory sensorFactory;
 
