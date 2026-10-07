@@ -40,14 +40,12 @@ namespace gz::sim::test
 /// \param[in] _eventMgr Event manager used while creating entities.
 /// \param[out] _entity The entity corresponding to the world.
 /// \param[out] _pluginSdf Copy of the world's first plugin SDF.
-/// \param[in] _loadPlugins If true, copy the world's first plugin SDF.
-inline void LoadWorldContextImpl(
+inline void LoadWorldContext(
   const std::string &_sdfString,
   EntityComponentManager &_ecm,
   EventManager &_eventMgr,
   Entity &_entity,
-  sdf::Plugin &_pluginSdf,
-  bool _loadPlugins)
+  sdf::Plugin &_pluginSdf)
 {
   sdf::Root root;
   root.LoadSdfString(_sdfString);
@@ -56,34 +54,13 @@ inline void LoadWorldContextImpl(
   const sdf::World *worldSdf = root.WorldByIndex(0);
   ASSERT_NE(nullptr, worldSdf);
 
-  if (_loadPlugins)
-  {
-    ASSERT_FALSE(worldSdf->Plugins().empty());
-    _pluginSdf = worldSdf->Plugins()[0];
-  }
+  ASSERT_FALSE(worldSdf->Plugins().empty());
+  _pluginSdf = worldSdf->Plugins()[0];
 
   SdfEntityCreator entityCreator(_ecm, _eventMgr);
 
   _entity = entityCreator.CreateEntities(worldSdf);
   ASSERT_NE(kNullEntity, _entity);
-}
-
-/////////////////////////////////////////////////
-/// \brief Load a world from an SDF string, create entities, and copy the
-/// world's first plugin SDF.
-/// \param[in] _sdfString The SDF string to load.
-/// \param[in] _ecm Mutable reference to ECM.
-/// \param[in] _eventMgr Event manager used while creating entities.
-/// \param[out] _entity The entity corresponding to the world.
-/// \param[out] _pluginSdf Copy of the world's first plugin SDF.
-inline void LoadWorldContext(
-  const std::string &_sdfString,
-  EntityComponentManager &_ecm,
-  EventManager &_eventMgr,
-  Entity &_entity,
-  sdf::Plugin &_pluginSdf)
-{
-  LoadWorldContextImpl(_sdfString, _ecm, _eventMgr, _entity, _pluginSdf, true);
 }
 
 /////////////////////////////////////////////////
@@ -100,46 +77,7 @@ inline void LoadWorldContext(
   Entity &_entity)
 {
   sdf::Plugin pluginSdf;
-  LoadWorldContextImpl(_sdfString, _ecm, _eventMgr, _entity, pluginSdf, false);
-}
-
-/////////////////////////////////////////////////
-/// \brief Load a model from an SDF string, create entities, and copy the
-/// model's first plugin SDF.
-/// \param[in] _sdfString The SDF string to load.
-/// \param[in] _ecm Mutable reference to ECM.
-/// \param[in] _eventMgr Event manager used while creating entities.
-/// \param[out] _entity The entity corresponding to the model.
-/// \param[out] _pluginSdf Copy of the Model's first plugin SDF.
-/// \param[in] _loadPlugins If true, copy the world's first plugin SDF.
-inline void LoadModelContextImpl(
-  const std::string &_sdfString,
-  EntityComponentManager &_ecm,
-  EventManager &_eventMgr,
-  Entity &_entity,
-  sdf::Plugin &_pluginSdf,
-  bool _loadPlugins)
-{
-  sdf::Root root;
-  root.LoadSdfString(_sdfString);
-
-  ASSERT_EQ(1u, root.WorldCount());
-  const sdf::World *worldSdf = root.WorldByIndex(0);
-  ASSERT_NE(nullptr, worldSdf);
-
-  ASSERT_EQ(1u, worldSdf->ModelCount());
-  const sdf::Model *modelSdf = worldSdf->ModelByIndex(0);
-  ASSERT_NE(nullptr, modelSdf);
-
-  if (_loadPlugins)
-  {
-    ASSERT_FALSE(modelSdf->Plugins().empty());
-    _pluginSdf = modelSdf->Plugins()[0];
-  }
-
-  SdfEntityCreator entityCreator(_ecm, _eventMgr);
-  _entity = entityCreator.CreateEntitiesWithoutLoadingPlugins(modelSdf);
-  ASSERT_NE(kNullEntity, _entity);
+  LoadWorldContext(_sdfString, _ecm, _eventMgr, _entity, pluginSdf);
 }
 
 /////////////////////////////////////////////////
@@ -157,8 +95,23 @@ inline void LoadModelContext(
   Entity &_entity,
   sdf::Plugin &_pluginSdf)
 {
-  LoadModelContextImpl(_sdfString, _ecm, _eventMgr, _entity, _pluginSdf, true);
+  sdf::Root root;
+  root.LoadSdfString(_sdfString);
 
+  ASSERT_EQ(1u, root.WorldCount());
+  const sdf::World *worldSdf = root.WorldByIndex(0);
+  ASSERT_NE(nullptr, worldSdf);
+
+  ASSERT_EQ(1u, worldSdf->ModelCount());
+  const sdf::Model *modelSdf = worldSdf->ModelByIndex(0);
+  ASSERT_NE(nullptr, modelSdf);
+
+  ASSERT_FALSE(modelSdf->Plugins().empty());
+  _pluginSdf = modelSdf->Plugins()[0];
+
+  SdfEntityCreator entityCreator(_ecm, _eventMgr);
+  _entity = entityCreator.CreateEntitiesWithoutLoadingPlugins(modelSdf);
+  ASSERT_NE(kNullEntity, _entity);
 }
 
 /////////////////////////////////////////////////
@@ -175,7 +128,7 @@ inline void LoadModelContext(
   Entity &_entity)
 {
   sdf::Plugin pluginSdf;
-  LoadModelContextImpl(_sdfString, _ecm, _eventMgr, _entity, pluginSdf, false);
+  LoadModelContext(_sdfString, _ecm, _eventMgr, _entity, pluginSdf);
 }
 } // namespace gz::sim::test
 
