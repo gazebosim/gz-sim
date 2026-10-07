@@ -2933,7 +2933,8 @@ TEST_P(EntityComponentManagerFixture,
     };
 
   auto validateGrandChildClone =
-    [&](const Entity _clonedEntity, bool _sameName, bool _sameNs, bool _sameParent)
+    [&](const Entity _clonedEntity, bool _sameName, bool _sameNs,
+        bool _sameParent)
     {
       EXPECT_NE(kNullEntity, _clonedEntity);
       EXPECT_EQ(manager.ComponentTypes(_clonedEntity),
