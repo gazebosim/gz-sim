@@ -73,6 +73,13 @@ class TestActor(unittest.TestCase):
                                      datetime.timedelta(milliseconds=100))
             self.assertEqual(100,
                              actor.animation_time(_ecm).total_seconds()*1000)
+            # Bone Transforms Test
+            if self.pre_iterations == 0:
+                self.assertEqual(None, actor.bone_transforms(_ecm))
+            actor.set_bone_transforms(_ecm,
+                                      {'Hips': Pose3d(0, 0, 1, 0, 0, 0)})
+            self.assertEqual({'Hips': Pose3d(0, 0, 1, 0, 0, 0)},
+                             actor.bone_transforms(_ecm))
 
         def on_udpate_cb(_info, _ecm):
             self.iterations += 1

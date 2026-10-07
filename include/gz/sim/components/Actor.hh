@@ -18,11 +18,15 @@
 #define GZ_SIM_COMPONENTS_ACTOR_HH_
 
 #include <gz/msgs/actor.pb.h>
+#include <gz/msgs/pose_v.pb.h>
 
 #include <chrono>
+#include <map>
 #include <ratio>
 #include <string>
 
+#include <gz/math/Pose3.hh>
+#include <gz/msgs/Utility.hh>
 #include <sdf/Actor.hh>
 
 #include <gz/sim/components/Factory.hh>
@@ -69,6 +73,44 @@ namespace serializers
       return _in;
     }
   };
+
+  /// \brief Serializer for a map of bone names to poses, streamed as a
+  /// msgs::Pose_V whose poses carry the bone name.
+  class BoneTransformsSerializer
+  {
+    /// \brief Serialization for `std::map<std::string, math::Pose3d>`.
+    /// \param[in] _out Output stream.
+    /// \param[in] _transforms Bone transforms to stream
+    /// \return The stream.
+    public: static std::ostream &Serialize(std::ostream &_out,
+                const std::map<std::string, math::Pose3d> &_transforms)
+    {
+      msgs::Pose_V msg;
+      for (const auto &[name, pose] : _transforms)
+      {
+        auto *poseMsg = msg.add_pose();
+        poseMsg->set_name(name);
+        msgs::Set(poseMsg, pose);
+      }
+      msg.SerializeToOstream(&_out);
+      return _out;
+    }
+
+    /// \brief Deserialization for `std::map<std::string, math::Pose3d>`.
+    /// \param[in] _in Input stream.
+    /// \param[out] _transforms Bone transforms to populate
+    /// \return The stream.
+    public: static std::istream &Deserialize(std::istream &_in,
+                std::map<std::string, math::Pose3d> &_transforms)
+    {
+      msgs::Pose_V msg;
+      msg.ParseFromIstream(&_in);
+      _transforms.clear();
+      for (const auto &poseMsg : msg.pose())
+        _transforms[poseMsg.name()] = msgs::Convert(poseMsg);
+      return _in;
+    }
+  };
 }
 
 namespace components
@@ -91,6 +133,16 @@ namespace components
       serializers::StringSerializer>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AnimationName",
       AnimationName)
+
+  /// \brief Local transforms of the actor's skeleton bones, keyed by bone
+  /// name and given relative to each bone's parent. When present, the
+  /// skeleton is posed from these transforms directly instead of playing the
+  /// animation selected by AnimationName and AnimationTime, which lets a
+  /// system drive every bone itself.
+  using BoneTransforms = Component<std::map<std::string, math::Pose3d>,
+      class BoneTransformsTag, serializers::BoneTransformsSerializer>;
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BoneTransforms",
+      BoneTransforms)
 }
 }
 }

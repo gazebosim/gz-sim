@@ -377,10 +377,10 @@ class gz::sim::RenderUtilPrivate
   /// ECM
   public: std::unordered_map<Entity, math::Pose3d> actorWorldPoses;
 
-  /// \brief True to update skeletons manually using bone poses
-  /// (see actorTransforms). False to let render engine update animation
-  /// based on sim time.
-  /// \todo(anyone) Let this be turned on from a component
+  /// \brief True to compute every actor's bone poses with gz-common
+  /// (see actorTransforms) instead of letting the render engine play the
+  /// animation. Actors carrying a components::BoneTransforms component are
+  /// posed from it regardless of this flag.
   public: bool actorManualSkeletonUpdate = false;
 
   /// \brief Mutex to protect updates
@@ -627,6 +627,13 @@ class gz::sim::RenderUtilPrivate
               AnimationUpdateData> &_actorAnimationData,
               const std::unordered_map<Entity, math::Pose3d> &_entityPoses,
               const std::unordered_map<Entity, math::Pose3d> &_trajectoryPoses);
+
+  /// \brief Stop any animation still playing on an actor, it would
+  /// overwrite bone transforms set on its skeleton
+  /// \param[in] _id Actor entity id
+  /// \param[in] _actorMesh Mesh of the actor
+  public: void DisableActorAnimations(Entity _id,
+              const rendering::MeshPtr &_actorMesh);
 };
 
 //////////////////////////////////////////////////
@@ -1387,56 +1394,56 @@ void RenderUtil::Update()
     }
 
     // update entities' local transformations
-    if (this->dataPtr->actorManualSkeletonUpdate)
+    for (auto &tf : actorTransforms)
     {
-      for (auto &tf : actorTransforms)
+      auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
+      auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
+      if (!actorVisual)
       {
-        auto actorMesh = this->dataPtr->sceneManager.ActorMeshById(tf.first);
-        auto actorVisual = this->dataPtr->sceneManager.NodeById(tf.first);
-        if (!actorVisual)
-        {
-          gzerr << "Actor with Entity ID '" << tf.first << "'. not found. "
-                 << "Skipping skeleton animation update." << std::endl;
-          continue;
-        }
-
-        math::Pose3d globalPose;
-        if (entityPoses.find(tf.first) != entityPoses.end())
-        {
-          globalPose = entityPoses[tf.first];
-        }
-
-        math::Pose3d trajPose;
-        // Trajectory from the ECS
-        if (trajectoryPoses.find(tf.first) != trajectoryPoses.end())
-        {
-          trajPose = trajectoryPoses[tf.first];
-        }
-        // Trajectory from the SDF script
-        else
-        {
-          trajPose.Pos() = tf.second["actorPose"].Translation();
-          trajPose.Rot() = tf.second["actorPose"].Rotation();
-        }
-
-        math::Pose3d worldPose = globalPose * trajPose;
-        actorVisual->SetLocalPose(worldPose);
-        {
-          // populate world pose map which is used to update ECM
-          std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
-          this->dataPtr->actorWorldPoses[tf.first] = worldPose;
-        }
-
-        tf.second.erase("actorPose");
-        if (actorMesh)
-          actorMesh->SetSkeletonLocalTransforms(tf.second);
+        gzerr << "Actor with Entity ID '" << tf.first << "'. not found. "
+               << "Skipping skeleton animation update." << std::endl;
+        continue;
       }
+
+      math::Pose3d globalPose;
+      if (entityPoses.find(tf.first) != entityPoses.end())
+      {
+        globalPose = entityPoses[tf.first];
+      }
+
+      math::Pose3d trajPose;
+      auto actorPoseIt = tf.second.find("actorPose");
+      // Trajectory from the ECS
+      if (trajectoryPoses.find(tf.first) != trajectoryPoses.end())
+      {
+        trajPose = trajectoryPoses[tf.first];
+      }
+      // Trajectory from the SDF script
+      else if (actorPoseIt != tf.second.end())
+      {
+        trajPose.Pos() = actorPoseIt->second.Translation();
+        trajPose.Rot() = actorPoseIt->second.Rotation();
+      }
+
+      math::Pose3d worldPose = globalPose * trajPose;
+      actorVisual->SetLocalPose(worldPose);
+      {
+        // populate world pose map which is used to update ECM
+        std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+        this->dataPtr->actorWorldPoses[tf.first] = worldPose;
+      }
+
+      if (actorPoseIt != tf.second.end())
+        tf.second.erase(actorPoseIt);
+      if (!actorMesh)
+        continue;
+
+      this->dataPtr->DisableActorAnimations(tf.first, actorMesh);
+      actorMesh->SetSkeletonLocalTransforms(tf.second);
     }
-    else
-    {
-      this->dataPtr->UpdateAnimation(actorAnimationData, entityPoses,
-          trajectoryPoses);
-    }
+
+    this->dataPtr->UpdateAnimation(actorAnimationData, entityPoses,
+        trajectoryPoses);
   }
 
   // set visual temperature
@@ -2356,12 +2363,37 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         // Trajectory origin
         this->entityPoses[_entity] = _pose->Data();
 
+        auto boneTfComp = _ecm.Component<components::BoneTransforms>(_entity);
         auto animTimeComp = _ecm.Component<components::AnimationTime>(_entity);
         auto animNameComp = _ecm.Component<components::AnimationName>(_entity);
 
+        // Bone poses set through ECM, applied to the skeleton as they are
+        if (boneTfComp)
+        {
+          std::map<std::string, math::Matrix4d> transforms;
+          for (const auto &[boneName, pose] : boneTfComp->Data())
+            transforms[boneName] = math::Matrix4d(pose);
+
+          // Trajectory from the SDF script, unless one is set through ECM
+          if (!_ecm.Component<components::TrajectoryPose>(_entity))
+          {
+            auto animData =
+              this->sceneManager.ActorAnimationAt(_entity, this->simTime);
+            if (animData.valid && animData.followTrajectory)
+            {
+              common::PoseKeyFrame poseFrame(0.0);
+              animData.trajectory.Waypoints()->InterpolatedKeyFrame(
+                  poseFrame);
+              math::Matrix4d actorPose(poseFrame.Rotation());
+              actorPose.SetTranslation(poseFrame.Translation());
+              transforms["actorPose"] = actorPose;
+            }
+          }
+          this->actorTransforms[_entity] = std::move(transforms);
+        }
         // Animation time set through ECM so gz-rendering can calculate bone
         // transforms
-        if (animTimeComp && animNameComp)
+        else if (animTimeComp && animNameComp)
         {
           auto skel = this->sceneManager.ActorSkeletonById(_entity);
           if (nullptr != skel)
@@ -3154,6 +3186,22 @@ void RenderUtilPrivate::UpdateThermalCamera(const std::unordered_map<Entity,
                 << ", " << camera->MaxTemperature() << "]." << std::endl;
       }
     }
+  }
+}
+
+/////////////////////////////////////////////////
+void RenderUtilPrivate::DisableActorAnimations(Entity _id,
+    const rendering::MeshPtr &_actorMesh)
+{
+  auto actorSkel = this->sceneManager.ActorSkeletonById(_id);
+  if (!actorSkel)
+    return;
+
+  for (unsigned int i = 0; i < actorSkel->AnimationCount(); ++i)
+  {
+    const std::string &animName = actorSkel->Animation(i)->Name();
+    if (_actorMesh->SkeletonAnimationEnabled(animName))
+      _actorMesh->SetSkeletonAnimationEnabled(animName, false, false, 0.0);
   }
 }
 
