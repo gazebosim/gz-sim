@@ -179,6 +179,41 @@ TEST_F(ComponentsTest, AnimationTime)
 }
 
 /////////////////////////////////////////////////
+TEST_F(ComponentsTest, BoneTransforms)
+{
+  std::map<std::string, math::Pose3d> data1;
+  data1["Hips"] = math::Pose3d(0, 0, 1, 0, 0, 0);
+  data1["Spine"] = math::Pose3d(0.1, 0, 0.2, 0.3, 0, 0);
+  std::map<std::string, math::Pose3d> data2;
+  data2["Hips"] = math::Pose3d(0, 0, 2, 0, 0, 0);
+
+  // Create components
+  auto comp11 = components::BoneTransforms(data1);
+  auto comp12 = components::BoneTransforms(data1);
+  auto comp2 = components::BoneTransforms(data2);
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::BoneTransforms comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp11, comp3);
+  ASSERT_EQ(2u, comp3.Data().size());
+  EXPECT_EQ(data1["Hips"], comp3.Data()["Hips"]);
+  EXPECT_EQ(data1["Spine"], comp3.Data()["Spine"]);
+}
+
+/////////////////////////////////////////////////
 TEST_F(ComponentsTest, AirPressureSensor)
 {
   sdf::Sensor data1;
