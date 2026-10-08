@@ -449,7 +449,8 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         topicNameOptions.defaultTopicPrefix = defaultPrefix;
         topicNameOptions.defaultTopicSuffix = type;
         auto topic = resolvedTopicName(data.Element(), topicNameOptions);
-        this->dataPtr->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+        this->dataPtr->resolvedTopicNames.insert(
+          std::make_pair(_entity, topic));
         data.SetTopic(topic);
 
         gz::sensors::SensorFactory sensorFactory;
