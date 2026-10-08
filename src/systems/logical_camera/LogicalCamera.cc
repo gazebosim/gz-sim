@@ -57,6 +57,9 @@ class gz::sim::systems::LogicalCameraPrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::LogicalCameraSensor>> entitySensorMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -175,6 +178,13 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string>
+  LogicalCamera::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 void LogicalCameraPrivate::AddLogicalCamera(
   const EntityComponentManager &_ecm,
   const Entity _entity,
@@ -186,12 +196,21 @@ void LogicalCameraPrivate::AddLogicalCamera(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   auto data = _logicalCamera->Data()->Clone();
   data->GetAttribute("name")->Set(sensorScopedName);
+
+  // generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
   // check topic
-  if (!data->HasElement("topic"))
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/logical_camera";
-    data->GetElement("topic")->Set(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = ns;
+  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.defaultTopicSuffix = "logical_camera";
+  auto topic = resolvedTopicName(data, topicNameOptions);
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data->GetElement("topic")->Set(topic);
+
   std::unique_ptr<sensors::LogicalCameraSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::LogicalCameraSensor>(data);
@@ -306,6 +325,16 @@ void LogicalCameraPrivate::RemoveLogicalCameraEntities(
         }
 
         this->entitySensorMap.erase(sensorIt);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved logicalCamera sensor topic"
+                << " name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

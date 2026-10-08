@@ -6,3 +6,17 @@ gz_add_system(logical-camera
     gz-sensors::gz-sensors
     gz-sensors::logical_camera
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    LogicalCamera_TEST.cc
+  LIB_DEPS
+    gz-sensors::logical_camera
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
+
+if (TARGET UNIT_LogicalCamera_TEST)
+  target_sources(UNIT_LogicalCamera_TEST PRIVATE LogicalCamera.cc)
+  target_include_directories(UNIT_LogicalCamera_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
+endif()
