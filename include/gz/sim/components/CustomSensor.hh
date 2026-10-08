@@ -36,7 +36,7 @@ namespace components
   /// the SDF spec.
   using CustomSensor = Component<sdf::Sensor, class CustomSensorTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomSensor",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.CustomSensor",
       CustomSensor)
 }
 }
