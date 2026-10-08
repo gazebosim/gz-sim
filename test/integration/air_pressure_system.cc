@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <thread>
+
 #include <gz/msgs/fluid_pressure.pb.h>
 
 #include <gz/common/Console.hh>
@@ -32,6 +34,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -132,4 +136,44 @@ TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
   EXPECT_LT(0, msg.header().stamp().nsec());
   EXPECT_DOUBLE_EQ(101325.0, msg.pressure());
   EXPECT_DOUBLE_EQ(0.0, msg.variance());
+}
+
+/////////////////////////////////////////////////
+TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/air_pressure.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string topic =
+      "world/air_pressure_sensor/model/air_pressure_model/link/link/"
+      "sensor/air_pressure_sensor/air_pressure";
+
+  auto waitForPressure =
+      [&server](Subscription<msgs::FluidPressure> &_subscription)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u;
+        });
+      };
+
+  // Let the sensor publish in the first episode, then reset without keeping
+  // transport subscriptions alive across sensor teardown / recreation.
+  server.Run(true, 300, false);
+  server.ResetAll();
+
+  transport::Node node;
+  Subscription<msgs::FluidPressure> postResetPressure;
+  postResetPressure.Subscribe(node, topic, 1);
+
+  ASSERT_TRUE(waitForPressure(postResetPressure));
+  const auto postReset = postResetPressure.Last();
+  EXPECT_DOUBLE_EQ(101325.0, postReset.pressure());
+  EXPECT_DOUBLE_EQ(0.0, postReset.variance());
 }
