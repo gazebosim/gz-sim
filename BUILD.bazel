@@ -358,6 +358,7 @@ gz_sim_system_libraries(
             "src/systems/air_pressure/**/*.cc",
             "src/systems/air_pressure/**/*.hh",
         ],
+        exclude = ["src/systems/air_pressure/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-air-pressure-system.so",
     static_lib_name = "gz-sim-air-pressure-system-static",
@@ -374,12 +375,31 @@ gz_sim_system_libraries(
     ],
 )
 
+air_pressure_test_sources = glob([
+    "src/systems/air_pressure/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-air-pressure-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in air_pressure_test_sources]
+
 gz_sim_system_libraries(
     srcs = glob(
         [
             "src/systems/air_speed/**/*.cc",
             "src/systems/air_speed/**/*.hh",
         ],
+        exclude = ["src/systems/air_speed/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-air-speed-system.so",
     static_lib_name = "gz-sim-air-speed-system-static",
@@ -396,12 +416,31 @@ gz_sim_system_libraries(
     ],
 )
 
+air_speed_test_sources = glob([
+    "src/systems/air_speed/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-air-speed-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in air_speed_test_sources]
+
 gz_sim_system_libraries(
     srcs = glob(
         [
             "src/systems/altimeter/**/*.cc",
             "src/systems/altimeter/**/*.hh",
         ],
+        exclude = ["src/systems/altimeter/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-altimeter-system.so",
     static_lib_name = "gz-sim-altimeter-system-static",
@@ -418,6 +457,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+altimeter_test_sources = glob([
+    "src/systems/altimeter/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-altimeter-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in altimeter_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -608,6 +665,7 @@ gz_sim_system_libraries(
             "src/systems/cpu_lidar/**/*.cc",
             "src/systems/cpu_lidar/**/*.hh",
         ],
+        exclude = ["src/systems/cpu_lidar/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-cpu-lidar-system.so",
     static_lib_name = "gz-sim-cpu-lidar-system-static",
@@ -622,6 +680,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+cpu_lidar_test_sources = glob([
+    "src/systems/cpu_lidar/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-cpu-lidar-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in cpu_lidar_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -711,6 +787,7 @@ gz_sim_system_libraries(
             "src/systems/dvl/**/*.cc",
             "src/systems/dvl/**/*.hh",
         ],
+        exclude = ["src/systems/dvl/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-dvl-system.so",
     static_lib_name = "gz-sim-dvl-system-static",
@@ -726,6 +803,24 @@ gz_sim_system_libraries(
         "@gz-utils//:ImplPtr",
     ],
 )
+
+dvl_test_sources = glob([
+    "src/systems/dvl/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-dvl-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in dvl_test_sources]
 
 # Doesn't build
 # gz_sim_system_libraries(
