@@ -45,7 +45,7 @@ namespace components
   /// The axis aligned box is created from collisions in the entity
   using AxisAlignedBox = Component<gz::math::AxisAlignedBox,
       class AxisAlignedBoxTag, serializers::AxisAlignedBoxSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AxisAlignedBox",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.AxisAlignedBox",
       AxisAlignedBox)
 }
 }
