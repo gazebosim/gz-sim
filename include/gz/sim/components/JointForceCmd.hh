@@ -38,7 +38,7 @@ namespace components
   /// vector has the same size as the degrees of freedom of the joint.
   using JointForceCmd = Component<std::vector<double>, class JointForceCmdTag,
                                   serializers::VectorDoubleSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.JointForceCmd",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.JointForceCmd",
                                 JointForceCmd)
 }
 }
