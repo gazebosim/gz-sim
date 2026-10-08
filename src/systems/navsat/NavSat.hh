@@ -17,6 +17,9 @@
 #ifndef GZ_SIM_SYSTEMS_NAVSAT_HH_
 #define GZ_SIM_SYSTEMS_NAVSAT_HH_
 
+#include <string>
+#include <unordered_map>
+
 #include <gz/utils/ImplPtr.hh>
 
 #include <gz/sim/config.hh>
@@ -54,6 +57,9 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
+
+    /// Get the resolved topic names
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
 
     /// \brief Private data pointer.
     GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
