@@ -553,8 +553,8 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Create))
   EXPECT_EQ(entityCount + 4, ecm->EntityCount());
 
   model = ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model_with_ns"),
-      components::Namespace("test_ns"));
+      components::Name("spawned_model_with_ns_deprecated"),
+      components::Namespace("test_ns_deprecated"));
   EXPECT_NE(kNullEntity, model);
 }
 

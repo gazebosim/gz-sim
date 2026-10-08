@@ -981,7 +981,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
           auto parentEntity = parentComp->Data();
           clonedEntity = this->iface->ecm->Clone(entityToClone,
               parentEntity, _createMsg.name(),
-              _createMsg.allow_renaming(), _ns);
+              _createMsg.allow_renaming(), ns);
           validClone = kNullEntity != clonedEntity;
         }
       }
