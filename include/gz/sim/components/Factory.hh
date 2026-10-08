@@ -505,12 +505,10 @@ GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname)
 /// \param[in] _compType Component type name.
 /// \param[in] _classname Class name for component.
 ///
-/// Declares the ADL helper functions (see GZ_SIM_COMPONENT_ADL_HELPERS) and
-/// creates the static registration object in the current translation unit.
+/// Creates the static registration object in the current translation unit.
 /// Prefer GZ_SIM_DECLARE_COMPONENT + a single definition TU when a library
 /// defines many components in headers included by many translation units.
 #define GZ_SIM_REGISTER_COMPONENT(_compType, _classname) \
-GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname) \
 GZ_SIM_COMPONENT_REGISTRATION(_compType, _classname)
 
 #endif
