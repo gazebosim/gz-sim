@@ -37,7 +37,7 @@ namespace components
 /// See
 /// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityCategory.msg
 using SemanticCategory = Component<uint8_t, class SemanticCategoryTag>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticCategory",
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.SemanticCategory",
                           SemanticCategory)
 }  // namespace components
 }  // namespace GZ_SIM_VERSION_NAMESPACE
