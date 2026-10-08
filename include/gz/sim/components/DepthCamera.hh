@@ -36,7 +36,7 @@ namespace components
   /// sdf::Camera, information.
   using DepthCamera = Component<sdf::Sensor, class DepthCameraTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DepthCamera",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.DepthCamera",
       DepthCamera)
 }
 }
