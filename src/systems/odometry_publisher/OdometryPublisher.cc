@@ -364,9 +364,11 @@ void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::UpdateOdometry");
-  // Record start time.
+  // Record the initial pose in the same frame used for subsequent differences.
   if (!this->initialized)
   {
+    this->lastUpdatePose =
+        worldPose(this->model.Entity(), _ecm) * this->offset;
     this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
     this->initialized = true;
     return;
