@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component used to indicate whether an entity is affected by wind.
   using WindMode = Component<bool, class WindModeTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WindMode", WindMode)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.WindMode", WindMode)
 }
 }
 }

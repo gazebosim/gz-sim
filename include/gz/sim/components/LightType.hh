@@ -37,7 +37,7 @@ namespace components
   /// around std::string
   using LightType = Component<std::string, class LightTypeTag,
       serializers::StringSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.LightType", LightType)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.LightType", LightType)
 }
 }
 }
