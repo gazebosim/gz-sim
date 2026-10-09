@@ -14,78 +14,7 @@ else()
   set(plugin_location ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-<<<<<<< HEAD
 set(library_location "../../../${plugin_location}/$<TARGET_FILE_NAME:${gz_lib_target}>")
-=======
-# Build unit tests if Gazebo tools is installed
-if(BUILD_TESTING AND GZ_TOOLS_PROGRAM)
-  gz_build_tests(TYPE UNIT
-    SOURCES
-      ${test_sources}
-    LIB_DEPS
-      gz-utils::gz-utils
-      ${PROJECT_LIBRARY_TARGET_NAME}
-    ENVIRONMENT
-      GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-      GZ_IP=127.0.0.1
-  )
-endif()
-
-foreach(CMD_TEST
-  UNIT_gz_TEST UNIT_ModelCommandAPI_TEST)
-
-  if(NOT TARGET ${CMD_TEST})
-    continue()
-  endif()
-
-  add_dependencies(${CMD_TEST}
-    TestModelSystem
-    TestSensorSystem
-    TestWorldSystem
-  )
-
-  target_compile_definitions(${CMD_TEST}
-    PRIVATE
-      "GZ_PATH=\"${GZ_TOOLS_PROGRAM}\""
-  )
-
-  if(${CMD_TEST} STREQUAL UNIT_gz_TEST AND ENABLE_GUI)
-    target_compile_definitions(${CMD_TEST} PRIVATE WITH_GUI)
-  endif()
-
-  if(${CMD_TEST} STREQUAL UNIT_ModelCommandAPI_TEST OR ${CMD_TEST} STREQUAL UNIT_gz_TEST)
-    set(_env_vars)
-    list(APPEND _env_vars "GZ_CONFIG_PATH=${CMAKE_BINARY_DIR}/test/conf/$<CONFIG>")
-    list(APPEND _env_vars "GZ_IP=127.0.0.1")
-    list(APPEND _env_vars "GZ_SIM_SYSTEM_PLUGIN_PATH=$<TARGET_FILE_DIR:TestModelSystem>")
-    set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT "${_env_vars}")
-  endif()
-
-  # On Windows there is no RPATH, so an alternative way for tests for finding .dll libraries
-  # in build directory in necessary. For regular tests, the trick is to place all libraries
-  # and executables in a common CMAKE_RUNTIME_OUTPUT_DIRECTORY, so that the .dll are found
-  # as they are in the same directory where the executable is loaded. For tests that are
-  # launched via Ruby, this does not work, so we need to manually add CMAKE_RUNTIME_OUTPUT_DIRECTORY
-  # to the PATH. This is done via the ENVIRONMENT_MODIFICATION that was added in CMake 3.22.
-  if (WIN32)
-    set_tests_properties(${CMD_TEST} PROPERTIES
-      ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>")
-  endif()
-endforeach()
-
-#===============================================================================
-# Generate the ruby script for internal testing of model command.
-set(gz_model_ruby_path
-  "${CMAKE_BINARY_DIR}/test/lib/$<CONFIG>/ruby/gz/cmdmodel")
-set(cmd_model_script_generated_test "${gz_model_ruby_path}.rb")
-set(cmd_model_script_configured_test
-  "${CMAKE_CURRENT_BINARY_DIR}/test_cmdmodel.rb.configured")
-
-# Set the library_location variable to the full path of the library file within
-# the build directory.
-set(model_exe_location "$<TARGET_FILE:${model_executable}>")
->>>>>>> c46e470 (fix: Set GZ_IP on all types of tests (#4047))
 
 configure_file(
   "cmd${GZ_DESIGNATION}.rb.in"
