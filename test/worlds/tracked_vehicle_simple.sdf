@@ -1073,7 +1073,7 @@
                 <right_track><link>front_right_flipper</link></right_track>
                 <right_track><link>rear_right_flipper</link></right_track>
                 <tracks_separation>0.4</tracks_separation>
-                <tracks_height>0.18094</tracks_height>
+                <track_height>0.18094</track_height>
                 <steering_efficiency>0.5</steering_efficiency>
             </plugin>
             <plugin name='gz::sim::systems::TrackController' filename='gz-sim-track-controller-system'>
