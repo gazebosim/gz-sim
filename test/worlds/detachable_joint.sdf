@@ -479,8 +479,8 @@
         </collision>
       </link>
 
-      <plugin filename="gz-sim-detachable-joint-system"
-              name="gz::sim::systems::DetachableJoint">
+      <plugin filename="ignition-gazebo-detachable-joint-system"
+              name="ignition::gazebo::systems::DetachableJoint">
         <parent_link>body</parent_link>
         <child_model>M7</child_model>
         <child_link>body</child_link>
