@@ -81,17 +81,12 @@ namespace systems
         |/                                           .
       --+-------------------------- slipRatio
         |
-<<<<<<< HEAD
-
-    <plugin filename="libignition-gazebo-wheel-slip-system.so"
-=======
   \endcode */
   ///
   /// ## Examples
   ///
   /** \code{.xml}
-    <plugin filename="gz-sim-wheel-slip-system"
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
+    <plugin filename="ignition-gazebo-wheel-slip-system"
      name="gz::sim::systems::WheelSlip">
       <wheel link_name="wheel_front_left">
         <slip_compliance_lateral>0</slip_compliance_lateral>

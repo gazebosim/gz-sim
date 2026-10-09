@@ -84,19 +84,7 @@ namespace systems
   ///   of rotation command will only act for the given number of seconds and
   ///   the track will be stopped if no command arrives before this timeout.
   ///
-<<<<<<< HEAD
-  /// `<min_velocity>`/`<max_velocity>` Min/max velocity of the track (m/s).
-=======
-  /// - `<odometry_topic>`: The topic on which the track odometry (i.e. position
-  ///   and instantaneous velocity) is published. This can be used e.g. to
-  ///   simulate a conveyor with encoder feedback.
-  ///   Defaults to `/model/${model_name}/link/${link_name}/odometry`.
-  ///
-  /// - `<odometry_publish_frequency>`: the frequency (in Hz) at which the
-  ///   odometry messages are published. Defaults to 50 Hz.
-  ///
   /// - `<min_velocity>`/`<max_velocity>`: Min/max velocity of the track (m/s).
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   ///   If not specified, the velocity is not limited (however the physics will,
   ///   in the end, have some implicit limit).
   ///

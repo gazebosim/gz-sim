@@ -47,11 +47,7 @@ namespace systems
   /// - `<input>`: The tag contains the input message type, topic and matcher
   /// information.
   ///   * Attributes:
-<<<<<<< HEAD
-  ///     * `type`: Input message type (eg. `ignition.msgs.Boolean`)
-=======
-  ///     * `type`: Input message type (e.g. `gz.msgs.Boolean`)
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
+  ///     * `type`: Input message type (e.g. `ignition.msgs.Boolean`)
   ///     * `topic`: Input message topic name
   ///
   /// - `<input><match>`: Contains configuration for matchers. Multiple
@@ -75,11 +71,7 @@ namespace systems
   /// `<output>` tags are possible. A message will be published on each output
   /// topic for each input that matches.
   ///   * Attributes:
-<<<<<<< HEAD
-  ///     * `type`: Output message type (eg. `ignition.msgs.Boolean`)
-=======
-  ///     * `type`: Output message type (e.g. `gz.msgs.Boolean`)
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
+  ///     * `type`: Output message type (e.g. `ignition.msgs.Boolean`)
   ///     * `topic`: Output message topic name
   ///   * Value: String used to construct the output protobuf message . This is
   ///     the human-readable representation of a protobuf message as used by
@@ -94,13 +86,8 @@ namespace systems
   ///   * Attributes:
   ///     * `name`: Service name (e.g. `/world/triggered_publisher/set_pose`)
   ///     * `timeout`: Service timeout
-<<<<<<< HEAD
-  ///     * `reqType`: Service request message type (eg. ignition.msgs.Pose)
-  ///     * `repType`: Service response message type (eg. ignition.msgs.Empty)
-=======
-  ///     * `reqType`: Service request message type (e.g. gz.msgs.Pose)
-  ///     * `repType`: Service response message type (e.g. gz.msgs.Empty)
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
+  ///     * `reqType`: Service request message type (e.g. ignition.msgs.Pose)
+  ///     * `repType`: Service response message type (e.g. ignition.msgs.Empty)
   ///     * `reqMsg`: String used to construct the service protobuf message.
   ///
   /// ## Examples

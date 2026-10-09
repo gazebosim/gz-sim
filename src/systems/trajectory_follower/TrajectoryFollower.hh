@@ -100,41 +100,10 @@ namespace systems
   ///   - `<radius>`: Radius (meters) of circular path to travel.
   ///
   /// Here are three examples:
-<<<<<<< HEAD
-  // <plugin
-  //   filename="ignition-gazebo-trajectory-follower-system"
-  //   name="ignition::gazebo::systems::TrajectoryFollower">
-  //   <link_name>base_link</link_name>
-  //   <loop>true</loop>
-  //   <waypoints>
-  //     <waypoint>25 0</waypoint>
-  //     <waypoint>15 0</waypoint>
-  //   </waypoints>
-  // </plugin>
-  // <plugin
-  //   filename="ignition-gazebo-trajectory-follower-system"
-  //   name="ignition::gazebo::systems::TrajectoryFollower">
-  //   <link_name>base_link</link_name>
-  //   <loop>true</loop>
-  //   <line>
-  //     <direction>0</direction>
-  //     <length>5</length>
-  //   </line>
-  // </plugin>
-  // <plugin
-  //   filename="ignition-gazebo-trajectory-follower-system"
-  //   name="ignition::gazebo::systems::TrajectoryFollower">
-  //   <link_name>base_link</link_name>
-  //   <loop>true</loop>
-  //   <circle>
-  //     <radius>2</radius>
-  //   </circle>
-  // </plugin>
-=======
   /// ```
   /// <plugin
-  ///   filename="gz-sim-trajectory-follower-system"
-  ///   name="gz::sim::systems::TrajectoryFollower">
+  ///   filename="ignition-gazebo-trajectory-follower-system"
+  ///   name="ignition::gazebo::systems::TrajectoryFollower">
   ///   <link_name>base_link</link_name>
   ///   <loop>true</loop>
   ///   <waypoints>
@@ -143,8 +112,8 @@ namespace systems
   ///   </waypoints>
   /// </plugin>
   /// <plugin
-  ///   filename="gz-sim-trajectory-follower-system"
-  ///   name="gz::sim::systems::TrajectoryFollower">
+  ///   filename="ignition-gazebo-trajectory-follower-system"
+  ///   name="ignition::gazebo::systems::TrajectoryFollower">
   ///   <link_name>base_link</link_name>
   ///   <loop>true</loop>
   ///   <line>
@@ -153,8 +122,8 @@ namespace systems
   ///   </line>
   /// </plugin>
   /// <plugin
-  ///   filename="gz-sim-trajectory-follower-system"
-  ///   name="gz::sim::systems::TrajectoryFollower">
+  ///   filename="ignition-gazebo-trajectory-follower-system"
+  ///   name="ignition::gazebo::systems::TrajectoryFollower">
   ///   <link_name>base_link</link_name>
   ///   <loop>true</loop>
   ///   <circle>
@@ -162,7 +131,6 @@ namespace systems
   ///   </circle>
   /// </plugin>
   /// ```
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   class TrajectoryFollower
       : public System,
         public ISystemConfigure,

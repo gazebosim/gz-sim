@@ -115,35 +115,21 @@ namespace systems
   ///   transform from `frame_id` to `child_frame_id`. This element is optional,
   ///   and the default value is `/model/{model_name}/tf`.
   ///
-<<<<<<< HEAD
-  /// `<frame_id>`: Custom `frame_id` field that this system will use as the
-  /// origin of the odometry transform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional, and the
-  /// default value is `{model_name}/odom`.
-  ///
-  /// `<child_frame_id>`: Custom `child_frame_id` that this system will use as
-  /// the target of the odometry trasnform in both the `<tf_topic>`
-  /// `ignition.msgs.Pose_V` message and the `<odom_topic>`
-  /// `ignition.msgs.Odometry` message. This element if optional,
-  ///  and the default value is `{model_name}/{link_name}`.
-=======
   /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
   ///   origin of the odometry transform in both the `<tf_topic>`
-  ///   `gz.msgs.Pose_V` message and the `<odom_topic>`
-  ///   `gz.msgs.Odometry` message. This element if optional, and the
+  ///   `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  ///   `ignition.msgs.Odometry` message. This element if optional, and the
   ///   default value is `{model_name}/odom`.
   ///
   /// - `<child_frame_id>`: Custom `child_frame_id` that this system will use as
   ///   the target of the odometry trasnform in both the `<tf_topic>`
-  ///   `gz.msgs.Pose_V` message and the `<odom_topic>`
-  ///   `gz.msgs.Odometry` message. This element if optional,
+  ///   `ignition.msgs.Pose_V` message and the `<odom_topic>`
+  ///   `ignition.msgs.Odometry` message. This element if optional,
   ///   and the default value is `{model_name}/{link_name}`.
   ///
   /// ## Examples
   ///
   /// See example usage in world `example/tracked_vehicle_simple.sdf`.
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   class TrackedVehicle
       : public System,
         public ISystemConfigure,

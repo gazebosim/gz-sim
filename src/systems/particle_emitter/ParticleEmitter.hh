@@ -31,7 +31,6 @@ namespace systems
 {
   class ParticleEmitterPrivate;
 
-<<<<<<< HEAD
   /// \brief A system for creating a particle emitter.
   ///
   /// This system will be deprecated in Igition Fortress. Please consider
@@ -114,15 +113,6 @@ namespace systems
   ///            Note that the emitter id and name may not be changed.
   ///            See the examples/worlds/particle_emitter.sdf example world for
   ///            example usage.
-=======
-  /// \brief A system for running and managing particle emitters. A particle
-  /// emitter is defined using the `<particle_emitter>` SDF element.
-  ///
-  /// This system will create a transport subscriber for each
-  /// `<particle_emitter>` using the child `<topic>` name. If a `<topic>` is not
-  /// specified, the following topic naming scheme will be used:
-  /// `/model/{model_name}/link/{link_name}/particle_emitter/{emitter_name}/cmd`
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   class ParticleEmitter
       : public System,
         public ISystemConfigure,

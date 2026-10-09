@@ -43,16 +43,10 @@ namespace systems
   /// represented by an gz::math::AxisAlignedBox, intersects with the
   /// PerformerDetector's region, which is also represented by an
   /// gz::math::AxisAlignedBox. When a performer is detected, the system
-<<<<<<< HEAD
   /// publishes an ignition.msgs.Pose message with the pose of the detected
-  /// performer with respect to the model containing the PerformerDetector. The
-  /// name and id fields of the Pose message will be set to the name and the
-=======
-  /// publishes a gz.msgs.Pose message with the pose of the detected
   /// performer with respect to the model containing the PerformerDetector.
   ///
   /// The name and id fields of the Pose message will be set to the name and the
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   /// entity of the detected performer respectively. The header of the Pose
   /// message contains the time stamp of detection. The `data` field of the
   /// header will contain the key "frame_id" with a value set to the name of
@@ -73,14 +67,9 @@ namespace systems
   /// - `<topic>`: Custom topic to be used for publishing when a performer is
   /// detected. If not set, the default topic with the following pattern would
   /// be used "/model/<model_name>/performer_detector/status". The topic type
-<<<<<<< HEAD
   /// is ignition.msgs.Pose
-  /// `<geometry>`: Detection region. Currently, only the `<box>` geometry is
-=======
-  /// is gz.msgs.Pose
   ///
   /// - `<geometry>`: Detection region. Currently, only the `<box>` geometry is
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   /// supported. The position of the geometry is derived from the pose of the
   /// containing model.
   ///

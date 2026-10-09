@@ -55,27 +55,9 @@ namespace systems
   ///
   /// ## Example
   ///
-<<<<<<< HEAD
-  /// \verbatim
-  ///     <plugin filename="ignition-gazebo-shader-param-system"
-  ///             name="ignition::gazebo::systems::ShaderParam">
-  ///        <shader language='glsl'>
-  ///          <vertex>materials/my_vs.glsl</vertex>
-  ///          <fragment>materials/my_fs.glsl</fragment>
-  ///        </shader>
-  ///        <!-- Sets a fragment shader variable named "ambient" to red -->
-  ///        <param>
-  ///          <name>ambient</name>
-  ///          <shader>fragment</shader>
-  ///          <type>float_array</type>
-  ///          <value>1.0 0.0 0.0 1.0</value>
-  ///        </param>
-  ///    </plugin>
-  /// \endverbatim
-=======
   /// ```
-  /// <plugin filename="gz-sim-shader-param-system"
-  ///         name="gz::sim::systems::ShaderParam">
+  /// <plugin filename="ignition-gazebo-shader-param-system"
+  ///         name="ignition::gazebo::systems::ShaderParam">
   ///   <shader language='glsl'>
   ///     <vertex>materials/my_vs.glsl</vertex>
   ///     <fragment>materials/my_fs.glsl</fragment>
@@ -89,7 +71,6 @@ namespace systems
   ///   </param>
   /// </plugin>
   /// ```
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   class ShaderParam
       : public System,
         public ISystemConfigure,

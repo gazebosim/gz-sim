@@ -42,21 +42,11 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-<<<<<<< HEAD
   /// - `<target>` Scoped name of the desired collision entity that is checked
   ///              to see if it's touching this model. This can be a substring
   ///              of the desired collision name so we match more than one
   ///              collision. For example, using the name of a model will match
   ///              all its collisions.
-=======
-  /// - `<target>` Name, or substring of a name, that identifies the target
-  ///              collision entity/entities.
-  ///              This value is searched in the scoped name of all collision
-  ///              entities, so it can possibly match more than one collision.
-  ///              For example, using the name of a model will match all of its
-  ///              collisions (scoped name
-  ///              `/model_name/link_name/collision_name`).
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///

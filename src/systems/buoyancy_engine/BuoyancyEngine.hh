@@ -71,7 +71,6 @@ namespace systems
   /// ign gazebo buoyancy_engine.sdf
   /// ```
   /// Enter the following in a separate terminal:
-<<<<<<< HEAD
   /// ```
   /// ign topic -t  /model/buoyant_box/buoyancy_engine/ -m ignition.msgs.Double
   ///    -p "data: 0.003"
@@ -82,21 +81,7 @@ namespace systems
   ///    -p "data: 0.001"
   /// ```
   /// To see the box go down.
-=======
-  /** ```
-      gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
-         -p "data: 0.003"
-      ```
-  **/
-  /// to see the box float up.
-  /** ```
-      gz topic -t /model/buoyant_box/buoyancy_engine/ -m gz.msgs.Double \
-         -p "data: 0.001"
-      ```
-  **/
-  /// to see the box go down.
   ///
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   /// To see the current volume enter:
   /// ```
   /// ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e

@@ -51,17 +51,8 @@ namespace systems
   ///      + small local fluctuations
   ///      + noise on value
   ///
-<<<<<<< HEAD
-=======
-  /// Forces exerted by the wind on model links are approximated from
-  /// link mass and velocity with respect to wind velocity, and applied
-  /// to the link frame origin. These approximations can be amplified or
-  /// attenuated on a per location basis by specifying a piecewise scalar
-  /// field for a scaling factor.
-  ///
   /// ## System Parameters
   ///
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
   /// The following parameters are used by the system:
   ///
   /// - `<horizontal><magnitude><time_for_rise>`:
@@ -97,45 +88,7 @@ namespace systems
   /// - `<vertical><noise>`:
   /// Parameters for the noise that is added to the vertical wind velocity
   /// magnitude.
-<<<<<<< HEAD
   class WindEffects:
-=======
-  ///
-  /// - `<force_approximation_scaling_factor>`:
-  /// Proportionality constant used for wind force approximations as a
-  /// piecewise, separable scalar field:
-  /// ```
-  ///   <force_approximation_scaling_factor>
-  ///     <when xlt="0"> <!-- Half space where x < 0 -->
-  ///       <k>1</k>
-  ///       <px>0 0 0 1</px>  <!-- p(x) = x -->
-  ///       <qy>0 0 0 1</qy>  <!-- q(y) = 1 -->
-  ///       <rz>0 1 0 1</rz>  <!-- r(z) = z^2 -->
-  ///     </when>
-  ///   </force_approximation_scaling_factor>
-  /// ```
-  /// When the scaling factor is to be constant in a region, a numerical
-  /// constant may be used in place for the scalar field definition:
-  /// ```
-  ///   <force_approximation_scaling_factor>
-  ///     <!-- First octant -->
-  ///     <when xge="0" yge="0" zge="0">1</when>
-  ///   </force_approximation_scaling_factor>
-  /// ```
-  /// To use the same constant or scalar field in all space, region
-  /// definition may be dropped:
-  /// ```
-  ///   <force_approximation_scaling_factor>
-  ///     <k>2</k>
-  ///     <px>1 0 1 0</px>  <!-- p(x) = x^3 + x -->
-  ///     <qy>0 1 0 1</qy>  <!-- q(y) = x^2 + 1 -->
-  ///     <rz>1 0 1 0</rz>  <!-- r(z) = z^3 + z -->
-  ///   </force_approximation_scaling_factor>
-  /// ```
-  /// Regions may not overlap.
-  ///
-  class WindEffects final:
->>>>>>> fdbda58 ( Standardize Doxygen parameter formatting for systems O-Z (#2212))
     public System,
     public ISystemConfigure,
     public ISystemPreUpdate
