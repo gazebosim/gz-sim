@@ -13,6 +13,14 @@ release will remove the deprecated code.
     derivatives (e.g. `<xUabsU>`, `<yVabsV>`) already incorporate fluid
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
+  * **Hydrodynamics**: The system no longer implements `ISystemPostUpdate`.
+    Its only job there was to find the current table loaded by
+    `EnvironmentPreload`, which it did only while the world entity was new.
+    The table is now read in `PreUpdate` whenever the world carries
+    environmental data, so a model spawned after the first iteration and a
+    data set reloaded at run time (through the `/world/<world>/environment`
+    topic or the Environment Loader GUI) now reach the plugin; both were
+    silently ignored before.
 
 * **Buoyancy**
   * The buoyant force now acts at the collision geometry's centroid instead

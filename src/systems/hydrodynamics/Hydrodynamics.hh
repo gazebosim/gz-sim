@@ -214,7 +214,6 @@ namespace systems
     public gz::sim::System,
     public gz::sim::ISystemConfigure,
     public gz::sim::ISystemPreUpdate,
-    public gz::sim::ISystemPostUpdate,
     public gz::sim::ISystemReset
   {
     /// \brief Constructor
@@ -234,11 +233,6 @@ namespace systems
     public: void PreUpdate(
         const gz::sim::UpdateInfo &_info,
         gz::sim::EntityComponentManager &_ecm) override;
-
-    /// Documentation inherited
-    public: void PostUpdate(
-        const gz::sim::UpdateInfo &_info,
-        const gz::sim::EntityComponentManager &_ecm) override;
 
     /// Documentation inherited
     public: void Reset(
