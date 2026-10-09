@@ -35,6 +35,7 @@ set(tests
   halt_motion.cc
   hydrodynamics.cc
   hydrodynamics_flags.cc
+  hydrodynamics_currents.cc
   imu_system.cc
   include_sim_hh.cc
   joint.cc
