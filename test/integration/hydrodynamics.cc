@@ -201,3 +201,29 @@ TEST_F(HydrodynamicsTest,
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
 }
+
+/////////////////////////////////////////////////
+/// A current from a table and one from <default_current> (or the topic)
+/// add up: (1, 0, 0) from the file plus (0, 1, 0) from the plugin.
+/// The body carries no plugin added mass: the table arrives an iteration
+/// after the default current, and the legacy added-mass term would turn
+/// that step in the relative velocity into an impulse.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CurrentTablePlusDefault))
+{
+  this->defaultForce = math::Vector3d(0, 0, 0);
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "hydrodynamics.sdf");
+
+  auto sphereVel = this->TestWorld(world, "sphere_current_sum");
+
+  for (unsigned int i = 990; i < 1000; ++i)
+  {
+    EXPECT_GT(sphereVel[i].X(), 0.3);
+    EXPECT_GT(sphereVel[i].Y(), 0.3);
+    // The default current acts from the first step, the table once the
+    // environment is loaded, so x trails y by a step or so.
+    EXPECT_NEAR(sphereVel[i].X(), sphereVel[i].Y(), 1e-2);
+    EXPECT_NEAR(sphereVel[i].Z(), 0, 1e-6);
+  }
+}

@@ -13,6 +13,10 @@ release will remove the deprecated code.
     derivatives (e.g. `<xUabsU>`, `<yVabsV>`) already incorporate fluid
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
+  * **Hydrodynamics**: A current loaded from environmental data
+    (`<lookup_current_x|y|z>`) no longer silences the current topic and
+    `<default_current>`; the two are added. A world that set both relied
+    on the topic being ignored and now sees their sum.
 
 * **Buoyancy**
   * The buoyant force now acts at the collision geometry's centroid instead
