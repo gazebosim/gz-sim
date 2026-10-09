@@ -38,12 +38,12 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// `<topic>` Topic to receive commands in. Defaults to
-  ///     `/model/<model_name>/cmd_vel`.
+  /// - `<topic>`: Topic to receive commands in. Defaults to
+  ///   `/model/<model_name>/cmd_vel`.
   ///
-  /// `<initial_linear>` Linear velocity to start with.
+  /// - `<initial_linear>`: Linear velocity to start with.
   ///
-  /// `<initial_angular>` Linear velocity to start with.
+  /// - `<initial_angular>`: Linear velocity to start with.
   class VelocityControl
       : public System,
         public ISystemConfigure,

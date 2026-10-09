@@ -81,6 +81,7 @@ namespace systems
   ///    -p "data: 0.001"
   /// ```
   /// To see the box go down.
+  ///
   /// To see the current volume enter:
   /// ```
   /// ign topic -t  /model/buoyant_box/buoyancy_engine/current_volume -e

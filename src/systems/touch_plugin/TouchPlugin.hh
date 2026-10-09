@@ -40,7 +40,7 @@ namespace systems
   /// It requires that contact sensors be placed in at least one link on the
   /// model on which this plugin is attached.
   ///
-  /// Parameters:
+  /// ## System Parameters
   ///
   /// - `<target>` Scoped name of the desired collision entity that is checked
   ///              to see if it's touching this model. This can be a substring
@@ -51,10 +51,10 @@ namespace systems
   /// - `<time>` Target time in seconds to maintain contact.
   ///
   /// - `<namespace>` Namespace for transport topics/services:
-  ///             + `/<namespace>/enable` : Service used to enable and disable
-  ///                                       the plugin.
-  ///             + `/<namespace>/touched` : Topic where a message is published
-  ///                                        once the touch event occurs.
+  ///   - `/<namespace>/enable` : Service used to enable and disable
+  ///                             the plugin.
+  ///   - `/<namespace>/touched` : Topic where a message is published
+  ///                              once the touch event occurs.
   ///
   /// - `<enabled>` Set this to true so the plugin works from the start and
   ///               doesn't need to be enabled.

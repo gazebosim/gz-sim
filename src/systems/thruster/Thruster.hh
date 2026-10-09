@@ -39,55 +39,62 @@ namespace systems
   /// theoretical angular velocity of the blades and spins them accordingly.
   ///
   /// ## System Parameters
-  /// - <namespace> - The namespace in which the robot exists. The plugin will
+  ///
+  /// - `<namespace>`: The namespace in which the robot exists. The plugin will
   ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`
   ///   or on {namespace}/{topic} if {topic} is set.
   ///   [Optional]
-  /// - <topic> - The topic for receiving thrust commands. [Optional]
-  /// - <joint_name> - This is the joint in the model which corresponds to the
+  /// - `<topic>`: The topic for receiving thrust commands. [Optional]
+  /// - `<joint_name>`: This is the joint in the model which corresponds to the
   ///   propeller. [Required]
-  /// - <fluid_density> - The fluid density of the liquid in which the thruster
+  /// - `<fluid_density>`: The fluid density of the liquid in which the thruster
   ///   is operating in. [Optional, kg/m^3, defaults to 1000 kg/m^3]
-  /// - <propeller_diameter> - The diameter of the propeller in meters.
+  /// - `<propeller_diameter>`: The diameter of the propeller in meters.
   ///   [Optional, m, defaults to 0.02m]
-  /// - <thrust_coefficient> - This is the coefficient which relates the angular
-  ///   velocity to actual thrust. [Optional, no units, defaults to 1.0]
-  ///
-  ///      omega = sqrt(thrust /
-  ///          (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
-  ///
-  ///   Where omega is the propeller's angular velocity in rad/s.
-  /// - <velocity_control> - If true, use joint velocity commands to rotate the
+  /// - `<thrust_coefficient>`: This is the coefficient which relates the
+  ///   angular velocity to actual thrust. [Optional, no units, defaults to 1.0]
+  ///   ```
+  ///   omega = sqrt(thrust /
+  ///       (fluid_density * thrust_coefficient * propeller_diameter ^ 4))
+  ///   ```
+  ///   where omega is the propeller's angular velocity in rad/s.
+  /// - `<velocity_control>`: If true, use joint velocity commands to rotate the
   ///   propeller. If false, use a PID controller to apply wrenches directly to
   ///   the propeller link instead. [Optional, defaults to false].
-  /// - <p_gain> - Proportional gain for joint PID controller. [Optional,
-  ///              no units, defaults to 0.1]
-  /// - <i_gain> - Integral gain for joint PID controller. [Optional,
-  ///              no units, defaults to 0.0]
-  /// - <d_gain> - Derivative gain for joint PID controller. [Optional,
-  ///              no units, defaults to 0.0]
-  /// - <max_thrust_cmd> - Maximum thrust command. [Optional,
-  ///                      defaults to 1000N]
-  /// - <min_thrust_cmd> - Minimum thrust command. [Optional,
-  ///                      defaults to -1000N]
-  /// - <wake_fraction>  - Relative speed reduction between the water
+  /// - `<p_gain>`: Proportional gain for joint PID controller. [Optional,
+  ///               no units, defaults to 0.1]
+  /// - `<i_gain>`: Integral gain for joint PID controller. [Optional,
+  ///               no units, defaults to 0.0]
+  /// - `<d_gain>`: Derivative gain for joint PID controller. [Optional,
+  ///               no units, defaults to 0.0]
+  /// - `<max_thrust_cmd>`: Maximum thrust command. [Optional,
+  ///                       defaults to 1000N]
+  /// - `<min_thrust_cmd>`: Minimum thrust command. [Optional,
+  ///                       defaults to -1000N]
+  /// - `<wake_fraction>`: Relative speed reduction between the water
   ///                      at the propeller (Va) vs behind the vessel.
   ///                      [Optional, defults to 0.2]
-  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
   ///
-  ///                Va = (1 - wake_fraction) * advance_speed
+  ///   See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///   ```
+  ///   Va = (1 - wake_fraction) * advance_speed
+  ///   ```
   ///
-  /// - <alpha_1> - Constant given by the open water propeller diagram. Used
-  ///               in the calculation of the thrust coefficient (Kt).
-  ///               [Optional, defults to 1]
-  /// - <alpha_2> - Constant given by the open water propeller diagram. Used
-  ///               in the calculation of the thrust coefficient (Kt).
-  ///               [Optional, defults to 0]
-  /// See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  /// - `<alpha_1>`: Constant given by the open water propeller diagram. Used
+  ///                in the calculation of the thrust coefficient (Kt).
+  ///                [Optional, defults to 1]
+  /// - `<alpha_2>`: Constant given by the open water propeller diagram. Used
+  ///                in the calculation of the thrust coefficient (Kt).
+  ///                [Optional, defults to 0]
   ///
-  /// Kt = alpha_1 * alpha_2 * (Va/(propeller_revolution * propeller_diameter))
+  ///   See Thor I Fossen's  "Guidance and Control of ocean vehicles" p. 95:
+  ///   ```
+  ///   Kt = alpha_1 * alpha_2 *
+  ///       (Va / (propeller_revolution * propeller_diameter))
+  ///   ```
   ///
   /// ## Example
+  ///
   /// An example configuration is installed with Gazebo. The example
   /// uses the LiftDrag plugin to apply steering controls. It also uses the
   /// thruster plugin to propell the craft and the buoyancy plugin for buoyant

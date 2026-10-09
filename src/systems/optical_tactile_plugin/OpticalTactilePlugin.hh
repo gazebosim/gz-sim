@@ -37,54 +37,52 @@ namespace systems
   ///
   /// It requires that contact sensor and depth camera be placed in at least
   /// one link on the model on which this plugin is attached.
-  /// TODO:
+  ///
+  /// \todo(anyone)
   /// Currently, the contacts returned from the physics engine (which tends to
   /// be sparse) and the normal forces separately computed from the depth
   /// camera (which is dense, resolution adjustable) are disjoint. It is
   /// left as future work to combine the two sets of data.
   ///
-  /// Parameters:
+  /// ## System Parameters
   ///
-  /// <enabled> Set this to true so the plugin works from the start and
-  ///           doesn't need to be enabled. This element is optional, and the
-  ///           default value is true.
+  /// - `<enabled>`: Set this to true so the plugin works from the start and
+  /// doesn't need to be enabled. This element is optional, and the
+  /// default value is true.
   ///
-  /// <namespace> Namespace for transport topics/services. If there are more
-  ///             than one optical tactile plugins, their namespaces should
-  ///             be different.
-  ///             This element is optional, and the default value is
-  ///             "optical_tactile_sensor".
-  ///             /<namespace>/enable : Service used to enable and disable the
-  ///                                   plugin.
-  ///             /<namespace>/normal_forces : Topic where a message is
-  ///                                          published each time the
-  ///                                          normal forces are computed
+  /// - `<namespace>`: Namespace for transport topics/services. If there are
+  /// more than one optical tactile plugins, their namespaces should
+  /// be different. This element is optional, and the default value is
+  /// "optical_tactile_sensor".
+  ///   - `/<namespace>/enable`: Service used to enable and disable the plugin.
+  ///   - `/<namespace>/normal_forces`: Topic where a message is
+  ///     published each time the normal forces are computed
   ///
-  /// <visualization_resolution> Number n of pixels to skip when visualizing
-  ///                            the forces. One vector representing a normal
-  ///                            force is computed for every nth pixel. This
-  ///                            element must be positive and it is optional.
-  ///                            The default value is 30.
+  /// - `<visualization_resolution>`: Number n of pixels to skip when
+  /// visualizing the forces. One vector representing a normal
+  /// force is computed for every nth pixel. This
+  /// element must be positive and it is optional.
+  /// The default value is 30.
   ///
-  /// <force_length> Length in meters of the forces visualized if
-  ///                <visualize_forces> is set to true. This parameter is
-  ///                optional, and the default value is 0.01.
+  /// - `<force_length>`: Length in meters of the forces visualized if
+  /// <visualize_forces> is set to true. This parameter is
+  /// optional, and the default value is 0.01.
   ///
-  /// <extended_sensing> Extended sensing distance in meters. The sensor will
-  ///                    output data coming from its collision geometry plus
-  ///                    this distance. This element is optional, and the
-  ///                    default value is 0.001.
+  /// - `<extended_sensing>`: Extended sensing distance in meters. The sensor
+  /// will output data coming from its collision geometry plus
+  /// this distance. This element is optional, and the
+  /// default value is 0.001.
   ///
-  /// <visualize_sensor> Whether to visualize the sensor or not. This element
-  ///                    is optional, and the default value is false.
+  /// - `<visualize_sensor>`: Whether to visualize the sensor or not. This
+  /// element is optional, and the default value is false.
   ///
-  /// <visualize_contacts> Whether to visualize the contacts from the contact
-  ///                      sensor based on physics. This element is optional,
-  ///                      and the default value is false.
+  /// - `<visualize_contacts>`: Whether to visualize the contacts from the
+  /// contact sensor based on physics. This element is optional,
+  /// and the default value is false.
   ///
-  /// <visualize_forces> Whether to visualize normal forces computed from the
-  ///                    depth camera. This element is optional, and the
-  ///                    default value is false.
+  /// - `<visualize_forces>`: Whether to visualize normal forces computed from
+  /// the depth camera. This element is optional, and the
+  /// default value is false.
 
   class OpticalTactilePlugin :
     public System,
