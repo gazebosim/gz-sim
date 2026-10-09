@@ -783,8 +783,7 @@ void SimulationRunner::Stop()
 /////////////////////////////////////////////////
 void SimulationRunner::OnStop()
 {
-  this->stopReceived = true;
-  this->running = false;
+  this->runState.Stop();
 }
 
 /////////////////////////////////////////////////
@@ -834,7 +833,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->networkMgr->IsSecondary())
     {
       gzdbg << "Secondary running." << std::endl;
-      while (!this->stopReceived)
+      while (!this->StopReceived())
       {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
@@ -847,7 +846,14 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
 
-  this->running = true;
+  // A stop may have arrived while this thread was starting up, e.g. the
+  // Server being destroyed right after a non-blocking Run() (issue #3829).
+  if (!this->runState.TryStart())
+  {
+    gzdbg << "SimulationRunner::Run: a stop request arrived before the run "
+          << "loop started; no iterations will be executed." << std::endl;
+    return false;
+  }
 
   // Create the world statistics publisher.
   if (!this->statsPub.Valid())
@@ -937,7 +943,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   if (_iterations > 0)
   {
     bool created = this->entitiesCreated;
-    while(!created && this->running)
+    while (!created && this->Running())
     {
       {
         std::unique_lock<std::mutex> createLock(this->assetCreationMutex);
@@ -954,7 +960,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // Execute all the systems until we are told to stop, or the number of
   // iterations is reached.
   auto nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
-  while (this->running && (_iterations == 0 ||
+  while (this->Running() && (_iterations == 0 ||
        processedIterations < _iterations))
   {
     // Create entities if set. This needs to be called before updating
@@ -1089,7 +1095,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
   }
 
-  this->running = false;
+  this->runState.Finish();
 
   return true;
 }
@@ -1314,7 +1320,7 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 /////////////////////////////////////////////////
 bool SimulationRunner::Running() const
 {
-  return this->running;
+  return this->runState.Running();
 }
 
 /////////////////////////////////////////////////
@@ -1326,7 +1332,7 @@ bool SimulationRunner::ParallelPostUpdates() const
 /////////////////////////////////////////////////
 bool SimulationRunner::StopReceived() const
 {
-  return this->stopReceived;
+  return this->runState.Stopped();
 }
 
 /////////////////////////////////////////////////
@@ -1369,7 +1375,7 @@ void SimulationRunner::SetUpdatePeriod(
 void SimulationRunner::SetPaused(const bool _paused)
 {
   // Only update the realtime clock if Run() has been called.
-  if (this->running)
+  if (this->Running())
   {
     // Start or stop the realtime stopwatch based on _paused. We don't need to
     // check the stopwatch state here since the stopwatch class checks its
