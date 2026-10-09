@@ -16,6 +16,9 @@
 */
 
 #include <gtest/gtest.h>
+#include <condition_variable>
+#include <mutex>
+#include <sstream>
 
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/odometry_with_covariance.pb.h>
@@ -53,6 +56,77 @@ using namespace std::chrono_literals;
 class OdometryPublisherTest
   : public InternalFixture<::testing::TestWithParam<int>>
 {
+  /// \brief Check stationary odometry from the first published message.
+  /// \param[in] _dimensions Number of dimensions used for velocity estimates.
+  /// \param[in] _pose Initial world pose of the model.
+  /// \param[in] _offset Offset of the odometry frame relative to the model.
+  protected: void TestInitialPose(int _dimensions, const math::Pose3d &_pose,
+                                 const math::Pose3d &_offset)
+  {
+    SCOPED_TRACE(::testing::Message() << "dimensions=" << _dimensions
+        << " pose=" << _pose << " offset=" << _offset);
+
+    std::ostringstream sdf;
+    sdf << "<sdf version='1.8'><world name='initial_pose'>"
+        << "<physics name='1ms' type='ignored'>"
+        << "<max_step_size>0.001</max_step_size>"
+        << "<real_time_factor>0</real_time_factor></physics>"
+        << "<plugin filename='gz-sim-physics-system' "
+        << "name='gz::sim::systems::Physics'/>"
+        << "<model name='stationary'><static>true</static><pose>"
+        << _pose << "</pose><link name='body'/>"
+        << "<plugin filename='gz-sim-odometry-publisher-system' "
+        << "name='gz::sim::systems::OdometryPublisher'>"
+        << "<dimensions>" << _dimensions << "</dimensions>"
+        << "<xyz_offset>" << _offset.Pos() << "</xyz_offset>"
+        << "<rpy_offset>" << _offset.Rot().Euler() << "</rpy_offset>"
+        << "<odom_publish_frequency>100</odom_publish_frequency>"
+        << "</plugin></model></world></sdf>";
+
+    // Subscribe before starting the server so the startup sample is included.
+    std::mutex mutex;
+    std::condition_variable received;
+    std::vector<msgs::Odometry> messages;
+    transport::Node node;
+    std::function<void(const msgs::Odometry &)> callback =
+        [&](const msgs::Odometry &_msg)
+        {
+          std::lock_guard<std::mutex> lock(mutex);
+          messages.push_back(_msg);
+          received.notify_all();
+        };
+    ASSERT_TRUE(node.Subscribe("/model/stationary/odometry", callback));
+
+    ServerConfig config;
+    config.SetSdfString(sdf.str());
+    Server server(config);
+    ASSERT_TRUE(server.Run(true, 100, false));
+
+    std::unique_lock<std::mutex> lock(mutex);
+    ASSERT_TRUE(received.wait_for(lock, 3s,
+        [&messages]() { return messages.size() >= 10u; }));
+    ASSERT_EQ(10u, messages.size());
+    // Do not let missing the first message hide an initialization spike.
+    EXPECT_EQ(0, messages.front().header().stamp().sec());
+    EXPECT_EQ(10000000, messages.front().header().stamp().nsec());
+
+    auto expectedPose = _pose * _offset;
+    if (_dimensions == 2)
+      expectedPose.Pos().Z() = 0;
+    for (const auto &msg : messages)
+    {
+      EXPECT_TRUE(msgs::Convert(msg.pose()).Equal(expectedPose, 1e-6));
+      const auto &linear = msg.twist().linear();
+      const auto &angular = msg.twist().angular();
+      EXPECT_NEAR(0.0, linear.x(), 1e-6);
+      EXPECT_NEAR(0.0, linear.y(), 1e-6);
+      EXPECT_NEAR(0.0, linear.z(), 1e-6);
+      EXPECT_NEAR(0.0, angular.x(), 1e-6);
+      EXPECT_NEAR(0.0, angular.y(), 1e-6);
+      EXPECT_NEAR(0.0, angular.z(), 1e-6);
+    }
+  }
+
   /// \param[in] _sdfFile SDF file to load.
   /// \param[in] _odomTopic Odometry topic.
   protected: void TestMovement(const std::string &_sdfFile,
@@ -755,6 +829,27 @@ TEST_P(OdometryPublisherTest,
       std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/odometry_noise.sdf",
       "/model/vehicle/odometry_with_covariance");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialPose2d))
+{
+  TestInitialPose(2, math::Pose3d::Zero, math::Pose3d::Zero);
+  TestInitialPose(2, {3, -4, 0, 0, 0, 1.2}, math::Pose3d::Zero);
+  TestInitialPose(2, math::Pose3d::Zero, {1, 2, 0, 0, 0, -0.4});
+  TestInitialPose(2, {3, -4, 0, 0, 0, 1.2}, {1, 2, 0, 0, 0, -0.4});
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialPose3d))
+{
+  TestInitialPose(3, math::Pose3d::Zero, math::Pose3d::Zero);
+  TestInitialPose(3, {3, -4, -5, 0.3, -0.2, 1.2}, math::Pose3d::Zero);
+  TestInitialPose(3, math::Pose3d::Zero, {1, 2, 3, 0.1, 0.2, -0.4});
+  TestInitialPose(3, {3, -4, -5, 0.3, -0.2, 1.2},
+      {1, 2, 3, 0.1, 0.2, -0.4});
 }
 
 // Run multiple times
