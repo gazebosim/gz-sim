@@ -476,7 +476,7 @@ TEST_P(DiffDriveTest, IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmd))
 
 /////////////////////////////////////////////////
 TEST_P(DiffDriveTest,
-       GZ_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmdCustomTopic))
+       IGN_UTILS_TEST_DISABLED_ON_WIN32(EnableDisableCmdCustomTopic))
 {
   TestEnableDisableCmd(
       std::string(PROJECT_SOURCE_PATH) +

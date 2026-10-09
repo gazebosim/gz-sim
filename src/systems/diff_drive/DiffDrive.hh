@@ -54,25 +54,16 @@ namespace systems
   /// `<odom_publish_frequency>`: Odometry publication frequency. This
   /// element is optional, and the default value is 50Hz.
   ///
-<<<<<<< HEAD
   /// `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
-  /// default value is `/model/{name_of_model}/cmd_vel`.
-  ///
-  /// `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
-=======
-  /// - `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command velocity messages. This element is optional, and the
   /// default value is `/model/{name_of_model}/cmd_vel`.
   ///
-  /// - `<enable_topic>`: Custom topic that this system will subscribe to in
+  /// `<enable_topic>`: Custom topic that this system will subscribe to in
   /// order to receive enable messages. This element is optional, and the
   /// default value is `/model/{name_of_model}/enable`.
   ///
-  /// - `<odom_topic>`: Custom topic on which this system will publish odometry
+  /// `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element is optional, and the default value is
->>>>>>> 9131706 (DiffDrive: Add support for custom enable topic (#4004))
   /// `/model/{name_of_model}/odometry`.
   ///
   /// `<tf_topic>`: Custom topic on which this system will publish the
