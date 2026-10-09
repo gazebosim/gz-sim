@@ -155,8 +155,10 @@ namespace systems
   ///     multi-robot scenarios. [string, optional]
   ///
   /// Currents can also be loaded from data files via the
-  /// EnvironmentPreload system. If any `lookup_current_*` tag is
-  /// present, topic-based currents are ignored:
+  /// EnvironmentPreload system. The current read from the table at the
+  /// link is added to the topic current (or `<default_current>`), so a
+  /// data file can carry the mean field and the topic an offset or a
+  /// gust. A missing column counts as zero:
   ///   * `<lookup_current_x>` - CSV column for x current [string]
   ///   * `<lookup_current_y>` - CSV column for y current [string]
   ///   * `<lookup_current_z>` - CSV column for z current [string]
