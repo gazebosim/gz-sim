@@ -28,6 +28,14 @@ Item {
       onTriggered: context.OnRequest("move_to", context.entity)
     }
     MenuItem {
+      id: inspectMenu
+      text: "Inspect"
+      onTriggered: {
+        menu.close()
+        context.OnInspect(context.entityId)
+      }
+    }
+    MenuItem {
       id: followOptionsSubmenu
       text: "Follow Options >"
       MouseArea {
@@ -172,10 +180,14 @@ Item {
     }
   }
 
-  function open(_entity, _type) {
+  function open(_entity, _type, _entityId, _x, _y) {
+    menu.x = _x
+    menu.y = _y
     context.entity = _entity
     context.type = _type
+    context.entityId = _entityId
     moveToMenu.enabled = false
+    inspectMenu.enabled = false
     followMenu.enabled = false
     followFreeLookMenu.enabled = false
     followLookAtMenu.enabled = false
@@ -190,6 +202,13 @@ Item {
     viewFramesMenu.enabled = false;
 
     // enable / disable menu items
+    if (typeof context.entityId === "string" &&
+        context.entityId.length > 0 &&
+        context.entityId !== "0")
+    {
+      inspectMenu.enabled = true
+    }
+
     if (context.type == "model" || context.type == "link" ||
         context.type == "visual" || context.type == "light" ||
         context.type == "performer")
@@ -230,12 +249,13 @@ Item {
       viewFramesMenu.enabled = true
     }
 
-    menu.popup()
+    menu.open()
   }
 
   GzSim.EntityContextMenuItem {
     id: context
     property string entity
     property string type
+    property string entityId
   }
 }

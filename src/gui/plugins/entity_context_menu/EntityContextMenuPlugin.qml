@@ -55,9 +55,10 @@ ColumnLayout {
 
     Connections {
       target: renderWindowOverlay
-      function onOpenContextMenu(_entity)
+      onOpenContextMenu:
       {
-        entityContextMenu.open(_entity, "model");
+        entityContextMenu.open(_entity, "model", _entityId,
+          _mouseX, _mouseY);
       }
     }
   }
