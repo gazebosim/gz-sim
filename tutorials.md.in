@@ -40,6 +40,7 @@ If you are an absolute beginner, start with the Tutorials section.
 * \subpage server_config "Server configuration": Customize what system plugins are loaded.
 * \subpage model_photo_shoot "Model Photo Shoot" Taking perspective, top, front, and side pictures of a model.
 * \subpage videorecorder "Video Recorder": Record videos from the 3D render window.
+* \subpage setting_up_CAD_models "CAD to SDFormat": Setup CAD models for Gazebo.
 
 ### Intermediate
 
