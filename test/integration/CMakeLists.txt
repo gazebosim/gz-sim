@@ -87,6 +87,7 @@ set(tests
   sensor.cc
   spherical_coordinates.cc
   swerve_drive_system.cc
+  test_fixture.cc
   thruster.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
@@ -278,6 +279,11 @@ endif()
 # The default timeout (240s) doesn't seem to be enough for this test.
 if(TARGET INTEGRATION_tracked_vehicle_system )
   set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
+endif()
+
+if(TARGET INTEGRATION_test_fixture)
+  # Stop regressions in timed stepping before they flood the test log.
+  set_tests_properties(INTEGRATION_test_fixture PROPERTIES TIMEOUT 30)
 endif()
 
 if(TARGET INTEGRATION_examples_build)
