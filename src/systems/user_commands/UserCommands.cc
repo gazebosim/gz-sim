@@ -960,7 +960,7 @@ bool CreateCommand::CreateFromMsg(const msgs::EntityFactory &_createMsg,
         if (parentComp && parentComp->Data() == this->iface->worldEntity)
         {
           auto parentEntity = parentComp->Data();
-          clonedEntity = this->iface->ecm->Clone(entityToClone,
+          clonedEntity = this->iface->creator->Clone(entityToClone,
               parentEntity, _createMsg.name(),
               _createMsg.allow_renaming(), _ns);
           validClone = kNullEntity != clonedEntity;
