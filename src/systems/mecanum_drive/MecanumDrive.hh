@@ -67,16 +67,24 @@ namespace systems
   /// element is optional, and the default value is 50Hz.
   ///
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
-  /// default value is `/model/{name_of_model}/cmd_vel`.
+  /// receive command velocity messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/cmd_vel`. If the model has a
+  /// namespace, the default topic becomes `{namespace}/cmd_vel`. Relative
+  /// custom  topics are prefixed with the namespace, while absolute topics
+  /// remain unchanged.
   ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
-  /// `/model/{name_of_model}/odometry`.
+  /// messages. This element is optional, and the default value is
+  /// `/model/{name_of_model}/odometry`. If the model has a namespace,
+  /// the default topic becomes `{namespace}/odometry`. Relative custom topics
+  /// are prefixed with the namespace, while absolute topics remain unchanged.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
-  /// transform from `frame_id` to `child_frame_id`. This element if optional,
-  ///  and the default value is `/model/{name_of_model}/tf`.
+  /// transform from `frame_id` to `child_frame_id`. This element is optional,
+  ///  and the default value is `/model/{name_of_model}/tf`. If the model has
+  /// a namespace, the default topic becomes `{namespace}/tf`. Relative custom
+  /// topics are prefixed with the namespace, while absolute topics remain
+  /// unchanged.
   ///
   /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
