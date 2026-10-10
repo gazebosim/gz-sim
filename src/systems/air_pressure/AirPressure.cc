@@ -128,7 +128,7 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
   // Only update and publish if not paused.
   GZ_PROFILE("AirPressure::PostUpdate");
 
-  // \TODO(anyone) Support rewind
+  // \todo(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
