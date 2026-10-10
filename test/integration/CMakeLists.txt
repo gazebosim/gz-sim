@@ -281,6 +281,11 @@ if(TARGET INTEGRATION_tracked_vehicle_system )
   set_tests_properties(INTEGRATION_tracked_vehicle_system PROPERTIES TIMEOUT 300)
 endif()
 
+if(TARGET INTEGRATION_test_fixture)
+  # Stop regressions in timed stepping before they flood the test log.
+  set_tests_properties(INTEGRATION_test_fixture PROPERTIES TIMEOUT 30)
+endif()
+
 if(TARGET INTEGRATION_examples_build)
   set_tests_properties(INTEGRATION_examples_build PROPERTIES TIMEOUT 320)
 endif()

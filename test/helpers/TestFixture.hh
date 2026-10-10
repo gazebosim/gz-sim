@@ -74,7 +74,8 @@ class TestFixture
                 sim::World world(sim::worldEntity(_ecm));
                 auto physicsComponent = _ecm.Component<
                   sim::components::Physics>(world.Entity());
-                this->maxStepSize = physicsComponent->Data().MaxStepSize();
+                if (physicsComponent)
+                  this->maxStepSize = physicsComponent->Data().MaxStepSize();
                 this->OnConfigure(_entity, _sdf, _ecm, _eventManager);
               })
           .OnPreUpdate(
@@ -126,6 +127,8 @@ class TestFixture
     auto simulator = this->Simulator();
     const auto deadline = this->info.simTime + _step;
     do {
+      // If the world failed to load, maxStepSize may never have been set.
+      // Check before using it to calculate the number of iterations below.
       if (simulator->GetStatus() == sim::Server::Status::EXITED)
         break;
 
