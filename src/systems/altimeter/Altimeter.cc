@@ -56,6 +56,9 @@ class gz::sim::systems::AltimeterPrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AltimeterSensor>> entitySensorMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -172,6 +175,12 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> Altimeter::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 void AltimeterPrivate::AddAltimeter(
   const EntityComponentManager &_ecm,
   const Entity _entity,
@@ -183,12 +192,21 @@ void AltimeterPrivate::AddAltimeter(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _altimeter->Data();
   data.SetName(sensorScopedName);
+
+  // generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/altimeter";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = ns;
+  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.defaultTopicSuffix = "altimeter";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::AltimeterSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::AltimeterSensor>(data);
@@ -293,6 +311,17 @@ void AltimeterPrivate::RemoveAltimeterEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved altimeter sensor topic"
+                << " name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });
