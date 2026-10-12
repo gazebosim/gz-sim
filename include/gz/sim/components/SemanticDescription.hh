@@ -69,7 +69,7 @@ namespace components
 /// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityInfo.msg
 using SemanticDescription = Component<std::string, class SemanticDescriptionTag,
                                       serializers::StringSerializer>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticDescription",
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.SemanticDescription",
                           SemanticDescription)
 }  // namespace components
 }  // namespace GZ_SIM_VERSION_NAMESPACE

@@ -36,7 +36,7 @@ namespace components
   /// sdf::AirPressure, information.
   using AirPressureSensor = Component<sdf::Sensor, class AirPressureSensorTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.AirPressureSensor",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.AirPressureSensor",
       AirPressureSensor)
 }
 }
