@@ -23,10 +23,10 @@
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ConstructEmpty.hh>
 #include <gz/physics/Entity.hh>
+#include <gz/physics/Feature.hh>
 #include <gz/physics/ForwardStep.hh>
 #include <gz/physics/Implements.hh>
 #include <gz/physics/InstallationDirectories.hh>
-#include <gz/physics/Joint.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
 #include <gz/physics/config.hh>
@@ -187,6 +187,17 @@ TEST_F(EntityFeatureMapFixture,
 }
 
 /////////////////////////////////////////////////
+/// \brief A feature that no physics engine implements. It needs its own
+/// Implementation: the one inherited from Feature is provided by every engine.
+class MissingFeatureForTest : public virtual physics::Feature
+{
+  public: template <typename PolicyT>
+  class Implementation : public virtual Feature::Implementation<PolicyT>
+  {
+  };
+};
+
+/////////////////////////////////////////////////
 TEST_F(EntityFeatureMapFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(FailedCastIsCached))
 {
@@ -194,9 +205,8 @@ TEST_F(EntityFeatureMapFixture,
       : physics::FeatureList<physics::LinkFrameSemantics>
   {
   };
-  // dartsim doesn't implement mimic constraints
   struct UnsupportedFeatures
-      : physics::FeatureList<physics::SetMimicConstraintFeature>
+      : physics::FeatureList<MissingFeatureForTest>
   {
   };
 
