@@ -236,9 +236,9 @@ class gz::sim::systems::PhysicsPrivate
   public: void CreateLinkEntities(const EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
 
-  /// \brief Set a link entity to be kinematic if useKinematicLinks is enabled.
+  /// \brief Set a link entity to be kinematic.
   /// \param[in] _linkEntity The link entity to set as kinematic.
-  public: void SetLinkKinematicIfEnabled(const Entity &_linkEntity);
+  public: void SetLinkKinematic(const Entity &_linkEntity);
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -985,12 +985,6 @@ void Physics::Configure(const Entity &_entity,
     auto engineElem = sdfClone->GetElement("engine");
     pluginLib = engineElem->Get<std::string>("filename", pluginLib).first;
   }
-  if (_sdf->HasElement("kinematic_links"))
-  {
-    auto sdfClone = _sdf->Clone();
-    auto kinematicLinkElem = sdfClone->GetElement("kinematic_links");
-    this->dataPtr->useKinematicLinks = kinematicLinkElem->Get<bool>("", true).first;
-  }
 
   // 3. Use DART by default
   if (pluginLib.empty())
@@ -1021,6 +1015,11 @@ void Physics::Configure(const Entity &_entity,
   this->dataPtr->enforceFixedConstraint =
       _sdf->Get<bool>("enforce_fixed_constraint",
       this->dataPtr->enforceFixedConstraint).first;
+
+  // Check if kinematic links should be used.
+  this->dataPtr->useKinematicLinks =
+      _sdf->Get<bool>("kinematic_links",
+      this->dataPtr->useKinematicLinks).first;
 
   plugin::Loader pluginLoader;
   if (isStaticPlugin(pluginLib))
@@ -1562,7 +1561,10 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
-          this->SetLinkKinematicIfEnabled(_entity);
+          if (this->useKinematicLinks)
+          {
+            this->SetLinkKinematic(_entity);
+          }
           return true;
         }
 
@@ -1626,18 +1628,18 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->entityLinkMap.AddEntity(_entity, linkPtrPhys);
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
-        this->SetLinkKinematicIfEnabled(_entity);
 
+        if (this->useKinematicLinks)
+        {
+          this->SetLinkKinematic(_entity);
+        }
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::SetLinkKinematicIfEnabled(const Entity &_linkEntity)
+void PhysicsPrivate::SetLinkKinematic(const Entity &_linkEntity)
 {
-  if (!this->useKinematicLinks)
-    return;
-
   auto kinematicLink =
       this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_linkEntity);
   if (!kinematicLink)
