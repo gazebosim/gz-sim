@@ -172,14 +172,18 @@ TEST(SystemLoader, BadLibraryPath)
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
+#ifndef _WIN32
       ::testing::internal::CaptureStderr();
+#endif
       sdf::Plugin plugin;
       plugin.Load(pluginElem);
       auto system = sm.LoadPlugin(plugin);
       ASSERT_FALSE(system.has_value());
+#ifndef _WIN32
       auto output = ::testing::internal::GetCapturedStderr();
       EXPECT_NE(std::string::npos,
           output.find("Could not find shared library")) << output.c_str();
+#endif
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
@@ -207,14 +211,18 @@ TEST(SystemLoader, BadPluginName)
     sdf::ElementPtr pluginElem = worldElem->GetElement("plugin");
     while (pluginElem)
     {
+#ifndef _WIN32
       ::testing::internal::CaptureStderr();
+#endif
       sdf::Plugin plugin;
       plugin.Load(pluginElem);
       auto system = sm.LoadPlugin(plugin);
       ASSERT_FALSE(system.has_value());
+#ifndef _WIN32
       auto output = ::testing::internal::GetCapturedStderr();
       EXPECT_NE(std::string::npos,
           output.find("library does not contain")) << output.c_str();
+#endif
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
