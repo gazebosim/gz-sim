@@ -23,6 +23,7 @@
 #include <gz/physics/CylinderShape.hh>
 #include <gz/physics/ConstructEmpty.hh>
 #include <gz/physics/Entity.hh>
+#include <gz/physics/Feature.hh>
 #include <gz/physics/ForwardStep.hh>
 #include <gz/physics/Implements.hh>
 #include <gz/physics/Link.hh>
@@ -181,5 +182,61 @@ TEST_F(EntityFeatureMapFixture,
   EXPECT_EQ(gz::sim::kNullEntity, testMap.Get(testWorld2));
   EXPECT_EQ(gz::sim::kNullEntity, testMap.GetByPhysicsId(
       testWorld2->EntityID()));
+  EXPECT_EQ(0u, testMap.TotalMapEntryCount());
+}
+
+/////////////////////////////////////////////////
+/// \brief A feature that no physics engine implements. It needs its own
+/// Implementation: the one inherited from Feature is provided by every engine.
+class MissingFeatureForTest : public virtual physics::Feature
+{
+  public: template <typename PolicyT>
+  class Implementation : public virtual Feature::Implementation<PolicyT>
+  {
+  };
+};
+
+/////////////////////////////////////////////////
+TEST_F(EntityFeatureMapFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(FailedCastIsCached))
+{
+  struct SupportedFeatures
+      : physics::FeatureList<physics::LinkFrameSemantics>
+  {
+  };
+  struct UnsupportedFeatures
+      : physics::FeatureList<MissingFeatureForTest>
+  {
+  };
+
+  using WorldEntityMap =
+      EntityFeatureMap3d<physics::World, MinimumFeatureList,
+                         SupportedFeatures, UnsupportedFeatures>;
+
+  sim::Entity gazeboWorldEntity = 123;
+  auto testWorld = this->engine->ConstructEmptyWorld("world1");
+  WorldEntityMap testMap;
+  testMap.AddEntity(gazeboWorldEntity, testWorld);
+  EXPECT_EQ(4u, testMap.TotalMapEntryCount());
+
+  // A failed cast is cached in the entity's cache entry, so repeating it
+  // doesn't request the features from the engine again.
+  EXPECT_EQ(nullptr,
+      testMap.EntityCast<UnsupportedFeatures>(gazeboWorldEntity));
+  EXPECT_EQ(5u, testMap.TotalMapEntryCount());
+  EXPECT_EQ(nullptr,
+      testMap.EntityCast<UnsupportedFeatures>(gazeboWorldEntity));
+  EXPECT_EQ(5u, testMap.TotalMapEntryCount());
+
+  // Other feature lists of the same entity still cast.
+  EXPECT_NE(nullptr,
+      testMap.EntityCast<SupportedFeatures>(gazeboWorldEntity));
+  EXPECT_NE(nullptr,
+      testMap.EntityCast<SupportedFeatures>(gazeboWorldEntity));
+  EXPECT_EQ(nullptr,
+      testMap.EntityCast<UnsupportedFeatures>(gazeboWorldEntity));
+  EXPECT_EQ(5u, testMap.TotalMapEntryCount());
+
+  testMap.Remove(gazeboWorldEntity);
   EXPECT_EQ(0u, testMap.TotalMapEntryCount());
 }
