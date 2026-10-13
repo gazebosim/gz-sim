@@ -96,12 +96,10 @@ namespace
   struct ModifiedComponent { };
 
   /// \brief Set of component type ids. An entity has only a few changed or
-  /// removed component types at a time, and the changed sets are rebuilt on
-  /// every step, so a vector with linear search is cheaper than a hash set,
-  /// which allocates a node per element and a bucket array per set.
+  /// removed component types, so a vector is cheaper than a hash set, which
+  /// allocates a node per element.
   class ComponentTypeIdSet
   {
-    /// \brief Add a type id, if it isn't in the set yet.
     public: void insert(const ComponentTypeId _typeId)
     {
       if (this->contains(_typeId))
@@ -111,18 +109,13 @@ namespace
       this->ids.push_back(_typeId);
     }
 
-    /// \brief Remove a type id, if it is in the set.
     public: void erase(const ComponentTypeId _typeId)
     {
       auto it = std::find(this->ids.begin(), this->ids.end(), _typeId);
       if (it != this->ids.end())
-      {
-        *it = this->ids.back();
-        this->ids.pop_back();
-      }
+        this->ids.erase(it);
     }
 
-    /// \brief Whether the set holds a type id.
     public: bool contains(const ComponentTypeId _typeId) const
     {
       return std::find(this->ids.begin(), this->ids.end(), _typeId) !=
