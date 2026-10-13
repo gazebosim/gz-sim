@@ -41,6 +41,7 @@
 
 #include "helpers/Relay.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
+#include "helpers/Util.hh"
 #include "helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -131,6 +132,38 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Remaining))
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
   EXPECT_EQ(0, kRemaining);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(
+    ResetRestoresDeployments))
+{
+  this->LoadWorld(common::joinPaths("test", "worlds", "breadcrumbs.sdf"));
+  kRemaining = -1;
+
+  transport::Node node;
+  auto deployB1 =
+      node.Advertise<msgs::Empty>("/model/vehicle_blue/breadcrumbs/B1/deploy");
+  node.Subscribe("/model/vehicle_blue/breadcrumbs/B1/deploy/remaining",
+      &remainingCb);
+
+  deployB1.Publish(msgs::Empty());
+  ASSERT_TRUE(test::StepUntil(*this->server, 1000, []()
+  {
+    return kRemaining == 2;
+  }));
+
+  this->server->ResetAll();
+  // Let reset recreate the deploy subscribers before publishing again.
+  this->server->Run(true, 2, false);
+  kRemaining = -1;
+
+  deployB1.Publish(msgs::Empty());
+  ASSERT_TRUE(test::StepUntil(*this->server, 1000, []()
+  {
+    return kRemaining == 2;
+  }));
+  EXPECT_EQ(2, kRemaining);
 }
 
 /////////////////////////////////////////////////
