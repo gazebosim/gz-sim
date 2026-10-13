@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/wrench.pb.h>
+#include <cmath>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -39,13 +40,79 @@
 
 #include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
+#include "helpers/Subscription.hh"
+#include "helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
+using namespace std::chrono_literals;
 
 class ForceTorqueTest : public InternalFixture<::testing::Test>
 {
 };
+
+/////////////////////////////////////////////////
+Entity forceTorqueSensorEntity(const EntityComponentManager &_ecm)
+{
+  const auto test1ModelEntity = _ecm.EntityByComponents(
+      components::Model(), components::Name("test1"));
+  Model test1Model(test1ModelEntity);
+  if (!test1Model.Valid(_ecm))
+  {
+    return kNullEntity;
+  }
+
+  Model scaleModel(test1Model.ModelByName(_ecm, "scale"));
+  if (!scaleModel.Valid(_ecm))
+  {
+    return kNullEntity;
+  }
+
+  Joint sensorJoint(scaleModel.JointByName(_ecm, "sensor_joint"));
+  if (!sensorJoint.Valid(_ecm))
+  {
+    return kNullEntity;
+  }
+
+  return sensorJoint.SensorByName(_ecm, "force_torque_sensor");
+}
+
+/////////////////////////////////////////////////
+bool expectedForceTorqueReading(const msgs::Wrench &_wrench)
+{
+  const double kSensorMass = 0.2;
+  const double kWeightMass = 10;
+  const double kGravity = 9.8;
+  const double kTolerance = 1e-6;
+  const auto force = msgs::Convert(_wrench.force());
+  const auto torque = msgs::Convert(_wrench.torque());
+  const auto expectedForceZ = kGravity * (kSensorMass + kWeightMass);
+
+  return std::abs(force.X()) < kTolerance &&
+      std::abs(force.Y()) < kTolerance &&
+      std::abs(force.Z() - expectedForceZ) < kTolerance &&
+      std::abs(torque.X()) < kTolerance &&
+      std::abs(torque.Y()) < kTolerance &&
+      std::abs(torque.Z()) < kTolerance;
+}
+
+/////////////////////////////////////////////////
+void expectSameWrench(const msgs::Wrench &_expected,
+    const msgs::Wrench &_actual)
+{
+  const double kTolerance = 1e-6;
+  const auto expectedForce = msgs::Convert(_expected.force());
+  const auto actualForce = msgs::Convert(_actual.force());
+  const auto expectedTorque = msgs::Convert(_expected.torque());
+  const auto actualTorque = msgs::Convert(_actual.torque());
+
+  EXPECT_NEAR(expectedForce.X(), actualForce.X(), kTolerance);
+  EXPECT_NEAR(expectedForce.Y(), actualForce.Y(), kTolerance);
+  EXPECT_NEAR(expectedForce.Z(), actualForce.Z(), kTolerance);
+  EXPECT_NEAR(expectedTorque.X(), actualTorque.X(), kTolerance);
+  EXPECT_NEAR(expectedTorque.Y(), actualTorque.Y(), kTolerance);
+  EXPECT_NEAR(expectedTorque.Z(), actualTorque.Z(), kTolerance);
+}
 
 /////////////////////////////////////////////////
 TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightTopic))
@@ -106,6 +173,70 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightTopic))
 }
 
 /////////////////////////////////////////////////
+TEST_F(ForceTorqueTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresEarlyWrench))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+  server.SetUpdatePeriod(1us);
+
+  msgs::Wrench measuredWrench;
+  bool hasMeasuredWrench{false};
+  test::Relay testSystem;
+  testSystem.OnPreUpdate(
+      [](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        const auto sensorEntity = forceTorqueSensorEntity(_ecm);
+        if (kNullEntity != sensorEntity &&
+            nullptr == _ecm.Component<components::WrenchMeasured>(sensorEntity))
+        {
+          _ecm.CreateComponent(sensorEntity, components::WrenchMeasured());
+        }
+      });
+  testSystem.OnPostUpdate(
+      [&measuredWrench, &hasMeasuredWrench](
+          const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        const auto sensorEntity = forceTorqueSensorEntity(_ecm);
+        const auto measured =
+            _ecm.Component<components::WrenchMeasured>(sensorEntity);
+        if (nullptr != measured)
+        {
+          measuredWrench = measured->Data();
+          hasMeasuredWrench = true;
+        }
+      });
+  server.AddSystem(testSystem.systemPtr);
+
+  auto waitForWrench =
+      [&server, &measuredWrench, &hasMeasuredWrench]()
+      {
+        return test::StepUntil(server, 20000, [&]
+        {
+          return hasMeasuredWrench &&
+              expectedForceTorqueReading(measuredWrench);
+        });
+      };
+
+  ASSERT_TRUE(waitForWrench());
+  const auto baseline = measuredWrench;
+
+  server.Run(true, 50000, false);
+  server.ResetAll();
+
+  hasMeasuredWrench = false;
+  ASSERT_TRUE(waitForWrench());
+  const auto postReset = measuredWrench;
+  expectSameWrench(baseline, postReset);
+}
+
+/////////////////////////////////////////////////
 TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightECM))
 {
   using namespace std::chrono_literals;
@@ -132,18 +263,8 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightECM))
         {
           firstRun = false;
 
-          // Get sensorEntity
-          auto test1ModelEntity = _ecm.EntityByComponents(
-              components::Model(), components::Name("test1"));
-          Model test1Model(test1ModelEntity);
-
-          Model scaleModel(test1Model.ModelByName(_ecm, "scale"));
-          ASSERT_TRUE(scaleModel.Valid(_ecm));
-
-          Joint sensorJoint(scaleModel.JointByName(_ecm, "sensor_joint"));
-          ASSERT_TRUE(sensorJoint.Valid(_ecm));
-
-          sensorEntity = sensorJoint.SensorByName(_ecm, "force_torque_sensor");
+          sensorEntity = forceTorqueSensorEntity(_ecm);
+          ASSERT_NE(kNullEntity, sensorEntity);
 
           // Expect it doesn't yet have WrenchMeasured
           EXPECT_EQ(nullptr,
