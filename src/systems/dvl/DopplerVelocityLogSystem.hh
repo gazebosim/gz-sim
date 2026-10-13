@@ -36,6 +36,7 @@ namespace systems
 class DopplerVelocityLogSystem :
   public System,
   public ISystemConfigure,
+  public ISystemReset,
   public ISystemPreUpdate,
   public ISystemPostUpdate
 {
@@ -52,6 +53,11 @@ class DopplerVelocityLogSystem :
       EntityComponentManager &_ecm,
       EventManager &_eventMgr
   ) override;
+
+  // Documentation inherited
+  public: void Reset(
+      const UpdateInfo &_info,
+      EntityComponentManager &_ecm) override;
 
   // Documentation inherited
   public: void PreUpdate(
