@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <optional>
+
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/odometry_with_covariance.pb.h>
 #include <gz/msgs/pose_v.pb.h>
@@ -42,6 +44,8 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define tol 0.005
 
@@ -676,6 +680,124 @@ class OdometryPublisherTest
     }
   }
 };
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetStateContamination))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_publisher.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  const auto running = server.Running(0);
+  ASSERT_TRUE(running.has_value());
+  EXPECT_FALSE(*running);
+
+  bool driveModel{true};
+  const math::Vector3d linVelCmd(1.0, 0.5, 0.0);
+  const math::Vector3d angVelCmd(0.0, 0.0, 0.2);
+  std::optional<math::Pose3d> vehiclePose;
+
+  // Drive the model and record its real ECM pose for cross-checking odom.
+  test::Relay velocityRelay;
+  velocityRelay.OnPreUpdate(
+      [&](const sim::UpdateInfo &,
+          sim::EntityComponentManager &_ecm)
+      {
+        const auto vehicle = _ecm.EntityByComponents(
+            components::Model(), components::Name("vehicle"));
+        ASSERT_NE(kNullEntity, vehicle);
+
+        const auto lin = driveModel ? linVelCmd : math::Vector3d::Zero;
+        const auto ang = driveModel ? angVelCmd : math::Vector3d::Zero;
+
+        auto linVelCmdComp =
+            _ecm.Component<components::LinearVelocityCmd>(vehicle);
+        if (!linVelCmdComp)
+          _ecm.CreateComponent(vehicle, components::LinearVelocityCmd(lin));
+        else
+          linVelCmdComp->Data() = lin;
+
+        auto angVelCmdComp =
+            _ecm.Component<components::AngularVelocityCmd>(vehicle);
+        if (!angVelCmdComp)
+          _ecm.CreateComponent(vehicle, components::AngularVelocityCmd(ang));
+        else
+          angVelCmdComp->Data() = ang;
+      });
+  velocityRelay.OnPostUpdate(
+      [&](const sim::UpdateInfo &,
+          const sim::EntityComponentManager &_ecm)
+      {
+        const auto vehicle = _ecm.EntityByComponents(
+            components::Model(), components::Name("vehicle"));
+        const auto pose = _ecm.Component<components::Pose>(vehicle);
+        if (nullptr != pose)
+          vehiclePose = pose->Data();
+      });
+  server.AddSystem(velocityRelay.systemPtr);
+
+  transport::Node node;
+  Subscription<msgs::Odometry> odom;
+  odom.Subscribe(node, "/model/vehicle/odometry", 1);
+
+  ASSERT_TRUE(test::StepUntilMessage(server, odom, 3000,
+      [](const msgs::Odometry &_msg)
+      {
+        return msgs::Convert(_msg.pose()).Pos().Length() > 0.05;
+      }));
+  ASSERT_TRUE(vehiclePose.has_value());
+  EXPECT_GT(vehiclePose->Pos().Length(), 0.05);
+
+  // Stop writing commands only after dirty pre-reset motion is observed.
+  driveModel = false;
+  server.ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::Odometry> postResetOdom;
+  postResetOdom.Subscribe(postResetNode, "/model/vehicle/odometry", 1);
+
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
+      [](const msgs::Odometry &_msg)
+      {
+        const auto pose = msgs::Convert(_msg.pose());
+        const auto linVel = msgs::Convert(_msg.twist().linear());
+        const auto angVel = msgs::Convert(_msg.twist().angular());
+        return std::abs(pose.Pos().X()) < 0.05 &&
+            std::abs(pose.Pos().Y()) < 0.05 &&
+            std::abs(pose.Rot().Yaw()) < 0.05 &&
+            std::abs(linVel.X()) < 0.05 &&
+            std::abs(linVel.Y()) < 0.05 &&
+            std::abs(angVel.Z()) < 0.05;
+      }));
+  const auto postReset = postResetOdom.Last();
+  const auto postResetPose = msgs::Convert(postReset.pose());
+  const auto postResetLinVel = msgs::Convert(postReset.twist().linear());
+  const auto postResetAngVel = msgs::Convert(postReset.twist().angular());
+  ASSERT_TRUE(vehiclePose.has_value());
+  const auto postResetGroundTruth = *vehiclePose;
+
+  // Check both published odom and the actual model pose after reset.
+  EXPECT_NEAR(postResetPose.Pos().X(), 0.0, 0.05);
+  EXPECT_NEAR(postResetPose.Pos().Y(), 0.0, 0.05);
+  EXPECT_NEAR(postResetPose.Rot().Yaw(), 0.0, 0.05);
+  EXPECT_NEAR(postResetLinVel.X(), 0.0, 0.05);
+  EXPECT_NEAR(postResetLinVel.Y(), 0.0, 0.05);
+  EXPECT_NEAR(postResetAngVel.Z(), 0.0, 0.05);
+  EXPECT_NEAR(postResetGroundTruth.Pos().X(), 0.0, 0.05);
+  EXPECT_NEAR(postResetGroundTruth.Pos().Y(), 0.0, 0.05);
+  EXPECT_NEAR(postResetGroundTruth.Rot().Yaw(), 0.0, 0.05);
+
+  // Fresh velocity commands after reset should still be reflected in odom.
+  driveModel = true;
+  ASSERT_TRUE(test::StepUntilMessage(server, postResetOdom, 3000,
+      [](const msgs::Odometry &_msg)
+      {
+        return std::abs(msgs::Convert(_msg.twist().linear()).X()) > 0.1;
+      }));
+}
 
 /////////////////////////////////////////////////
 // See https://github.com/gazebosim/gz-sim/issues/1175
