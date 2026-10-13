@@ -112,10 +112,17 @@ namespace systems::physics_system
         auto castIt = this->castCache.find(_entity);
         if (castIt != this->castCache.end())
         {
-          auto castEntity = std::get<ToEntityPtr>(castIt->second);
+          auto castEntity = std::get<ToEntityPtr>(castIt->second.entities);
           if (nullptr != castEntity)
           {
             return castEntity;
+          }
+          // A failed cast means the engine doesn't implement ToFeatureList,
+          // which can't change at runtime. Don't retry it on every call: a
+          // cast instantiates a plugin and looks up its interfaces by name.
+          if (std::get<FailedCast<ToFeatureList>>(castIt->second.failed).value)
+          {
+            return nullptr;
           }
         }
 
@@ -129,9 +136,14 @@ namespace systems::physics_system
         auto castEntity = physics::RequestFeatures<ToFeatureList>::From(
             this->Get(_entity));
 
+        auto &cached = this->castCache[_entity];
         if (castEntity)
         {
-          std::get<ToEntityPtr>(this->castCache[_entity]) = castEntity;
+          std::get<ToEntityPtr>(cached.entities) = castEntity;
+        }
+        else
+        {
+          std::get<FailedCast<ToFeatureList>>(cached.failed).value = true;
         }
 
         return castEntity;
@@ -316,9 +328,25 @@ namespace systems::physics_system
     /// \brief Map of physics entity IDs to Gazebo entity
     private: std::unordered_map<std::size_t, Entity> entityByPhysId;
 
+    /// \brief Whether a cast to the feature list T has failed
+    /// \tparam T A FeatureList in OptionalFeatureLists
+    private: template <typename T>
+             struct FailedCast
+             {
+               bool value{false};
+             };
+
+    /// \brief Cached casts of one Gazebo entity: the physics entities with
+    /// optional features, and the casts that failed
+    private: struct CastCacheEntry
+             {
+               ValueType entities;
+               std::tuple<FailedCast<OptionalFeatureLists>...> failed;
+             };
+
     /// \brief Cache map from Gazebo entity to physics entities with optional
     /// features
-    private: mutable std::unordered_map<Entity, ValueType> castCache;
+    private: mutable std::unordered_map<Entity, CastCacheEntry> castCache;
   };
 
   /// \brief Convenience template that presets EntityFeatureMap with
