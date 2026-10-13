@@ -66,6 +66,7 @@
 #include <gz/physics/GetEntities.hh>
 #include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
+#include <gz/physics/KinematicLink.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
 #include <gz/physics/Shape.hh>
@@ -234,6 +235,10 @@ class gz::sim::systems::PhysicsPrivate
   /// already exists in the physics system
   public: void CreateLinkEntities(const EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
+
+  /// \brief Set a link entity to be kinematic if useKinematicLinks is enabled.
+  /// \param[in] _linkEntity The link entity to set as kinematic.
+  public: void SetLinkKinematicIfEnabled(const Entity &_linkEntity);
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -809,6 +814,13 @@ class gz::sim::systems::PhysicsPrivate
             physics::WorldModelFeature>{};
 
   //////////////////////////////////////////////////
+  // Kinematic Link
+  /// \brief Feature list for setting links to be kinematic.
+  public: struct KinematicLinkFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::KinematicLink>{};
+
+  //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
   public: using WorldEntityMap = EntityFeatureMap3d<
           physics::World,
@@ -857,7 +869,8 @@ class gz::sim::systems::PhysicsPrivate
             LinkForceFeatureList,
             MeshFeatureList,
             LinkBoundingBoxFeatureList,
-            GravityEnabledFeatureList>;
+            GravityEnabledFeatureList,
+            KinematicLinkFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -931,6 +944,10 @@ class gz::sim::systems::PhysicsPrivate
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
 
+  /// \brief Flag to store whether the links created should be kinematic
+  /// instead of dynamic.
+  public: bool useKinematicLinks = false;
+
   /// \brief Cached physics output, to reduce allocations / deallocations
   std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
 };
@@ -967,6 +984,12 @@ void Physics::Configure(const Entity &_entity,
     auto sdfClone = _sdf->Clone();
     auto engineElem = sdfClone->GetElement("engine");
     pluginLib = engineElem->Get<std::string>("filename", pluginLib).first;
+  }
+  if (_sdf->HasElement("kinematic_links"))
+  {
+    auto sdfClone = _sdf->Clone();
+    auto kinematicLinkElem = sdfClone->GetElement("kinematic_links");
+    this->dataPtr->useKinematicLinks = kinematicLinkElem->Get<bool>("", true).first;
   }
 
   // 3. Use DART by default
@@ -1539,6 +1562,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          this->SetLinkKinematicIfEnabled(_entity);
           return true;
         }
 
@@ -1602,9 +1626,33 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->entityLinkMap.AddEntity(_entity, linkPtrPhys);
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
+        this->SetLinkKinematicIfEnabled(_entity);
 
         return true;
       });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::SetLinkKinematicIfEnabled(const Entity &_linkEntity)
+{
+  if (!this->useKinematicLinks)
+    return;
+
+  auto kinematicLink =
+      this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_linkEntity);
+  if (!kinematicLink)
+  {
+    static bool informed{false};
+    if (!informed)
+    {
+      gzdbg << "Attempting to set link kinematic, but the physics "
+            << "engine doesn't support feature [KinematicLink]."
+            << std::endl;
+      informed = true;
+    }
+    return;
+  }
+  kinematicLink->SetKinematic(true);
 }
 
 //////////////////////////////////////////////////
