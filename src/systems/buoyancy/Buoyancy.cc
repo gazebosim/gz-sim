@@ -218,8 +218,10 @@ void BuoyancyPrivate::GradedFluidDensity(
   // Archimedes principle for this layer
   auto forceMag = - (vol - prevLayerVol) * _gravity * prevLayerFluidDensity;
 
-  // Calculate centre of buoyancy
-  auto cov = math::Vector3d{0, 0, 0};
+  // Calculate centre of buoyancy. The remaining volume is the whole shape
+  // minus the accumulated layers, so its centroid is the shape centroid:
+  // the origin only for symmetric shapes, (0, 0, -length/4) for a cone.
+  auto cov = _shape.Centroid();
   auto cob =
     (cov * vol - centerOfBuoyancy * prevLayerVol) / (vol - prevLayerVol);
   centerOfBuoyancy = cov;
@@ -405,6 +407,10 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
     for (const Entity &collision : collisions)
     {
       double volume = 0;
+      // Centroid of the collision geometry, in the collision frame. Zero
+      // for the shapes whose reference frame sits at the geometric center;
+      // a cone or a mesh carries its own offset.
+      math::Vector3d centroid = math::Vector3d::Zero;
       const components::CollisionElement *coll =
         _ecm.Component<components::CollisionElement>(collision);
 
@@ -445,7 +451,14 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
               const common::Mesh *mesh =
                 common::MeshManager::Instance()->Load(file);
               if (mesh)
-                volume = mesh->Volume();
+              {
+                // The SDF <scale> scales volume by its product and the
+                // centroid componentwise.
+                const math::Vector3d scale =
+                  coll->Data().Geom()->MeshShape()->Scale();
+                volume = mesh->Volume() * scale.X() * scale.Y() * scale.Z();
+                centroid = mesh->Centroid() * scale;
+              }
               else
                 ignerr << "Unable to load mesh[" << file << "]\n";
             }
@@ -463,7 +476,10 @@ void Buoyancy::PreUpdate(const UpdateInfo &_info,
 
       volumeSum += volume;
       auto poseInLink = _ecm.Component<components::Pose>(collision)->Data();
-      weightedPosInLinkSum += volume * poseInLink.Pos();
+      // The buoyant force acts at the geometry centroid, which the
+      // collision pose places and orients within the link.
+      weightedPosInLinkSum +=
+        volume * (poseInLink.Pos() + poseInLink.Rot().RotateVector(centroid));
     }
 
     if (volumeSum > 0)
