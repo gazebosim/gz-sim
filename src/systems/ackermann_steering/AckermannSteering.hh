@@ -92,11 +92,17 @@ namespace systems
   /// element is optional, and the default value is 50Hz.
   ///
   /// - `<min_velocity>`: Minimum velocity [m/s], usually <= 0.
+  /// - `<min_angular_velocity>`: Minimum angular velocity [m/s], usually <= 0.
   /// - `<max_velocity>`: Maximum velocity [m/s], usually >= 0.
+  /// - `<max_angular_velocity>`: Maximum angular velocity [m/s], usually >= 0.
   /// - `<min_acceleration>`: Minimum acceleration [m/s^2], usually <= 0.
+  /// - `<min_angular_acceleration>`: Minimum angular acceleration [m/s^2], usually <= 0.
   /// - `<max_acceleration>`: Maximum acceleration [m/s^2], usually >= 0.
-  /// - `<min_jerk Minimum>`: jerk [m/s^3], usually <= 0.
-  /// - `<max_jerk Maximum>`: jerk [m/s^3], usually >= 0.
+  /// - `<max_angular_acceleration>`: Maximum angular acceleration [m/s^2], usually >= 0.
+  /// - `<min_jerk>`: Minimum jerk [m/s^3], usually <= 0.
+  /// - `<min_angular_jerk>`: Minimum jerk [m/s^3], usually <= 0.
+  /// - `<max_jerk>`: Maximum jerk [m/s^3], usually >= 0.
+  /// - `<max_angular_jerk>`: Maximum jerk [m/s^3], usually >= 0.
   ///
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command messages. This element is optional, and the
