@@ -103,51 +103,68 @@ class gz::sim::systems::HydrodynamicsPrivateData
   /// \brief Link entity
   public: Entity linkEntity;
 
+  /// \brief World entity, whose Environment component holds the current table
+  public: Entity world {kNullEntity};
+
   /// \brief Ocean current callback
   public: void UpdateCurrent(const msgs::Vector3d &_msg);
 
   /////////////////////////////////////////////////
-  /// \brief Set the current table
+  /// \brief Sync the current table with the world's environmental data.
+  /// The world's Environment component is read whenever it is present, not
+  /// only while the world entity is new, so a vehicle spawned after the
+  /// first iteration sees the data, and a reload (a new data set on the
+  /// component) rebuilds the lookup sessions.
   /// \param[in] _ecm - The Entity Component Manager
   /// \param[in] _currTime - The current time
   public: void SetWaterCurrentTable(
     const EntityComponentManager &_ecm,
     const std::chrono::steady_clock::duration &_currTime)
   {
-    _ecm.EachNew<components::Environment>([&](const Entity &/*_entity*/,
-      const components::Environment *_environment) -> bool
+    const auto *environment =
+      _ecm.Component<components::Environment>(this->world);
+    if (nullptr == environment)
     {
-      this->gridField = _environment->Data();
+      // No data yet, or not any more: nothing to look up.
+      this->gridField.reset();
+      for (auto &s : this->session)
+        s.reset();
+      return;
+    }
 
-      for (std::size_t i = 0; i < 3; i++)
+    // Same data set as last time: the sessions are already built.
+    if (environment->Data() == this->gridField)
+      return;
+
+    this->gridField = environment->Data();
+    for (std::size_t i = 0; i < 3; i++)
+    {
+      this->session[i].reset();
+      if (this->axisComponents[i].empty())
+        continue;
+
+      if (!this->gridField->frame.Has(this->axisComponents[i]))
       {
-        if (!this->axisComponents[i].empty())
-        {
-          if (!this->gridField->frame.Has(this->axisComponents[i]))
-          {
-            gzwarn << "Environmental sensor could not find field "
-              << this->axisComponents[i] << "\n";
-            continue;
-          }
-
-          this->session[i] =
-            this->gridField->frame[this->axisComponents[i]].CreateSession();
-          if (!this->gridField->staticTime)
-          {
-            this->session[i] =
-              this->gridField->frame[this->axisComponents[i]].StepTo(
-                *this->session[i],
-                std::chrono::duration<double>(_currTime).count());
-          }
-
-          if(!this->session[i].has_value())
-          {
-            gzerr << "Exceeded time stamp." << std::endl;
-          }
-        }
+        gzwarn << "Hydrodynamics could not find field "
+          << this->axisComponents[i] << " in the environmental data\n";
+        continue;
       }
-      return true;
-    });
+
+      this->session[i] =
+        this->gridField->frame[this->axisComponents[i]].CreateSession();
+      if (!this->gridField->staticTime)
+      {
+        this->session[i] =
+          this->gridField->frame[this->axisComponents[i]].StepTo(
+            *this->session[i],
+            std::chrono::duration<double>(_currTime).count());
+      }
+
+      if (!this->session[i].has_value())
+      {
+        gzerr << "Exceeded time stamp." << std::endl;
+      }
+    }
   }
 
   /////////////////////////////////////////////////
@@ -370,6 +387,7 @@ void Hydrodynamics::Configure(
     this->dataPtr->disableAddedMass, false);
   // Create model object, to access convenient functions
   auto model = gz::sim::Model(_entity);
+  this->dataPtr->world = worldEntity(_entity, _ecm);
 
   std::string ns {""};
   std::string currentTopic {"/ocean_current"};
@@ -481,6 +499,11 @@ void Hydrodynamics::PreUpdate(
       const gz::sim::UpdateInfo &_info,
       gz::sim::EntityComponentManager &_ecm)
 {
+  if (this->dataPtr->useCurrentTable)
+  {
+    this->dataPtr->SetWaterCurrentTable(_ecm, _info.simTime);
+  }
+
   if (_info.paused)
     return;
 
@@ -632,17 +655,6 @@ void Hydrodynamics::PreUpdate(
 }
 
 /////////////////////////////////////////////////
-void Hydrodynamics::PostUpdate(
-      const gz::sim::UpdateInfo &_info,
-      const gz::sim::EntityComponentManager &_ecm)
-{
-  if (this->dataPtr->useCurrentTable)
-  {
-    this->dataPtr->SetWaterCurrentTable(_ecm, _info.simTime);
-  }
-}
-
-/////////////////////////////////////////////////
 void Hydrodynamics::Reset(
       const gz::sim::UpdateInfo &,
       gz::sim::EntityComponentManager &)
@@ -655,7 +667,6 @@ GZ_ADD_PLUGIN(
   Hydrodynamics, System,
   Hydrodynamics::ISystemConfigure,
   Hydrodynamics::ISystemPreUpdate,
-  Hydrodynamics::ISystemPostUpdate,
   Hydrodynamics::ISystemReset
 )
 
