@@ -10,6 +10,7 @@ gz_build_tests(TYPE UNIT
     DiffDrive_TEST.cc
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 if (TARGET UNIT_DiffDrive_TEST)

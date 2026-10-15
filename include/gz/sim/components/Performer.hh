@@ -35,12 +35,12 @@ namespace components
 {
   /// \brief This component identifies an entity as being a performer.
   using Performer = Component<NoData, class PerformerTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Performer", Performer)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Performer", Performer)
 
   /// \brief This component contains the performer reference name.
   using PerformerRef = Component<std::string, class PerformerRefTag,
       serializers::StringSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PerformerRef", PerformerRef)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.PerformerRef", PerformerRef)
 }
 }
 }

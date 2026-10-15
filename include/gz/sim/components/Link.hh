@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component that identifies an entity as being a link.
   using Link = Component<NoData, class LinkTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Link", Link)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Link", Link)
 }
 }
 }
