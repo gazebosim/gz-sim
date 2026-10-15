@@ -962,6 +962,13 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     if (this->createEntities)
     {
       this->CreateEntities();
+
+      // Creating entities may stop the runner, for example if a system
+      // plugin fails to load. Don't step the systems in that case.
+      if (!this->running)
+      {
+        break;
+      }
     }
 
     GZ_PROFILE("SimulationRunner::Run - Iteration");
@@ -1184,7 +1191,27 @@ void SimulationRunner::Step(const UpdateInfo &_info)
 void SimulationRunner::LoadPlugin(const Entity _entity,
                                   const sdf::Plugin &_plugin)
 {
-  this->systemMgr->LoadPlugin(_entity, _plugin);
+  if (this->systemMgr->LoadPlugin(_entity, _plugin))
+  {
+    return;
+  }
+
+  // Plugin load errors are only fatal while the world is being created at
+  // startup. A plugin named "gz::sim" is used by the levels feature and is
+  // not expected to load, see SystemLoader.cc.
+  if (this->entitiesCreated || _plugin.Name() == "gz::sim" ||
+      this->serverConfig.BehaviorOnPluginErrors() !=
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY)
+  {
+    return;
+  }
+
+  gzerr << "Failed to load system plugin [" << _plugin.Name()
+        << "] with filename [" << _plugin.Filename() << "]. The server is "
+        << "configured to exit on plugin errors, stopping simulation."
+        << std::endl;
+  this->SetExitedWithErrors();
+  this->Stop();
 }
 
 //////////////////////////////////////////////////
@@ -1701,6 +1728,12 @@ void SimulationRunner::SetStepSize(
 void SimulationRunner::SetExitedWithErrors()
 {
   this->exitedWithErrors = true;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::ExitedWithErrors() const
+{
+  return this->exitedWithErrors;
 }
 
 /////////////////////////////////////////////////

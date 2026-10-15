@@ -304,10 +304,16 @@ namespace gz
           const std::chrono::steady_clock::duration &_step);
 
       /// \brief Mark the runner as having exited with errors.
-      /// \details This is called by the Server when a critical error occurs
-      /// during initialization (e.g. invalid SDF). A runner in this state
-      /// will refuse to run simulation steps.
+      /// \details This is called when a critical error occurs during
+      /// initialization (e.g. invalid SDF, or a system plugin that fails to
+      /// load when the server is configured to exit on plugin errors). A
+      /// runner in this state will refuse to run simulation steps.
       public: void SetExitedWithErrors();
+
+      /// \brief Get whether the runner has exited with errors.
+      /// \return True if the runner has exited with errors.
+      /// \sa SetExitedWithErrors()
+      public: bool ExitedWithErrors() const;
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -599,7 +605,7 @@ namespace gz
       /// \brief Flag indicating if the server encountered errors during
       /// initialization and should exit immediately. See
       /// `SetExitedWithErrors()`.
-      private: bool exitedWithErrors{false};
+      private: std::atomic<bool> exitedWithErrors{false};
 
       /// \brief Whether parallel PostUpdate is enabled.
       private: bool parallelPostUpdates{false};
