@@ -261,3 +261,32 @@ TEST(ServerConfig, SdfRoot)
   EXPECT_TRUE(config.SdfString().empty());
   EXPECT_EQ(ServerConfig::SourceType::kSdfRoot, config.Source());
 }
+
+//////////////////////////////////////////////////
+TEST(ServerConfig, BehaviorOnPluginErrors)
+{
+  ServerConfig config;
+  EXPECT_EQ(ServerConfig::PluginErrorBehavior::CONTINUE_LOADING,
+      config.BehaviorOnPluginErrors());
+
+  config.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+  EXPECT_EQ(ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY,
+      config.BehaviorOnPluginErrors());
+
+  // The behavior should be preserved by the copy constructor
+  ServerConfig copied(config);
+  EXPECT_EQ(ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY,
+      copied.BehaviorOnPluginErrors());
+
+  // The behavior should be preserved by the assignment operator
+  ServerConfig assigned;
+  assigned = config;
+  EXPECT_EQ(ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY,
+      assigned.BehaviorOnPluginErrors());
+
+  config.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::CONTINUE_LOADING);
+  EXPECT_EQ(ServerConfig::PluginErrorBehavior::CONTINUE_LOADING,
+      config.BehaviorOnPluginErrors());
+}
