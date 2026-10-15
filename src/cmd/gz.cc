@@ -213,7 +213,8 @@ int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, std::vector<std::string> _recordTopics, int _waitGui,
-    int _headless, float _recordPeriod, int _seed, int _waitForAssets)
+    int _headless, float _recordPeriod, int _seed, int _waitForAssets,
+    int _exitOnPluginError)
 {
   std::string startingWorldPath{""};
 
@@ -496,6 +497,12 @@ int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
   }
 
   _config.SetWaitForAssets(_waitForAssets);
+
+  if (_exitOnPluginError)
+  {
+    _config.SetBehaviorOnPluginErrors(
+        sim::ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+  }
 
   return 0;
 }
