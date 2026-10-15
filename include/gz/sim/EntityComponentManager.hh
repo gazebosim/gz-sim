@@ -566,7 +566,9 @@ namespace gz
       ///
       /// \note If any id in _types is not a registered component type, an
       /// error is logged and the callback is not invoked at all.
-      public: void Each(
+      /// \return True if all ids in _types are registered component types,
+      /// false otherwise.
+      public: bool Each(
           const std::vector<ComponentTypeId> &_types,
           const std::function<bool(Entity,
               const std::vector<const components::BaseComponent *> &)> &_f)
@@ -576,8 +578,10 @@ namespace gz
       /// \param[in] _types Component types that every matched entity must
       /// have.
       /// \param[in] _f Callback invoked once per matching entity.
+      /// \return True if all ids in _types are registered component types,
+      /// false otherwise.
       /// \sa Each
-      public: void EachNew(
+      public: bool EachNew(
           const std::vector<ComponentTypeId> &_types,
           const std::function<bool(Entity,
               const std::vector<const components::BaseComponent *> &)> &_f)
@@ -588,8 +592,10 @@ namespace gz
       /// \param[in] _types Component types that every matched entity must
       /// have.
       /// \param[in] _f Callback invoked once per matching entity.
+      /// \return True if all ids in _types are registered component types,
+      /// false otherwise.
       /// \sa Each
-      public: void EachRemoved(
+      public: bool EachRemoved(
           const std::vector<ComponentTypeId> &_types,
           const std::function<bool(Entity,
               const std::vector<const components::BaseComponent *> &)> &_f)

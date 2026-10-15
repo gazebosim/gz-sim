@@ -3880,24 +3880,28 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedUnknownType)
 
   const EntityComponentManager &constManager = manager;
 
-  // A type ID that was never registered at all.
+  // A type ID that was never registered at all returns false.
   const ComponentTypeId unknownType{0xDEADBEEF};
   int calls = 0;
-  constManager.Each({unknownType},
+  auto countCalls =
       [&](Entity, const std::vector<const components::BaseComponent *> &)
       {
         ++calls;
         return true;
-      });
+      };
+  EXPECT_FALSE(constManager.Each({unknownType}, countCalls));
+  EXPECT_FALSE(constManager.EachNew({unknownType}, countCalls));
+  EXPECT_FALSE(constManager.EachRemoved({unknownType}, countCalls));
   EXPECT_EQ(0, calls);
 
-  // A registered type that no entity has, combined with one that exists.
-  constManager.Each({IntComponent::typeId, BoolComponent::typeId},
-      [&](Entity, const std::vector<const components::BaseComponent *> &)
-      {
-        ++calls;
-        return true;
-      });
+  // A registered type that no entity has, combined with one that exists,
+  // still returns true.
+  EXPECT_TRUE(constManager.Each(
+      {IntComponent::typeId, BoolComponent::typeId}, countCalls));
+  EXPECT_TRUE(constManager.EachNew(
+      {IntComponent::typeId, BoolComponent::typeId}, countCalls));
+  EXPECT_TRUE(constManager.EachRemoved(
+      {IntComponent::typeId, BoolComponent::typeId}, countCalls));
   EXPECT_EQ(0, calls);
 }
 
@@ -3916,7 +3920,7 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedTagComponent)
   const EntityComponentManager &constManager = manager;
 
   std::vector<Entity> visited;
-  constManager.Each({Even::typeId, IntComponent::typeId},
+  EXPECT_TRUE(constManager.Each({Even::typeId, IntComponent::typeId},
       [&](Entity _entity,
           const std::vector<const components::BaseComponent *> &_comps)
       {
@@ -3926,7 +3930,7 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedTagComponent)
         EXPECT_EQ(2, static_cast<const IntComponent *>(_comps[1])->Data());
         visited.push_back(_entity);
         return true;
-      });
+      }));
 
   ASSERT_EQ(1u, visited.size());
   EXPECT_EQ(even, visited.front());
@@ -3955,12 +3959,12 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedRejectsInternalTypes)
   ASSERT_FALSE(components::Factory::Instance()->HasType(childrenId));
 
   int calls = 0;
-  constManager.Each({childrenId},
+  EXPECT_FALSE(constManager.Each({childrenId},
       [&](Entity, const std::vector<const components::BaseComponent *> &)
       {
         ++calls;
         return true;
-      });
+      }));
   EXPECT_EQ(0, calls);
 
   // NewEntity is an empty struct, so its storage holds no objects at all and
@@ -3969,21 +3973,21 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedRejectsInternalTypes)
   const ComponentTypeId newEntityId = entt::type_hash<NewEntity>::value();
   ASSERT_FALSE(components::Factory::Instance()->HasType(newEntityId));
 
-  constManager.Each({newEntityId, IntComponent::typeId},
+  EXPECT_FALSE(constManager.Each({newEntityId, IntComponent::typeId},
       [&](Entity, const std::vector<const components::BaseComponent *> &)
       {
         ++calls;
         return true;
-      });
+      }));
   EXPECT_EQ(0, calls);
 
   // A legitimate query still works after the rejected ones.
-  constManager.Each({IntComponent::typeId},
+  EXPECT_TRUE(constManager.Each({IntComponent::typeId},
       [&](Entity, const std::vector<const components::BaseComponent *> &)
       {
         ++calls;
         return true;
-      });
+      }));
   EXPECT_EQ(1, calls);
 }
 

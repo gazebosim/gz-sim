@@ -1034,8 +1034,10 @@ namespace
   /// \param[in] _types Component types every matched entity must have.
   /// \param[in] _f Callback invoked once per matching entity. Returning
   /// false stops the iteration.
+  /// \return True if all ids in _types are registered component types,
+  /// false otherwise.
   template <typename TagType, typename RegistryT, typename FuncT>
-  void EachRuntimeImpl(const RegistryT &_registry,
+  bool EachRuntimeImpl(const RegistryT &_registry,
                        const std::vector<ComponentTypeId> &_types,
                        const FuncT &_f)
   {
@@ -1048,44 +1050,6 @@ namespace
         entt::basic_runtime_view<ConstSparseSet,
                                  std::allocator<ConstSparseSet *>>;
 
-    // 0-type query: every entity in scope, with no components.
-    if (_types.empty())
-    {
-      const std::vector<const components::BaseComponent *> none;
-      if constexpr (std::is_same_v<TagType, void>)
-      {
-        for (const auto entity : _registry.template view<Entity>())
-        {
-          if (!_f(entity, none))
-            return;
-        }
-      }
-      else
-      {
-        const auto *tagStorage = _registry.template storage<TagType>();
-        if (!tagStorage)
-          return;
-        for (const auto entity : *tagStorage)
-        {
-          if (!_f(entity, none))
-            return;
-        }
-      }
-      return;
-    }
-
-    ConstRuntimeView view;
-
-    if constexpr (!std::is_same_v<TagType, void>)
-    {
-      const auto *tagStorage = _registry.template storage<TagType>();
-      if (!tagStorage)
-        return;
-      view.iterate(*tagStorage);
-    }
-
-    std::vector<const ConstSparseSet *> storages;
-    storages.reserve(_types.size());
     for (const auto typeId : _types)
     {
       // Reject ids that do not name a registered component. The ECM stores
@@ -1100,15 +1064,57 @@ namespace
       {
         gzerr << "Cannot iterate over component type [" << typeId
               << "]: it is not a registered component type.\n";
-        return;
+        return false;
       }
+    }
 
+    const ConstSparseSet *tagStorage = nullptr;
+    if constexpr (!std::is_same_v<TagType, void>)
+    {
+      tagStorage = _registry.template storage<TagType>();
+      if (!tagStorage || tagStorage->empty())
+        return true;
+    }
+
+    // 0-type query: every entity in scope, with no components.
+    if (_types.empty())
+    {
+      const std::vector<const components::BaseComponent *> none;
+      if constexpr (std::is_same_v<TagType, void>)
+      {
+        for (const auto entity : _registry.template view<Entity>())
+        {
+          if (!_f(entity, none))
+            return true;
+        }
+      }
+      else
+      {
+        for (const auto entity : *tagStorage)
+        {
+          if (!_f(entity, none))
+            return true;
+        }
+      }
+      return true;
+    }
+
+    ConstRuntimeView view;
+    if constexpr (!std::is_same_v<TagType, void>)
+    {
+      view.iterate(*tagStorage);
+    }
+
+    std::vector<const ConstSparseSet *> storages;
+    storages.reserve(_types.size());
+    for (const auto typeId : _types)
+    {
       const auto *storage = _registry.storage(typeId);
 
       // A missing or empty pool means no entity can satisfy the query, since
       // a match requires every requested component.
       if (!storage || storage->empty())
-        return;
+        return true;
 
       view.iterate(*storage);
       storages.push_back(storage);
@@ -1130,43 +1136,40 @@ namespace
             storages[i]->value(entity));
       }
       if (!_f(entity, comps))
-        return;
+        return true;
     }
+    return true;
   }
 }  // namespace
 
 /////////////////////////////////////////////////
-void EntityComponentManager::Each(
+bool EntityComponentManager::Each(
     const std::vector<ComponentTypeId> &_types,
     const std::function<bool(Entity,
         const std::vector<const components::BaseComponent *> &)> &_f) const
 {
   GZ_PROFILE("EntityComponentManager::Each(runtime)");
-  EachRuntimeImpl<void>(this->Registry(), _types, _f);
+  return EachRuntimeImpl<void>(this->Registry(), _types, _f);
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::EachNew(
+bool EntityComponentManager::EachNew(
     const std::vector<ComponentTypeId> &_types,
     const std::function<bool(Entity,
         const std::vector<const components::BaseComponent *> &)> &_f) const
 {
   GZ_PROFILE("EntityComponentManager::EachNew(runtime)");
-  if (!this->HasNewEntities())
-    return;
-  EachRuntimeImpl<NewEntity>(this->Registry(), _types, _f);
+  return EachRuntimeImpl<NewEntity>(this->Registry(), _types, _f);
 }
 
 /////////////////////////////////////////////////
-void EntityComponentManager::EachRemoved(
+bool EntityComponentManager::EachRemoved(
     const std::vector<ComponentTypeId> &_types,
     const std::function<bool(Entity,
         const std::vector<const components::BaseComponent *> &)> &_f) const
 {
   GZ_PROFILE("EntityComponentManager::EachRemoved(runtime)");
-  if (!this->HasEntitiesMarkedForRemoval())
-    return;
-  EachRuntimeImpl<RemoveEntity>(this->Registry(), _types, _f);
+  return EachRuntimeImpl<RemoveEntity>(this->Registry(), _types, _f);
 }
 
 /////////////////////////////////////////////////
