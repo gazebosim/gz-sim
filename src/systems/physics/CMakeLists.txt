@@ -29,4 +29,5 @@ gz_build_tests(TYPE UNIT
   gz-physics${GZ_PHYSICS_VER}::core
   ENVIRONMENT
   GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+  GZ_IP=127.0.0.1
 )
