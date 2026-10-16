@@ -18,6 +18,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "EntityComponentManagerDiff.hh"
 
+#include <algorithm>
 #include <map>
 #include <memory>
 #include <optional>
@@ -94,22 +95,58 @@ namespace
   /// components modified.
   struct ModifiedComponent { };
 
+  /// \brief Set of component type ids. An entity has only a few changed or
+  /// removed component types, so a vector is cheaper than a hash set, which
+  /// allocates a node per element.
+  class ComponentTypeIdSet
+  {
+    public: void insert(const ComponentTypeId _typeId)
+    {
+      if (this->contains(_typeId))
+        return;
+      if (this->ids.empty())
+        this->ids.reserve(4);
+      this->ids.push_back(_typeId);
+    }
+
+    public: void erase(const ComponentTypeId _typeId)
+    {
+      auto it = std::find(this->ids.begin(), this->ids.end(), _typeId);
+      if (it != this->ids.end())
+        this->ids.erase(it);
+    }
+
+    public: bool contains(const ComponentTypeId _typeId) const
+    {
+      return std::find(this->ids.begin(), this->ids.end(), _typeId) !=
+          this->ids.end();
+    }
+
+    public: bool empty() const { return this->ids.empty(); }
+
+    public: auto begin() const { return this->ids.begin(); }
+
+    public: auto end() const { return this->ids.end(); }
+
+    private: std::vector<ComponentTypeId> ids;
+  };
+
   /// \brief Internal component containing the components marked as one time
   /// changed for the specific entity.
   struct OneTimeChangedComponents {
-    std::unordered_set<ComponentTypeId> data;
+    ComponentTypeIdSet data;
   };
 
   /// \brief Internal component containing the components marked as periodic
   /// changed for the specific entity.
   struct PeriodicChangedComponents {
-    std::unordered_set<ComponentTypeId> data;
+    ComponentTypeIdSet data;
   };
 
   /// \brief Internal component containing the components that were removed
   /// from the entity.
   struct RemovedComponents {
-    std::unordered_set<ComponentTypeId> data;
+    ComponentTypeIdSet data;
   };
 }
 
@@ -799,14 +836,14 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   const auto* oneTimeChangeComp =
     this->Registry().try_get<OneTimeChangedComponents>(_entity);
   if (oneTimeChangeComp &&
-      oneTimeChangeComp->data.find(_typeId) != oneTimeChangeComp->data.end())
+      oneTimeChangeComp->data.contains(_typeId))
   {
     return ComponentState::OneTimeChange;
   }
   const auto* periodicChangeComp =
     this->Registry().try_get<PeriodicChangedComponents>(_entity);
   if (periodicChangeComp &&
-      periodicChangeComp->data.find(_typeId) != periodicChangeComp->data.end())
+      periodicChangeComp->data.contains(_typeId))
   {
     return ComponentState::PeriodicChange;
   }
@@ -1205,7 +1242,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
       const auto* oneTimeChange =
         this->Registry().try_get<OneTimeChangedComponents>(_entity);
       if (oneTimeChange &&
-          oneTimeChange->data.find(type) != oneTimeChange->data.end())
+          oneTimeChange->data.contains(type))
       {
         noChange = false;
       }
@@ -1215,7 +1252,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
         const auto* periodicChange =
           this->Registry().try_get<PeriodicChangedComponents>(_entity);
         if (periodicChange &&
-            periodicChange->data.find(type) != periodicChange->data.end())
+            periodicChange->data.contains(type))
         {
           noChange = false;
         }
