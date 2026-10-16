@@ -396,6 +396,34 @@ GUI `GzScene` plugin.
 The order of execution of plugins can be controlled by setting
 the `<gz:system_priority>` tag inside `<plugin>`. See example in examples/plugin/priority_printer_plugin and the associated README.md file to learn more.
 
+### Physics Requirements of Plugins
+A plugin can depend on a feature that only some physics providers support, for
+example because it writes a command that only some providers consume. Such a
+plugin lists the features it needs through the `ISystemPhysicsRequirements`
+interface. Set the `<gz:physics_requirements>` tag inside `<plugin>` to give
+the list yourself, which also lets you annotate a third-party plugin that does
+not implement the interface. The tag holds feature names separated by spaces,
+and it replaces the list that the plugin declares. An empty tag removes all
+requirements.
+
+```xml
+<plugin filename="MyController" name="my::Controller">
+  <gz:physics_requirements>joint_velocity_command</gz:physics_requirements>
+</plugin>
+```
+
+A provider lists the features it supports in the `SupportedPhysicsFeatures`
+component of a model, or of the world as the default for all models. If the
+component does not apply to the model, every feature counts as supported, so
+existing worlds behave as before. When the provider of a model lacks a feature
+that one of its plugins needs, the server prints a warning that names the
+plugin, the model and the missing features, and does not run that plugin. The
+model keeps its physics provider and its other plugins.
+
+The tag is read for plugins loaded from SDF, including plugins in spawned
+models. A plugin in a world is checked against the world's component, so a
+world plugin that serves many models should not list requirements.
+
 
 ## Parallel PostUpdates
 

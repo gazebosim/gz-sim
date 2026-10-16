@@ -82,6 +82,7 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SourceFilePath.hh"
 #include "gz/sim/components/Static.hh"
+#include "gz/sim/components/SupportedPhysicsFeatures.hh"
 #include "gz/sim/components/TemperatureRange.hh"
 #include "gz/sim/components/ThreadPitch.hh"
 #include "gz/sim/components/Visual.hh"
@@ -1467,6 +1468,44 @@ TEST_F(ComponentsTest, PhysicsEnginePlugin)
   components::PhysicsEnginePlugin comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ("libengine-plugin.so", comp3.Data());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, SupportedPhysicsFeatures)
+{
+  // Create components
+  auto comp11 =
+      components::SupportedPhysicsFeatures({"feature_a", "feature_b"});
+  auto comp12 =
+      components::SupportedPhysicsFeatures({"feature_a", "feature_b"});
+  auto comp2 = components::SupportedPhysicsFeatures({"feature_a"});
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+
+  std::istringstream istr(ostr.str());
+  components::SupportedPhysicsFeatures comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ(comp11, comp3);
+
+  // An empty set is valid, and different from a component with features.
+  components::SupportedPhysicsFeatures none;
+  EXPECT_TRUE(none.Data().empty());
+  std::ostringstream emptyOstr;
+  none.Serialize(emptyOstr);
+  std::istringstream emptyIstr(emptyOstr.str());
+  components::SupportedPhysicsFeatures comp4({"feature_c"});
+  comp4.Deserialize(emptyIstr);
+  EXPECT_TRUE(comp4.Data().empty());
 }
 
 /////////////////////////////////////////////////

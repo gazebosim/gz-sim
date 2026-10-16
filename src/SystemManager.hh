@@ -105,7 +105,12 @@ namespace gz
       /// \return The count.
       public: size_t TotalCount() const;
 
-      /// \brief Move all "pending" systems to "active" state
+      /// \brief Move all "pending" systems to "active" state.
+      ///
+      /// A pending system is not activated if it needs a physics feature
+      /// that the physics provider of its entity does not support, see
+      /// ISystemPhysicsRequirements. A warning names the system, the model and
+      /// the missing feature, and the system is dropped.
       /// \return The number of newly-active systems
       public: size_t ActivatePendingSystems();
 
@@ -165,6 +170,12 @@ namespace gz
       public: void ProcessRemovedEntities(
         const EntityComponentManager &_entityCompMgr,
         bool &_needsCleanUp);
+
+      /// \brief Check that the physics provider of a system's entity supports
+      /// the physics features that the system needs. Print a warning if not.
+      /// \param[in] _system System to check. It must have been configured.
+      /// \return True if the system can run.
+      private: bool PhysicsRequirementsMet(const SystemInternal &_system) const;
 
       /// \brief Implementation for AddSystem functions that takes an SDF
       /// element. This calls the AddSystemImpl that accepts an SDF Plugin.

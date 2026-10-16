@@ -275,6 +275,25 @@ namespace gz
         const Entity &_entity,
         const EntityComponentManager &_ecm);
 
+    /// \brief Check whether the physics provider of an entity supports a
+    /// physics feature.
+    ///
+    /// The features are read from the SupportedPhysicsFeatures component of
+    /// the entity's top level model. If the model has none, they are read from
+    /// the component of the world. A component on the model takes precedence
+    /// over the world's, even if it is empty. If no component applies, the
+    /// provider is assumed to support every feature.
+    ///
+    /// \param[in] _entity Any entity, such as a model, link, joint, collision
+    /// or sensor.
+    /// \param[in] _ecm Constant reference to ECM.
+    /// \param[in] _feature Name of the feature.
+    /// \return True if the feature is supported.
+    bool GZ_SIM_VISIBLE physicsSupports(
+        const Entity &_entity,
+        const EntityComponentManager &_ecm,
+        const std::string &_feature);
+
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,
     /// in this order:

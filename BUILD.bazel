@@ -213,6 +213,7 @@ genrule(
     srcs = [
         "//test:MockSystem.so",
         "//test:TestModelSystem.so",
+        "//test:TestPhysicsRequirementsSystem.so",
         "//test:TestSensorSystem.so",
         "//test:TestVisualSystem.so",
         "//test:TestWorldSystem.so",
@@ -220,6 +221,7 @@ genrule(
     outs = [
         "lib/libMockSystem.so",
         "lib/libTestModelSystem.so",
+        "lib/libTestPhysicsRequirementsSystem.so",
         "lib/libTestSensorSystem.so",
         "lib/libTestVisualSystem.so",
         "lib/libTestWorldSystem.so",
@@ -262,6 +264,7 @@ genrule(
         ":gz-sim-velocity-control-system.so",
         ":lib/libMockSystem.so",
         ":lib/libTestModelSystem.so",
+        ":lib/libTestPhysicsRequirementsSystem.so",
         ":lib/libTestSensorSystem.so",
         ":lib/libTestVisualSystem.so",
         ":lib/libTestWorldSystem.so",
