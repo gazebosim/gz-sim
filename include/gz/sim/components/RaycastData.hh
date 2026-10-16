@@ -100,14 +100,14 @@ namespace components
 using RaycastData = Component<RaycastDataInfo, class RaycastDataTag,
                               serializers::DefaultSerializer<RaycastDataInfo>>;
 
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RaycastData", RaycastData)
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.RaycastData", RaycastData)
 
 /// \brief Tag component that requests the physics system to perform raycasting
 /// for this entity on the current step. Set by sensor systems in PreUpdate,
 /// cleared by the physics system after the raycast is performed.
 using NeedsRaycast = Component<bool, class NeedsRaycastTag>;
 
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.NeedsRaycast", NeedsRaycast)
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.NeedsRaycast", NeedsRaycast)
 }
 }
 }
