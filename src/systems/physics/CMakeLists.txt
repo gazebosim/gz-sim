@@ -1,5 +1,6 @@
 gz_add_system(physics
   SOURCES
+    FrameDataWriter.cc
     Physics.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
@@ -11,6 +12,7 @@ gz_add_system(physics
 
 set (gtest_sources
   EntityFeatureMap_TEST.cc
+  FrameDataWriter_TEST.cc
 )
 
 if (MSVC)
@@ -32,3 +34,7 @@ gz_build_tests(TYPE UNIT
   GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
   GZ_IP=127.0.0.1
 )
+
+if (TARGET UNIT_FrameDataWriter_TEST)
+  target_sources(UNIT_FrameDataWriter_TEST PRIVATE FrameDataWriter.cc)
+endif()
