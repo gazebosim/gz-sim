@@ -867,7 +867,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::Reset");
 
@@ -894,10 +894,16 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
       s->SetNextDataUpdateTime(_info.simTime);
     }
     this->dataPtr->nextUpdateTime =  _info.simTime;
-    std::unique_lock<std::mutex> lock2(this->dataPtr->renderUtilMutex);
-    this->dataPtr->updateTime =  _info.simTime;
-    this->dataPtr->updateTimeToApply =  _info.simTime;
-    this->dataPtr->updateTimeApplied =  _info.simTime;
+    {
+      std::unique_lock<std::mutex> lock2(this->dataPtr->renderUtilMutex);
+      this->dataPtr->updateTime =  _info.simTime;
+      this->dataPtr->updateTimeToApply =  _info.simTime;
+      this->dataPtr->updateTimeApplied =  _info.simTime;
+    }
+    EntityComponentManager resetEcm;
+    resetEcm.CopyFrom(_ecm);
+    resetEcm.ClearNewlyCreatedEntities();
+    this->PostUpdate(_info, resetEcm);
   }
 }
 
