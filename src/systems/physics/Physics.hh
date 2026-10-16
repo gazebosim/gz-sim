@@ -79,6 +79,11 @@ namespace systems
   /// external forces, so this setting tells the phyics engine to manually
   /// correct and maintain the relative pose between the parent and child
   /// entities. Defaults to false.
+  /// - `<kinematic_mode>` (optional): Applicable only if physics engine
+  /// supports it (e.g. bullet-featherstone).
+  /// If true, the system will set all the links in the world to be kinematic.
+  /// Kinematic links will not respond to forces like gravity or collisions.
+  /// Defaults to false.
   ///
   /// ## Example
   ///
@@ -90,6 +95,7 @@ namespace systems
   ///      <include_entity_names>false</include_entity_names>
   ///    </contacts>
   ///    <enforce_fixed_constraint>false</enforce_fixed_constraint>
+  ///    <kinematic_mode>false</kinematic_mode>
   ///  </plugin>
   ///  ```
 
