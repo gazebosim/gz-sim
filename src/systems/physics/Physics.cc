@@ -946,7 +946,7 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Flag to store whether the links created should be kinematic
   /// instead of dynamic.
-  public: bool useKinematicLinks = false;
+  public: bool useKinematicMode = false;
 
   /// \brief Cached physics output, to reduce allocations / deallocations
   std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
@@ -1017,9 +1017,9 @@ void Physics::Configure(const Entity &_entity,
       this->dataPtr->enforceFixedConstraint).first;
 
   // Check if kinematic links should be used.
-  this->dataPtr->useKinematicLinks =
-      _sdf->Get<bool>("kinematic_links",
-      this->dataPtr->useKinematicLinks).first;
+  this->dataPtr->useKinematicMode =
+      _sdf->Get<bool>("kinematic_mode",
+      this->dataPtr->useKinematicMode).first;
 
   plugin::Loader pluginLoader;
   if (isStaticPlugin(pluginLib))
@@ -1561,7 +1561,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
-          if (this->useKinematicLinks)
+          if (this->useKinematicMode)
           {
             this->SetLinkKinematic(_entity);
           }
@@ -1629,7 +1629,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
 
-        if (this->useKinematicLinks)
+        if (this->useKinematicMode)
         {
           this->SetLinkKinematic(_entity);
         }
