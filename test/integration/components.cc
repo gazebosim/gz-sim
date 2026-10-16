@@ -76,6 +76,7 @@
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
+#include "gz/sim/components/PhysicsOwner.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Scene.hh"
@@ -1467,6 +1468,46 @@ TEST_F(ComponentsTest, PhysicsEnginePlugin)
   components::PhysicsEnginePlugin comp3;
   comp3.Deserialize(istr);
   EXPECT_EQ("libengine-plugin.so", comp3.Data());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, PhysicsOwner)
+{
+  // Create components
+  auto comp11 = components::PhysicsOwner("gz::sim::systems::Provider");
+  auto comp12 = components::PhysicsOwner("gz::sim::systems::Provider");
+  auto comp2 = components::PhysicsOwner("gz::sim::systems::Other");
+
+  // Equality operators
+  EXPECT_EQ(comp11, comp12);
+  EXPECT_NE(comp11, comp2);
+  EXPECT_TRUE(comp11 == comp12);
+  EXPECT_TRUE(comp11 != comp2);
+  EXPECT_FALSE(comp11 == comp2);
+  EXPECT_FALSE(comp11 != comp12);
+
+  // The empty string is a valid value that selects the default provider.
+  EXPECT_EQ(components::PhysicsOwner(""), components::PhysicsOwner());
+
+  // Stream operators
+  std::ostringstream ostr;
+  comp11.Serialize(ostr);
+  EXPECT_EQ("gz::sim::systems::Provider", ostr.str());
+
+  std::istringstream istr("gz::sim::systems::Other");
+  components::PhysicsOwner comp3;
+  comp3.Deserialize(istr);
+  EXPECT_EQ("gz::sim::systems::Other", comp3.Data());
+
+  // An empty value must replace the existing data. This is what lets a state
+  // update hand a model back to the default provider.
+  std::ostringstream emptyOstr;
+  components::PhysicsOwner("").Serialize(emptyOstr);
+  EXPECT_EQ("", emptyOstr.str());
+  std::istringstream emptyIstr(emptyOstr.str());
+  components::PhysicsOwner comp4("gz::sim::systems::Other");
+  comp4.Deserialize(emptyIstr);
+  EXPECT_EQ("", comp4.Data());
 }
 
 /////////////////////////////////////////////////

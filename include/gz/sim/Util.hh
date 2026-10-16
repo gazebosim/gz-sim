@@ -275,6 +275,44 @@ namespace gz
         const Entity &_entity,
         const EntityComponentManager &_ecm);
 
+    /// \brief Get the name of the physics provider that owns an entity.
+    ///
+    /// The owner is read from the PhysicsOwner component of the entity's top
+    /// level model. If the model has none, it is read from the PhysicsOwner
+    /// component of the world. A component on the model takes precedence over
+    /// the world's, even if the model's data is empty.
+    ///
+    /// The lookup walks up the entity tree and is not cached, so providers
+    /// that call it every step should keep their own set of owned entities.
+    ///
+    /// \param[in] _entity Any entity, such as a model, link, joint, collision
+    /// or sensor.
+    /// \param[in] _ecm Constant reference to ECM.
+    /// \return The owning provider's name. The empty string means that the
+    /// default provider owns the entity, which is the case when no
+    /// PhysicsOwner applies.
+    std::string GZ_SIM_VISIBLE physicsOwner(
+        const Entity &_entity,
+        const EntityComponentManager &_ecm);
+
+    /// \brief Check whether a physics provider owns an entity. See
+    /// physicsOwner() for how the owner is resolved.
+    ///
+    /// \param[in] _entity Any entity, such as a model, link, joint, collision
+    /// or sensor.
+    /// \param[in] _ecm Constant reference to ECM.
+    /// \param[in] _provider Name of the provider, in the form stored in
+    /// PhysicsOwner: the `name` attribute of its `<plugin>` element.
+    /// \param[in] _isDefaultProvider True if the provider is the default one,
+    /// which also owns every entity for which no PhysicsOwner applies or whose
+    /// PhysicsOwner is empty.
+    /// \return True if the provider owns the entity.
+    bool GZ_SIM_VISIBLE isOwnedBy(
+        const Entity &_entity,
+        const EntityComponentManager &_ecm,
+        const std::string &_provider,
+        bool _isDefaultProvider = false);
+
     /// \brief Helper function to generate a valid transport topic, given
     /// a list of topics ordered by preference. The generated topic will be,
     /// in this order:
