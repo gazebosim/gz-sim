@@ -90,8 +90,8 @@ struct RadioConfiguration
   double noiseFloor = -90;
 
   /// Output stream operator.
-  /// \param _oss Stream.
-  /// \param _config configuration to output.
+  /// \param[in,out] _oss Stream.
+  /// \param[in] _config configuration to output.
   friend std::ostream &operator<<(std::ostream &_oss,
                                   const RadioConfiguration &_config)
   {
