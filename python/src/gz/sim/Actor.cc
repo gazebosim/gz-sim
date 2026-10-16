@@ -92,6 +92,14 @@ void defineSimActor(py::object module)
   .def("animation_time", &gz::sim::Actor::AnimationTime,
       py::arg("ecm"),
       "Get the time of animation for this actor.")
+  .def("set_bone_transforms", &gz::sim::Actor::SetBoneTransforms,
+      py::arg("ecm"),
+      py::arg("transforms"),
+      "Set the local transforms of the actor's skeleton bones, posing the "
+      "skeleton from them instead of the selected animation.")
+  .def("bone_transforms", &gz::sim::Actor::BoneTransforms,
+      py::arg("ecm"),
+      "Get the local transforms of the actor's skeleton bones.")
   .def("__copy__",
       [](const gz::sim::Actor &self)
       {

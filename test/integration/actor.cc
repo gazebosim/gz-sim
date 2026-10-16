@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <map>
+#include <string>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -279,4 +282,61 @@ TEST_F(ActorIntegrationTest, AnimationTime)
   ecm.CreateComponent<components::AnimationTime>(eActor,
       components::AnimationTime(animTime));
   EXPECT_EQ(animTime, actor.AnimationTime(ecm));
+}
+
+//////////////////////////////////////////////////
+TEST_F(ActorIntegrationTest, SetBoneTransforms)
+{
+  EntityComponentManager ecm;
+
+  auto eActor = ecm.CreateEntity();
+  ecm.CreateComponent(eActor, components::Actor());
+
+  Actor actor(eActor);
+  EXPECT_EQ(eActor, actor.Entity());
+
+  ASSERT_TRUE(actor.Valid(ecm));
+
+  // No BoneTransforms should exist by default
+  EXPECT_EQ(nullptr, ecm.Component<components::BoneTransforms>(eActor));
+
+  std::map<std::string, math::Pose3d> transforms;
+  transforms["Hips"] = math::Pose3d(0, 0, 1, 0, 0, 0);
+  transforms["Spine"] = math::Pose3d(0, 0, 0.2, 0.1, 0, 0);
+  actor.SetBoneTransforms(ecm, transforms);
+
+  // bone transforms should exist
+  EXPECT_NE(nullptr, ecm.Component<components::BoneTransforms>(eActor));
+  EXPECT_EQ(transforms,
+    ecm.Component<components::BoneTransforms>(eActor)->Data());
+
+  // Make sure the bone transforms are updated
+  transforms["Spine"] = math::Pose3d(0, 0, 0.2, 0.2, 0, 0);
+  actor.SetBoneTransforms(ecm, transforms);
+  EXPECT_EQ(transforms,
+    ecm.Component<components::BoneTransforms>(eActor)->Data());
+}
+
+//////////////////////////////////////////////////
+TEST_F(ActorIntegrationTest, BoneTransforms)
+{
+  EntityComponentManager ecm;
+
+  auto eActor = ecm.CreateEntity();
+  ecm.CreateComponent(eActor, components::Actor());
+
+  Actor actor(eActor);
+  EXPECT_EQ(eActor, actor.Entity());
+
+  ASSERT_TRUE(actor.Valid(ecm));
+
+  // bone transforms should return nullopt by default
+  EXPECT_EQ(std::nullopt, actor.BoneTransforms(ecm));
+
+  // get bone transforms
+  std::map<std::string, math::Pose3d> transforms;
+  transforms["Hips"] = math::Pose3d(0, 0, 1, 0, 0, 0);
+  ecm.CreateComponent<components::BoneTransforms>(eActor,
+      components::BoneTransforms(transforms));
+  EXPECT_EQ(transforms, actor.BoneTransforms(ecm));
 }
