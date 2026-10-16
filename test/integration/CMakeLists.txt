@@ -71,6 +71,7 @@ set(tests
   particle_emitter.cc
   perfect_comms.cc
   performer_detector.cc
+  physics_provider_conformance.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
@@ -201,6 +202,12 @@ if (DART_FOUND AND TARGET INTEGRATION_physics_system)
 
   target_link_libraries(INTEGRATION_physics_system
     gz-math::eigen3
+  )
+endif()
+
+if (TARGET INTEGRATION_physics_provider_conformance)
+  target_link_libraries(INTEGRATION_physics_provider_conformance
+    gz-physics::core
   )
 endif()
 
