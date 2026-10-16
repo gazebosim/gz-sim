@@ -13,6 +13,7 @@ set (test_plugins
   EventTriggerSystem
   SetPhysicsOwnerSystem
   TestModelSystem
+  TestPhysicsRequirementsSystem
   TestSensorSystem
   TestVisualSystem
   TestWorldSystem

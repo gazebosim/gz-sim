@@ -39,6 +39,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/SupportedPhysicsFeatures.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
 #include "gz/sim/components/PhysicsOwner.hh"
 #include "gz/sim/components/Projector.hh"
@@ -884,6 +885,99 @@ TEST_F(UtilTest, PhysicsOwner)
   EXPECT_EQ("", physicsOwner(kNullEntity, ecm));
   EXPECT_TRUE(isOwnedBy(kNullEntity, ecm, kProvider, true));
   EXPECT_FALSE(isOwnedBy(kNullEntity, ecm, kProvider));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, PhysicsSupports)
+{
+  EntityComponentManager ecm;
+
+  // world
+  //  - modelA
+  //    - linkA
+  //    - modelB
+  //      - linkB
+  //  - modelC
+  //    - linkC
+
+  auto createNamed = [&](const std::string &_name, Entity _parent)
+  {
+    auto entity = ecm.CreateEntity();
+    ecm.CreateComponent(entity, components::Name(_name));
+    if (_parent != kNullEntity)
+      ecm.CreateComponent(entity, components::ParentEntity(_parent));
+    return entity;
+  };
+
+  auto world = createNamed("world", kNullEntity);
+  ecm.CreateComponent(world, components::World());
+  auto modelA = createNamed("modelA", world);
+  ecm.CreateComponent(modelA, components::Model());
+  auto linkA = createNamed("linkA", modelA);
+  ecm.CreateComponent(linkA, components::Link());
+  auto modelB = createNamed("modelB", modelA);
+  ecm.CreateComponent(modelB, components::Model());
+  auto linkB = createNamed("linkB", modelB);
+  ecm.CreateComponent(linkB, components::Link());
+  auto modelC = createNamed("modelC", world);
+  ecm.CreateComponent(modelC, components::Model());
+  auto linkC = createNamed("linkC", modelC);
+  ecm.CreateComponent(linkC, components::Link());
+
+  const std::vector<Entity> all{
+      world, modelA, linkA, modelB, linkB, modelC, linkC};
+
+  // Without a declaration, everything is supported.
+  for (const auto entity : all)
+  {
+    EXPECT_TRUE(physicsSupports(entity, ecm, "feature_a"));
+    EXPECT_TRUE(physicsSupports(entity, ecm, ""));
+  }
+
+  // A list on a top-level model covers it and its descendants only.
+  ecm.CreateComponent(modelA,
+      components::SupportedPhysicsFeatures({"feature_a", "feature_b"}));
+  for (const auto entity : {modelA, linkA, modelB, linkB})
+  {
+    EXPECT_TRUE(physicsSupports(entity, ecm, "feature_a"));
+    EXPECT_TRUE(physicsSupports(entity, ecm, "feature_b"));
+    EXPECT_FALSE(physicsSupports(entity, ecm, "feature_c"));
+    EXPECT_FALSE(physicsSupports(entity, ecm, ""));
+  }
+  for (const auto entity : {world, modelC, linkC})
+    EXPECT_TRUE(physicsSupports(entity, ecm, "feature_c"));
+
+  // A list on a nested model is not consulted.
+  ecm.CreateComponent(modelB, components::SupportedPhysicsFeatures());
+  EXPECT_TRUE(physicsSupports(linkB, ecm, "feature_a"));
+
+  // The world list is the default for models without their own.
+  ecm.CreateComponent(world,
+      components::SupportedPhysicsFeatures({"feature_c"}));
+  for (const auto entity : {world, modelC, linkC})
+  {
+    EXPECT_TRUE(physicsSupports(entity, ecm, "feature_c"));
+    EXPECT_FALSE(physicsSupports(entity, ecm, "feature_a"));
+  }
+  // The model's list wins.
+  EXPECT_TRUE(physicsSupports(linkA, ecm, "feature_a"));
+  EXPECT_FALSE(physicsSupports(linkA, ecm, "feature_c"));
+
+  // An empty list on a model says that nothing is supported, even if the world
+  // lists features.
+  ecm.CreateComponent(modelC, components::SupportedPhysicsFeatures());
+  EXPECT_FALSE(physicsSupports(linkC, ecm, "feature_c"));
+
+  // Changes are picked up.
+  ecm.Component<components::SupportedPhysicsFeatures>(modelC)->Data() =
+      {"feature_d"};
+  EXPECT_TRUE(physicsSupports(linkC, ecm, "feature_d"));
+  ecm.RemoveComponent<components::SupportedPhysicsFeatures>(modelC);
+  EXPECT_FALSE(physicsSupports(linkC, ecm, "feature_d"));
+  EXPECT_TRUE(physicsSupports(linkC, ecm, "feature_c"));
+
+  // An entity outside the tree has no declaration.
+  EXPECT_TRUE(physicsSupports(kNullEntity, ecm, "feature_a"));
 }
 
 /////////////////////////////////////////////////

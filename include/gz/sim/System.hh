@@ -19,6 +19,9 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
 
 #include <gz/sim/config.hh>
 #include <gz/sim/EntityComponentManager.hh>
@@ -96,6 +99,11 @@ namespace gz
       public: constexpr static std::string_view kPriorityElementName =
           {"gz:system_priority"};
 
+      /// \brief Name of the XML element from which the physics requirements
+      /// of a system will be parsed. See ISystemPhysicsRequirements.
+      public: constexpr static std::string_view
+          kPhysicsRequirementsElementName = {"gz:physics_requirements"};
+
       /// \brief Constructor
       public: System() = default;
 
@@ -165,6 +173,57 @@ namespace gz
       /// be overridden by the XML priority element.
       /// \return The default priority for the system.
       public: virtual System::PriorityType ConfigurePriority() = 0;
+    };
+
+    /// \class ISystemPhysicsRequirements System.hh gz/sim/System.hh
+    /// \brief Interface for a system that needs features from the physics
+    /// provider that simulates its entity.
+    ///
+    /// A physics provider is a system that simulates the dynamics of models,
+    /// such as the Physics system. Providers can differ in what they simulate.
+    /// A model can list the features that its provider supports in the
+    /// SupportedPhysicsFeatures component. A system that depends on a feature,
+    /// for example because it writes a command that only some providers
+    /// consume, lists the feature here.
+    ///
+    /// A system with a requirement that its entity's provider does not meet
+    /// is not run. A warning names the system, the model (or the world), and
+    /// the missing feature. The entity keeps its physics provider, and other
+    /// systems on the entity are not affected. If no SupportedPhysicsFeatures
+    /// component applies to the entity, every requirement is met.
+    ///
+    /// A system attached to the world is checked against the world's
+    /// SupportedPhysicsFeatures component, not against each model's. A world
+    /// system that serves many models should not declare requirements. It
+    /// should call physicsSupports() for each model instead.
+    ///
+    /// The requirements are queried each time the system is activated, after
+    /// Configure. That includes the activation that follows a reset. Configure
+    /// has already run by then. Its effects on the ECM stay, the parameters it
+    /// declared stay registered, and SystemPluginInfo still lists the system,
+    /// even if the system is not activated. A system can therefore return
+    /// requirements that depend on its parameters. PhysicsRequirements() runs
+    /// while the system manager holds a lock, so it must not add systems.
+    ///
+    /// The requirements can also be set, and replaced, in the SDF of the
+    /// plugin with a `<gz:physics_requirements>` element that holds the feature
+    /// names separated by spaces. An empty element removes all requirements.
+    /// This allows annotating a system that does not implement this interface.
+    /// The element is read only for plugins loaded from SDF (world, model or
+    /// spawn), not for systems passed to Server::AddSystem.
+    ///
+    /// Feature names are plain strings. Their meaning is shared between the
+    /// providers that list them and the systems that require them.
+    ///
+    /// A plugin has to list this interface in its GZ_ADD_PLUGIN call, as it
+    /// does for every other optional system interface. Otherwise the system
+    /// manager can't find it, and the requirements are silently ignored.
+    class ISystemPhysicsRequirements {
+      public: virtual ~ISystemPhysicsRequirements() = default;
+
+      /// \brief Get the physics features that the system needs.
+      /// \return Names of the required features.
+      public: virtual std::vector<std::string> PhysicsRequirements() = 0;
     };
 
     /// \class ISystemConfigureParameters System.hh gz/sim/System.hh

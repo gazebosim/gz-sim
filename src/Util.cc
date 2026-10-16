@@ -15,6 +15,7 @@
  *
 */
 
+#include <algorithm>
 #include <cstddef>
 #include <string>
 #include <string_view>
@@ -57,6 +58,7 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/SphericalCoordinates.hh"
+#include "gz/sim/components/SupportedPhysicsFeatures.hh"
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/components/LinearVelocity.hh"
@@ -798,6 +800,31 @@ bool isOwnedBy(const Entity &_entity, const EntityComponentManager &_ecm,
   if (owner.empty())
     return _isDefaultProvider;
   return owner == _provider;
+}
+
+//////////////////////////////////////////////////
+bool physicsSupports(const Entity &_entity, const EntityComponentManager &_ecm,
+    const std::string &_feature)
+{
+  const components::SupportedPhysicsFeatures *features{nullptr};
+
+  const auto model = topLevelModel(_entity, _ecm);
+  if (model != kNullEntity)
+    features = _ecm.Component<components::SupportedPhysicsFeatures>(model);
+
+  if (!features)
+  {
+    const auto world = worldEntity(_entity, _ecm);
+    if (world != kNullEntity)
+      features = _ecm.Component<components::SupportedPhysicsFeatures>(world);
+  }
+
+  // Without a declaration, the provider is assumed to do everything.
+  if (!features)
+    return true;
+
+  const auto &names = features->Data();
+  return std::find(names.begin(), names.end(), _feature) != names.end();
 }
 
 //////////////////////////////////////////////////

@@ -15,16 +15,22 @@
  *
 */
 
+#include <algorithm>
 #include <list>
 #include <mutex>
 #include <set>
+#include <sstream>
 #include <string>
+#include <typeinfo>
 #include <unordered_set>
+#include <vector>
 
 #include <gz/common/StringUtils.hh>
 
 #include "SystemInternal.hh"
+#include "gz/sim/components/Name.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
+#include "gz/sim/components/World.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
@@ -106,10 +112,16 @@ size_t SystemManager::ActivatePendingSystems()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);
 
-  auto count = this->pendingSystems.size();
+  size_t count{0};
 
   for (const auto& system : this->pendingSystems)
   {
+    // A system whose physics requirements are not met is dropped. It is not
+    // added to the list of active systems, so a reset does not reload it.
+    if (!this->PhysicsRequirementsMet(system))
+      continue;
+
+    ++count;
     this->systems.push_back(system);
 
     PriorityType p {System::kDefaultPriority};
@@ -159,6 +171,72 @@ size_t SystemManager::ActivatePendingSystems()
 
   this->pendingSystems.clear();
   return count;
+}
+
+//////////////////////////////////////////////////
+bool SystemManager::PhysicsRequirementsMet(const SystemInternal &_system) const
+{
+  if (!this->entityCompMgr || kNullEntity == _system.parentEntity)
+    return true;
+
+  // Requirements in the SDF replace the ones that the system declares.
+  const std::string elementName{System::kPhysicsRequirementsElementName};
+  std::vector<std::string> requirements;
+  if (_system.configureSdf && _system.configureSdf->HasElement(elementName))
+  {
+    std::istringstream stream(_system.configureSdf->Get<std::string>(
+        elementName));
+    std::string name;
+    while (stream >> name)
+      requirements.push_back(name);
+  }
+  else if (_system.physicsRequirements)
+  {
+    requirements = _system.physicsRequirements->PhysicsRequirements();
+  }
+
+  std::vector<std::string> missing;
+  for (const auto &requirement : requirements)
+  {
+    if (!physicsSupports(_system.parentEntity, *this->entityCompMgr,
+          requirement))
+    {
+      missing.push_back(requirement);
+    }
+  }
+
+  if (missing.empty())
+    return true;
+
+  std::string systemName = _system.name;
+  if (systemName.empty())
+    systemName = _system.fname;
+  if (systemName.empty() && _system.system)
+    systemName = typeid(*_system.system).name();
+
+  // Name the model that the system belongs to. A world plugin is not in a
+  // model, so name the world, or the entity if it is neither.
+  const auto model = topLevelModel(_system.parentEntity, *this->entityCompMgr);
+  const auto subject = kNullEntity != model ? model : _system.parentEntity;
+  auto nameComp = this->entityCompMgr->Component<components::Name>(subject);
+  std::string kind{"entity"};
+  if (kNullEntity != model)
+    kind = "model";
+  else if (this->entityCompMgr->Component<components::World>(subject))
+    kind = "world";
+  const std::string where = kind + " [" +
+      (nameComp ? nameComp->Data() : std::to_string(subject)) + "]";
+
+  std::string features;
+  for (const auto &feature : missing)
+    features += (features.empty() ? "[" : ", [") + feature + "]";
+
+  gzwarn << "System [" << systemName << "] on " << where
+         << " needs physics "
+         << (missing.size() == 1 ? "feature " : "features ") << features
+         << ", which the physics provider of the "
+         << kind << " does not support. The system will not run." << std::endl;
+  return false;
 }
 
 //////////////////////////////////////////////////

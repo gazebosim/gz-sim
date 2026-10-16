@@ -104,6 +104,20 @@ cc_binary(
 )
 
 cc_binary(
+    name = "TestPhysicsRequirementsSystem.so",
+    srcs = [
+        "plugins/TestPhysicsRequirementsSystem.cc",
+        "plugins/TestPhysicsRequirementsSystem.hh",
+    ],
+    linkshared = True,
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//:gz-sim",
+        "@gz-plugin//:register",
+    ],
+)
+
+cc_binary(
     name = "TestSensorSystem.so",
     srcs = [
         "plugins/TestSensorSystem.cc",
