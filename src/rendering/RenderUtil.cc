@@ -257,6 +257,10 @@ class gz::sim::RenderUtilPrivate
   /// \brief is headless mode active
   public: bool isHeadlessRendering = false;
 
+  /// \brief device to use for headless rendering, e.g. /dev/dri/card1.
+  /// Empty means the render engine selects its default device.
+  public: std::string renderDevice = "";
+
   /// \brief New models to be created. The elements in the tuple are:
   /// [0] entity id, [1], SDF DOM, [2] parent entity id, [3] sim iteration
   public: std::vector<std::tuple<Entity, sdf::Model, Entity, uint64_t>>
@@ -2604,6 +2608,18 @@ bool RenderUtil::HeadlessRendering() const
 }
 
 /////////////////////////////////////////////////
+void RenderUtil::SetRenderDevice(const std::string &_device)
+{
+  this->dataPtr->renderDevice = _device;
+}
+
+/////////////////////////////////////////////////
+std::string RenderUtil::RenderDevice() const
+{
+  return this->dataPtr->renderDevice;
+}
+
+/////////////////////////////////////////////////
 void RenderUtil::InitRenderEnginePluginPaths()
 {
   common::SystemPaths pluginPath;
@@ -2638,6 +2654,12 @@ void RenderUtil::Init()
 
   if (this->dataPtr->isHeadlessRendering)
     params["headless"] = "1";
+
+  if (this->dataPtr->isHeadlessRendering &&
+      !this->dataPtr->renderDevice.empty())
+  {
+    params["headless_device"] = this->dataPtr->renderDevice;
+  }
   params["winID"] = this->dataPtr->winID;
 
   this->dataPtr->engine = rendering::engine(this->dataPtr->engineName, params);
