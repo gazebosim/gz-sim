@@ -26,6 +26,7 @@
 
 #include <atomic>
 #include <csignal>
+#include <future>
 #include <thread>
 #include <vector>
 #include <gz/common/StringUtils.hh>
@@ -1421,16 +1422,20 @@ TEST_P(ServerFixture, PluginErrorExitAsync)
   // When not waiting for assets, entities are created and their plugins are
   // loaded while running. Run without an iteration limit, as the command
   // line tool does by default, and expect the server to stop on its own.
-  EXPECT_TRUE(server.Run(false, 0, false));
+  // The blocking run is done asynchronously so that the test fails instead
+  // of hanging if the server doesn't stop.
+  auto runResult = std::async(std::launch::async, [&server]()
+      {
+        return server.Run(true, 0, false);
+      });
 
-  int sleep{0};
-  int maxSleep{100};
-  while (server.Running() && sleep < maxSleep)
+  if (runResult.wait_for(10s) != std::future_status::ready)
   {
-    std::this_thread::sleep_for(100ms);
-    ++sleep;
+    server.Stop();
+    FAIL() << "The server did not stop after a system plugin failed to load";
   }
-  EXPECT_FALSE(server.Running());
+
+  EXPECT_FALSE(runResult.get());
   EXPECT_EQ(Server::Status::EXITED, server.GetStatus());
 }
 
