@@ -16,6 +16,8 @@
  */
 
 #include <array>
+#include <string>
+#include <vector>
 
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/world_stats.pb.h>
@@ -37,24 +39,35 @@ int main(int _argc, char** _argv)
 {
   common::Console::SetVerbosity(4);
 
-  std::string sdfFile{""};
-  if (_argc >= 2)
+  // Pull out optional flags so the positional arguments keep their order.
+  bool headless{false};
+  std::vector<std::string> positional;
+  for (int i = 1; i < _argc; ++i)
   {
-    sdfFile = _argv[1];
+    if (std::string(_argv[i]) == "--headless-rendering")
+      headless = true;
+    else
+      positional.push_back(_argv[i]);
+  }
+
+  std::string sdfFile{""};
+  if (!positional.empty())
+  {
+    sdfFile = positional[0];
   }
   gzdbg << "SDF file: " << sdfFile << std::endl;
 
   unsigned int iterations{10000};
-  if (_argc >= 3)
+  if (positional.size() >= 2)
   {
-    iterations = atoi(_argv[2]);
+    iterations = atoi(positional[1].c_str());
   }
   gzdbg << "Iterations: " << iterations << std::endl;
 
   double updateRate{-1};
-  if (_argc >= 4)
+  if (positional.size() >= 3)
   {
-    updateRate = atoi(_argv[3]);
+    updateRate = atoi(positional[2].c_str());
   }
   gzdbg << "Update rate: " << updateRate << std::endl;
 
@@ -64,6 +77,8 @@ int main(int _argc, char** _argv)
     gzerr << "Failed to set SDF file [" << sdfFile << "]" << std::endl;
     return -1;
   }
+
+  serverConfig.SetHeadlessRendering(headless);
 
   // Set the update rate.
   if (updateRate > 0.0)
