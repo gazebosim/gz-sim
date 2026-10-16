@@ -18,6 +18,7 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
@@ -39,6 +40,7 @@
 #include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/PhysicsOwner.hh"
 #include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/Visual.hh"
@@ -762,6 +764,126 @@ TEST_F(UtilTest, TopLevelModel)
 
   // the world should have no top level model
   EXPECT_EQ(kNullEntity, topLevelModel(worldEntity, ecm));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, PhysicsOwner)
+{
+  EntityComponentManager ecm;
+
+  // world
+  //  - modelA
+  //    - linkA
+  //    - modelB
+  //      - linkB
+  //  - modelC
+  //    - linkC
+  //  - modelD
+
+  auto createNamed = [&](const std::string &_name, Entity _parent)
+  {
+    auto entity = ecm.CreateEntity();
+    ecm.CreateComponent(entity, components::Name(_name));
+    if (_parent != kNullEntity)
+      ecm.CreateComponent(entity, components::ParentEntity(_parent));
+    return entity;
+  };
+
+  auto world = createNamed("world", kNullEntity);
+  ecm.CreateComponent(world, components::World());
+
+  auto modelA = createNamed("modelA", world);
+  ecm.CreateComponent(modelA, components::Model());
+  auto linkA = createNamed("linkA", modelA);
+  ecm.CreateComponent(linkA, components::Link());
+  auto modelB = createNamed("modelB", modelA);
+  ecm.CreateComponent(modelB, components::Model());
+  auto linkB = createNamed("linkB", modelB);
+  ecm.CreateComponent(linkB, components::Link());
+
+  auto modelC = createNamed("modelC", world);
+  ecm.CreateComponent(modelC, components::Model());
+  auto linkC = createNamed("linkC", modelC);
+  ecm.CreateComponent(linkC, components::Link());
+
+  auto modelD = createNamed("modelD", world);
+  ecm.CreateComponent(modelD, components::Model());
+
+  const std::string kProvider{"gz::sim::systems::Provider"};
+  const std::string kOther{"gz::sim::systems::Other"};
+  const std::vector<Entity> all{
+      world, modelA, linkA, modelB, linkB, modelC, linkC, modelD};
+
+  // Nothing is set: the default provider owns everything.
+  for (const auto entity : all)
+  {
+    EXPECT_EQ("", physicsOwner(entity, ecm));
+    EXPECT_TRUE(isOwnedBy(entity, ecm, kProvider, true));
+    EXPECT_FALSE(isOwnedBy(entity, ecm, kProvider));
+    EXPECT_FALSE(isOwnedBy(entity, ecm, kOther));
+  }
+
+  // An owner on a top-level model covers the model and its descendants,
+  // including nested models, but not other models or the world.
+  ecm.CreateComponent(modelA, components::PhysicsOwner(kProvider));
+  for (const auto entity : {modelA, linkA, modelB, linkB})
+  {
+    EXPECT_EQ(kProvider, physicsOwner(entity, ecm));
+    EXPECT_TRUE(isOwnedBy(entity, ecm, kProvider));
+    EXPECT_TRUE(isOwnedBy(entity, ecm, kProvider, true));
+    EXPECT_FALSE(isOwnedBy(entity, ecm, kOther));
+    EXPECT_FALSE(isOwnedBy(entity, ecm, kOther, true));
+  }
+  for (const auto entity : {world, modelC, linkC, modelD})
+  {
+    EXPECT_EQ("", physicsOwner(entity, ecm));
+    EXPECT_FALSE(isOwnedBy(entity, ecm, kProvider));
+    EXPECT_TRUE(isOwnedBy(entity, ecm, kOther, true));
+  }
+
+  // The component of the top-level model is used. One on a nested model is
+  // not consulted.
+  ecm.CreateComponent(modelB, components::PhysicsOwner(kOther));
+  EXPECT_EQ(kProvider, physicsOwner(linkB, ecm));
+  EXPECT_EQ(kProvider, physicsOwner(modelB, ecm));
+
+  // A world owner is the default for models without their own.
+  ecm.CreateComponent(world, components::PhysicsOwner(kOther));
+  EXPECT_EQ(kOther, physicsOwner(world, ecm));
+  EXPECT_EQ(kOther, physicsOwner(modelC, ecm));
+  EXPECT_EQ(kOther, physicsOwner(linkC, ecm));
+  EXPECT_EQ(kOther, physicsOwner(modelD, ecm));
+  EXPECT_TRUE(isOwnedBy(linkC, ecm, kOther));
+  EXPECT_FALSE(isOwnedBy(linkC, ecm, kProvider));
+  // The world default replaces the default provider.
+  EXPECT_FALSE(isOwnedBy(linkC, ecm, kProvider, true));
+
+  // A model's own owner wins over the world's.
+  EXPECT_EQ(kProvider, physicsOwner(linkA, ecm));
+  EXPECT_FALSE(isOwnedBy(linkA, ecm, kOther));
+
+  // An empty owner on a model selects the default provider and overrides the
+  // world's owner.
+  ecm.CreateComponent(modelD, components::PhysicsOwner(""));
+  EXPECT_EQ("", physicsOwner(modelD, ecm));
+  EXPECT_TRUE(isOwnedBy(modelD, ecm, kProvider, true));
+  EXPECT_FALSE(isOwnedBy(modelD, ecm, kProvider));
+  EXPECT_FALSE(isOwnedBy(modelD, ecm, kOther));
+
+  // Changing the data is picked up on the next call.
+  ecm.Component<components::PhysicsOwner>(modelA)->Data() = kOther;
+  EXPECT_EQ(kOther, physicsOwner(linkA, ecm));
+
+  // Removing the component falls back to the world's owner.
+  ecm.RemoveComponent<components::PhysicsOwner>(modelA);
+  EXPECT_EQ(kOther, physicsOwner(linkA, ecm));
+  ecm.RemoveComponent<components::PhysicsOwner>(world);
+  EXPECT_EQ("", physicsOwner(linkA, ecm));
+
+  // An entity outside the tree has no owner.
+  EXPECT_EQ("", physicsOwner(kNullEntity, ecm));
+  EXPECT_TRUE(isOwnedBy(kNullEntity, ecm, kProvider, true));
+  EXPECT_FALSE(isOwnedBy(kNullEntity, ecm, kProvider));
 }
 
 /////////////////////////////////////////////////

@@ -52,6 +52,7 @@
 #include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParticleEmitter.hh"
+#include "gz/sim/components/PhysicsOwner.hh"
 #include "gz/sim/components/Projector.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -764,6 +765,39 @@ sim::Entity topLevelModel(const Entity &_entity,
   }
 
   return modelEntity;
+}
+
+//////////////////////////////////////////////////
+std::string physicsOwner(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  const auto model = topLevelModel(_entity, _ecm);
+  if (model != kNullEntity)
+  {
+    auto comp = _ecm.Component<components::PhysicsOwner>(model);
+    if (comp)
+      return comp->Data();
+  }
+
+  auto world = worldEntity(_entity, _ecm);
+  if (world != kNullEntity)
+  {
+    auto comp = _ecm.Component<components::PhysicsOwner>(world);
+    if (comp)
+      return comp->Data();
+  }
+
+  return "";
+}
+
+//////////////////////////////////////////////////
+bool isOwnedBy(const Entity &_entity, const EntityComponentManager &_ecm,
+    const std::string &_provider, bool _isDefaultProvider)
+{
+  const auto owner = physicsOwner(_entity, _ecm);
+  if (owner.empty())
+    return _isDefaultProvider;
+  return owner == _provider;
 }
 
 //////////////////////////////////////////////////
