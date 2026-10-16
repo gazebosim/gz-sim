@@ -364,27 +364,10 @@ void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::UpdateOdometry");
-  // Record the initial pose in the same frame used for subsequent differences.
-  if (!this->initialized)
-  {
-    this->lastUpdatePose =
-        worldPose(this->model.Entity(), _ecm) * this->offset;
-    this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
-    this->initialized = true;
-    return;
-  }
-
   // Construct the odometry message and publish it.
   //! [declarePoseMsg]
   msgs::Odometry msg;
   //! [declarePoseMsg]
-
-  const std::chrono::duration<double> dt =
-    std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
-  // We cannot estimate the speed if the time interval is zero (or near
-  // zero).
-  if (math::equal(0.0, dt.count()))
-    return;
 
   // Get and set robotBaseFrame to odom transformation.
   //! [worldPose]
@@ -400,6 +383,22 @@ void OdometryPublisherPrivate::UpdateOdometry(
     msg.mutable_pose()->mutable_position()->set_z(pose.Pos().Z());
   }
   //! [setPoseMsg]
+
+  // Record the initial pose in the same frame used for subsequent differences.
+  if (!this->initialized)
+  {
+    this->lastUpdatePose = pose;
+    this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
+    this->initialized = true;
+    return;
+  }
+
+  const std::chrono::duration<double> dt =
+    std::chrono::steady_clock::time_point(_info.simTime) - lastUpdateTime;
+  // We cannot estimate the speed if the time interval is zero (or near
+  // zero).
+  if (math::equal(0.0, dt.count()))
+    return;
 
   // Get linear and angular displacements from last updated pose.
   double linearDisplacementX = pose.Pos().X() - this->lastUpdatePose.Pos().X();
