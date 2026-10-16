@@ -103,7 +103,11 @@ void testSensorTopicComponents(const sim::EntityComponentManager &_ecm,
   {
     auto sensorTopicComp = _ecm.Component<sim::components::SensorTopic>(id);
     EXPECT_TRUE(sensorTopicComp);
-    std::string topicStr = "/" + sensorTopicComp->Data();
+    std::string topicStr = sensorTopicComp->Data();
+    if (!topicStr.empty() && topicStr.front() != '/')
+    {
+      topicStr = "/" + topicStr;
+    }
     EXPECT_FALSE(topicStr.empty());
 
     // verify that the topic string stored in sensor topic component
@@ -150,7 +154,7 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 };
 
 //////////////////////////////////////////////////
-void testDefaultTopics(const std::vector<std::string> &_topics)
+void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
 {
   // TODO(anyone) This should be a new test, but running multiple tests with
   // sensors is not currently working
@@ -170,13 +174,40 @@ void testDefaultTopics(const std::vector<std::string> &_topics)
   }
   ASSERT_LT(sleep, maxSleep);
 
+  std::vector<std::string> topicdebugs;
+  node.TopicList(topicdebugs);
+  for (auto & topic : topicdebugs)
+  {
+    std::cout << topic << std::endl;
+  }
+
   for (const std::string &topic : _topics)
   {
+    publishers.clear();
+    subscribers.clear();
+
     bool result = node.TopicInfo(topic, publishers, subscribers);
 
     EXPECT_TRUE(result) << "Could not get topic info for " << topic;
-    EXPECT_EQ(1u, publishers.size());
-    publishers.clear();
+
+    if (_checkPublished)
+    {
+      EXPECT_EQ(1u, publishers.size());
+
+      if (publishers.size() != 1u)
+      {
+        std::cout << topic << std::endl;
+      }
+    }
+    else
+    {
+      EXPECT_EQ(1u, subscribers.size());
+
+      if (subscribers.size() != 1u)
+      {
+        std::cout << topic << std::endl;
+      }
+    }
   }
 }
 
@@ -188,7 +219,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   gz::sim::ServerConfig serverConfig;
 
   const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
-    "/test/worlds/sensor.sdf";
+    "/test/worlds/sensor_topics.sdf";
 
   serverConfig.SetSdfFile(sdfFile);
 
@@ -223,28 +254,50 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   ASSERT_NE(nullptr, ecm);
 
   std::string prefix{"/world/camera_sensor/model/default_topics/"};
-  std::vector<std::string> topics{
+  std::vector<std::string> published_topics{
       prefix + "link/camera_link/sensor/camera/image",
       prefix + "link/camera_link/sensor/camera/camera_info",
       prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan/points",
       prefix + "link/depth_camera_link/sensor/depth_camera/depth_image",
       prefix + "link/depth_camera_link/sensor/depth_camera/camera_info",
+      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image/points",
       prefix + "link/rgbd_camera_link/sensor/rgbd_camera/image",
       prefix + "link/rgbd_camera_link/sensor/rgbd_camera/depth_image",
-      prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/camera_info",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/points",
       prefix + "link/thermal_camera_link/sensor/thermal_camera/image",
+      prefix + "link/thermal_camera_link/sensor/thermal_camera/camera_info",
       prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
              + "segmentation/colored_map",
       prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
              + "segmentation/labels_map",
       prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
              + "segmentation/camera_info",
-      "/camera"
+      prefix + "link/wide_angle_camera_link/sensor/wide_angle_camera/image",
+      prefix + "link/wide_angle_camera_link/sensor/wide_angle_camera/"
+             + "camera_info",
+      "/camera",
+      "/test_camera_info"
   };
 
-  testDefaultTopics(topics);
+  std::vector<std::string> subscribed_topics{
+      prefix + "link/camera_link/sensor/camera/image/trigger",
+      prefix + "link/depth_camera_link/sensor/depth_camera/depth_image/"
+             + "trigger",
+      prefix + "link/rgbd_camera_link/sensor/rgbd_camera/trigger",
+      prefix + "link/thermal_camera_link/sensor/thermal_camera/image/trigger",
+      prefix + "link/segmentation_camera_link/sensor/segmentation_camera/"
+             + "segmentation/trigger",
+      prefix + "link/wide_angle_camera_link/sensor/wide_angle_camera/image/"
+             + "trigger",
+      "test_trigger"
+  };
+
+  testTopics(published_topics, true);
+  testTopics(subscribed_topics, false);
   testSensorEntityIds(*ecm, g_sensorEntityIds);
-  testSensorTopicComponents(*ecm, g_sensorEntityIds, topics);
+  testSensorTopicComponents(*ecm, g_sensorEntityIds, published_topics);
 
   g_sensorEntityIds.clear();
   g_scene.reset();
@@ -292,4 +345,37 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
       EXPECT_NE(sim::kNullEntity, modelEntity);
     }
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(SensorsFixture, SensorNamespace)
+{
+  gz::sim::ServerConfig serverConfig;
+
+  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/sensor_ns.sdf";
+
+  serverConfig.SetSdfFile(sdfFile);
+
+  sim::Server server(serverConfig);
+
+  // Run the server so rendering sensors are created and start advertising.
+  server.Run(true, 50, false);
+
+  std::vector<std::string> published_topics{
+      "/relative_topics_ns/camera_relative",
+      "/relative_topics_ns/camera_info_relative",
+      "/camera_absolute",
+      "/camera_info_absolute",
+      "/default_topics_ns/image",
+      "/default_topics_ns/camera_info",
+  };
+
+  std::vector<std::string> subscribed_topics{
+      "/relative_topics_ns/trigger_relative",
+      "/trigger_absolute",
+      "/default_topics_ns/image/trigger",
+  };
+  testTopics(published_topics, true);
+  testTopics(subscribed_topics, false);
 }
