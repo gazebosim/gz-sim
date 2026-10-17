@@ -816,7 +816,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // in the design.
   GZ_PROFILE_THREAD_NAME("SimulationRunner");
 
-  if (this->exitedWithErrors)
+  if (this->exitReason != ExitReason::NONE)
   {
     gzwarn << "SimulationRunner cannot run because it previously exited with "
            << "errors." << std::endl;
@@ -1210,7 +1210,7 @@ void SimulationRunner::LoadPlugin(const Entity _entity,
         << "] with filename [" << _plugin.Filename() << "]. The server is "
         << "configured to exit on plugin errors, stopping simulation."
         << std::endl;
-  this->SetExitedWithErrors();
+  this->SetExitedWithErrors(ExitReason::PLUGIN_ERROR);
   this->Stop();
 }
 
@@ -1453,7 +1453,7 @@ bool SimulationRunner::OnWorldControl(const msgs::WorldControl &_req,
 bool SimulationRunner::OnWorldControlState(const msgs::WorldControlState &_req,
     msgs::Boolean &_res)
 {
-  if (this->exitedWithErrors)
+  if (this->exitReason != ExitReason::NONE)
   {
     gzwarn << "Ignoring world control request because the simulation "
               "has exited with errors." << std::endl;
@@ -1725,15 +1725,15 @@ void SimulationRunner::SetStepSize(
 }
 
 /////////////////////////////////////////////////
-void SimulationRunner::SetExitedWithErrors()
+void SimulationRunner::SetExitedWithErrors(ExitReason _reason)
 {
-  this->exitedWithErrors = true;
+  this->exitReason = _reason;
 }
 
 /////////////////////////////////////////////////
-bool SimulationRunner::ExitedWithErrors() const
+SimulationRunner::ExitReason SimulationRunner::ExitedWithErrors() const
 {
-  return this->exitedWithErrors;
+  return this->exitReason;
 }
 
 /////////////////////////////////////////////////

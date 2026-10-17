@@ -303,17 +303,32 @@ namespace gz
       public: void SetStepSize(
           const std::chrono::steady_clock::duration &_step);
 
+      /// \brief Reason the runner exited with errors.
+      public: enum class ExitReason
+      {
+        /// \brief The runner has not exited with errors.
+        NONE,
+        /// \brief The SDF had errors and the server is configured to exit
+        /// on SDF errors.
+        SDF_ERROR,
+        /// \brief A system plugin failed to load and the server is
+        /// configured to exit on plugin errors.
+        PLUGIN_ERROR
+      };
+
       /// \brief Mark the runner as having exited with errors.
       /// \details This is called when a critical error occurs during
       /// initialization (e.g. invalid SDF, or a system plugin that fails to
       /// load when the server is configured to exit on plugin errors). A
       /// runner in this state will refuse to run simulation steps.
-      public: void SetExitedWithErrors();
+      /// \param[in] _reason Reason the runner exited with errors.
+      public: void SetExitedWithErrors(ExitReason _reason);
 
-      /// \brief Get whether the runner has exited with errors.
-      /// \return True if the runner has exited with errors.
+      /// \brief Get the reason the runner exited with errors.
+      /// \return Reason the runner exited with errors, or ExitReason::NONE
+      /// if it hasn't exited with errors.
       /// \sa SetExitedWithErrors()
-      public: bool ExitedWithErrors() const;
+      public: ExitReason ExitedWithErrors() const;
 
       /// \brief World control service callback. This function stores the
       /// the request which will then be processed by the ProcessMessages
@@ -602,10 +617,10 @@ namespace gz
       private: bool createEntities{false};
       private: bool entitiesCreated{false};
 
-      /// \brief Flag indicating if the server encountered errors during
-      /// initialization and should exit immediately. See
+      /// \brief Reason the runner encountered errors during initialization
+      /// and should exit immediately, or ExitReason::NONE if it hasn't. See
       /// `SetExitedWithErrors()`.
-      private: std::atomic<bool> exitedWithErrors{false};
+      private: std::atomic<ExitReason> exitReason{ExitReason::NONE};
 
       /// \brief Whether parallel PostUpdate is enabled.
       private: bool parallelPostUpdates{false};

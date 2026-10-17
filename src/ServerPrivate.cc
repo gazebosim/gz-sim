@@ -155,23 +155,32 @@ void ServerPrivate::Stop()
 /////////////////////////////////////////////////
 bool ServerPrivate::HandleRunnerErrors()
 {
-  const bool runnerExitedWithErrors = std::any_of(
+  const auto failedRunner = std::find_if(
       this->simRunners.begin(), this->simRunners.end(),
       [](const std::unique_ptr<SimulationRunner> &_runner)
       {
-        return _runner->ExitedWithErrors();
+        return _runner->ExitedWithErrors() !=
+            SimulationRunner::ExitReason::NONE;
       });
 
-  if (!runnerExitedWithErrors)
+  if (failedRunner == this->simRunners.end())
   {
     return false;
   }
+
+  // Runners that didn't fail themselves are given the same reason as the
+  // runner that failed.
+  const SimulationRunner::ExitReason reason =
+      (*failedRunner)->ExitedWithErrors();
 
   this->exitedWithErrors = true;
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
     // Ensure that future calls to runner->Run() will be ignored.
-    runner->SetExitedWithErrors();
+    if (runner->ExitedWithErrors() == SimulationRunner::ExitReason::NONE)
+    {
+      runner->SetExitedWithErrors(reason);
+    }
     runner->Stop();
   }
   return true;
@@ -836,7 +845,8 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
         for (auto &runner : this->simRunners)
         {
           // Ensure that future calls to runner->Run() will be ignored.
-          runner->SetExitedWithErrors();
+          runner->SetExitedWithErrors(
+              SimulationRunner::ExitReason::SDF_ERROR);
           runner->Stop();
         }
         if (_config.WaitForAssets())
