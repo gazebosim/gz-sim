@@ -175,6 +175,25 @@ TEST(WheelKinematics, NothingDriven)
 }
 
 /////////////////////////////////////////////////
+TEST(WheelKinematics, TrackIgnoresTheDiagonal)
+{
+  // Four wheels at (+-0.3, +-0.2) rolling along x: the track is 0.4 m.
+  std::vector<WheelGeometry> wheels;
+  for (const double x : {0.3, -0.3})
+  {
+    for (const double y : {0.2, -0.2})
+    {
+      WheelGeometry wheel;
+      wheel.contact.Set(x, y);
+      wheel.rolling.Set(1.0, 0.0);
+      wheel.radius = kRadius;
+      wheels.push_back(wheel);
+    }
+  }
+  EXPECT_NEAR(0.4, WheelDrive(wheels).Track(), 1e-12);
+}
+
+/////////////////////////////////////////////////
 TEST(WheelKinematics, SingleWheelHasASolution)
 {
   WheelDrive drive(DiffDriveWheels());

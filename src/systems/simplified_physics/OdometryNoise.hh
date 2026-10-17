@@ -69,6 +69,12 @@ namespace systems::simplified_physics
   /// scale part grows with D squared), as they do on a real robot. A fixed
   /// world seed repeats the noise exactly. The generator is SplitMix64 with a
   /// Box-Muller transform, so the stream is the same on every platform.
+  ///
+  /// The reported wheel velocity is the noisy travel of the step divided by
+  /// the step. Its noise is white, with a standard deviation of
+  /// q sqrt(v / dt) on a wheel that rolls at v m/s: 7.7 percent of the wheel
+  /// speed at 1 m/s, 1 ms steps, f = 0.015 and b = 0.4 m, and more at smaller
+  /// steps. Use the position for odometry and filter the velocity.
   class OdometryNoise
   {
     /// \brief Length of the reference path, in meters.

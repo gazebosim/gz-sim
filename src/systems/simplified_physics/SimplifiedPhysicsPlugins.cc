@@ -33,7 +33,8 @@ GZ_ADD_PLUGIN(SimplifiedPhysics,
               SimplifiedPhysics::ISystemConfigure,
               SimplifiedPhysics::ISystemConfigurePriority,
               SimplifiedPhysics::ISystemReset,
-              SimplifiedPhysics::ISystemUpdate)
+              SimplifiedPhysics::ISystemUpdate,
+              SimplifiedPhysics::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(SimplifiedPhysics,
                     simplified_physics::kProviderName)

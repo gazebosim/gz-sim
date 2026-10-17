@@ -30,6 +30,7 @@
 #include <vector>
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/twist.pb.h>
 #include <gz/msgs/world_control.pb.h>
@@ -42,6 +43,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/ServerConfig.hh"
@@ -51,6 +53,7 @@
 #include "gz/sim/components/JointPositionReset.hh"
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
+#include "gz/sim/components/LinearVelocityCmd.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/PhysicsOwner.hh"
@@ -107,9 +110,25 @@ struct RobotOptions
   bool footprint{false};
 
   /// \brief Wheels are spheres. Otherwise they are 4 cm wide cylinders. A
-  /// dartsim cylinder touches the floor at its edges, which shortens the
-  /// track by the width of the wheel, a sphere touches it in the middle.
+  /// dartsim cylinder reports contacts at both rims of the wheel, and the
+  /// robot turns faster than with the same wheels as spheres, which touch the
+  /// floor in the middle.
   bool sphereWheels{false};
+
+  /// \brief Hang each wheel from a link that slides on a short prismatic
+  /// joint under the chassis, like a wheel drop or a suspension.
+  bool suspension{false};
+
+  /// \brief Hang each wheel from a link that turns on a vertical revolute
+  /// joint under the chassis, like a steered wheel.
+  bool steered{false};
+
+  /// \brief `<wheel>` elements of the SimplifiedPhysicsModel parameters, as
+  /// SDF text.
+  std::string wheelElements;
+
+  /// \brief Name of the SimplifiedPhysicsModel plugin.
+  std::string pluginName{kModelPlugin};
 };
 
 /// \brief SDF text of a differential drive robot. One 2 kg chassis, two
@@ -120,10 +139,39 @@ std::string RobotXml(const RobotOptions &_o)
   const std::string wheelShape = _o.sphereWheels ?
       "<sphere><radius>0.1</radius></sphere>" :
       "<cylinder><radius>0.1</radius><length>0.04</length></cylinder>";
+  // The link that each wheel joint takes as its parent.
+  const bool hanging = _o.suspension || _o.steered;
+  const std::string leftParent = hanging ? "left_hanger" : "chassis";
+  const std::string rightParent = hanging ? "right_hanger" : "chassis";
   std::ostringstream out;
   out << R"(
     <model name=")" << _o.name << R"(">
       <pose>)" << _o.pose << R"(</pose>)";
+  std::ostringstream hangers;
+  if (hanging)
+  {
+    const char *type = _o.suspension ? "prismatic" : "revolute";
+    const char *limit = _o.suspension ?
+        "<lower>-0.01</lower><upper>0</upper>" :
+        "<lower>-0.5</lower><upper>0.5</upper>";
+    for (const char *side : {"left", "right"})
+    {
+      const double y = std::string(side) == "left" ? kHalfTrack : -kHalfTrack;
+      hangers << R"(
+      <link name=")" << side << R"(_hanger">
+        <pose relative_to="chassis">)" << kAxleX << " " << y << R"( 0 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia><ixx>1e-4</ixx><iyy>1e-4</iyy><izz>1e-4</izz></inertia>
+        </inertial>
+      </link>
+      <joint name=")" << side << R"(_hanger_joint" type=")" << type << R"(">
+        <parent>chassis</parent>
+        <child>)" << side << R"(_hanger</child>
+        <axis><xyz>0 0 1</xyz><limit>)" << limit << R"(</limit></axis>
+      </joint>)";
+    }
+  }
   if (_o.footprint)
   {
     out << R"(
@@ -145,7 +193,7 @@ std::string RobotXml(const RobotOptions &_o)
         <collision name="collision">
           <geometry><box><size>0.4 0.2 0.06</size></box></geometry>
         </collision>
-      </link>
+      </link>)" << hangers.str() << R"(
       <link name="left_wheel">
         <pose relative_to="chassis">)" << kAxleX << " " << kHalfTrack <<
       R"( 0 -1.570796327 0 0</pose>
@@ -188,12 +236,12 @@ std::string RobotXml(const RobotOptions &_o)
         <child>chassis</child>
       </joint>)" : "") << R"(
       <joint name="left_wheel_joint" type="revolute">
-        <parent>chassis</parent>
+        <parent>)" << leftParent << R"(</parent>
         <child>left_wheel</child>
         <axis><xyz>0 0 1</xyz></axis>
       </joint>
       <joint name="right_wheel_joint" type="revolute">
-        <parent>chassis</parent>
+        <parent>)" << rightParent << R"(</parent>
         <child>right_wheel</child>
         <axis><xyz>0 0 1</xyz></axis>
       </joint>
@@ -224,8 +272,9 @@ std::string RobotXml(const RobotOptions &_o)
   {
     out << R"(
       <plugin filename="gz-sim-simplified-physics-system"
-              name=")" << kModelPlugin << R"(">
-        <mode>planar_kinematic</mode>)" << _o.planarParams << R"(
+              name=")" << _o.pluginName << R"(">
+        <mode>planar_kinematic</mode>)" << _o.planarParams <<
+        _o.wheelElements << R"(
       </plugin>)";
   }
   out << _o.plugins << "\n    </model>\n";
@@ -485,8 +534,8 @@ TEST_F(SimplifiedPhysicsWheelsTest, OdometryEqualsGroundTruth)
 
   const auto error = CompareOdometry(t, samples);
   EXPECT_GT(error.count, 7000u);
-  EXPECT_LT(error.position, 1e-3);
-  EXPECT_LT(error.yaw, 1e-3);
+  EXPECT_LT(error.position, 1e-6);
+  EXPECT_LT(error.yaw, 1e-6);
   gzmsg << "odometry error: position " << error.position << " m, yaw "
         << error.yaw << " rad over " << error.count << " samples"
         << std::endl;
@@ -1206,4 +1255,345 @@ TEST_F(SimplifiedPhysicsWheelsTest, WheelsOnALinkWeldedToTheCanonicalLink)
   EXPECT_GT(error.count, 2000u);
   EXPECT_LT(error.position, 1e-6);
   EXPECT_LT(error.yaw, 1e-6);
+}
+
+/////////////////////////////////////////////////
+/// Wheels that hang from the chassis on prismatic joints (a suspension or a
+/// wheel drop) are wheels: the robot drives and its odometry follows.
+TEST_F(SimplifiedPhysicsWheelsTest, WheelsBehindASuspensionJoint)
+{
+  RobotOptions robot;
+  robot.name = "suspended";
+  robot.planar = true;
+  robot.suspension = true;
+  TestFixture fixture(Config(RobotXml(robot)));
+  std::map<std::string, GroundTruth> truth;
+  Record(fixture, {"suspended"}, truth);
+  fixture.Finalize();
+
+  OdometryLog odometry;
+  odometry.Subscribe("suspended");
+  this->Command({"suspended"}, 0.5, 0.4);
+  fixture.Server()->Run(true, 3000, false);
+
+  const auto &t = truth["suspended"];
+  EXPECT_GT(Axle(t.initial).Pos().Distance(
+      Axle(t.poses.rbegin()->second).Pos()), 0.5);
+  const auto error = CompareOdometry(t, odometry.Samples());
+  EXPECT_GT(error.count, 2000u);
+  EXPECT_LT(error.position, 1e-6);
+  EXPECT_LT(error.yaw, 1e-6);
+}
+
+/////////////////////////////////////////////////
+/// A wheel that hangs from the chassis on a steering joint cannot drive the
+/// model, because its rolling direction changes with the joint. The robot
+/// stays put, the wheels stay at zero, so the odometry reads zero too, and a
+/// command on the wheels is reported once, naming the joint. Nothing is
+/// reported while nobody commands the wheel, as for a swivel caster.
+TEST_F(SimplifiedPhysicsWheelsTest, WheelsBehindASteeringJointAreHeld)
+{
+  RobotOptions robot;
+  robot.name = "steered";
+  robot.planar = true;
+  robot.steered = true;
+  TestFixture fixture(Config(RobotXml(robot)));
+  std::map<std::string, GroundTruth> truth;
+  Record(fixture, {"steered"}, truth);
+  fixture.Finalize();
+
+  OdometryLog odometry;
+  odometry.Subscribe("steered");
+  const std::string text{"looks like a wheel"};
+
+  ::testing::internal::CaptureStderr();
+  fixture.Server()->Run(true, 100, false);
+  const auto idleOutput = ::testing::internal::GetCapturedStderr();
+  EXPECT_EQ(std::string::npos, idleOutput.find(text)) << idleOutput;
+
+  ::testing::internal::CaptureStderr();
+  this->Command({"steered"}, 0.5, 0.4);
+  fixture.Server()->Run(true, 1000, false);
+  const auto output = ::testing::internal::GetCapturedStderr();
+
+  const auto pos = output.find(text);
+  ASSERT_NE(std::string::npos, pos) << output;
+  EXPECT_NE(std::string::npos,
+      output.find("model/steered/joint/left_wheel_joint")) << output;
+  EXPECT_EQ(std::string::npos, output.find(text, pos + 1)) << output;
+
+  const auto &t = truth["steered"];
+  EXPECT_EQ(t.initial, t.poses.rbegin()->second);
+
+  // The wheels have a value, and it does not move.
+  ASSERT_EQ(1100u, t.leftPosition.size());
+  for (const auto &position : {t.leftPosition, t.rightPosition})
+  {
+    EXPECT_EQ(0.0, *std::min_element(position.begin(), position.end()));
+    EXPECT_EQ(0.0, *std::max_element(position.begin(), position.end()));
+  }
+
+  const auto samples = odometry.Samples();
+  EXPECT_GT(samples.size(), 500u);
+  for (const auto &[stamp, sample] : samples)
+  {
+    EXPECT_EQ(0.0, sample.position.Length()) << stamp;
+    EXPECT_EQ(0.0, sample.yaw) << stamp;
+  }
+}
+
+/////////////////////////////////////////////////
+/// A `<wheel>` element turns the wheels behind a steering joint into drive
+/// wheels, as if the steering joints were fixed.
+TEST_F(SimplifiedPhysicsWheelsTest, WheelElementsDriveSteeredWheels)
+{
+  RobotOptions robot;
+  robot.name = "named";
+  robot.planar = true;
+  robot.steered = true;
+  robot.wheelElements = R"(
+        <wheel>left_wheel_joint</wheel>
+        <wheel>right_wheel_joint</wheel>)";
+  ::testing::internal::CaptureStderr();
+  TestFixture fixture(Config(RobotXml(robot)));
+  std::map<std::string, GroundTruth> truth;
+  Record(fixture, {"named"}, truth);
+  fixture.Finalize();
+
+  OdometryLog odometry;
+  odometry.Subscribe("named");
+  this->Command({"named"}, 0.5, 0.4);
+  fixture.Server()->Run(true, 3000, false);
+  const auto output = ::testing::internal::GetCapturedStderr();
+  EXPECT_EQ(std::string::npos, output.find("looks like a wheel")) << output;
+
+  const auto &t = truth["named"];
+  EXPECT_GT(Axle(t.initial).Pos().Distance(
+      Axle(t.poses.rbegin()->second).Pos()), 0.5);
+  const auto error = CompareOdometry(t, odometry.Samples());
+  EXPECT_GT(error.count, 2000u);
+  EXPECT_LT(error.position, 1e-6);
+  EXPECT_LT(error.yaw, 1e-6);
+}
+
+/////////////////////////////////////////////////
+/// A DiffDrive robot spawned at runtime that stays idle gets its wheel
+/// positions in the step after it appears, and DiffDrive publishes odometry
+/// at the same rate as for a robot on dartsim.
+TEST_F(SimplifiedPhysicsWheelsTest, SpawnedIdleRobotPublishesOdometry)
+{
+  TestFixture fixture(Config(""));
+  std::map<std::string, std::vector<int>> sizes;
+  fixture.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+      {
+        for (const char *name : {"spawned_planar", "spawned_full"})
+        {
+          const auto model = _ecm.EntityByComponents(components::Model(),
+              components::Name(name));
+          if (model == kNullEntity)
+            continue;
+          const auto joint = Model(model).JointByName(_ecm,
+              "left_wheel_joint");
+          const auto *position =
+              _ecm.Component<components::JointPosition>(joint);
+          sizes[name].push_back(position ?
+              static_cast<int>(position->Data().size()) : -1);
+        }
+      }).Finalize();
+  fixture.Server()->Run(true, 10, false);
+
+  OdometryLog planarOdometry;
+  OdometryLog fullOdometry;
+  planarOdometry.Subscribe("spawned_planar");
+  fullOdometry.Subscribe("spawned_full");
+
+  transport::Node node;
+  for (const bool planar : {true, false})
+  {
+    RobotOptions robot;
+    robot.name = planar ? "spawned_planar" : "spawned_full";
+    robot.pose = planar ? "0 0 0.1 0 0 0" : "0 3 0.1 0 0 0";
+    robot.planar = planar;
+    robot.odomHz = 100;
+    msgs::EntityFactory req;
+    req.set_sdf("<?xml version='1.0'?><sdf version='1.9'>" + RobotXml(robot) +
+        "</sdf>");
+    msgs::Boolean rep;
+    bool result{false};
+    ASSERT_TRUE(node.Request("/world/wheels_test/create", req, 2000, rep,
+        result));
+    ASSERT_TRUE(result);
+  }
+  for (int i = 0; i < 50; ++i)
+    fixture.Server()->Run(true, 10, false);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  // The position has a value from the second step the model exists in.
+  const auto &planar = sizes["spawned_planar"];
+  ASSERT_GT(planar.size(), 400u);
+  EXPECT_EQ(1, planar.back());
+  const auto empty = std::count_if(planar.begin(), planar.end(),
+      [](int _size) { return _size != 1; });
+  EXPECT_LE(empty, 2);
+
+  const auto planarCount = planarOdometry.Samples().size();
+  const auto fullCount = fullOdometry.Samples().size();
+  EXPECT_GT(planarCount, 40u);
+  EXPECT_NEAR(static_cast<double>(fullCount),
+      static_cast<double>(planarCount), 2.0);
+  for (const auto &[stamp, sample] : planarOdometry.Samples())
+  {
+    EXPECT_EQ(0.0, sample.position.Length()) << stamp;
+    EXPECT_EQ(0.0, sample.yaw) << stamp;
+  }
+}
+
+/////////////////////////////////////////////////
+/// Frame data that readers ask for later is right for every robot, whether
+/// it moved while nobody read it or stands still.
+///
+/// Robot "a" has a reader from the first step and drives. Robot "b" stands
+/// still, has a reader on a wheel link from the first step, and gets a second
+/// one on its chassis in step 600. Robot "c" drives 0.3 m in steps 200 to 499
+/// with no reader, and then gets readers on its chassis and on its collision
+/// in step 600.
+TEST_F(SimplifiedPhysicsWheelsTest, LateFrameReadersGetCurrentData)
+{
+  std::string models;
+  double y{0.0};
+  for (const char *name : {"a", "b", "c"})
+  {
+    RobotOptions robot;
+    robot.name = name;
+    robot.pose = "0 " + std::to_string(y) + " 0.1 0 0 0";
+    robot.planar = true;
+    robot.diffDrive = false;
+    models += RobotXml(robot);
+    y += 5.0;
+  }
+  TestFixture fixture(Config(models));
+
+  Entity a{kNullEntity};
+  Entity c{kNullEntity};
+  Entity aChassis{kNullEntity};
+  Entity bChassis{kNullEntity};
+  Entity bWheel{kNullEntity};
+  Entity cChassis{kNullEntity};
+  Entity cCollision{kNullEntity};
+  int step{0};
+
+  struct Reading
+  {
+    int step{0};
+    std::string what;
+    math::Pose3d read;
+    math::Pose3d truth;
+  };
+  std::vector<Reading> readings;
+
+  fixture.OnConfigure([&](const Entity &,
+      const std::shared_ptr<const sdf::Element> &,
+      EntityComponentManager &_ecm, EventManager &)
+      {
+        const auto find = [&](const char *_name)
+        {
+          return _ecm.EntityByComponents(components::Model(),
+              components::Name(_name));
+        };
+        a = find("a");
+        c = find("c");
+        aChassis = Model(a).LinkByName(_ecm, "chassis");
+        bChassis = Model(find("b")).LinkByName(_ecm, "chassis");
+        bWheel = Model(find("b")).LinkByName(_ecm, "left_wheel");
+        cChassis = Model(c).LinkByName(_ecm, "chassis");
+        cCollision = Link(cChassis).CollisionByName(_ecm, "collision");
+      })
+  .OnPreUpdate([&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        ++step;
+        if (step == 1)
+        {
+          _ecm.CreateComponent(aChassis, components::WorldPose());
+          _ecm.CreateComponent(bWheel, components::WorldPose());
+        }
+        _ecm.SetComponentData<components::LinearVelocityCmd>(a, {1, 0, 0});
+        if (step >= 200 && step < 500)
+          _ecm.SetComponentData<components::LinearVelocityCmd>(c, {1, 0, 0});
+        if (step == 600)
+        {
+          _ecm.CreateComponent(bChassis, components::WorldPose());
+          _ecm.CreateComponent(cChassis, components::WorldPose());
+          _ecm.CreateComponent(cCollision, components::WorldPose());
+        }
+      })
+  .OnPostUpdate([&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        if (step != 10 && step != 610 && step != 700)
+          return;
+        const auto read = [&](const char *_what, const Entity &_entity)
+        {
+          const auto *pose = _ecm.Component<components::WorldPose>(_entity);
+          readings.push_back({step, _what,
+              pose ? pose->Data() : math::Pose3d(-99, -99, -99, 0, 0, 0),
+              worldPose(_entity, _ecm)});
+        };
+        read("a chassis", aChassis);
+        if (step >= 610)
+        {
+          read("b chassis", bChassis);
+          read("c chassis", cChassis);
+          read("c collision", cCollision);
+        }
+      }).Finalize();
+  fixture.Server()->Run(true, 700, false);
+
+  // One reading at step 10, four at step 610 and four at step 700.
+  ASSERT_EQ(9u, readings.size());
+  for (const auto &reading : readings)
+  {
+    EXPECT_NEAR(0.0, reading.read.Pos().Distance(reading.truth.Pos()), 1e-6)
+        << reading.what << " at step " << reading.step << ": read "
+        << reading.read << ", truth " << reading.truth;
+  }
+
+  // The robot that drove without a reader is 0.3 m from its start, and so is
+  // its collision.
+  const auto &chassisRead = readings[readings.size() - 2];
+  const auto &collisionRead = readings[readings.size() - 1];
+  EXPECT_EQ("c chassis", chassisRead.what);
+  EXPECT_EQ("c collision", collisionRead.what);
+  for (const auto &reading : {chassisRead, collisionRead})
+  {
+    EXPECT_NEAR(0.3, reading.read.Pos().X(), 1e-6) << reading.what;
+    EXPECT_NEAR(10.0, reading.read.Pos().Y(), 1e-6) << reading.what;
+  }
+}
+
+/////////////////////////////////////////////////
+/// The parameters of the model plugin are found under every name that the
+/// plugin is registered under, not only the short alias.
+TEST_F(SimplifiedPhysicsWheelsTest, ParametersUnderTheClassName)
+{
+  RobotOptions robot;
+  robot.name = "classname";
+  robot.planar = true;
+  robot.pluginName = "gz::sim::v11::systems::SimplifiedPhysicsModel";
+  robot.planarParams = "<odometry_noise>0.05</odometry_noise>";
+  TestFixture fixture(Config(RobotXml(robot), 5));
+  std::map<std::string, GroundTruth> truth;
+  Record(fixture, {"classname"}, truth);
+  fixture.Finalize();
+
+  OdometryLog odometry;
+  odometry.Subscribe("classname");
+  this->Command({"classname"}, 0.5, 0.0);
+  fixture.Server()->Run(true, 4000, false);
+
+  // The robot moves, so the plugin loaded, and the noise shows in the
+  // odometry and not in the motion.
+  const auto &t = truth["classname"];
+  EXPECT_GT(t.poses.rbegin()->second.Pos().X(), 1.0);
+  const auto error = CompareOdometry(t, odometry.Samples());
+  EXPECT_GT(error.position, 1e-3);
 }

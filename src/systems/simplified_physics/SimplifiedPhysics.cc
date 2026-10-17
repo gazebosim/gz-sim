@@ -70,7 +70,6 @@
 #include "gz/sim/components/PoseCmd.hh"
 #include "gz/sim/components/Static.hh"
 #include "gz/sim/components/SupportedPhysicsFeatures.hh"
-#include "gz/sim/components/Wind.hh"
 #include "gz/sim/components/World.hh"
 
 using namespace gz;
@@ -113,18 +112,19 @@ bool NonZero(double _value)
   return std::fpclassify(_value) != FP_ZERO;
 }
 
-/// \brief True if a link, sensor or collision has a frame data component.
+/// \brief True if the entity has one of the nine frame data components.
 /// Other systems create these when they need the data, and the physics
 /// providers only fill components that exist. Without a reader, computing and
-/// writing the frames of every link is wasted work.
+/// writing the frames of a model is wasted work.
 /// \param[in] _ecm Constant reference to the ECM.
-/// \return True if one of the nine frame data components is in use.
-bool FrameDataWanted(const EntityComponentManager &_ecm)
+/// \param[in] _entity A link, a sensor, a collision or another entity.
+/// \return True if the entity has one of them.
+bool HasFrameComponent(const EntityComponentManager &_ecm,
+    const Entity &_entity)
 {
-  // The wind entity of the world carries a WorldLinearVelocity in every
-  // simulation. It is no reader, so that type is checked below.
   const ComponentTypeId types[] = {
       components::WorldPose::typeId,
+      components::WorldLinearVelocity::typeId,
       components::WorldAngularVelocity::typeId,
       components::WorldLinearAcceleration::typeId,
       components::WorldAngularAcceleration::typeId,
@@ -132,27 +132,35 @@ bool FrameDataWanted(const EntityComponentManager &_ecm)
       components::AngularVelocity::typeId,
       components::LinearAcceleration::typeId,
       components::AngularAcceleration::typeId};
-  if (std::any_of(std::begin(types), std::end(types),
-      [&_ecm](const ComponentTypeId &_type)
+  return std::any_of(std::begin(types), std::end(types),
+      [&](const ComponentTypeId &_type)
       {
-        return _ecm.HasComponentType(_type);
-      }))
-  {
-    return true;
-  }
+        return _ecm.EntityHasComponentType(_entity, _type);
+      });
+}
 
-  bool wanted{false};
-  if (_ecm.HasComponentType(components::WorldLinearVelocity::typeId))
-  {
-    _ecm.Each<components::WorldLinearVelocity>(
-        [&](const Entity &_entity, const components::WorldLinearVelocity *)
-            -> bool
+/// \brief Call a function for every entity whose component of a type was
+/// created or replaced in this step.
+/// \tparam ComponentT Component type.
+/// \tparam Fn Function of an entity.
+/// \param[in] _ecm Constant reference to the ECM.
+/// \param[in] _fn Called for each such entity.
+template<typename ComponentT, typename Fn>
+void EachCreated(const EntityComponentManager &_ecm, const Fn &_fn)
+{
+  if (!_ecm.HasComponentType(ComponentT::typeId))
+    return;
+
+  _ecm.Each<ComponentT>(
+      [&](const Entity &_entity, const ComponentT *) -> bool
+      {
+        if (_ecm.ComponentState(_entity, ComponentT::typeId) ==
+            ComponentState::OneTimeChange)
         {
-          wanted = _ecm.Component<components::Wind>(_entity) == nullptr;
-          return !wanted;
-        });
-  }
-  return wanted;
+          _fn(_entity);
+        }
+        return true;
+      });
 }
 
 /// \brief True if the system can move a top-level model.
@@ -165,6 +173,19 @@ bool CanSimulate(const EntityComponentManager &_ecm, const Entity &_model)
   const auto isStatic = _ecm.ComponentData<components::Static>(_model);
   return !(isStatic.has_value() && *isStatic) &&
       _ecm.Component<components::Pose>(_model) != nullptr;
+}
+
+/// \brief True if the name is one of the names that the SimplifiedPhysicsModel
+/// plugin is registered under: the alias without the version namespace and the
+/// class name with it.
+/// \param[in] _name The `name` attribute of a `<plugin>` element.
+/// \return True for a SimplifiedPhysicsModel name.
+bool IsModelPluginName(const std::string &_name)
+{
+  const std::string suffix{"::SimplifiedPhysicsModel"};
+  return _name == kModelPluginName ||
+      (_name.rfind("gz::sim::", 0) == 0 && _name.size() > suffix.size() &&
+       _name.compare(_name.size() - suffix.size(), suffix.size(), suffix) == 0);
 }
 
 /// \brief Read the parameters of the model's SimplifiedPhysicsModel plugin.
@@ -181,20 +202,36 @@ ModelParams LoadParams(const EntityComponentManager &_ecm,
 
   for (const auto &plugin : modelSdf->Data().Plugins())
   {
-    if (plugin.Name() == kModelPluginName)
+    if (IsModelPluginName(plugin.Name()))
       return ParseModelParams(plugin.Contents(), _name, false);
   }
   return {};
+}
+
+/// \brief True if a joint has a state component that has no value yet. A
+/// system that needs the joint state, such as DiffDrive, creates the
+/// component empty, in any step.
+/// \param[in] _position The joint's position component, or null.
+/// \param[in] _velocity The joint's velocity component, or null.
+/// \return True if one of them exists and is empty.
+bool HasEmptyState(const components::JointPosition *_position,
+    const components::JointVelocity *_velocity)
+{
+  return (_position && _position->Data().size() != 1) ||
+      (_velocity && _velocity->Data().size() != 1);
 }
 
 /// \brief Write the position and velocity of one joint to the components
 /// that other systems created for it.
 ///
 /// Like Physics, the system fills only components that exist. It marks the
-/// position as changed and leaves the velocity unmarked.
+/// position as changed and leaves the velocity unmarked. A component without
+/// a value is always filled.
 ///
 /// \param[in,out] _ecm Mutable reference to the ECM.
 /// \param[in] _joint Joint entity.
+/// \param[in,out] _positionComp The joint's position component, or null.
+/// \param[in,out] _velocityComp The joint's velocity component, or null.
 /// \param[in] _position Position in rad or m.
 /// \param[in] _velocity Velocity in rad/s or m/s.
 /// \param[in] _writePosition False to leave the position alone, when it did
@@ -202,12 +239,14 @@ ModelParams LoadParams(const EntityComponentManager &_ecm,
 /// \param[in] _writeVelocity False to leave the velocity alone, when it did
 /// not change.
 void WriteJointState(EntityComponentManager &_ecm, const Entity &_joint,
+    components::JointPosition *_positionComp,
+    components::JointVelocity *_velocityComp,
     double _position, double _velocity, bool _writePosition,
     bool _writeVelocity)
 {
-  if (auto *position = _ecm.Component<components::JointPosition>(_joint))
+  if (_positionComp)
   {
-    auto &data = position->Data();
+    auto &data = _positionComp->Data();
     if (_writePosition || data.size() != 1)
     {
       data.assign(1, _position);
@@ -215,12 +254,16 @@ void WriteJointState(EntityComponentManager &_ecm, const Entity &_joint,
           ComponentState::PeriodicChange);
     }
   }
-  if (!_writeVelocity)
-    return;
-  if (auto *velocity = _ecm.Component<components::JointVelocity>(_joint))
-    velocity->Data().assign(1, _velocity);
+  if (_velocityComp)
+  {
+    auto &data = _velocityComp->Data();
+    if (_writeVelocity || data.size() != 1)
+      data.assign(1, _velocity);
+  }
 }
 }
+
+struct OwnedModel;
 
 /// \brief A link of a model that the system simulates.
 struct LinkState
@@ -230,6 +273,9 @@ struct LinkState
 
   /// \brief Frame data from the last write.
   RigidFrame frame;
+
+  /// \brief The model that the link belongs to.
+  const OwnedModel *owner{nullptr};
 };
 
 /// \brief A wheel of a model that the system simulates.
@@ -272,6 +318,11 @@ struct JointState
 
   /// \brief True if the next step has to write the position.
   bool dirty{true};
+
+  /// \brief True for a joint that looks like a wheel but is held at its
+  /// position, see JointRoles::held. It ignores velocity commands, and a
+  /// non-zero one is reported.
+  bool held{false};
 };
 
 /// \brief A model that the system simulates.
@@ -295,7 +346,14 @@ struct OwnedModel
   /// the frame data once more, so that the velocities read zero.
   bool wasMoving{false};
 
-  /// \brief True until the frame data has been written once.
+  /// \brief True if a link, sensor or collision of the model has a frame data
+  /// component. The model computes and writes frame data only then. Once set
+  /// it stays set.
+  bool frameReaders{false};
+
+  /// \brief True until the frame data has been written once, and again when
+  /// a reader appears. The next step then writes it, also for a model that
+  /// does not move.
   bool needsFrameData{true};
 
   /// \brief True after the system warned about an invalid command.
@@ -326,6 +384,10 @@ struct OwnedModel
   /// \brief True after the system warned about a command on a joint that it
   /// cannot follow.
   bool warnedUnsupportedJointCmd{false};
+
+  /// \brief True after the system warned about a velocity command on a held
+  /// wheel.
+  bool warnedHeldWheelCmd{false};
 
   /// \brief True once the first step has filled the joint components that
   /// exist.
@@ -440,11 +502,23 @@ class gz::sim::systems::SimplifiedPhysicsPrivate
   /// \param[in] _model Model entity.
   /// \param[in,out] _owned State of the model.
   /// \param[in] _dt Time step in seconds. Zero when paused.
-  /// \param[in] _frames True if some system reads frame data, see
-  /// FrameDataWanted().
   /// \return True if frame data was written for the model.
   public: bool Step(EntityComponentManager &_ecm, const Entity &_model,
-              OwnedModel &_owned, double _dt, bool _frames);
+              OwnedModel &_owned, double _dt);
+
+  /// \brief Look for frame data components that were created in this step
+  /// under the models. Components created in a step carry a one-time change
+  /// until the step ends, so this runs in PostUpdate, after every system had
+  /// its turn.
+  /// \param[in] _ecm Constant reference to the ECM.
+  public: void FindNewReaders(const EntityComponentManager &_ecm);
+
+  /// \brief Record that an entity has a new frame data component, so that its
+  /// model writes frame data in the next step.
+  /// \param[in] _ecm Constant reference to the ECM.
+  /// \param[in] _entity The entity.
+  public: void AddReader(const EntityComponentManager &_ecm,
+              const Entity &_entity);
 
   /// \brief Models that the system simulates, ordered by entity so that the
   /// order of the steps does not depend on hashing.
@@ -552,12 +626,10 @@ void SimplifiedPhysics::Update(const UpdateInfo &_info,
 
   this->dataPtr->ApplyJointResets(_ecm);
 
-  const bool frames = FrameDataWanted(_ecm);
-
   bool wroteFrameData{false};
   for (auto &[model, owned] : this->dataPtr->models)
   {
-    if (this->dataPtr->Step(_ecm, model, owned, dt, frames))
+    if (this->dataPtr->Step(_ecm, model, owned, dt))
       wroteFrameData = true;
   }
 
@@ -570,9 +642,15 @@ void SimplifiedPhysics::Update(const UpdateInfo &_info,
         [this](const Entity &_link, const math::Pose3d &_offset)
             -> std::optional<physics::FrameData3d>
         {
+          // A model without a reader has no frame components, but one that
+          // was created outside the system phases may exist. Its cached frame
+          // can be stale, because the model does not write while nobody reads.
           auto it = this->dataPtr->links.find(_link);
-          if (it == this->dataPtr->links.end())
+          if (it == this->dataPtr->links.end() || !it->second.owner ||
+              !it->second.owner->frameReaders)
+          {
             return std::nullopt;
+          }
 
           const auto &frame = it->second.frame;
           return ToFrameData(PlanarFrameAt(frame.pose, frame.linearVelocity,
@@ -588,6 +666,56 @@ void SimplifiedPhysics::Update(const UpdateInfo &_info,
   this->dataPtr->WarnUnsupportedCommands(_ecm);
   physics_system::ClearCommands(_ecm, this->dataPtr->OwnedFilter(), true,
       true);
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysics::PostUpdate(const UpdateInfo &/*_info*/,
+    const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("SimplifiedPhysics::PostUpdate");
+
+  // Nothing to find unless the system has models and something was created in
+  // this step.
+  if (!this->dataPtr->active || this->dataPtr->models.empty() ||
+      !_ecm.HasOneTimeComponentChanges())
+  {
+    return;
+  }
+
+  this->dataPtr->FindNewReaders(_ecm);
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::FindNewReaders(
+    const EntityComponentManager &_ecm)
+{
+  const auto add = [&](const Entity &_entity)
+  {
+    this->AddReader(_ecm, _entity);
+  };
+  EachCreated<components::WorldPose>(_ecm, add);
+  EachCreated<components::WorldLinearVelocity>(_ecm, add);
+  EachCreated<components::WorldAngularVelocity>(_ecm, add);
+  EachCreated<components::WorldLinearAcceleration>(_ecm, add);
+  EachCreated<components::WorldAngularAcceleration>(_ecm, add);
+  EachCreated<components::LinearVelocity>(_ecm, add);
+  EachCreated<components::AngularVelocity>(_ecm, add);
+  EachCreated<components::LinearAcceleration>(_ecm, add);
+  EachCreated<components::AngularAcceleration>(_ecm, add);
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::AddReader(const EntityComponentManager &_ecm,
+    const Entity &_entity)
+{
+  const auto it = this->models.find(topLevelModel(_entity, _ecm));
+  if (it == this->models.end())
+    return;
+
+  // A model that has a reader already writes only when it moves, so a second
+  // reader needs the write as well.
+  it->second.frameReaders = true;
+  it->second.needsFrameData = true;
 }
 
 //////////////////////////////////////////////////
@@ -819,7 +947,17 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
   owned.entities.assign(descendants.begin(), descendants.end());
   this->ownedEntities.insert(descendants.begin(), descendants.end());
 
+  // Readers that exist already: components from the SDF or from systems that
+  // configured before this one. Later ones are found in PostUpdate.
+  owned.frameReaders = std::any_of(descendants.begin(), descendants.end(),
+      [&](const Entity &_entity)
+      {
+        return HasFrameComponent(_ecm, _entity);
+      });
+
   const auto it = this->models.emplace(_model, std::move(owned)).first;
+  for (const auto &link : it->second.links)
+    this->links[link].owner = &it->second;
   for (std::size_t i = 0; i < it->second.wheels.size(); ++i)
     this->jointRefs[it->second.wheels[i].joint] = {_model, true, i};
   for (std::size_t i = 0; i < it->second.joints.size(); ++i)
@@ -877,6 +1015,15 @@ void SimplifiedPhysicsPrivate::AddJoints(const EntityComponentManager &_ecm,
     state.upper = joint.upper;
     _owned.joints.push_back(state);
   }
+  // Wheels the mode cannot drive stay where they are. They are articulated
+  // joints with no travel, so that their state components still get a value.
+  for (const auto &joint : roles.held)
+  {
+    JointState state;
+    state.joint = joint;
+    state.held = true;
+    _owned.joints.push_back(state);
+  }
   _owned.unsupportedJoints = std::move(roles.unsupported);
 }
 
@@ -900,7 +1047,7 @@ void SimplifiedPhysicsPrivate::RemoveModel(const Entity &_model)
 
 //////////////////////////////////////////////////
 bool SimplifiedPhysicsPrivate::Step(EntityComponentManager &_ecm,
-    const Entity &_model, OwnedModel &_owned, double _dt, bool _frames)
+    const Entity &_model, OwnedModel &_owned, double _dt)
 {
   auto poseComp = _ecm.Component<components::Pose>(_model);
   if (!poseComp)
@@ -1057,10 +1204,11 @@ bool SimplifiedPhysicsPrivate::Step(EntityComponentManager &_ecm,
   }
 
   // Write the frame data again on the step after the model stopped, so that
-  // readers see zero velocity. Without a reader nothing is computed, and the
-  // first write waits for the first reader.
-  const bool write = _frames && (moved || teleported || _owned.wasMoving ||
-      _owned.needsFrameData);
+  // readers see zero velocity. Without a reader nothing is computed. The
+  // first reader sets needsFrameData, and then the model writes in the next
+  // step, whether it moves or not.
+  const bool write = _owned.frameReaders && (moved || teleported ||
+      _owned.wasMoving || _owned.needsFrameData);
   _owned.wasMoving = moved;
   if (!write)
     return false;
@@ -1107,7 +1255,9 @@ void SimplifiedPhysicsPrivate::StepJoints(EntityComponentManager &_ecm,
 {
   // The first step fills the components that exist, so that a reader such as
   // DiffDrive finds a value in a robot that has not moved. After that only a
-  // change is written.
+  // change is written, and a component that another system created later,
+  // for example for a robot spawned at runtime, is filled in the step it
+  // appears in.
   const bool settle = !_owned.jointsSettled;
   _owned.jointsSettled = true;
 
@@ -1129,16 +1279,20 @@ void SimplifiedPhysicsPrivate::StepJoints(EntityComponentManager &_ecm,
       }
     }
 
-    const double velocity = _dt > 0.0 ? delta / _dt : 0.0;
+    // A paused step keeps the last velocity, as Physics does.
+    const double velocity = _dt > 0.0 ? delta / _dt : wheel.velocity;
     const bool moved = NonZero(delta);
     if (moved)
       wheel.position += delta;
 
+    auto *positionComp = _ecm.Component<components::JointPosition>(wheel.joint);
+    auto *velocityComp = _ecm.Component<components::JointVelocity>(wheel.joint);
     const bool velocityChanged = NonZero(velocity - wheel.velocity);
-    if (moved || wheel.dirty || settle || velocityChanged)
+    if (moved || wheel.dirty || settle || velocityChanged ||
+        HasEmptyState(positionComp, velocityComp))
     {
-      WriteJointState(_ecm, wheel.joint, wheel.position, velocity,
-          moved || wheel.dirty || settle,
+      WriteJointState(_ecm, wheel.joint, positionComp, velocityComp,
+          wheel.position, velocity, moved || wheel.dirty || settle,
           velocityChanged || wheel.dirty || settle);
     }
     wheel.velocity = velocity;
@@ -1156,17 +1310,38 @@ void SimplifiedPhysicsPrivate::StepJoints(EntityComponentManager &_ecm,
         rate = cmd->Data()[0];
     }
 
+    if (joint.held)
+    {
+      if (NonZero(rate) && !_owned.warnedHeldWheelCmd)
+      {
+        _owned.warnedHeldWheelCmd = true;
+        gzwarn << "Joint [" << scopedName(joint.joint, _ecm) << "] looks "
+            << "like a wheel, but it hangs from the chassis through a joint "
+            << "that physics mode [" << ModeName(PhysicsMode::PlanarKinematic)
+            << "] does not follow (a steering joint, a swivel or a bogie). "
+            << "The mode does not drive the model from this wheel and holds "
+            << "it at its position, so its velocity command has no effect. "
+            << "Name the joint in a <wheel> element to drive the model from "
+            << "it as if it were fixed." << std::endl;
+      }
+      rate = 0.0;
+    }
+
     const double next =
         AdvanceJoint(joint.position, rate, _dt, joint.lower, joint.upper);
-    const double velocity = _dt > 0.0 ? (next - joint.position) / _dt : 0.0;
+    const double velocity = _dt > 0.0 ? (next - joint.position) / _dt :
+        joint.velocity;
     const bool moved = NonZero(next - joint.position);
     joint.position = next;
 
+    auto *positionComp = _ecm.Component<components::JointPosition>(joint.joint);
+    auto *velocityComp = _ecm.Component<components::JointVelocity>(joint.joint);
     const bool velocityChanged = NonZero(velocity - joint.velocity);
-    if (moved || joint.dirty || settle || velocityChanged)
+    if (moved || joint.dirty || settle || velocityChanged ||
+        HasEmptyState(positionComp, velocityComp))
     {
-      WriteJointState(_ecm, joint.joint, joint.position, velocity,
-          moved || joint.dirty || settle,
+      WriteJointState(_ecm, joint.joint, positionComp, velocityComp,
+          joint.position, velocity, moved || joint.dirty || settle,
           velocityChanged || joint.dirty || settle);
     }
     joint.velocity = velocity;

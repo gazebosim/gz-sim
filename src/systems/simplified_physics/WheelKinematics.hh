@@ -107,8 +107,11 @@ namespace systems::simplified_physics
     /// \return Geometry of the wheel.
     public: const WheelGeometry &Wheel(std::size_t _index) const;
 
-    /// \brief The largest distance between two contact points, a stand-in for
-    /// the track width of the model.
+    /// \brief The largest distance between two contact points across the
+    /// rolling direction of a wheel, a stand-in for the track width of the
+    /// model. Wheels in a row along the rolling direction add nothing, so four
+    /// wheels at (+-0.3, +-0.2) have a track of 0.4 m and not the 0.72 m of
+    /// the diagonal.
     /// \return The distance in meters, zero for fewer than two wheels.
     public: double Track() const;
 

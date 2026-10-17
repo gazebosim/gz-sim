@@ -185,6 +185,9 @@ JointRoles ClassifyJoints(const EntityComponentManager &_ecm,
   // The chassis is the canonical link and every link that is welded to it,
   // directly or through other welded links. A model often puts a massless
   // footprint link first and hangs the real base on it with a fixed joint.
+  // Prismatic joints count as welds, so that wheels on a suspension or a
+  // wheel drop belong to the chassis. They hold their travel at rest, and the
+  // wheel geometry is read there.
   std::set<Entity> chassis{_canonicalLink};
   std::vector<std::pair<Entity, Entity>> welds;
   for (const auto &joint : joints)
@@ -192,8 +195,9 @@ JointRoles ClassifyJoints(const EntityComponentManager &_ecm,
     const auto *type = _ecm.Component<components::JointType>(joint);
     const auto *parentName = _ecm.Component<components::ParentLinkName>(joint);
     const auto *childName = _ecm.Component<components::ChildLinkName>(joint);
-    if (!type || type->Data() != sdf::JointType::FIXED || !parentName ||
-        !childName)
+    if (!type || !parentName || !childName ||
+        (type->Data() != sdf::JointType::FIXED &&
+         type->Data() != sdf::JointType::PRISMATIC))
     {
       continue;
     }
@@ -325,12 +329,8 @@ JointRoles ClassifyJoints(const EntityComponentManager &_ecm,
       continue;
     }
 
-    // The parent must be the chassis, and the child must roll.
-    if (!named && chassis.count(parentLink) == 0)
-    {
-      roles.articulated.push_back(articulated);
-      continue;
-    }
+    // The child must roll, and the parent should be the chassis.
+    const bool onChassis = named || chassis.count(parentLink) != 0;
 
     // The wheel shape: a sphere, or a cylinder along the axis.
     std::optional<Shape> wheelShape;
@@ -387,6 +387,16 @@ JointRoles ClassifyJoints(const EntityComponentManager &_ecm,
         roles.articulated.push_back(articulated);
         continue;
       }
+    }
+
+    // A wheel under a joint that turns or slides the whole wheel assembly
+    // (a steering joint, a swivel) rolls the model in a direction that
+    // changes. Hold it, so that its position does not run away from the
+    // motion of the model.
+    if (!onChassis)
+    {
+      roles.held.push_back(joint);
+      continue;
     }
 
     WheelJoint wheel;

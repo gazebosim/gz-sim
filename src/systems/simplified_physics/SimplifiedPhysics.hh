@@ -69,9 +69,13 @@ namespace systems
   ///    and accelerations, in the world and body frames), the model's
   ///    `Pose`, and the `JointPosition` and `JointVelocity` of wheels and
   ///    other joints that have those components. It marks `Pose` as changed
-  ///    only when the model moved. It computes frame data only while some
-  ///    entity other than the wind has one of the nine frame data components,
-  ///    so models without a reader cost nothing for it.
+  ///    only when the model moved. It computes frame data for a model only
+  ///    while some link, sensor or collision of that model has one of the nine
+  ///    frame data components, so models without a reader cost nothing for
+  ///    it. A reader that appears later (a component created in any step,
+  ///    also on a model that stands still) gets its first value in the next
+  ///    step: PostUpdate notes the new component, and the next Update writes
+  ///    the model's frames once, whether or not the model moves.
   /// 5. The system clears the commands it consumed. The velocity commands of
   ///    the model and of its joints stay in the ECM with a zero value instead
   ///    of being removed, because a system that writes them in every step
@@ -89,8 +93,11 @@ namespace systems
   /// WheelDrive for the rolling constraints that turn wheel rates into the
   /// planar twist. A DiffDrive model needs nothing else: its
   /// `JointVelocityCmd` on the two wheels give v = r (wL + wR) / 2 and
-  /// wz = r (wR - wL) / b exactly. The same geometry covers skid-steer
-  /// vehicles with several wheels per side.
+  /// wz = r (wR - wL) / b exactly. A skid-steer vehicle with several wheels
+  /// per side turns like a differential drive with the same track, the
+  /// ideal turn. Full physics turns it more slowly, by its slip (4 wheels at
+  /// (+-0.15, +-0.2) m and 4 and 6 rad/s: 1.05 rad on dartsim, 1.50 rad
+  /// here, in 3 s). No accuracy contract covers skid-steer yet.
   ///
   /// The `JointPosition` and `JointVelocity` of every wheel follow the motion
   /// that the model achieved, not the command, so wheel odometry equals the
@@ -98,17 +105,32 @@ namespace systems
   /// under VelocityControl too. With `<odometry_noise>` above zero the
   /// written position differs from the achieved motion on purpose (see
   /// OdometryNoise). A passive wheel on a fixed axle rolls like a driven one.
-  /// The system fills the components that exist, like Physics. A consumer
-  /// that creates `JointPosition` after the first step finds it empty until
-  /// the wheel moves, and one that creates `JointVelocity` late finds it
-  /// empty until the wheel's velocity changes. DiffDrive and the joint state
-  /// publisher create theirs in the first step.
+  /// The system fills the components that exist, like Physics, and it fills
+  /// a `JointPosition` or `JointVelocity` that has no value in the step in
+  /// which it finds it empty, also for a robot that stands still. A robot
+  /// spawned at runtime gets its wheel state, and DiffDrive its odometry, in
+  /// the step after the robot appears.
+  ///
+  /// A wheel may hang from the chassis through prismatic joints (a
+  /// suspension or a wheel drop). The mode treats them as fixed, at the
+  /// position the model has when the system first sees it, and reads the
+  /// wheel geometry there.
   ///
   /// Other revolute, continuous and prismatic joints (steering joints,
-  /// swivel casters, lifts, turntables) integrate their `JointVelocityCmd`
-  /// into `JointPosition` and `JointVelocity` and stop at their limits. A
-  /// `JointPositionReset` sets the position. The child link does not move,
-  /// there is no dynamics, and no force or effort is simulated.
+  /// swivel casters, lifts, turntables, the prismatic joint of a suspension)
+  /// integrate their `JointVelocityCmd` into `JointPosition` and
+  /// `JointVelocity` and stop at their limits. A `JointPositionReset` sets the
+  /// position. The child link does not move, there is no dynamics, and no
+  /// force or effort is simulated.
+  ///
+  /// A joint that passes every wheel test except the parent test, because it
+  /// hangs from the chassis through a revolute joint (the wheel of a swivel
+  /// caster, a steered wheel of an Ackermann vehicle, a bogie), is held at its
+  /// position and does not move the model. The system warns once per model
+  /// when such a joint gets a non-zero velocity command, naming the joint, so
+  /// that a robot is never reported to drive when it does not: the model
+  /// stays put and its odometry reads zero. Name the joint in a `<wheel>`
+  /// element to drive the model from it as if the joint were fixed.
   ///
   /// The system runs at `kPrePhysicsPriority`, before Physics. It reads the
   /// commands of its models and clears them, and Physics, which does not own
@@ -152,9 +174,10 @@ namespace systems
   /// commands have no effect. A model whose steering joints change the rolling
   /// direction of its wheels (Ackermann) or whose wheels slide sideways by
   /// design (mecanum) is not supported: wheels see only the fixed direction of
-  /// their axis. Such a model drives straight or not at all. Wheels that the
-  /// model attaches to something other than the canonical link are not
-  /// inferred, unless `<wheel>` names them.
+  /// their axis. An Ackermann model drives only on its rear wheels, with the
+  /// held front wheels reported as above, so it goes straight. A mecanum model
+  /// solves to no motion for a sideways command, and nothing warns about it
+  /// yet.
   ///
   /// The relative poses of a model's links are read once, when the model is
   /// first seen, and are assumed constant.
@@ -170,14 +193,25 @@ namespace systems
   /// * The frame data of a link uses the same 1e-6 tolerance as Physics, so a
   ///   link's `WorldPose` does not update for motion below 1 micrometer per
   ///   step, while the model's `Pose` is written exactly.
-  /// * A frame data component that a system adds to an idle model gets its
-  ///   first value in the next step, but is not refreshed after that until
-  ///   the model moves. Physics refreshes it in every step.
+  /// * A frame data component that a system adds to a model gets its first
+  ///   value in the next step, also for a model that stands still, but is not
+  ///   refreshed after that until the model moves. Physics refreshes it in
+  ///   every step. A component created outside the system phases (in a
+  ///   service callback, say) is found when the model first moves, or not at
+  ///   all if the model never moves again.
   /// * A wheel touches the floor at the center of its collision. A flat
-  ///   cylinder on dartsim touches it at an edge, so a model with 4 cm wide
-  ///   wheels on a 0.4 m track turns 10 percent faster there than on this
-  ///   mode, for the same wheel speeds. Sphere wheels agree to 0.02 percent
-  ///   of the distance (INTEGRATION_simplified_physics_wheels, MatchesDartsim).
+  ///   cylinder on dartsim reports contacts at both rims of the wheel in
+  ///   every step, so the contact patch is wider than a point and the model
+  ///   turns faster there for the same wheel speeds: 8.7 percent faster with
+  ///   4 cm wide wheels on a 0.4 m track, 22 percent with 8 cm wide wheels
+  ///   (3 s at fixed wheel rates of 4 and 6 rad/s). The size depends on the
+  ///   run, for example on the acceleration limits of the controller. Sphere
+  ///   wheels agree to 0.02 percent of the distance
+  ///   (INTEGRATION_simplified_physics_wheels, MatchesDartsim). Most AMRs
+  ///   have cylinder wheels, so a contract against dartsim for them fails by
+  ///   this amount of the heading, and dartsim's own wheel odometry has the
+  ///   same error against dartsim's ground truth, because DiffDrive assumes
+  ///   the nominal track. This mode matches the controller's model.
   /// * Wheels roll without slip, so wheel odometry equals the planar ground
   ///   truth. Slip comes only from `<odometry_noise>`. The noise is sized for
   ///   a differential drive (see OdometryNoise).
@@ -188,7 +222,8 @@ namespace systems
     public ISystemConfigure,
     public ISystemConfigurePriority,
     public ISystemReset,
-    public ISystemUpdate
+    public ISystemUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: SimplifiedPhysics();
@@ -212,6 +247,10 @@ namespace systems
     // Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
+
+    // Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<SimplifiedPhysicsPrivate> dataPtr;

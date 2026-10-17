@@ -70,6 +70,13 @@ namespace systems::simplified_physics
     /// \brief Joints with a degree of freedom that the mode cannot follow:
     /// two-axis, screw and gearbox joints.
     std::vector<Entity> unsupported;
+
+    /// \brief Joints that look like wheels but hang from the chassis through
+    /// a joint the mode does not follow: the wheel of a swivel caster, a
+    /// steered wheel, a bogie. The mode cannot tell how they roll the model,
+    /// so it holds them at their position and does not drive the model from
+    /// them. A `<wheel>` element turns one into a wheel.
+    std::vector<Entity> held;
   };
 
   /// \brief Sort the joints of a model by what they do.
@@ -78,8 +85,10 @@ namespace systems::simplified_physics
   ///
   /// * it is revolute or continuous, with a horizontal axis (within 6
   ///   degrees);
-  /// * its parent is the chassis: the canonical link or a link that is welded
-  ///   to it by fixed joints;
+  /// * its parent is the chassis: the canonical link, a link that is welded to
+  ///   it by fixed joints, or a link that hangs from it by prismatic joints,
+  ///   as a suspension or a wheel drop does. The prismatic joints count as
+  ///   fixed, at the position the model has when the system first sees it;
   /// * its child link has a sphere collision, or a cylinder collision whose
   ///   axis is parallel to the joint axis (within 11 degrees);
   /// * the lowest point of that collision is within a few centimeters of the
@@ -87,9 +96,11 @@ namespace systems::simplified_physics
   ///   collisions of the model, so the wheel touches the floor.
   ///
   /// A wheel that nothing commands (a passive wheel on a fixed axle) is a
-  /// wheel too: it rolls, and its joint position follows. A caster that
-  /// swivels is not one, because its rolling direction changes with the
-  /// swivel, which the mode does not simulate. A ball joint is not a wheel.
+  /// wheel too: it rolls, and its joint position follows. A joint that passes
+  /// every test but the parent test, such as the wheel of a swivel caster or
+  /// a steered wheel, is held: its rolling direction changes with the joint
+  /// above it, which the mode does not simulate (see JointRoles::held). A
+  /// ball joint is not a wheel.
   ///
   /// With `<wheel>` elements the named joints are the wheels and no other
   /// joint is. A named joint takes its radius from the element, or else from

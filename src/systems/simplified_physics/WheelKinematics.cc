@@ -118,10 +118,15 @@ double WheelDrive::Track() const
   double track{0.0};
   for (std::size_t i = 0; i < this->wheels.size(); ++i)
   {
-    for (std::size_t j = i + 1; j < this->wheels.size(); ++j)
+    // The unit vector across the rolling direction of wheel i.
+    const math::Vector2d across(-this->wheels[i].rolling.Y(),
+        this->wheels[i].rolling.X());
+    for (std::size_t j = 0; j < this->wheels.size(); ++j)
     {
-      track = std::max(track,
-          this->wheels[i].contact.Distance(this->wheels[j].contact));
+      if (j == i)
+        continue;
+      const auto offset = this->wheels[j].contact - this->wheels[i].contact;
+      track = std::max(track, std::abs(across.Dot(offset)));
     }
   }
   return track;
