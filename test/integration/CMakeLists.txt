@@ -11,6 +11,7 @@ set(tests
   apply_joint_force_system.cc
   apply_link_wrench_system.cc
   battery_plugin.cc
+  box2d_dependency.cc
   breadcrumbs.cc
   buoyancy.cc
   buoyancy_engine.cc
@@ -202,6 +203,14 @@ if (DART_FOUND AND TARGET INTEGRATION_physics_system)
 
   target_link_libraries(INTEGRATION_physics_system
     gz-math::eigen3
+  )
+endif()
+
+# Box2D is an internal dependency, see GZ_SIM_BOX2D in the top-level
+# CMakeLists.txt.
+if (TARGET INTEGRATION_box2d_dependency)
+  target_link_libraries(INTEGRATION_box2d_dependency
+    gz-sim-box2d
   )
 endif()
 
