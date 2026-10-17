@@ -158,6 +158,9 @@ namespace systems::simplified_physics
     Slide,
   };
 
+  /// \brief Most threads a PlanarCollisionWorld uses.
+  constexpr int kMaxPlanarCollisionThreads{64};
+
   /// \brief Settings of a PlanarCollisionWorld.
   struct PlanarCollisionOptions
   {
@@ -198,6 +201,15 @@ namespace systems::simplified_physics
     /// default.
     // cppcheck-suppress unusedStructMember
     bool reportContacts{false};
+
+    /// \brief Threads that Move uses for the per-robot queries, counting the
+    /// calling thread. 1 runs everything on the calling thread and creates
+    /// no pool. Clamped to 1 to kMaxPlanarCollisionThreads. The result does
+    /// not depend on this number, bit for bit. Move uses the threads only
+    /// when it moves enough robots to pay for waking them (at least 64). The
+    /// pool is created by the first such call. Default 1.
+    // cppcheck-suppress unusedStructMember
+    int threads{1};
   };
 
   /// \brief A contact between two collision shapes.
@@ -367,10 +379,21 @@ namespace systems::simplified_physics
   /// on nothing else: not on the order of the requests, tree layout, hash
   /// order or the number of threads. The same inputs give bit-identical
   /// outputs in one build on one machine; `std::sin` and `std::cos` come from
-  /// the C library, which can differ between platforms. The code is
-  /// single-threaded. The per-robot sweeps of the first
-  /// step read shared data only, which is where threads can go later. Box2D
-  /// is built with `-ffp-contract=off`, and so is this file.
+  /// the C library, which can differ between platforms. Box2D is built with
+  /// `-ffp-contract=off`, and so is this file.
+  ///
+  /// \section planar_collision_threads Threads
+  ///
+  /// With `PlanarCollisionOptions::threads` above 1, Move() runs the per-robot
+  /// work on a pool that the world owns: the broadphase query, the sweep
+  /// against scenery and the sweep of each robot pair. Each of them reads the
+  /// trees and the poses and writes only to the slot of its own robot or
+  /// pair. The tree updates, the merge of the candidate pairs, the Jacobi
+  /// update of the caps and the write-back stay on the calling thread, in the
+  /// order of the requests. A pass reads the caps of the previous pass only.
+  /// The result is therefore the same, bit for bit, for any number of threads.
+  /// Nothing in Move() mutates a tree while the pool runs. Move() itself is
+  /// not thread-safe: one thread at a time may call it on a world.
   ///
   /// \section planar_collision_contacts Contacts
   ///

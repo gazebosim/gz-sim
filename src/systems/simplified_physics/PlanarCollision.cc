@@ -52,6 +52,8 @@
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Geometry.hh"
 
+#include "ForkJoinPool.hh"
+
 namespace gz::sim
 {
 inline namespace GZ_SIM_VERSION_NAMESPACE {
@@ -102,6 +104,14 @@ constexpr int kMaxRobotPassesHard{64};
 /// \brief Most knots of a path: the start, one per bend of a slide, and the
 /// end.
 constexpr int kMaxKnots{12};
+
+/// \brief Fewest robots for which Move wakes its threads. Below it the
+/// wake-up costs more than the sweeps save: a sweep is about half a
+/// microsecond when nothing touches and a few microseconds in contact.
+constexpr std::size_t kMinParallelRobots{64};
+
+/// \brief Fewest robot pairs for which a Jacobi pass runs on the threads.
+constexpr std::size_t kMinParallelPairs{128};
 
 /// \brief Index of a "whole model" entry in a tree user data.
 constexpr uint32_t kWholeModel{0xFFFF};
@@ -1161,6 +1171,7 @@ struct Mover
     this->path.time[0] = 0.0;
     this->staticCandidates.clear();
     this->obstacleCandidates.clear();
+    this->partners.clear();
   }
 
   Model *model{nullptr};
@@ -1187,6 +1198,20 @@ struct Mover
   double y1{0.0};
   std::vector<uint64_t> staticCandidates;
   std::vector<uint64_t> obstacleCandidates;
+
+  /// \brief Requests of the other robots whose broadphase box overlaps this
+  /// robot's box. The merge into the pair list runs on the calling thread.
+  std::vector<int> partners;
+};
+
+/// \brief What the sweep of one robot pair found in one Jacobi pass.
+struct PairResult
+{
+  /// \brief False if the pair was skipped because its caps did not change.
+  bool ran{false};
+  std::size_t ia{0};
+  std::size_t ib{0};
+  PairHit best;
 };
 
 /// \brief Contact sort order.
@@ -1213,6 +1238,8 @@ class PlanarCollisionWorld::Implementation
   public: explicit Implementation(const PlanarCollisionOptions &_options)
       : options(_options)
   {
+    this->options.threads =
+        std::clamp(this->options.threads, 1, kMaxPlanarCollisionThreads);
     this->options.contactSkin = std::max(this->options.contactSkin, 1e-6);
     this->options.contactMargin =
         std::max(this->options.contactMargin, this->options.contactSkin);
@@ -1223,6 +1250,7 @@ class PlanarCollisionWorld::Implementation
     this->staticTree = b2DynamicTree_Create();
     this->moverTree = b2DynamicTree_Create();
     this->settings.skin = this->options.contactSkin;
+    this->threadScratch.resize(1);
   }
 
   /// \brief Destructor.
@@ -1589,6 +1617,46 @@ class PlanarCollisionWorld::Implementation
         _contacts.end(), ContactLess);
   }
 
+  /// \brief Run _fn(first, last, thread) on blocks that cover [0, _count),
+  /// on the pool if there are at least _minParallel items and more than one
+  /// thread, and as one block on the calling thread otherwise. The blocks
+  /// must write only to memory of their own items. The pool is created by the
+  /// first parallel call. Nothing may change a tree or the slots while this
+  /// runs.
+  ///
+  /// A block does its work in several passes over its items, which keeps the
+  /// tree nodes and the shapes of one pass in the cache. The serial call has
+  /// one block, so it makes the same passes as a loop would.
+  ///
+  /// \param[in] _count Number of items.
+  /// \param[in] _minParallel Fewest items that are worth a wake-up.
+  /// \param[in] _fn The loop body.
+  public: template<typename Fn>
+  void ForBlocks(std::size_t _count, std::size_t _minParallel, Fn &&_fn)
+  {
+    if (this->options.threads <= 1 || _count < _minParallel)
+    {
+      _fn(std::size_t{0}, _count, 0);
+      return;
+    }
+    if (!this->pool)
+    {
+      this->pool = std::make_unique<ForkJoinPool>(this->options.threads);
+      this->threadScratch.resize(
+          static_cast<std::size_t>(this->pool->Threads()));
+    }
+    // Small blocks balance the load (a robot in contact costs ten times a
+    // free one) and keep the counter traffic low.
+    const std::size_t block = std::clamp<std::size_t>(
+        _count / (4u * static_cast<std::size_t>(this->options.threads)),
+        1u, 16u);
+    const std::size_t blocks = (_count + block - 1) / block;
+    this->pool->For(blocks, 1u, [&](std::size_t _b, int _thread)
+        {
+          _fn(_b * block, std::min(_count, (_b + 1) * block), _thread);
+        });
+  }
+
   public: void Move(const std::vector<PlanarMotionRequest> &_requests,
       std::vector<PlanarMotionResult> &_results);
 
@@ -1605,13 +1673,19 @@ class PlanarCollisionWorld::Implementation
   /// \brief Scratch memory kept between Move calls.
   public: std::vector<Mover> movers;
   public: std::vector<std::size_t> moverOf;
-  public: std::vector<uint64_t> movable;
   public: std::vector<std::pair<int, int>> pairs;
+  public: std::vector<PairResult> pairResults;
   public: std::vector<double> caps;
   public: std::vector<double> newCaps;
   public: std::vector<std::pair<double, double>> pairCaps;
   public: std::vector<int> group;
   public: std::vector<int> groupSize;
+
+  /// \brief Threads of Move, created by the first call that needs them.
+  public: std::unique_ptr<ForkJoinPool> pool;
+
+  /// \brief Query output of each thread of the pool. Thread 0 is the caller.
+  public: std::vector<std::vector<uint64_t>> threadScratch;
 };
 
 void PlanarCollisionWorld::Implementation::Move(
@@ -1676,40 +1750,37 @@ void PlanarCollisionWorld::Implementation::Move(
     m.path.time[0] = 0.0;
     m.path.pose[0] = m.start;
   }
-  this->pairs.clear();
-  for (std::size_t k = 0; k < count; ++k)
+  // Passes 1 and 2 below read the trees and the poses, and each iteration
+  // writes only to its own mover or pair, so they can run on several threads
+  // with the same result. The boxes were fitted above; from here to the write
+  // back nothing changes a tree.
+
+  // Candidates and pass 1: each robot against scenery and against models
+  // that do not move. A robot that does not move has nothing to sweep.
+  auto findCandidates = [&](std::size_t k, int thread)
   {
     Mover &m = this->movers[k];
     if (m.stationary)
-      continue;
-    this->Query(m.x0, m.y0, m.x1, m.y1, m.staticCandidates, this->movable);
-    for (const uint64_t u : this->movable)
+      return;
+    std::vector<uint64_t> &movable =
+        this->threadScratch[static_cast<std::size_t>(thread)];
+    this->Query(m.x0, m.y0, m.x1, m.y1, m.staticCandidates, movable);
+    for (const uint64_t u : movable)
     {
       const Model *other = this->ModelAt(u);
       if (other == m.model)
         continue;
       if (other->request < 0)
-      {
         m.obstacleCandidates.push_back(u);
-      }
       else
-      {
-        const int a = std::min(static_cast<int>(k), other->request);
-        const int b = std::max(static_cast<int>(k), other->request);
-        this->pairs.emplace_back(a, b);
-      }
+        m.partners.push_back(other->request);
     }
-  }
-  std::sort(this->pairs.begin(), this->pairs.end());
-  this->pairs.erase(std::unique(this->pairs.begin(), this->pairs.end()),
-      this->pairs.end());
-
-  // Pass 1: each robot against scenery and against models that do not move.
-  for (std::size_t k = 0; k < count; ++k)
+  };
+  auto sweepRobot = [&](std::size_t k)
   {
     Mover &m = this->movers[k];
     if (m.stationary)
-      continue;
+      return;
     const PlanarDelta &d = m.request.desired;
     const bool slide = m.request.response == PlanarResponse::Slide;
     Pose2 cur = m.start;
@@ -1792,56 +1863,104 @@ void PlanarCollisionWorld::Implementation::Move(
           m.path.pose[s + 1].y - m.path.pose[s].y);
       m.pathRot += std::abs(m.path.pose[s + 1].yaw - m.path.pose[s].yaw);
     }
+  };
+  this->ForBlocks(count, kMinParallelRobots,
+      [&](std::size_t _first, std::size_t _last, int _thread)
+      {
+        for (std::size_t k = _first; k < _last; ++k)
+          findCandidates(k, _thread);
+        for (std::size_t k = _first; k < _last; ++k)
+          sweepRobot(k);
+      });
+
+  // The pairs of robots whose boxes overlap, in order. The sort makes the
+  // list independent of the order the threads worked in.
+  this->pairs.clear();
+  for (std::size_t k = 0; k < count; ++k)
+  {
+    for (const int other : this->movers[k].partners)
+    {
+      this->pairs.emplace_back(std::min(static_cast<int>(k), other),
+          std::max(static_cast<int>(k), other));
+    }
   }
+  std::sort(this->pairs.begin(), this->pairs.end());
+  this->pairs.erase(std::unique(this->pairs.begin(), this->pairs.end()),
+      this->pairs.end());
 
   // Pass 2: robots against each other, in Jacobi passes. Every pass reads the
   // caps of the previous pass.
   this->caps.assign(count, 1.0);
   this->pairCaps.assign(this->pairs.size(), {-1.0, -1.0});
   const double margin = 2.0 * this->options.contactSkin;
+  // A pass has two parts. The sweeps read the caps of the previous pass and
+  // write one PairResult each, so they can run on several threads. The new
+  // caps and the blocker bookkeeping are then applied on the calling thread in
+  // the order of the pairs, which is the order a serial pass would use.
+  auto sweepPair = [&](std::size_t p)
+  {
+    PairResult &res = this->pairResults[p];
+    res.ran = false;
+    const auto &pr = this->pairs[p];
+    // The lower entity id is A. The roles decide the frame the queries
+    // run in, and the order of the requests must not change the rounding.
+    std::size_t ia = static_cast<std::size_t>(pr.first);
+    std::size_t ib = static_cast<std::size_t>(pr.second);
+    if (this->movers[ib].model->entity < this->movers[ia].model->entity)
+      std::swap(ia, ib);
+    const Mover &ma = this->movers[ia];
+    const Mover &mb = this->movers[ib];
+    // The sweep of a pair depends on the two caps only. If they are the
+    // ones of the last sweep, its cut is already in the caps.
+    const auto &last = this->pairCaps[p];
+    if (!(last.first < this->caps[ia]) && !(this->caps[ia] < last.first) &&
+        !(last.second < this->caps[ib]) && !(this->caps[ib] < last.second))
+    {
+      return;
+    }
+    this->pairCaps[p] = {this->caps[ia], this->caps[ib]};
+    res.ran = true;
+    res.ia = ia;
+    res.ib = ib;
+    res.best = PairHit();
+    res.best.t = 1.0;
+    for (const auto &sa : ma.model->shapes)
+    {
+      for (const auto &sb : mb.model->shapes)
+      {
+        if (!this->ZOverlap(*ma.model, sa, *mb.model, sb))
+          continue;
+        const double motionA = ma.pathLen + ma.pathRot * sa.center.Length();
+        const double motionB = mb.pathLen + mb.pathRot * sb.center.Length();
+        if (!MayTouch(sa, ma.start, motionA, sb, mb.start, motionB, margin))
+          continue;
+        const PairHit h = PairSweep(this->settings, sa, ma.path,
+            this->caps[ia], sb, mb.path, this->caps[ib], res.best.t);
+        if (h.hit && h.t < res.best.t)
+          res.best = h;
+      }
+    }
+  };
   auto pairPass = [&](bool _freeze) {
     this->newCaps = this->caps;
     bool changed = false;
+    this->pairResults.resize(this->pairs.size());
+    this->ForBlocks(this->pairs.size(), kMinParallelPairs,
+        [&](std::size_t _first, std::size_t _last, int)
+        {
+          for (std::size_t p = _first; p < _last; ++p)
+            sweepPair(p);
+        });
     for (std::size_t p = 0; p < this->pairs.size(); ++p)
     {
-      const auto &pr = this->pairs[p];
-      // The lower entity id is A. The roles decide the frame the queries
-      // run in, and the order of the requests must not change the rounding.
-      std::size_t ia = static_cast<std::size_t>(pr.first);
-      std::size_t ib = static_cast<std::size_t>(pr.second);
-      if (this->movers[ib].model->entity < this->movers[ia].model->entity)
-        std::swap(ia, ib);
-      Mover &ma = this->movers[ia];
-      Mover &mb = this->movers[ib];
-      // The sweep of a pair depends on the two caps only. If they are the
-      // ones of the last sweep, its cut is already in the caps.
-      const auto &last = this->pairCaps[p];
-      if (!(last.first < this->caps[ia]) && !(this->caps[ia] < last.first) &&
-          !(last.second < this->caps[ib]) && !(this->caps[ib] < last.second))
-      {
+      const PairResult &res = this->pairResults[p];
+      if (!res.ran || !res.best.hit)
         continue;
-      }
-      this->pairCaps[p] = {this->caps[ia], this->caps[ib]};
-      PairHit best;
-      best.t = 1.0;
-      for (const auto &sa : ma.model->shapes)
-      {
-        for (const auto &sb : mb.model->shapes)
-        {
-          if (!this->ZOverlap(*ma.model, sa, *mb.model, sb))
-            continue;
-          const double motionA = ma.pathLen + ma.pathRot * sa.center.Length();
-          const double motionB = mb.pathLen + mb.pathRot * sb.center.Length();
-          if (!MayTouch(sa, ma.start, motionA, sb, mb.start, motionB, margin))
-            continue;
-          const PairHit h = PairSweep(this->settings, sa, ma.path,
-              this->caps[ia], sb, mb.path, this->caps[ib], best.t);
-          if (h.hit && h.t < best.t)
-            best = h;
-        }
-      }
-      if (!best.hit)
-        continue;
+      const PairHit &best = res.best;
+      Mover &ma = this->movers[res.ia];
+      Mover &mb = this->movers[res.ib];
+      const std::size_t ia = res.ia;
+      const std::size_t ib = res.ib;
       const double eps = kApproachEps *
           std::max({std::abs(best.approachA), std::abs(best.approachB),
               1e-12});

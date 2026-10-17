@@ -1180,6 +1180,119 @@ TEST(PlanarCollision, DeterministicAndNoOverlap)
 }
 
 /////////////////////////////////////////////////
+/// \brief A dense block of robots between shelves, for the thread test. The
+/// robots sit 0.9 m apart and drive in all directions, so most have a
+/// neighbour within reach and the robot-robot passes have many pairs.
+struct CrowdTrace
+{
+  std::vector<double> values;
+  std::size_t robotCuts{0};
+  std::size_t sceneryCuts{0};
+};
+
+CrowdTrace RunCrowd(int _threads, bool _slide, int _robots, int _steps)
+{
+  PlanarCollisionOptions options;
+  options.threads = _threads;
+  PlanarCollisionWorld world(options);
+  std::mt19937 gen(7);
+  std::uniform_real_distribution<double> uni(-1.0, 1.0);
+  const int columns = 20;
+  const int rows = (_robots + columns - 1) / columns;
+  Entity id = 100000;
+  for (int row = -1; row <= rows; row += 3)
+  {
+    for (int col = -1; col <= columns; col += 4)
+    {
+      world.AddStaticFootprints(id++, {BoxFp(0.9 * col, 0.9 * row + 0.45,
+          1.2, 0.1, 0.0, 1.8, 0.2 * uni(gen))});
+    }
+  }
+  std::vector<PlanarMotionRequest> requests;
+  for (int i = 0; i < _robots; ++i)
+  {
+    const Entity e = static_cast<Entity>(i + 1);
+    const PlanarFootprint body = (i % 2 == 0) ? BoxFp(0, 0, 0.6, 0.4, 0.05,
+        0.4) : CircleFp(0.05, 0, 0.28, 0.05, 0.4);
+    world.AddMovableFootprints(e, {body}, math::Pose3d(0.9 * (i % columns),
+        0.9 * (i / columns), 0, 0, 0, 3.0 * uni(gen)));
+    requests.push_back(Req(e, 0.0, 0.0, 0.0, _slide ? PlanarResponse::Slide :
+        PlanarResponse::Stop));
+  }
+
+  CrowdTrace trace;
+  std::vector<PlanarMotionResult> results;
+  for (int step = 0; step < _steps; ++step)
+  {
+    for (auto &r : requests)
+    {
+      std::mt19937 rng(static_cast<unsigned>(1000003 * step + r.model));
+      std::uniform_real_distribution<double> u(-1.0, 1.0);
+      const double yaw = world.Pose(r.model).Rot().Yaw();
+      const double v = 0.12 * (0.5 + 0.5 * u(rng));
+      r.desired.x = v * std::cos(yaw);
+      r.desired.y = v * std::sin(yaw);
+      r.desired.yaw = 0.1 * u(rng);
+    }
+    world.Move(requests, results);
+    for (std::size_t i = 0; i < results.size(); ++i)
+    {
+      const auto &res = results[i];
+      trace.values.push_back(res.achieved.x);
+      trace.values.push_back(res.achieved.y);
+      trace.values.push_back(res.achieved.yaw);
+      trace.values.push_back(res.blocked ? 1.0 : 0.0);
+      trace.values.push_back(static_cast<double>(res.blockedBy));
+      if (res.blocked)
+      {
+        if (res.blockedBy >= 100000)
+          ++trace.sceneryCuts;
+        else if (res.blockedBy != kNullEntity)
+          ++trace.robotCuts;
+      }
+    }
+  }
+  for (const auto &r : requests)
+  {
+    const auto pose = world.Pose(r.model);
+    trace.values.push_back(pose.Pos().X());
+    trace.values.push_back(pose.Pos().Y());
+    trace.values.push_back(pose.Rot().Yaw());
+  }
+  return trace;
+}
+
+TEST(PlanarCollision, ThreadCountDoesNotChangeTheResult)
+{
+  for (const bool slide : {false, true})
+  {
+    // 300 robots are above the size at which Move wakes its threads, 20 are
+    // below it.
+    for (const int robots : {300, 20})
+    {
+      const CrowdTrace serial = RunCrowd(1, slide, robots, 120);
+      ASSERT_FALSE(serial.values.empty());
+      if (robots > 100)
+      {
+        // The scene must exercise both kinds of cut.
+        EXPECT_GT(serial.robotCuts, 500u);
+        EXPECT_GT(serial.sceneryCuts, 200u);
+      }
+      for (const int threads : {2, 3, 4, 8})
+      {
+        const CrowdTrace parallel = RunCrowd(threads, slide, robots, 120);
+        ASSERT_EQ(serial.values.size(), parallel.values.size());
+        // Bit for bit, so compare the bytes and not with a tolerance.
+        EXPECT_EQ(0, std::memcmp(serial.values.data(),
+            parallel.values.data(), sizeof(double) * serial.values.size()))
+            << threads << " threads, " << robots << " robots, "
+            << (slide ? "slide" : "stop");
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
 TEST(PlanarCollision, RandomMovesNeverPenetrateAndStopAtContact)
 {
   std::mt19937 gen(2024);
