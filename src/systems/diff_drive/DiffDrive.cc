@@ -84,6 +84,14 @@ class gz::sim::systems::DiffDrivePrivate
   public: void UpdateVelocity(const UpdateInfo &_info,
     const EntityComponentManager &_ecm);
 
+  /// \brief Set the velocity command of a wheel joint.
+  /// \param[in] _ecm The EntityComponentManager of the given simulation
+  /// instance.
+  /// \param[in] _joint Wheel joint entity.
+  /// \param[in] _speed Joint velocity in rad/s.
+  public: void SetWheelSpeed(EntityComponentManager &_ecm, Entity _joint,
+    double _speed);
+
   /// \brief Gazebo communication node.
   public: transport::Node node;
 
@@ -152,6 +160,13 @@ class gz::sim::systems::DiffDrivePrivate
 
   /// \brief Enable/disable state of the controller.
   public: bool enabled;
+
+  /// \brief Velocity command written to a wheel joint, kept to avoid
+  /// allocating a vector on every step.
+  public: std::vector<double> wheelCmd{0.0};
+
+  /// \brief True once both wheel sides have been resolved to entities.
+  public: bool jointsFound{false};
 
   /// \brief A mutex to protect the target velocity command.
   public: std::mutex mutex;
@@ -454,10 +469,10 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
 
   // If the joints haven't been identified yet, look for them
   static std::set<std::string> warnedModels;
-  auto modelName = this->dataPtr->model.Name(_ecm);
   if (this->dataPtr->leftJoints.empty() ||
       this->dataPtr->rightJoints.empty())
   {
+    auto modelName = this->dataPtr->model.Name(_ecm);
     bool warned{false};
     for (const std::string &name : this->dataPtr->leftJointNames)
     {
@@ -493,11 +508,18 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
   if (this->dataPtr->leftJoints.empty() || this->dataPtr->rightJoints.empty())
     return;
 
-  if (warnedModels.find(modelName) != warnedModels.end())
+  // Report the recovery once, on the first step with both sides found. The
+  // model name is only needed then, so it is not read on every step.
+  if (!this->dataPtr->jointsFound)
   {
-    gzmsg << "Found joints for model [" << modelName
-           << "], plugin will start working." << std::endl;
-    warnedModels.erase(modelName);
+    this->dataPtr->jointsFound = true;
+    auto modelName = this->dataPtr->model.Name(_ecm);
+    if (warnedModels.find(modelName) != warnedModels.end())
+    {
+      gzmsg << "Found joints for model [" << modelName
+             << "], plugin will start working." << std::endl;
+      warnedModels.erase(modelName);
+    }
   }
 
   // Nothing left to do if paused.
@@ -505,26 +527,10 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
     return;
 
   for (Entity joint : this->dataPtr->leftJoints)
-  {
-    // skip this entity if it has been removed
-    if (!_ecm.HasEntity(joint))
-      continue;
-
-    // Update wheel velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->leftJointSpeed});
-  }
+    this->dataPtr->SetWheelSpeed(_ecm, joint, this->dataPtr->leftJointSpeed);
 
   for (Entity joint : this->dataPtr->rightJoints)
-  {
-    // skip this entity if it has been removed
-    if (!_ecm.HasEntity(joint))
-      continue;
-
-    // Update wheel velocity
-    _ecm.SetComponentData<components::JointVelocityCmd>(joint,
-      {this->dataPtr->rightJointSpeed});
-  }
+    this->dataPtr->SetWheelSpeed(_ecm, joint, this->dataPtr->rightJointSpeed);
 
   // Create the left and right side joint position components if they
   // don't exist.
@@ -562,6 +568,32 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 DiffDrive::TopicNames DiffDrive::ResolvedTopicNames() const
 {
   return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
+void DiffDrivePrivate::SetWheelSpeed(EntityComponentManager &_ecm,
+    Entity _joint, double _speed)
+{
+  // Reuse one vector for the command. SetComponentData takes a braced list,
+  // which allocates a new vector on every call.
+  this->wheelCmd[0] = _speed;
+
+  auto cmd = _ecm.Component<components::JointVelocityCmd>(_joint);
+  if (cmd)
+  {
+    cmd->SetData(this->wheelCmd,
+        [](const std::vector<double> &_a, const std::vector<double> &_b)
+        {
+          return _a == _b;
+        });
+    return;
+  }
+
+  // skip this entity if it has been removed
+  if (!_ecm.HasEntity(_joint))
+    return;
+
+  _ecm.CreateComponent(_joint, components::JointVelocityCmd(this->wheelCmd));
 }
 
 //////////////////////////////////////////////////
