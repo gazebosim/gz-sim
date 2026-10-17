@@ -2,8 +2,9 @@
 # position-independent library for private use inside gz-sim.
 #
 # This file is written by Gazebo. Everything else in this directory is a
-# verbatim copy of upstream. The flags below mirror src/CMakeLists.txt and the
-# top-level CMakeLists.txt of the upstream tag recorded in README.md.
+# verbatim copy of upstream. The flags below are the ones from
+# src/CMakeLists.txt and the top-level CMakeLists.txt of the upstream tag
+# recorded in README.md that change generated code on GCC and Clang.
 
 file(GLOB GZ_SIM_BOX2D_SOURCES CONFIGURE_DEPENDS
   ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)

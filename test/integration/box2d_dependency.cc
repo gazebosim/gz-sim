@@ -27,7 +27,7 @@ TEST(Box2DDependency, Version)
 {
   const b2Version version = b2GetVersion();
   EXPECT_EQ(3, version.major);
-  EXPECT_LE(1, version.minor);
+  EXPECT_EQ(1, version.minor);
 }
 
 /////////////////////////////////////////////////

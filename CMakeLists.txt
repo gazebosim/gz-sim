@@ -151,12 +151,16 @@ gz_find_package(gz-physics
 # Box2D v3, used by the simplified physics system.
 #
 # GZ_SIM_BOX2D selects where Box2D comes from:
-#   AUTO   (default) use a system Box2D 3.1 or newer if found, otherwise the
-#          copy under vendor/box2d.
-#   SYSTEM require a system Box2D 3.1 or newer.
+#   AUTO   (default) use a system Box2D 3.1.x if found, otherwise the copy
+#          under vendor/box2d.
+#   SYSTEM require a system Box2D 3.1.x.
 #   VENDOR always use the copy under vendor/box2d.
-# Ubuntu only ships Box2D 2.4.1, which has a different API, so AUTO falls back
-# to the vendored copy there.
+# Box2D changes its API between minor releases (3.2 changes b2CollidePolygons
+# and b2ComputePolygonAABB), but its package version file accepts any 3.x
+# release for a 3.1 request. The range below therefore follows the vendored
+# tag: move it when vendor/box2d moves. Ubuntu only ships Box2D 2.4.1, which
+# has a different API, so AUTO falls back to the vendored copy there, and
+# also when the system copy is 3.2 or newer.
 #
 # gz-sim-box2d is an internal target. Link it PRIVATELY and never include a
 # Box2D header from a public gz-sim header. The library and its headers are
@@ -172,10 +176,16 @@ endif()
 
 set(GZ_SIM_BOX2D_USE_SYSTEM FALSE)
 if (GZ_SIM_BOX2D STREQUAL "SYSTEM")
-  find_package(box2d 3.1 CONFIG REQUIRED)
+  find_package(box2d 3.1...<3.2 CONFIG QUIET)
+  if (NOT box2d_FOUND)
+    message(FATAL_ERROR
+      "GZ_SIM_BOX2D=SYSTEM needs Box2D 3.1.x (at least 3.1, below 3.2), "
+      "which was not found. Box2D 3.2 and later change the API. Install "
+      "3.1.x, set box2d_DIR, or use GZ_SIM_BOX2D=VENDOR or AUTO.")
+  endif()
   set(GZ_SIM_BOX2D_USE_SYSTEM TRUE)
 elseif (GZ_SIM_BOX2D STREQUAL "AUTO")
-  find_package(box2d 3.1 CONFIG QUIET)
+  find_package(box2d 3.1...<3.2 CONFIG QUIET)
   if (box2d_FOUND)
     set(GZ_SIM_BOX2D_USE_SYSTEM TRUE)
   endif()
@@ -187,10 +197,20 @@ if (GZ_SIM_BOX2D_USE_SYSTEM)
   target_link_libraries(gz-sim-box2d INTERFACE box2d::box2d)
 else()
   message(STATUS "Box2D: using vendored copy in vendor/box2d")
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/box2d)
+  # Nothing links the library until the simplified physics system lands, so
+  # a build without tests need not compile it.
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/vendor/box2d EXCLUDE_FROM_ALL)
   add_library(gz-sim-box2d INTERFACE)
   target_link_libraries(gz-sim-box2d INTERFACE gz-sim-box2d-vendored)
 endif()
+
+# Box2D's math_functions.h is mostly inline functions that compile in the
+# consumer's translation units. Without this flag, GCC contracts a*b+c into an
+# FMA on aarch64 and consumer math differs from Box2D's internals and from
+# x86_64. Upstream sets the flag for the whole project.
+target_compile_options(gz-sim-box2d INTERFACE
+  $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-ffp-contract=off>
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-ffp-contract=off>)
 
 #--------------------------------------
 # Find gz-sensors
