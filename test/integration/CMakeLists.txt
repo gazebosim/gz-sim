@@ -71,6 +71,7 @@ set(tests
   particle_emitter.cc
   perfect_comms.cc
   performer_detector.cc
+  physics_skip_owned.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc

@@ -80,6 +80,23 @@ namespace systems
   /// correct and maintain the relative pose between the parent and child
   /// entities. Defaults to false.
   ///
+  /// ## Models owned by another physics provider
+  ///
+  /// A model whose `components::PhysicsOwner` names another provider is not
+  /// simulated by this system. The component sits on the model or, if the
+  /// model has none, on the world. Physics builds no body for such a model
+  /// and its links, collisions and joints, and it neither writes their state
+  /// nor clears their commands and contacts. The other provider does that.
+  /// A detachable joint that touches a link of such a model is ignored, with
+  /// a warning.
+  ///
+  /// Only the creation of a model decides who simulates it, so the
+  /// `PhysicsOwner` must exist before this system's first `Update` that sees
+  /// the model. A component added to a model that Physics already built has
+  /// no effect except for a warning. Worlds without a `PhysicsOwner` take
+  /// the same path as before and pay for two lookups of the component type
+  /// per step.
+  ///
   /// ## Example
   ///
   /// ```

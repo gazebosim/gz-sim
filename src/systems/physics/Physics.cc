@@ -138,6 +138,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
+#include "gz/sim/components/PhysicsOwner.hh"
 #include "gz/sim/components/RaycastData.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointTransmittedWrench.hh"
@@ -219,6 +220,13 @@ class gz::sim::systems::PhysicsPrivate
   /// already exists in the physics system
   public: void CreatePhysicsEntities(const EntityComponentManager &_ecm,
                                      bool _warnIfEntityExists = true);
+
+  /// \brief Warn about a PhysicsOwner that names another provider and that
+  /// appears on a model or world that this system already simulates. This
+  /// system keeps simulating the model, because only the creation of a model
+  /// decides who simulates it.
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void WarnLateOwners(const EntityComponentManager &_ecm);
 
   /// \brief Create world entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -833,6 +841,45 @@ class gz::sim::systems::PhysicsPrivate
   public: std::unordered_map<Entity, std::unordered_set<Entity>>
     customContactSurfaceEntities;
 
+  /// \brief Name of this system in PhysicsOwner components. It must match the
+  /// plugin alias at the end of this file.
+  public: static constexpr const char *kProviderName{
+      "gz::sim::systems::Physics"};
+
+  /// \brief Entities that another physics provider owns: models, links,
+  /// collisions, joints and detachable joints. This system builds nothing for
+  /// them and skips them in its per-step loops. It is the only record of
+  /// ownership that the per-step code reads. Ownership is decided once, when
+  /// an entity is created, so the creation code and the per-step code cannot
+  /// disagree. The set stays empty in worlds without a PhysicsOwner.
+  public: std::unordered_set<Entity> externalEntities;
+
+  /// \brief Check whether another physics provider owns an entity.
+  /// \param[in] _entity Entity to check.
+  /// \return True if the entity is in the set of external entities.
+  public: bool IsExternal(const Entity &_entity) const
+  {
+    return !this->externalEntities.empty() &&
+        this->externalEntities.find(_entity) != this->externalEntities.end();
+  }
+
+  /// \brief Make the filter for the helpers that write state and clear
+  /// commands every step. It accepts the entities that this system simulates.
+  /// The filter reads externalEntities and is valid while this object lives.
+  /// \return A filter that accepts everything while the set is empty, which
+  /// is the case in worlds without a PhysicsOwner, and a hash lookup per
+  /// entity otherwise.
+  public: OwnerFilter SimulatedFilter() const
+  {
+    if (this->externalEntities.empty())
+      return OwnerFilter();
+
+    return OwnerFilter([this](const Entity &_entity)
+        {
+          return !this->IsExternal(_entity);
+        });
+  }
+
   /// \brief Set of links that were added to an existing model. This set
   /// is used to track links that were added to an existing model, such as
   /// through the GUI model editor, so that we can avoid premature creation
@@ -849,11 +896,6 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
-
-  /// \brief Selects the entities whose state this system writes and whose
-  /// commands it clears. It accepts every entity, because this system builds
-  /// a physics body for every model in the ECM.
-  public: OwnerFilter ownerFilter;
 
   /// \brief Cached physics output, to reduce allocations / deallocations
   std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
@@ -1086,6 +1128,7 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm,
   this->linkAddedToModel.clear();
   this->jointAddedToModel.clear();
 
+  this->WarnLateOwners(_ecm);
   this->CreateWorldEntities(_ecm, _warnIfEntityExists);
   this->CreateModelEntities(_ecm, _warnIfEntityExists);
   this->CreateLinkEntities(_ecm, _warnIfEntityExists);
@@ -1093,6 +1136,47 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm,
   this->CreateCollisionEntities(_ecm, _warnIfEntityExists);
   this->CreateJointEntities(_ecm, _warnIfEntityExists);
   this->CreateBatteryEntities(_ecm);
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::WarnLateOwners(const EntityComponentManager &_ecm)
+{
+  // EachNew visits new entities only. A component that is added to an
+  // existing entity is a one-time change.
+  if (!_ecm.HasComponentType(components::PhysicsOwner::typeId) ||
+      !_ecm.HasOneTimeComponentChanges())
+  {
+    return;
+  }
+
+  _ecm.Each<components::PhysicsOwner>(
+      [&](const Entity &_entity, const components::PhysicsOwner *_owner) -> bool
+      {
+        if (_ecm.ComponentState(_entity, components::PhysicsOwner::typeId) !=
+            ComponentState::OneTimeChange)
+        {
+          return true;
+        }
+
+        const auto &owner = _owner->Data();
+        if (owner.empty() || owner == kProviderName)
+          return true;
+
+        // A model or world that is new in this step has not been built yet,
+        // so the owner takes effect when it is created.
+        const bool builtModel = this->entityModelMap.HasEntity(_entity);
+        const bool builtWorld = this->entityWorldMap.HasEntity(_entity) &&
+            !this->entityModelMap.Map().empty();
+        if (!builtModel && !builtWorld)
+          return true;
+
+        const auto *name = _ecm.Component<components::Name>(_entity);
+        gzwarn << "Entity [" << (name ? name->Data() : std::to_string(_entity))
+               << "] was given PhysicsOwner [" << owner << "] after the "
+               << "Physics system built it. Physics keeps simulating it. The "
+               << "other provider must leave it alone." << std::endl;
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -1247,6 +1331,11 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
   std::map<Entity, std::tuple<const components::Name*, const components::Pose*,
     const components::ParentEntity*>> modelEntities;
 
+  // Resolve ownership here, once, and record the answer in externalEntities.
+  // The check is free while no entity has a PhysicsOwner.
+  const auto owner =
+      OwnerFilter::ForProvider(_ecm, PhysicsPrivate::kProviderName, true);
+
   _ecm.EachNew<components::Model, components::Name, components::Pose,
             components::ParentEntity>(
       [&](const Entity &_entity,
@@ -1255,6 +1344,13 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
           const components::Pose *_pose,
           const components::ParentEntity *_parent)->bool
       {
+        // Another provider simulates this model.
+        if (!owner.Owns(_entity))
+        {
+          this->externalEntities.insert(_entity);
+          return true;
+        }
+
         if (!_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
           modelEntities.insert({_entity,
               std::make_tuple(_name, _pose, _parent)});
@@ -1420,6 +1516,13 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         const components::Pose *_pose,
         const components::ParentEntity *_parent)->bool
       {
+        // Another provider simulates the parent model.
+        if (this->IsExternal(_parent->Data()))
+        {
+          this->externalEntities.insert(_entity);
+          return true;
+        }
+
         // If the parent model is scheduled for recreation, then do not
         // try to create a new link. This situation can occur when a link
         // is added to a model from the GUI model editor.
@@ -1546,6 +1649,13 @@ void PhysicsPrivate::CreateCollisionEntities(const EntityComponentManager &_ecm,
           const components::CollisionElement *_collElement,
           const components::ParentEntity *_parent) -> bool
       {
+        // Another provider simulates the parent link.
+        if (this->IsExternal(_parent->Data()))
+        {
+          this->externalEntities.insert(_entity);
+          return true;
+        }
+
         // Check to see if this collision's parent is a link that was
         // not created because the parent model is marked for recreation.
         if (this->linkAddedToModel.find(_parent->Data()) !=
@@ -1824,6 +1934,13 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           const components::ParentLinkName *_parentLinkName,
           const components::ChildLinkName *_childLinkName) -> bool
       {
+        // Another provider simulates the parent model.
+        if (this->IsExternal(_parentModel->Data()))
+        {
+          this->externalEntities.insert(_entity);
+          return true;
+        }
+
         // If the parent model is scheduled for recreation, then do not
         // try to create a new joint. This situation can occur when a joint
         // is added to a model from the GUI model editor.
@@ -1997,6 +2114,19 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
                  << "] is currently not supported" << std::endl;
           return true;
         }
+
+        // A detachable joint that touches a link of another provider cannot
+        // be built, because this system does not hold that link.
+        if (this->IsExternal(_jointInfo->Data().parentLink) ||
+            this->IsExternal(_jointInfo->Data().childLink))
+        {
+          gzwarn << "Detachable joint [" << _entity << "] connects a link "
+                 << "that another physics provider owns. The joint is "
+                 << "ignored." << std::endl;
+          this->externalEntities.insert(_entity);
+          return true;
+        }
+
         // Check if joint already exists
         if (this->entityJointMap.HasEntity(_entity))
         {
@@ -2113,6 +2243,10 @@ void PhysicsPrivate::CreateJointEntities(const EntityComponentManager &_ecm,
           const components::Collision */*_collision*/,
           const components::Name *_name) -> bool
       {
+        // Another provider simulates this collision.
+        if (this->IsExternal(_entity))
+          return true;
+
         const auto world = worldEntity(_entity, _ecm);
         if (_enable->Data())
         {
@@ -2164,6 +2298,10 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
       {
         if (!this->entityJointMap.HasEntity(_entity))
         {
+          // This system never built the joint.
+          if (this->externalEntities.erase(_entity) > 0)
+            return true;
+
           gzwarn << "Failed to find joint [" << _entity
                   << "]." << std::endl;
           return true;
@@ -2205,6 +2343,29 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           /* _model */) -> bool
       {
         const auto world = worldEntity(_ecm);
+
+        // Forget a model that another provider owns, and its children.
+        if (this->externalEntities.erase(_entity) > 0)
+        {
+          for (const auto &childLink :
+               _ecm.ChildrenByComponents(_entity, components::Link()))
+          {
+            for (const auto &childCollision :
+                 _ecm.ChildrenByComponents(childLink, components::Collision()))
+            {
+              this->externalEntities.erase(childCollision);
+            }
+            this->externalEntities.erase(childLink);
+          }
+
+          for (const auto &childJoint :
+               _ecm.ChildrenByComponents(_entity, components::Joint()))
+          {
+            this->externalEntities.erase(childJoint);
+          }
+          return true;
+        }
+
         // Remove model if found
         if (auto modelPtrPhys = this->entityModelMap.Get(_entity))
         {
@@ -2303,6 +2464,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Collision *,
           const components::CollideBitmaskCmd *_bitmaskCmd) -> bool
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->collideBitmaskCmdsToRemove.insert(_entity);
         auto filterMaskFeature =
             this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
@@ -2339,6 +2504,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Collision *,
           const components::CategoryBitmaskCmd *_bitmaskCmd) -> bool
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->categoryBitmaskCmdsToRemove.insert(_entity);
         auto filterMaskFeature =
             this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
@@ -2634,6 +2803,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
@@ -2676,6 +2848,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::StaticCmd *_staticCmd,
           const components::Name *_name)->bool
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->staticCmdsToRemove.insert(_entity);
 
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
@@ -2776,6 +2952,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::GravityEnabledCmd *_gravityEnabledCmd,
           const components::Name *_name)->bool
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->gravityEnabledCmdsToRemove.insert(_entity);
 
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
@@ -2814,6 +2994,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::GravityEnabledCmd *_gravityEnabledCmd,
           const components::Name *_name)->bool
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->gravityEnabledCmdsToRemove.insert(_entity);
 
         auto linkPtrPhys = this->entityLinkMap.Get(_entity);
@@ -2864,6 +3048,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const components::CollisionEnabledCmd *_collisionEnabledCmd,
           const components::Name *_name)->bool
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->collisionEnabledCmdsToRemove.insert(_entity);
 
         auto modelPtrPhys = this->entityModelMap.Get(_entity);
@@ -2927,7 +3115,12 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       [&](const Entity &_entity, const components::Model *,
           const components::WorldPoseCmd *_poseCmd)
       {
+        // A provider that owns the entity removes its commands.
+        if (this->IsExternal(_entity))
+          return true;
+
         this->worldPoseCmdsToRemove.insert(_entity);
+
         // Check if the model contains any plane collision geometry.
         // If so, reject set_pose to prevent physics engine crash.
         if (this->ModelContainsPlaneCollision(_entity, _ecm))
@@ -3010,6 +3203,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityCollisionMap.HasEntity(_entity))
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find shape [" << _entity << "]." << std::endl;
           return true;
         }
@@ -3146,6 +3342,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
@@ -3198,6 +3397,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
@@ -3250,6 +3452,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
@@ -3309,6 +3514,9 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
       {
         if (!this->entityLinkMap.HasEntity(_entity))
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find link [" << _entity
                   << "]." << std::endl;
           return true;
@@ -3382,6 +3590,11 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->gravityEnabledCmdsToRemove.clear();
   this->collisionEnabledCmdsToRemove.clear();
 
+  // A reset restores the ECM to its initial state, which can drop or change
+  // PhysicsOwner components, and then marks every entity as new. Decide who
+  // owns each entity again from the restored state.
+  this->externalEntities.clear();
+
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
   this->canonicalLinkModelTracker.AddAllModels(_ecm);
@@ -3393,6 +3606,9 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
         auto linkPtrPhys = this->entityLinkMap.Get(_entity);
         if (nullptr == linkPtrPhys)
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
           return true;
         }
@@ -3464,6 +3680,9 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
         auto jointPhys = this->entityJointMap.Get(_entity);
         if (nullptr == jointPhys)
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           gzwarn << "Failed to find joint [" << _entity << "]." << std::endl;
           return true;
         }
@@ -3602,6 +3821,9 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
         auto linkPhys = this->entityLinkMap.Get(_entity);
         if (nullptr == linkPhys)
         {
+          if (this->IsExternal(_entity))
+            return true;
+
           if (this->linkAddedToModel.find(_entity) ==
               this->linkAddedToModel.end())
           {
@@ -3931,13 +4153,14 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
   GZ_PROFILE_END();
 
   // Clear reset components and consumed commands
+  const auto simulated = this->SimulatedFilter();
   GZ_PROFILE_BEGIN("Clear / reset components");
-  ClearCommands(_ecm, this->ownerFilter);
+  ClearCommands(_ecm, simulated);
   GZ_PROFILE_END();
 
   // Update joint positions and velocities
   GZ_PROFILE_BEGIN("Joints");
-  WriteJointPositions(_ecm, this->ownerFilter,
+  WriteJointPositions(_ecm, simulated,
       [this](const Entity &_joint, std::vector<double> &_position) -> bool
       {
         auto jointPhys = this->entityJointMap.Get(_joint);
@@ -3950,7 +4173,7 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
-  WriteJointVelocities(_ecm, this->ownerFilter,
+  WriteJointVelocities(_ecm, simulated,
       [this](const Entity &_joint, std::vector<double> &_velocity) -> bool
       {
         auto jointPhys = this->entityJointMap.Get(_joint);
@@ -3969,6 +4192,11 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       [&](const Entity &_entity, components::Joint *,
           components::JointTransmittedWrench *_wrench) -> bool
       {
+        // Without this, an owned joint would hit the "physics engine doesn't
+        // support this feature" message and hide it for a real case.
+        if (this->IsExternal(_entity))
+          return true;
+
         auto jointPhys =
             this->entityJointMap
                 .EntityCast<JointGetTransmittedWrenchFeatureList>(_entity);
@@ -4097,7 +4325,7 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
     }
   }
 
-  WriteContacts(_ecm, this->ownerFilter, entityContactMap,
+  WriteContacts(_ecm, this->SimulatedFilter(), entityContactMap,
       this->contactsEntityNames);
 }
 
@@ -4380,6 +4608,9 @@ void PhysicsPrivate::UpdateLinksBoundingBoxes(EntityComponentManager &_ecm)
       auto linkPhys = this->entityLinkMap.Get(_entity);
       if (!linkPhys)
       {
+        if (this->IsExternal(_entity))
+          return true;
+
         gzwarn << "Failed to find link [" << _entity << "]." << std::endl;
         return true;
       }
@@ -4434,6 +4665,9 @@ void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
     {
       if (!this->entityModelMap.HasEntity(_entity))
       {
+        if (this->IsExternal(_entity))
+          return true;
+
         gzwarn << "Failed to find model [" << _entity << "]." << std::endl;
         return true;
       }

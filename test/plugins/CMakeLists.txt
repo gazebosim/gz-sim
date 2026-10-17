@@ -11,6 +11,7 @@ link_directories(
 
 set (test_plugins
   EventTriggerSystem
+  SetPhysicsOwnerSystem
   TestModelSystem
   TestSensorSystem
   TestVisualSystem

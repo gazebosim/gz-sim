@@ -1,0 +1,130 @@
+<?xml version="1.0" ?>
+<!--
+  Two pairs of models, one pair per kind. A test marks one model of each pair
+  as owned by another physics provider and checks that the Physics system
+  leaves it alone.
+
+  box:  a free body that falls on the ground plane.
+  arm:  a link that a revolute joint holds in the air. The joint spins about
+        the vertical axis, so it moves only when it is commanded. The owned
+        arm holds a nested box, which falls if Physics simulates it.
+-->
+<sdf version="1.9">
+  <world name="physics_skip_owned">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>20 20 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0 0 -0.1 0 0 0</pose>
+    </model>
+
+    <model name="free_box">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="owned_box">
+      <pose>0 3 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="free_arm">
+      <pose>3 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="spin" type="revolute">
+        <parent>world</parent>
+        <child>link</child>
+        <axis><xyz>0 0 1</xyz></axis>
+      </joint>
+    </model>
+
+    <model name="owned_arm">
+      <pose>3 3 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <joint name="spin" type="revolute">
+        <parent>world</parent>
+        <child>link</child>
+        <axis><xyz>0 0 1</xyz></axis>
+      </joint>
+      <!-- A nested model belongs to the provider of its top-level model. -->
+      <model name="nested_box">
+        <pose>0 1 0 0 0 0</pose>
+        <link name="link">
+          <inertial>
+            <mass>1</mass>
+            <inertia>
+              <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+            </inertia>
+          </inertial>
+          <collision name="collision">
+            <geometry>
+              <box><size>0.2 0.2 0.2</size></box>
+            </geometry>
+          </collision>
+        </link>
+      </model>
+    </model>
+  </world>
+</sdf>
