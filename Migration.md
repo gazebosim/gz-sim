@@ -35,6 +35,14 @@ release will remove the deprecated code.
     fluid interface now float and right themselves per hydrostatic theory;
     models tuned to compensate for the old behavior may need retuning.
 
+* **Physics**
+  * The Physics system no longer calls the physics engine's `Step` while
+    every link in the engine belongs to a static model, no command or new
+    entity reached the engine since the last step, and the previous step was
+    idle as well. Sim time, poses, contacts and commands behave as before. An
+    engine plugin that does work in `Step` beyond moving rigid bodies (a
+    timer, a custom per-step callback) sees fewer calls in such worlds.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
