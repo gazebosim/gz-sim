@@ -59,4 +59,3 @@ endif()
 if (TARGET UNIT_PlanarMotion_TEST)
   target_sources(UNIT_PlanarMotion_TEST PRIVATE PlanarMotion.cc)
 endif()
-

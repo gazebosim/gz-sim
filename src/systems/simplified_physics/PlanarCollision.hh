@@ -105,6 +105,8 @@ namespace systems::simplified_physics
   ///   lines), or a circle if the projection is round.
   /// - cone: the footprint of its bounding cylinder, a superset.
   /// - mesh: convex hull of all vertices. A concave mesh gets filled in.
+  ///   `<submesh>` and `<center_submesh>` are ignored, as in the physics
+  ///   system: the hull covers the whole mesh file.
   /// - polyline: convex hull of all points of all polylines.
   /// - plane, heightmap, empty: none. They are the floor, not obstacles.
   ///
@@ -185,8 +187,10 @@ namespace systems::simplified_physics
     // cppcheck-suppress unusedStructMember
     int maxSlideIterations{4};
 
-    /// \brief The most passes of the robot-robot resolution. Clamped to
-    /// 1..16. Default 4.
+    /// \brief The fewest passes of the robot-robot resolution. Clamped to
+    /// 1..16. Default 4. A group of robots that are linked by pairs gets as
+    /// many passes as it has robots (at most 64), because a queue at equal
+    /// speed settles one robot per pass.
     // cppcheck-suppress unusedStructMember
     int maxRobotPasses{4};
 
@@ -285,7 +289,7 @@ namespace systems::simplified_physics
   /// Box2D world and does not step dynamics, so it keeps no global state and
   /// every instance is independent.
   ///
-  /// \section Models
+  /// \section planar_collision_models Models
   ///
   /// - A static model (scenery) never moves. Each collision becomes a shape
   ///   in the static tree, in the world frame.
@@ -298,7 +302,13 @@ namespace systems::simplified_physics
   /// A model must have at most 65535 shapes. Only x, y, z and yaw of a pose
   /// are used. Roll and pitch are dropped when the footprints are made.
   ///
-  /// \section Motion
+  /// The world holds the pose of a movable model. The caller must call
+  /// SetPose before Move for every model that something else moved: a
+  /// teleport, or a body of another physics engine. A static model that is
+  /// teleported needs to be added again. Coordinates are stored as floats in
+  /// the broadphase, so the supported range is about 100 km from the origin.
+  ///
+  /// \section planar_collision_motion Motion
   ///
   /// Move() takes one desired planar motion per robot and returns the motion
   /// the robot achieves.
@@ -308,7 +318,15 @@ namespace systems::simplified_physics
   ///    advancement with Box2D's GJK distance: the robot advances by the
   ///    distance to the nearest shape divided by a bound on the closing
   ///    speed, until the gap is `contactSkin`. A robot never ends inside a
-  ///    shape it started outside of, and it does not tunnel. A `Stop` robot
+  ///    shape it started outside of. While a robot turns and is within the
+  ///    skin of a shape, the bound is too loose to advance by, so the rest of
+  ///    the segment is certified with the Lipschitz bound of the distance:
+  ///    it changes by at most the speed of the fastest point of the robot
+  ///    plus that of the shape. Intervals that fail the bound are halved
+  ///    until the points move less than 0.4 `contactSkin`. A robot in this
+  ///    case stops at least a quarter of the skin from the shape, so it
+  ///    cannot pass through a feature of any size. If the split runs out of
+  ///    its budget the robot stops early. A `Stop` robot
   ///    ends there. A `Slide` robot drops the part of the remaining motion
   ///    that points into the obstacle and continues, up to
   ///    `maxSlideIterations` times. If a turn runs into an obstacle the turn
@@ -317,32 +335,44 @@ namespace systems::simplified_physics
   /// 2. Robots that move in the same call are checked against each other in
   ///    Jacobi passes. In a pass, the first contact time of every pair is
   ///    computed from the paths of the previous pass, and every robot that
-  ///    approaches its partner (or turns) is cut at the contact time. The
-  ///    result does not depend on the order of the requests. A cut robot
-  ///    stops, even in `Slide` mode. If the passes do not settle within
-  ///    `maxRobotPasses`, the robots still in conflict stay where they were.
+  ///    approaches its partner (or turns) is cut at the contact time. A cut
+  ///    robot stops, even in `Slide` mode, so a robot that touches a slower
+  ///    one moves in steps of full speed and zero when it is cut, and its
+  ///    wheel joints show it. If the passes do not settle, the robots still
+  ///    in conflict stay where they were, and the freeze is repeated until
+  ///    no robot that approaches another one is left moving. No robot ends a
+  ///    step overlapping another that it started outside of.
+  ///
+  /// A robot that touches a wall cannot turn in place, and a Slide robot that
+  /// drives along a wall turns only by the part of the turn that clears it,
+  /// because a rigid body pivoting about its origin sweeps into the wall.
+  /// A differential-drive AMR at a wall can look stuck in yaw until it backs
+  /// off.
   ///
   /// A robot that rests at the skin distance from an obstacle can move away,
   /// move along it, or turn if the turn does not bring any point closer than
   /// the skin. A model that starts inside an obstacle (spawned there) cannot
   /// move into it further. It can move out.
   ///
-  /// \section Precision
+  /// \section planar_collision_precision Precision
   ///
   /// Poses are doubles. Box2D works in floats, so each query is done in the
   /// frame of the robot, where the numbers are small. The unit test stops a
   /// robot within 0.2 mm of a wall 5 km from the origin.
   ///
-  /// \section Determinism
+  /// \section planar_collision_determinism Determinism
   ///
-  /// The result depends on the shapes that were added, the order of the
-  /// requests and the poses, and on nothing else (not on tree layout, hash
-  /// order or the number of threads). The same inputs give bit-identical
-  /// outputs. The code is single-threaded. The per-robot sweeps of the first
+  /// The result depends on the shapes that were added, their slot order (it
+  /// breaks ties between obstacles hit at the same time) and the poses, and
+  /// on nothing else: not on the order of the requests, tree layout, hash
+  /// order or the number of threads. The same inputs give bit-identical
+  /// outputs in one build on one machine; `std::sin` and `std::cos` come from
+  /// the C library, which can differ between platforms. The code is
+  /// single-threaded. The per-robot sweeps of the first
   /// step read shared data only, which is where threads can go later. Box2D
   /// is built with `-ffp-contract=off`, and so is this file.
   ///
-  /// \section Contacts
+  /// \section planar_collision_contacts Contacts
   ///
   /// With `reportContacts` set, Move() also lists the contacts of every
   /// moved model at its final pose. A contact is a pair of shapes closer than
