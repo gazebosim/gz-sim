@@ -23,9 +23,12 @@ No source file has been modified, so there is no `GAZEBO_MODIFIED_CODE.patch`.
 
 The top-level `CMakeLists.txt` has a cache option `GZ_SIM_BOX2D`:
 
-* `AUTO` (default): use a system Box2D (`find_package(box2d 3.1 CONFIG)`) if
-  found, otherwise build this copy.
-* `SYSTEM`: require a system Box2D.
+* `AUTO` (default): use a system Box2D 3.1.x
+  (`find_package(box2d 3.1...<3.2 CONFIG)`) if found, otherwise build this
+  copy. A system Box2D 3.2 or newer is ignored, because the API changes
+  between minor releases.
+* `SYSTEM`: require a system Box2D 3.1.x. Configure fails with a message for
+  3.2 and later.
 * `VENDOR`: always build this copy.
 
 Either way the internal target `gz-sim-box2d` is available. Link it privately.
@@ -50,7 +53,9 @@ copy is what builds there until a distribution packages v3.
 3. Compare upstream `src/CMakeLists.txt` and the top-level `CMakeLists.txt`
    with `CMakeLists.txt` here. Carry over new compile flags and definitions.
    The source list is a glob, so new or removed files need no edit.
-4. Update the tag and hash above, and the minimum version in
-   `find_package(box2d ...)` in the top-level `CMakeLists.txt` if the API
-   changed.
+4. Update the tag and hash above, and move the version range in
+   `find_package(box2d 3.1...<3.2 ...)` in the top-level `CMakeLists.txt`
+   (and `version.minor` in `INTEGRATION_box2d_dependency`) to the new
+   release. The range follows the vendored tag because Box2D changes its API
+   between minor releases.
 5. Run `INTEGRATION_box2d_dependency` with `GZ_SIM_BOX2D=VENDOR`.
