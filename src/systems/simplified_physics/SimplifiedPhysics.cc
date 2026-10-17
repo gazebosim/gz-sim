@@ -33,6 +33,7 @@
 
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
+#include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Quaternion.hh>
 #include <gz/math/Rand.hh>
@@ -143,6 +144,26 @@ bool SamePose(const math::Pose3d &_a, const math::Pose3d &_b)
       NonZero(_a.Rot().X() - _b.Rot().X()) ||
       NonZero(_a.Rot().Y() - _b.Rot().Y()) ||
       NonZero(_a.Rot().Z() - _b.Rot().Z()));
+}
+
+/// \brief True if two rotations are bit-for-bit the same.
+/// \param[in] _a A rotation.
+/// \param[in] _b Another rotation.
+/// \return True if no component differs.
+bool SameRotation(const math::Quaterniond &_a, const math::Quaterniond &_b)
+{
+  return !(NonZero(_a.W() - _b.W()) || NonZero(_a.X() - _b.X()) ||
+      NonZero(_a.Y() - _b.Y()) || NonZero(_a.Z() - _b.Z()));
+}
+
+/// \brief An angle in [-pi, pi].
+/// \param[in] _angle Any angle in radians.
+/// \return The same angle, turned by whole circles.
+double WrapAngle(double _angle)
+{
+  if (std::abs(_angle) > GZ_PI)
+    _angle = std::remainder(_angle, 2.0 * GZ_PI);
+  return _angle;
 }
 
 /// \brief True if the entity has one of the nine frame data components.
@@ -407,6 +428,36 @@ struct OwnedModel
   /// end of the last step. A different Pose component means that something
   /// else moved the model, and the world is told before the next motion.
   math::Pose3d worldPose;
+
+  /// \brief Heading of the model for the rotation `yawRotation`. The yaw of
+  /// a quaternion costs an `atan2` and more, and the system needs it for
+  /// every moving model in every step, while the rotation changes only by the
+  /// yaw that the system adds. Use YawOf and SetYaw.
+  double yaw{0.0};
+  math::Quaterniond yawRotation;
+  bool yawKnown{false};
+
+  /// \brief Heading of a rotation. Uses the stored one if the rotation is
+  /// the one that it belongs to, bit for bit, and works it out otherwise (a
+  /// teleport, or another system that wrote the pose).
+  /// \param[in] _rotation The rotation of the model.
+  /// \return The yaw of the rotation.
+  double YawOf(const math::Quaterniond &_rotation)
+  {
+    if (!this->yawKnown || !SameRotation(_rotation, this->yawRotation))
+      this->SetYaw(_rotation, _rotation.Yaw());
+    return this->yaw;
+  }
+
+  /// \brief Store the heading of a rotation.
+  /// \param[in] _rotation The rotation of the model.
+  /// \param[in] _yaw Its yaw.
+  void SetYaw(const math::Quaterniond &_rotation, double _yaw)
+  {
+    this->yawRotation = _rotation;
+    this->yaw = _yaw;
+    this->yawKnown = true;
+  }
 
   /// \brief Links of the model, including links of nested models.
   std::vector<Entity> links;
@@ -1512,12 +1563,14 @@ bool SimplifiedPhysicsPrivate::Plan(EntityComponentManager &_ecm,
 
       if (linear.IsFinite() && angular.IsFinite())
       {
-        const double yaw = pose.Rot().Yaw();
-        const double c = std::cos(yaw);
-        const double s = std::sin(yaw);
+        // The arc is worked out in the heading frame and turned into the
+        // world frame by the heading. The velocity was turned into the
+        // heading frame by the same heading, and rotations about z commute
+        // with the arc, so the heading cancels. Integrating the world
+        // velocity at heading zero gives the same displacement without the
+        // yaw of the pose.
         wz = angular.Z();
-        delta = IntegrateArc(yaw, c * linear.X() + s * linear.Y(),
-            -s * linear.X() + c * linear.Y(), wz, _dt);
+        delta = IntegrateArc(0.0, linear.X(), linear.Y(), wz, _dt);
 
         // The velocity at the end of the step, after the heading turned.
         const double c2 = std::cos(delta.yaw);
@@ -1567,9 +1620,10 @@ bool SimplifiedPhysicsPrivate::Finish(EntityComponentManager &_ecm,
   if (_result && (_result->blocked || !_result->known))
   {
     delta = _result->achieved;
-    bodyTwist = TwistFromDelta(pose.Rot().Yaw(), delta, _dt);
+    const double yaw = _owned.YawOf(pose.Rot());
+    bodyTwist = TwistFromDelta(yaw, delta, _dt);
     wz = bodyTwist.wz;
-    const double heading = pose.Rot().Yaw() + delta.yaw;
+    const double heading = yaw + delta.yaw;
     const double c = std::cos(heading);
     const double s = std::sin(heading);
     velocity.Set(c * bodyTwist.vx - s * bodyTwist.vy,
@@ -1581,9 +1635,17 @@ bool SimplifiedPhysicsPrivate::Finish(EntityComponentManager &_ecm,
   {
     pose.Pos().X() += delta.x;
     pose.Pos().Y() += delta.y;
-    // Rotating about the world z axis leaves roll and pitch as they were.
-    pose.Rot() = math::Quaterniond(0.0, 0.0, delta.yaw) * pose.Rot();
-    pose.Rot().Normalize();
+    if (NonZero(delta.yaw))
+    {
+      // Rotating about the world z axis leaves roll and pitch as they were,
+      // and adds the turn to the yaw. The rotation is the quaternion of a
+      // turn about z, so no Euler conversion is needed.
+      const double yaw = _owned.YawOf(pose.Rot());
+      pose.Rot() = math::Quaterniond(std::cos(0.5 * delta.yaw), 0.0, 0.0,
+          std::sin(0.5 * delta.yaw)) * pose.Rot();
+      pose.Rot().Normalize();
+      _owned.SetYaw(pose.Rot(), WrapAngle(yaw + delta.yaw));
+    }
   }
 
   if (moved || teleported)

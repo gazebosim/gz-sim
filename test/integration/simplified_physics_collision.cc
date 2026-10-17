@@ -1075,6 +1075,80 @@ TEST_F(SimplifiedPhysicsCollisionTest, ZeroBitmaskIsNotAnObstacleOrAnObject)
 }
 
 /////////////////////////////////////////////////
+/// The system keeps the heading of a robot between steps instead of reading
+/// it from the pose. The heading turns the motion that a wall cut into wheel
+/// motion. A robot that turned for several circles and is then put at another
+/// heading, in front of a wall, has to slide along the wall with wheels that
+/// show its forward motion, which is the part of the slide along its heading.
+TEST_F(SimplifiedPhysicsCollisionTest,
+    HeadingFollowsThePoseAfterTurnsAndTeleports)
+{
+  RobotOptions robot;
+  robot.name = "dd";
+  // Wall face at y = 3.
+  TestFixture fixture(Config(RobotXml(robot) +
+      WallXml("wall", 0.0, 3.5, 40.0, 1.0)));
+  std::map<std::string, Track> tracks;
+  Record(fixture, {"dd"}, tracks);
+
+  const double heading = 0.7;
+  Entity model{kNullEntity};
+  std::int64_t steps{0};
+  fixture.OnPreUpdate([&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        if (model == kNullEntity)
+        {
+          model = _ecm.EntityByComponents(components::Model(),
+              components::Name("dd"));
+        }
+        if (++steps == 2001)
+        {
+          _ecm.SetComponentData<components::WorldPoseCmd>(model,
+              math::Pose3d(0.0, 0.0, 0.1, 0.0, 0.0, heading));
+        }
+      });
+  fixture.Finalize();
+
+  // Two and a half turns in place.
+  this->Command({"dd"}, 0.0, 5.0);
+  fixture.Server()->Run(true, 2000, false);
+  const auto &track = tracks["dd"];
+  // The command takes effect one step late, which is 0.005 rad.
+  EXPECT_NEAR(0.0, math::Angle(track.Last().Rot().Yaw() - 10.0).Normalized()
+      .Radian(), 0.011);
+
+  // The teleport at step 2001, then straight on at the wall, which the robot
+  // reaches after about 4.7 s and slides along to the right.
+  this->Command({"dd"}, 1.0, 0.0);
+  fixture.Server()->Run(true, 7000, false);
+  // The spin command is still in force during the step of the teleport, so
+  // the robot turns 0.005 rad more.
+  EXPECT_NEAR(heading, track.poses[2001].Rot().Yaw(), 0.011);
+  const auto &end = track.Last();
+  const double slidHeading = end.Rot().Yaw();
+  EXPECT_NEAR(heading, slidHeading, 0.011);
+  EXPECT_GT(end.Pos().X(), 2.0);
+  // The robot is pressed against the wall.
+  EXPECT_LT(end.Pos().Y(), 3.0);
+  EXPECT_GT(end.Pos().Y(), 2.0);
+
+  // Over the last second the robot slid. The wheels roll for the part of the
+  // slide along the heading.
+  const std::size_t first = track.poses.size() - 1000;
+  double forward{0.0};
+  for (std::size_t i = first; i < track.poses.size() - 1; ++i)
+  {
+    const auto step = track.poses[i + 1].Pos() - track.poses[i].Pos();
+    forward += step.X() * std::cos(slidHeading) +
+        step.Y() * std::sin(slidHeading);
+  }
+  EXPECT_GT(forward, 0.5);
+  const double rolled = (track.leftWheel.back() - track.leftWheel[first]) *
+      kRadius;
+  EXPECT_NEAR(forward, rolled, 1e-6);
+}
+
+/////////////////////////////////////////////////
 /// A teleport moves the robot in the collision world too: it drives past
 /// the end of a short wall from where it was put, and not into the wall that
 /// it would have met from its old place. Put back in front of the wall, it
