@@ -8,9 +8,17 @@
   the same VelocityControl plugin. Only the SimplifiedPhysicsModel plugin
   differs.
 
-  Limits of this first version: the planar robots do not collide with
-  anything, and robots on different providers do not see each other as
-  bodies.
+  The planar robots collide. They stop or slide at static models, at bodies
+  of the Physics system, and at each other. Physics does not see them, so
+  amr_full would drive through a planar robot: each side sees the other as
+  immovable only in one direction. A robot that touches an obstacle cannot
+  turn in place into it, and two robots that command themselves into each
+  other stay stuck until a command changes.
+
+  Each robot here drives a circle of radius 2 m, and the circles are 6 m
+  apart, so no robot meets another and all of them keep moving for as long as
+  the world runs. To see a collision, send a robot straight at another one, or
+  at a wall that you spawn.
 
   Send a command to any robot, for example:
 
@@ -121,7 +129,7 @@
     </model>
 
     <model name="amr_planar_1">
-      <pose>0 2 0.1 0 0 0</pose>
+      <pose>6 2 0.1 0 0 0</pose>
       <link name="chassis">
         <inertial>
           <mass>10</mass>
@@ -160,7 +168,7 @@
     </model>
 
     <model name="amr_planar_2">
-      <pose>0 4 0.1 0 0 0</pose>
+      <pose>12 4 0.1 0 0 0</pose>
       <link name="chassis">
         <inertial>
           <mass>10</mass>
@@ -199,7 +207,7 @@
     </model>
 
     <model name="amr_planar_3">
-      <pose>0 6 0.1 0 0 0</pose>
+      <pose>18 6 0.1 0 0 0</pose>
       <link name="chassis">
         <inertial>
           <mass>10</mass>

@@ -858,6 +858,49 @@ TEST_F(SimplifiedPhysicsCollisionTest, MovedStaticWallMovesItsFootprint)
 }
 
 /////////////////////////////////////////////////
+/// The robots of the example world drive circles that do not meet, so none of
+/// them is stuck at any time in a minute of simulated time.
+TEST_F(SimplifiedPhysicsCollisionTest, ExampleWorldRobotsKeepMoving)
+{
+  std::ifstream file(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "examples", "worlds", "simplified_physics.sdf"));
+  ASSERT_TRUE(file.is_open());
+  std::string sdf((std::istreambuf_iterator<char>(file)),
+      std::istreambuf_iterator<char>());
+
+  // Run as fast as possible instead of at real time.
+  const std::string paced = "<real_time_factor>1.0</real_time_factor>";
+  const auto pos = sdf.find(paced);
+  ASSERT_NE(std::string::npos, pos);
+  sdf.replace(pos, paced.size(), "<real_time_factor>0</real_time_factor>");
+
+  ServerConfig config;
+  config.SetSdfString(sdf);
+  TestFixture fixture(config);
+  const std::vector<std::string> names{"amr_planar_1", "amr_planar_2",
+      "amr_planar_3"};
+  std::map<std::string, Track> tracks;
+  Record(fixture, names, tracks);
+  fixture.Finalize();
+  fixture.Server()->Run(true, 60000, false);
+
+  for (const auto &name : names)
+  {
+    const auto &track = tracks[name];
+    ASSERT_EQ(60000u, track.poses.size()) << name;
+    std::size_t still{0};
+    for (std::size_t i = 1; i < track.poses.size(); ++i)
+    {
+      const double yaw = std::abs(math::Angle(track.poses[i].Rot().Yaw() -
+          track.poses[i - 1].Rot().Yaw()).Normalized().Radian());
+      if (track.Travel(i - 1, i) < 1e-9 && yaw < 1e-9)
+        ++still;
+    }
+    EXPECT_EQ(0u, still) << name;
+  }
+}
+
+/////////////////////////////////////////////////
 /// After a world reset the robot starts again, and the wall still stops it.
 TEST_F(SimplifiedPhysicsCollisionTest, Reset)
 {
