@@ -1,0 +1,240 @@
+<?xml version="1.0" ?>
+<!--
+  Simplified physics demo: robots on two physics providers in one world.
+
+  The Physics system simulates amr_full with a physics engine. The
+  SimplifiedPhysics system moves the other three robots in x, y and yaw at
+  their commanded velocity, with no engine. The robots are the same boxes with
+  the same VelocityControl plugin. Only the SimplifiedPhysicsModel plugin
+  differs.
+
+  Limits of this first version: the planar robots do not collide with
+  anything, and robots on different providers do not see each other as
+  bodies.
+
+  Send a command to any robot, for example:
+
+    gz topic -t "/model/amr_planar_1/cmd_vel" -m gz.msgs.Twist -p "linear: {x: 1.0}, angular: {z: 0.5}"
+
+  Instead of editing the model, a world can add the plugin where it includes
+  the model, so that one model file serves every mode:
+
+    <include>
+      <uri>model://amr</uri>
+      <name>amr_042</name>
+      <experimental:params>
+        <plugin element_id="" action="add"
+            name="gz::sim::systems::SimplifiedPhysicsModel"
+            filename="gz-sim-simplified-physics-system">
+          <mode>planar_kinematic</mode>
+        </plugin>
+      </experimental:params>
+    </include>
+-->
+<sdf version="1.9">
+  <world name="simplified_physics">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-simplified-physics-system"
+      name="gz::sim::systems::SimplifiedPhysics">
+    </plugin>
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.5 0.5 0.5 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="amr_full">
+      <pose>0 0 0.1 0 0 0</pose>
+      <link name="chassis">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.2 0.2 1</ambient>
+            <diffuse>0.8 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>0.5 0 0</initial_linear>
+        <initial_angular>0 0 0.25</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="amr_planar_1">
+      <pose>0 2 0.1 0 0 0</pose>
+      <link name="chassis">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.6 0.2 1</ambient>
+            <diffuse>0.2 0.6 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- The physics mode is one plugin. Everything else in the model
+           is the same for every mode. -->
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>0.5 0 0</initial_linear>
+        <initial_angular>0 0 0.25</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="amr_planar_2">
+      <pose>0 4 0.1 0 0 0</pose>
+      <link name="chassis">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.2 0.8 1</ambient>
+            <diffuse>0.2 0.2 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- The physics mode is one plugin. Everything else in the model
+           is the same for every mode. -->
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1.0 0 0</initial_linear>
+        <initial_angular>0 0 0.5</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="amr_planar_3">
+      <pose>0 6 0.1 0 0 0</pose>
+      <link name="chassis">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>0.2</ixx><iyy>0.2</iyy><izz>0.2</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>0.6 0.4 0.2</size></box>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.2 1</ambient>
+            <diffuse>0.8 0.8 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <!-- The physics mode is one plugin. Everything else in the model
+           is the same for every mode. -->
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>0 0 0</initial_linear>
+        <initial_angular>0 0 1.0</initial_angular>
+      </plugin>
+    </model>
+  </world>
+</sdf>

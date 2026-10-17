@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <vector>
 
+#include <gz/math/Vector3.hh>
+
 #include "gz/sim/Entity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
 #include "gz/sim/components/AngularVelocityReset.hh"
@@ -85,7 +87,8 @@ void ResetComponents(EntityComponentManager &_ecm, const OwnerFilter &_owner,
 }
 
 //////////////////////////////////////////////////
-void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner)
+void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner,
+    bool _zeroVelocityCmds)
 {
   // Clear reset components
   RemoveComponents<components::JointPositionReset>(_ecm, _owner);
@@ -108,8 +111,18 @@ void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner)
   RemoveComponents<components::JointVelocityCmd>(_ecm, _owner);
   ResetComponents<components::SlipComplianceCmd>(_ecm, _owner,
       [](auto &_data) {std::fill(_data.begin(), _data.end(), 0.0);});
-  RemoveComponents<components::AngularVelocityCmd>(_ecm, _owner);
-  RemoveComponents<components::LinearVelocityCmd>(_ecm, _owner);
+  if (_zeroVelocityCmds)
+  {
+    ResetComponents<components::AngularVelocityCmd>(_ecm, _owner,
+        [](auto &_data) {_data = math::Vector3d::Zero;});
+    ResetComponents<components::LinearVelocityCmd>(_ecm, _owner,
+        [](auto &_data) {_data = math::Vector3d::Zero;});
+  }
+  else
+  {
+    RemoveComponents<components::AngularVelocityCmd>(_ecm, _owner);
+    RemoveComponents<components::LinearVelocityCmd>(_ecm, _owner);
+  }
 }
 }
 }

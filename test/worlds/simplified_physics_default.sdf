@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<!--
+  Test world for a world-level PhysicsOwner that names SimplifiedPhysics.
+  The SetPhysicsOwnerSystem plugin comes first, so the PhysicsOwner exists
+  when SimplifiedPhysics is configured.
+
+  ground:         static scenery. SimplifiedPhysics cannot move it, so it goes
+                  back to Physics, and the box on it rests.
+  full_box:       asks for the full mode, which overrides the world default.
+                  It falls on the ground and stops.
+  default_robot:  has no owner of its own, so the world default applies. It
+                  drives along x without falling.
+  default_gated:  the same, with a VelocityControl that needs a feature that
+                  the planar mode does not serve. The plugin must not run.
+  default_double: like default_robot, with a SimplifiedPhysics system attached
+                  to the model by mistake. The extra instance must do nothing.
+-->
+<sdf version="1.9">
+  <world name="simplified_physics_default_test">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="SetPhysicsOwnerSystem"
+      name="gz::sim::SetPhysicsOwnerSystem">
+      <owner>gz::sim::systems::SimplifiedPhysics</owner>
+    </plugin>
+    <plugin
+      filename="gz-sim-simplified-physics-system"
+      name="gz::sim::systems::SimplifiedPhysics">
+    </plugin>
+
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>40 40 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0 0 -0.1 0 0 0</pose>
+    </model>
+
+    <model name="full_box">
+      <pose>-5 0 0.5 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>full</mode>
+      </plugin>
+    </model>
+
+    <model name="default_robot">
+      <pose>0 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="default_gated">
+      <pose>0 3 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+        <gz:physics_requirements>joint_force</gz:physics_requirements>
+      </plugin>
+    </model>
+
+    <model name="default_double">
+      <pose>0 6 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+      </plugin>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysics">
+      </plugin>
+    </model>
+  </world>
+</sdf>

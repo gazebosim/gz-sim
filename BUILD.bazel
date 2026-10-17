@@ -1521,19 +1521,49 @@ gz_sim_system_libraries(
 #     ]
 # )
 #
+# Write-back and command-clearing helpers shared by the physics and
+# simplified physics systems. Internal, not installed.
+cc_library(
+    name = "gz-sim-physics-helpers",
+    srcs = [
+        "src/systems/physics/CommandClearer.cc",
+        "src/systems/physics/FrameDataWriter.cc",
+    ],
+    hdrs = [
+        "src/systems/physics/CommandClearer.hh",
+        "src/systems/physics/FrameDataWriter.hh",
+        "src/systems/physics/OwnerFilter.hh",
+    ],
+    visibility = ["//visibility:private"],
+    deps = [
+        ":gz-sim",
+        "@gz-math",
+        "@gz-math//eigen3",
+        "@gz-physics",
+    ],
+)
+
 gz_sim_system_libraries(
     srcs = glob(
         [
             "src/systems/physics/**/*.cc",
             "src/systems/physics/**/*.hh",
         ],
-        exclude = ["src/systems/physics/**/*TEST.cc"],
+        exclude = [
+            "src/systems/physics/**/*TEST.cc",
+            "src/systems/physics/CommandClearer.cc",
+            "src/systems/physics/CommandClearer.hh",
+            "src/systems/physics/FrameDataWriter.cc",
+            "src/systems/physics/FrameDataWriter.hh",
+            "src/systems/physics/OwnerFilter.hh",
+        ],
     ),
     so_lib_name = "gz-sim-physics-system.so",
     static_lib_name = "gz-sim-physics-system-static",
     visibility = ["//visibility:public"],
     deps = [
         ":gz-sim",
+        ":gz-sim-physics-helpers",
         "@gz-common",
         "@gz-common//geospatial",
         "@gz-common//graphics",
@@ -1567,6 +1597,7 @@ physics_test_sources = glob(["src/systems/physics/**/*TEST.cc"])
     },
     deps = [
         ":gz-sim",
+        ":gz-sim-physics-helpers",
         ":gz-sim-physics-system-static",
         "//test:Helpers",
         "@googletest//:gtest",
@@ -1691,6 +1722,54 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+# Links the helpers that it shares with the Physics system. Not built with
+# Bazel yet.
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/simplified_physics/**/*.cc",
+            "src/systems/simplified_physics/**/*.hh",
+        ],
+        exclude = ["src/systems/simplified_physics/**/*TEST.cc"],
+    ),
+    so_lib_name = "gz-sim-simplified-physics-system.so",
+    static_lib_name = "gz-sim-simplified-physics-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-physics-helpers",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-math//eigen3",
+        "@gz-physics",
+        "@gz-plugin//:register",
+        "@sdformat",
+    ],
+)
+
+simplified_physics_test_sources = glob(
+    ["src/systems/simplified_physics/**/*TEST.cc"],
+)
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [
+        src,
+        "src/systems/simplified_physics/%s.cc" %
+        src.split("/")[-1].replace("_TEST.cc", ""),
+        "src/systems/simplified_physics/%s.hh" %
+        src.split("/")[-1].replace("_TEST.cc", ""),
+    ],
+    # Some tests need private headers.
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-math",
+    ],
+) for src in simplified_physics_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(

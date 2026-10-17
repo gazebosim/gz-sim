@@ -203,3 +203,26 @@ TEST(CommandClearer, EmptyEcm)
   EntityComponentManager ecm;
   ClearCommands(ecm, OwnerFilter::ForProvider(ecm, "Default", true));
 }
+
+/////////////////////////////////////////////////
+TEST(CommandClearer, ZeroesVelocityCommandsOnRequest)
+{
+  EntityComponentManager ecm;
+  const auto entity = AddEntityWithCommands(ecm, "");
+
+  ClearCommands(ecm, OwnerFilter(), true);
+
+  // The model velocity commands stay and hold zero.
+  const auto linear = ecm.Component<components::LinearVelocityCmd>(entity);
+  const auto angular = ecm.Component<components::AngularVelocityCmd>(entity);
+  ASSERT_NE(nullptr, linear);
+  ASSERT_NE(nullptr, angular);
+  EXPECT_EQ(math::Vector3d::Zero, linear->Data());
+  EXPECT_EQ(math::Vector3d::Zero, angular->Data());
+
+  // Everything else is cleared as before.
+  EXPECT_EQ(nullptr, ecm.Component<components::JointVelocityCmd>(entity));
+  EXPECT_EQ(nullptr, ecm.Component<components::JointPositionReset>(entity));
+  EXPECT_EQ((std::vector<double>{0.0, 0.0}),
+      ecm.Component<components::JointForceCmd>(entity)->Data());
+}

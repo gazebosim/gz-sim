@@ -1,0 +1,78 @@
+<?xml version="1.0" ?>
+<!--
+  Test world for the point that velocity commands turn about. There is no
+  gravity and no ground. Both models are the same: the canonical link is off
+  the model origin and turned, and VelocityControl drives 1 m/s forward and
+  turns at 1 rad/s. Physics simulates full_offset, SimplifiedPhysics simulates
+  kin_offset. The canonical link must move the same way in both.
+-->
+<sdf version="1.9">
+  <world name="simplified_physics_pivot_test">
+    <gravity>0 0 0</gravity>
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-simplified-physics-system"
+      name="gz::sim::systems::SimplifiedPhysics">
+    </plugin>
+
+    <model name="full_offset">
+      <pose>0 0 1 0 0 0.3</pose>
+      <link name="link">
+        <pose>0.5 0.2 0 0 0 0.4</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 1</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="kin_offset">
+      <pose>0 10 1 0 0 0.3</pose>
+      <link name="link">
+        <pose>0.5 0.2 0 0 0 0.4</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 1</initial_angular>
+      </plugin>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+    </model>
+  </world>
+</sdf>

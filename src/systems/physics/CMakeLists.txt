@@ -1,8 +1,23 @@
+# The write-back and command-clearing helpers are used by every physics
+# provider. They are an internal static library that the physics and
+# simplified-physics systems link, so that each source is compiled once. It is
+# not installed.
+add_library(gz-sim-physics-helpers STATIC
+  CommandClearer.cc
+  FrameDataWriter.cc
+)
+set_target_properties(gz-sim-physics-helpers PROPERTIES
+  POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(gz-sim-physics-helpers
+  PUBLIC
+    ${PROJECT_LIBRARY_TARGET_NAME}
+    gz-math::eigen3
+    gz-physics::core
+)
+
 gz_add_system(physics
   SOURCES
-    CommandClearer.cc
     ContactWriter.cc
-    FrameDataWriter.cc
     JointStateWriter.cc
     Physics.cc
   PUBLIC_LINK_LIBS
@@ -11,6 +26,8 @@ gz_add_system(physics
     gz-common::graphics
     gz-common::profiler
     gz-physics::gz-physics
+  PRIVATE_LINK_LIBS
+    gz-sim-physics-helpers
 )
 
 set (gtest_sources
@@ -43,7 +60,8 @@ gz_build_tests(TYPE UNIT
 )
 
 if (TARGET UNIT_CommandClearer_TEST)
-  target_sources(UNIT_CommandClearer_TEST PRIVATE CommandClearer.cc)
+  target_link_libraries(UNIT_CommandClearer_TEST
+    gz-sim-physics-helpers)
 endif()
 
 if (TARGET UNIT_ContactWriter_TEST)
@@ -51,7 +69,8 @@ if (TARGET UNIT_ContactWriter_TEST)
 endif()
 
 if (TARGET UNIT_FrameDataWriter_TEST)
-  target_sources(UNIT_FrameDataWriter_TEST PRIVATE FrameDataWriter.cc)
+  target_link_libraries(UNIT_FrameDataWriter_TEST
+    gz-sim-physics-helpers)
 endif()
 
 if (TARGET UNIT_JointStateWriter_TEST)

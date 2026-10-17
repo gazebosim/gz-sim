@@ -31,11 +31,13 @@ namespace systems::physics_system
   ///
   /// * Removed: JointPositionReset, JointVelocityReset,
   ///   WorldLinearVelocityReset, WorldAngularVelocityReset,
-  ///   EnableContactSurfaceCustomization, JointVelocityCmd,
-  ///   AngularVelocityCmd and LinearVelocityCmd.
+  ///   EnableContactSurfaceCustomization and JointVelocityCmd. Also
+  ///   AngularVelocityCmd and LinearVelocityCmd, unless `_zeroVelocityCmds`
+  ///   is set.
   /// * Zeroed or emptied, but kept: JointForceCmd, ExternalWorldWrenchCmd,
   ///   JointPositionLimitsCmd, JointVelocityLimitsCmd, JointEffortLimitsCmd
-  ///   and SlipComplianceCmd.
+  ///   and SlipComplianceCmd. Also AngularVelocityCmd and LinearVelocityCmd
+  ///   if `_zeroVelocityCmds` is set.
   ///
   /// Each provider clears only its own entities. Otherwise a provider that
   /// runs first would erase the commands that another provider has not read
@@ -43,7 +45,13 @@ namespace systems::physics_system
   ///
   /// \param[in,out] _ecm Mutable reference to the ECM.
   /// \param[in] _owner Selects the entities to clear.
-  void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner);
+  /// \param[in] _zeroVelocityCmds True to set the linear and angular velocity
+  /// commands to zero instead of removing them. A system such as
+  /// VelocityControl writes them every step. When the component is gone it
+  /// creates it again, which costs several times more than overwriting it.
+  /// A provider that treats a zero command as no motion can use this.
+  void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner,
+      bool _zeroVelocityCmds = false);
 }
 }
 }

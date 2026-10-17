@@ -1,0 +1,457 @@
+<?xml version="1.0" ?>
+<!--
+  Test world for the SimplifiedPhysics system. The Physics system and the
+  SimplifiedPhysics system run side by side. Models that start with "full_"
+  stay on Physics, the "kin_" models use the planar_kinematic mode.
+
+  Every kin_ model starts 1 m above the ground. If Physics simulated one, it
+  would fall.
+
+  full_falling:  falls and lands on the ground.
+  full_driven:   slides along x under VelocityControl on Physics. Its
+                 VelocityControl lists a physics requirement, which Physics
+                 supports, so the plugin must keep running.
+  kin_line:      drives straight along x at 1 m/s.
+  kin_yawed:     faces +y and drives forward, so it moves along +y.
+  kin_arc:       drives forward at 1 m/s and turns at 1 rad/s.
+  kin_spin:      turns in place at 2 rad/s. Its collision is 0.5 m ahead.
+  kin_tilted:    pitched by 0.3 rad, drives forward.
+  kin_idle:      has no command and must not move.
+  kin_gated:     its VelocityControl needs a feature that the mode does not
+                 serve, so the plugin is not activated and the model stays.
+  kin_gated_test_plugin: the same, through a plugin interface.
+  kin_teleport:  has no command. A test sends it a WorldPoseCmd.
+  kin_teleport_moving: drives along x. A test sends it a WorldPoseCmd.
+  kin_unknown_mode, kin_static, kin_nested_outer/inner: ask for
+                 planar_kinematic in a way that is refused (unknown mode, static
+                 model, nested model), so they stay on Physics.
+  dynamic_requested: asks for planar_dynamic, which is not implemented, so it
+                 stays on Physics and falls.
+-->
+<sdf version="1.9">
+  <world name="simplified_physics_test">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-simplified-physics-system"
+      name="gz::sim::systems::SimplifiedPhysics">
+    </plugin>
+
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>40 40 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0 0 -0.1 0 0 0</pose>
+    </model>
+
+    <model name="full_falling">
+      <pose>-5 0 2 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="full_driven">
+      <pose>-5 3 0.1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>0.5 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+        <gz:physics_requirements>joint_force</gz:physics_requirements>
+      </plugin>
+    </model>
+
+    <model name="kin_line">
+      <pose>0 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="kin_yawed">
+      <pose>3 0 1 0 0 1.5707963267948966</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="kin_arc">
+      <pose>6 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 1</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="kin_spin">
+      <pose>9 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <pose>0.5 0 0 0 0 0</pose>
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>0 0 0</initial_linear>
+        <initial_angular>0 0 2</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="kin_tilted">
+      <pose>12 0 1 0 0.3 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+      </plugin>
+    </model>
+
+    <model name="kin_idle">
+      <pose>15 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+    </model>
+
+    <model name="kin_gated">
+      <pose>18 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+        <initial_angular>0 0 0</initial_angular>
+        <gz:physics_requirements>joint_force</gz:physics_requirements>
+      </plugin>
+    </model>
+
+    <model name="kin_gated_test_plugin">
+      <pose>21 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="TestPhysicsRequirementsSystem"
+        name="gz::sim::TestPhysicsRequirementsSystem">
+      </plugin>
+    </model>
+
+    <model name="dynamic_requested">
+      <pose>-5 -4 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_dynamic</mode>
+      </plugin>
+    </model>
+
+    <model name="kin_teleport">
+      <pose>27 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+    </model>
+
+    <model name="kin_teleport_moving">
+      <pose>30 0 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+      <plugin
+        filename="gz-sim-velocity-control-system"
+        name="gz::sim::systems::VelocityControl">
+        <initial_linear>1 0 0</initial_linear>
+      </plugin>
+    </model>
+
+    <model name="kin_unknown_mode">
+      <pose>-5 -8 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>tier1</mode>
+      </plugin>
+    </model>
+
+    <model name="kin_static">
+      <static>true</static>
+      <pose>-5 -12 1 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box><size>0.2 0.2 0.2</size></box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-simplified-physics-system"
+        name="gz::sim::systems::SimplifiedPhysicsModel">
+        <mode>planar_kinematic</mode>
+      </plugin>
+    </model>
+
+    <model name="kin_nested_outer">
+      <pose>-5 -16 1 0 0 0</pose>
+      <model name="inner">
+        <link name="link">
+          <inertial>
+            <mass>1</mass>
+            <inertia>
+              <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+            </inertia>
+          </inertial>
+          <collision name="collision">
+            <geometry>
+              <box><size>0.2 0.2 0.2</size></box>
+            </geometry>
+          </collision>
+        </link>
+        <plugin
+          filename="gz-sim-simplified-physics-system"
+          name="gz::sim::systems::SimplifiedPhysicsModel">
+          <mode>planar_kinematic</mode>
+        </plugin>
+      </model>
+    </model>
+  </world>
+</sdf>

@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="amr">
+    <link name="link">
+      <inertial>
+        <mass>1</mass>
+        <inertia>
+          <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <box><size>0.2 0.2 0.2</size></box>
+        </geometry>
+      </collision>
+    </link>
+    <plugin
+      filename="gz-sim-velocity-control-system"
+      name="gz::sim::systems::VelocityControl">
+      <initial_linear>1 0 0</initial_linear>
+    </plugin>
+  </model>
+</sdf>
