@@ -1743,6 +1743,46 @@ TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
   }
 }
 
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, ExitReasonDefault)
+{
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+  ASSERT_EQ(1u, root.WorldCount());
+
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+  EXPECT_EQ(SimulationRunner::ExitReason::NONE, runner.ExitedWithErrors());
+
+  runner.SetExitedWithErrors(SimulationRunner::ExitReason::PLUGIN_ERROR);
+  EXPECT_EQ(SimulationRunner::ExitReason::PLUGIN_ERROR,
+      runner.ExitedWithErrors());
+
+  // A runner that exited with errors refuses to run
+  EXPECT_FALSE(runner.Run(1));
+}
+
+/////////////////////////////////////////////////
+TEST_P(SimulationRunnerTest, ExitReasonPluginError)
+{
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugin_load_error.sdf"));
+  ASSERT_EQ(1u, root.WorldCount());
+
+  ServerConfig serverConfig;
+  serverConfig.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+
+  // Entities are created and their plugins are loaded in the constructor
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader, serverConfig);
+  EXPECT_EQ(SimulationRunner::ExitReason::PLUGIN_ERROR,
+      runner.ExitedWithErrors());
+  EXPECT_FALSE(runner.Run(1));
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(ServerRepeat, SimulationRunnerTest,
