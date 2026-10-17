@@ -2660,7 +2660,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         }
         // Only set joint velocity if joint force is not set.
         // If both the cmd and reset components are found, cmd is ignored.
-        else if (velCmd)
+        else if (velCmd && !velCmd->Data().empty())
         {
           auto velocityCmd = velCmd->Data();
 
@@ -4435,20 +4435,15 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
         return true;
       });
 
-  {
-    std::vector<Entity> entitiesJointVelocityCmd;
-    _ecm.Each<components::JointVelocityCmd>(
-        [&](const Entity &_entity, components::JointVelocityCmd *) -> bool
-        {
-          entitiesJointVelocityCmd.push_back(_entity);
-          return true;
-        });
-
-    for (const auto entity : entitiesJointVelocityCmd)
-    {
-      _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
-    }
-  }
+  // A velocity command applies on the step it is written. Empty the data
+  // instead of removing the component so that a controller that writes every
+  // step reuses it.
+  _ecm.Each<components::JointVelocityCmd>(
+      [&](const Entity &, components::JointVelocityCmd *_vel) -> bool
+      {
+        _vel->Data().clear();
+        return true;
+      });
 
   _ecm.Each<components::SlipComplianceCmd>(
       [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool

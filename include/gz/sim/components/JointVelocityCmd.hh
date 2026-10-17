@@ -33,7 +33,10 @@ namespace sim
 inline namespace GZ_SIM_VERSION_NAMESPACE {
 namespace components
 {
-  /// \brief Base class which can be extended to add serialization
+  /// \brief Velocity commands for the degrees of freedom of a joint. The
+  /// Physics system applies the commands that are present on a step and
+  /// empties the data afterwards, so a controller writes the command on every
+  /// step it wants the joint driven. Empty data means no command.
   using JointVelocityCmd =
       Component<std::vector<double>, class JointVelocityCmdTag,
                 serializers::VectorDoubleSerializer>;

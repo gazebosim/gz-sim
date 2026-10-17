@@ -1585,6 +1585,156 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
 }
 
 /////////////////////////////////////////////////
+/// A joint velocity command applies on the step it is written and not
+/// afterwards. A command that stayed in place would keep driving the joint at
+/// the old velocity.
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityCmdAppliesOnlyWhenWritten)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf");
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ms);
+
+  const std::string jointName{"j2"};
+  const size_t firstCmd{20u};
+  const size_t lastCmd{39u};
+
+  test::Relay testSystem;
+
+  // cppcheck-suppress variableScope
+  size_t preIteration = 0u;
+  Entity jointEntity{kNullEntity};
+
+  testSystem.OnPreUpdate(
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const Entity &_entity, const components::Joint *,
+            const components::Name *_name) -> bool
+        {
+          if (_name->Data() != jointName)
+            return true;
+          jointEntity = _entity;
+          if (preIteration == 0u)
+          {
+            _ecm.CreateComponent(_entity, components::JointVelocity());
+            EXPECT_EQ(nullptr,
+                _ecm.Component<components::JointVelocityCmd>(_entity));
+          }
+          if (preIteration >= firstCmd && preIteration <= lastCmd)
+          {
+            _ecm.SetComponentData<components::JointVelocityCmd>(
+                _entity, {1.0});
+          }
+          return true;
+        });
+      ++preIteration;
+    });
+
+  std::vector<double> velocities;
+  std::vector<bool> cmdPresent;
+  std::vector<bool> cmdEmpty;
+
+  testSystem.OnPostUpdate(
+    [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+    {
+      auto vel = _ecm.Component<components::JointVelocity>(jointEntity);
+      ASSERT_NE(nullptr, vel);
+      ASSERT_FALSE(vel->Data().empty());
+      velocities.push_back(vel->Data()[0]);
+
+      auto cmd = _ecm.Component<components::JointVelocityCmd>(jointEntity);
+      cmdPresent.push_back(cmd != nullptr);
+      cmdEmpty.push_back(cmd != nullptr && cmd->Data().empty());
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 100, false);
+
+  ASSERT_EQ(100u, velocities.size());
+
+  // The joint follows the command while it is written.
+  for (size_t i = firstCmd; i <= lastCmd; ++i)
+    EXPECT_NEAR(1.0, velocities[i], 1e-2) << "step " << i;
+
+  // The joint does not keep the old velocity once the command stops.
+  EXPECT_LT(std::abs(velocities[99]), 0.5);
+
+  // Physics consumes the command by emptying it. It does not remove the
+  // component, so a controller that writes every step reuses it.
+  EXPECT_FALSE(cmdPresent[firstCmd - 1]);
+  for (size_t i = firstCmd; i < 100u; ++i)
+  {
+    EXPECT_TRUE(cmdPresent[i]) << "step " << i;
+    EXPECT_TRUE(cmdEmpty[i]) << "step " << i;
+  }
+}
+
+/////////////////////////////////////////////////
+/// A joint velocity command written on every step applies on every step,
+/// including when its value changes.
+TEST_F(PhysicsSystemFixtureWithDart6_10, JointVelocityCmdWrittenEveryStep)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/revolute_joint.sdf");
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ms);
+
+  const std::string jointName{"j2"};
+  const size_t changeStep{50u};
+
+  test::Relay testSystem;
+
+  // cppcheck-suppress variableScope
+  size_t preIteration = 0u;
+  Entity jointEntity{kNullEntity};
+
+  testSystem.OnPreUpdate(
+    [&](const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Joint, components::Name>(
+        [&](const Entity &_entity, const components::Joint *,
+            const components::Name *_name) -> bool
+        {
+          if (_name->Data() != jointName)
+            return true;
+          jointEntity = _entity;
+          if (preIteration == 0u)
+            _ecm.CreateComponent(_entity, components::JointVelocity());
+          _ecm.SetComponentData<components::JointVelocityCmd>(
+              _entity, {preIteration < changeStep ? 0.5 : -0.25});
+          return true;
+        });
+      ++preIteration;
+    });
+
+  std::vector<double> velocities;
+
+  testSystem.OnPostUpdate(
+    [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+    {
+      auto vel = _ecm.Component<components::JointVelocity>(jointEntity);
+      ASSERT_NE(nullptr, vel);
+      ASSERT_FALSE(vel->Data().empty());
+      velocities.push_back(vel->Data()[0]);
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 100, false);
+
+  ASSERT_EQ(100u, velocities.size());
+  for (size_t i = 0; i < 100u; ++i)
+  {
+    EXPECT_NEAR(i < changeStep ? 0.5 : -0.25, velocities[i], 1e-2)
+        << "step " << i;
+  }
+}
+
+/////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(GetModelBoundingBox))
 {

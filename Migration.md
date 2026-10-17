@@ -35,6 +35,15 @@ release will remove the deprecated code.
     fluid interface now float and right themselves per hydrostatic theory;
     models tuned to compensate for the old behavior may need retuning.
 
+* **Physics system: `JointVelocityCmd` stays on the joint**
+  * The Physics system no longer removes the `components::JointVelocityCmd`
+    component of a joint after each step. It empties the component's data
+    instead, so a controller that writes the command on every step reuses the
+    component. A command still applies only on the step it is written, and the
+    Physics system ignores a command with empty data. Code that tests whether a
+    joint has a `JointVelocityCmd` component to learn whether the joint is
+    being commanded should test for non-empty data instead.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
