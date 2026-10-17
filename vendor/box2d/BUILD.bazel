@@ -1,0 +1,45 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+# Vendored Box2D v3, see README.md. The Bazel Central Registry has no Box2D
+# module. Only gz-sim targets may depend on this library, and no public gz-sim
+# header may include a Box2D header.
+
+package(
+    default_applicable_licenses = ["//:license"],
+    # Third-party C code: do not enforce gz-sim's header checks on it.
+    features = [
+        "-layering_check",
+        "-parse_headers",
+    ],
+)
+
+licenses(["notice"])
+
+exports_files(["LICENSE"])
+
+cc_library(
+    name = "box2d",
+    srcs = glob([
+        "src/*.c",
+        "src/*.h",
+    ]),
+    hdrs = glob(["include/box2d/*.h"]),
+    # -ffp-contract=off is Box2D's setting for deterministic floating-point
+    # math. Box2D needs C17 for _Static_assert and anonymous unions.
+    copts = select({
+        "@bazel_tools//src/conditions:windows": ["/std:c17"],
+        "//conditions:default": [
+            "-ffp-contract=off",
+            "-fvisibility=hidden",
+            "-std=gnu17",
+            "-w",
+        ],
+    }),
+    includes = ["include"],
+    linkopts = select({
+        "@bazel_tools//src/conditions:windows": [],
+        "//conditions:default": ["-lm"],
+    }),
+    linkstatic = True,
+    visibility = ["//:__subpackages__"],
+)
