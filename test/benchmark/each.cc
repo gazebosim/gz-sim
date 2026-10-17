@@ -17,16 +17,27 @@
 
 #include <benchmark/benchmark.h>
 
+#include <algorithm>
+#include <chrono>
+#include <cstddef>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Inertial.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
+#include "gz/sim/components/Link.hh"
+#include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/World.hh"
 
@@ -279,6 +290,171 @@ BENCHMARK_DEFINE_F(ManyComponentFixture, Each5ComponentConst)
       }
     }
   }
+}
+
+/// \brief Models a fleet of robots that each step write a few components and
+/// mark them as changed, then end the step as SimulationRunner does. Each robot
+/// has 12 entities (model, 4 links, 4 collisions, 3 joints), created in SDF
+/// order, and marks the model Pose and two joint JointPositions per step.
+class SetChangedFixture: public benchmark::Fixture
+{
+  protected: void SetUp(const ::benchmark::State &_state) override
+  {
+    this->mgr = std::make_unique<EntityComponentManager>();
+    this->models.clear();
+    this->joints.clear();
+    this->Populate(static_cast<int>(_state.range(0)));
+    // Entities are not new after the first step.
+    this->EndStep();
+  }
+
+  protected: void TearDown(const ::benchmark::State &) override
+  {
+    this->mgr.reset();
+  }
+
+  protected: void Populate(int _robotCount)
+  {
+    const Entity world = this->mgr->CreateEntity();
+    this->mgr->CreateComponent(world, World());
+    this->mgr->CreateComponent(world, components::Name("world"));
+    for (int r = 0; r < _robotCount; ++r)
+    {
+      const Entity model = this->mgr->CreateEntity();
+      this->mgr->CreateComponent(model, components::Model());
+      this->mgr->CreateComponent(model,
+          components::Name("robot" + std::to_string(r)));
+      this->mgr->CreateComponent(model, Pose());
+      this->mgr->CreateComponent(model, ParentEntity(world));
+      this->models.push_back(model);
+      for (int l = 0; l < 4; ++l)
+      {
+        const Entity link = this->mgr->CreateEntity();
+        this->mgr->CreateComponent(link, components::Link());
+        this->mgr->CreateComponent(link,
+            components::Name("link" + std::to_string(l)));
+        this->mgr->CreateComponent(link, Pose());
+        this->mgr->CreateComponent(link, ParentEntity(model));
+        const Entity collision = this->mgr->CreateEntity();
+        this->mgr->CreateComponent(collision, components::Collision());
+        this->mgr->CreateComponent(collision, components::Name("collision"));
+        this->mgr->CreateComponent(collision, Pose());
+        this->mgr->CreateComponent(collision, ParentEntity(link));
+      }
+      for (int j = 0; j < 3; ++j)
+      {
+        const Entity joint = this->mgr->CreateEntity();
+        this->mgr->CreateComponent(joint, components::Joint());
+        this->mgr->CreateComponent(joint,
+            components::Name("joint" + std::to_string(j)));
+        this->mgr->CreateComponent(joint, ParentEntity(model));
+        this->mgr->CreateComponent(joint, JointPosition({0.0}));
+        // The first two joints are the driven wheels.
+        if (j < 2)
+          this->joints.push_back(joint);
+      }
+    }
+  }
+
+  /// \brief What SimulationRunner does at the end of a step.
+  protected: void EndStep()
+  {
+    this->mgr->ClearNewlyCreatedEntities();
+    this->mgr->ProcessRemoveEntityRequests();
+    this->mgr->ClearRemovedComponents();
+    this->mgr->SetAllComponentsUnchanged();
+  }
+
+  /// \brief Write the data of the three components of every robot.
+  protected: void Write(double _value)
+  {
+    const math::Pose3d pose(_value, _value, 0, 0, 0, _value);
+    for (std::size_t r = 0; r < this->models.size(); ++r)
+    {
+      for (const Entity joint : {this->joints[2 * r], this->joints[2 * r + 1]})
+        this->mgr->Component<JointPosition>(joint)->Data().assign(1, _value);
+      this->mgr->Component<Pose>(this->models[r])->Data() = pose;
+    }
+  }
+
+  /// \brief Mark the three components of every robot as periodically changed.
+  protected: void Mark()
+  {
+    for (std::size_t r = 0; r < this->models.size(); ++r)
+    {
+      for (const Entity joint : {this->joints[2 * r], this->joints[2 * r + 1]})
+      {
+        this->mgr->SetChanged(joint, JointPosition::typeId,
+            ComponentState::PeriodicChange);
+      }
+      this->mgr->SetChanged(this->models[r], Pose::typeId,
+          ComponentState::PeriodicChange);
+    }
+  }
+
+  /// \brief Write over a buffer of _megabytes to push the ECM out of the
+  /// cache, as the work of the other systems does between two steps.
+  protected: static void EvictCache(std::size_t _megabytes)
+  {
+    static std::vector<char> buffer(256u << 20);
+    const std::size_t size = std::min(buffer.size(), _megabytes << 20);
+    for (std::size_t i = 0; i < size; i += 64)
+      buffer[i] += 1;
+    benchmark::DoNotOptimize(buffer.data());
+    benchmark::ClobberMemory();
+  }
+
+  protected: std::unique_ptr<EntityComponentManager> mgr;
+  protected: std::vector<Entity> models;
+  protected: std::vector<Entity> joints;
+};
+
+/// \brief One step that writes the components, marks them changed and ends the
+/// step. Range 0 is the robot count, range 1 the megabytes written between
+/// steps to evict the ECM from the cache (0 keeps it warm). The step time is
+/// measured without the eviction. Items are marked components.
+BENCHMARK_DEFINE_F(SetChangedFixture, WriteMarkEndStep)
+(benchmark::State &_st)
+{
+  using Clock = std::chrono::steady_clock;
+  const auto evictMb = static_cast<std::size_t>(_st.range(1));
+  double value = 0.0;
+  for (auto _ : _st)
+  {
+    if (evictMb > 0)
+      EvictCache(evictMb);
+    value += 1e-3;
+    const auto start = Clock::now();
+    this->Write(value);
+    this->Mark();
+    this->EndStep();
+    const auto end = Clock::now();
+    _st.SetIterationTime(std::chrono::duration<double>(end - start).count());
+  }
+  _st.SetItemsProcessed(
+      3 * static_cast<int64_t>(this->models.size()) * _st.iterations());
+}
+
+/// \brief The same step without marking, as a reference for the writes.
+BENCHMARK_DEFINE_F(SetChangedFixture, WriteEndStep)
+(benchmark::State &_st)
+{
+  using Clock = std::chrono::steady_clock;
+  const auto evictMb = static_cast<std::size_t>(_st.range(1));
+  double value = 0.0;
+  for (auto _ : _st)
+  {
+    if (evictMb > 0)
+      EvictCache(evictMb);
+    value += 1e-3;
+    const auto start = Clock::now();
+    this->Write(value);
+    this->EndStep();
+    const auto end = Clock::now();
+    _st.SetIterationTime(std::chrono::duration<double>(end - start).count());
+  }
+  _st.SetItemsProcessed(
+      3 * static_cast<int64_t>(this->models.size()) * _st.iterations());
 }
 
 class EntityByComponentsFixture: public benchmark::Fixture
@@ -542,6 +718,45 @@ BENCHMARK_REGISTER_F(EntityByComponentsFixture, ChildrenByComponents)
   ->Arg(100)
   ->Arg(1000)
   ->Unit(benchmark::kMillisecond);
+
+// The step is a few tens of microseconds, but evicting the cache takes much
+// longer, so the iteration counts are fixed instead of left to the time target.
+// 48 MB evicts a 32 MB L3 cache, 256 MB evicts a 96 MB one.
+BENCHMARK_REGISTER_F(SetChangedFixture, WriteMarkEndStep)
+  ->Args({500, 0})
+  ->Iterations(2000)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(SetChangedFixture, WriteMarkEndStep)
+  ->Args({500, 48})
+  ->Iterations(300)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(SetChangedFixture, WriteMarkEndStep)
+  ->Args({500, 256})
+  ->Iterations(100)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(SetChangedFixture, WriteEndStep)
+  ->Args({500, 0})
+  ->Iterations(2000)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(SetChangedFixture, WriteEndStep)
+  ->Args({500, 48})
+  ->Iterations(300)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
+
+BENCHMARK_REGISTER_F(SetChangedFixture, WriteEndStep)
+  ->Args({500, 256})
+  ->Iterations(100)
+  ->UseManualTime()
+  ->Unit(benchmark::kMicrosecond);
 
 // OSX needs the semicolon, Ubuntu complains that there's an extra ';'
 #if !defined(_MSC_VER)

@@ -19,6 +19,7 @@
 #include "EntityComponentManagerDiff.hh"
 
 #include <algorithm>
+#include <array>
 #include <map>
 #include <memory>
 #include <optional>
@@ -96,39 +97,81 @@ namespace
   struct ModifiedComponent { };
 
   /// \brief Set of component type ids. An entity has only a few changed or
-  /// removed component types, so a vector is cheaper than a hash set, which
-  /// allocates a node per element.
+  /// removed component types, so the set keeps up to kInline ids inside the
+  /// object and uses a vector only for more. The ECM creates one set per
+  /// changed entity and step and destroys it when the step ends, so keeping
+  /// the common case off the heap saves an allocation and a free per entity
+  /// and step.
   class ComponentTypeIdSet
   {
     public: void insert(const ComponentTypeId _typeId)
     {
       if (this->contains(_typeId))
         return;
-      if (this->ids.empty())
-        this->ids.reserve(4);
-      this->ids.push_back(_typeId);
+      if (this->overflow.empty() && this->count < kInline)
+      {
+        this->local[this->count++] = _typeId;
+        return;
+      }
+      // The ids move to the vector together, so that begin() and end() always
+      // describe one contiguous range.
+      if (this->overflow.empty())
+      {
+        this->overflow.assign(this->local.begin(),
+            this->local.begin() + this->count);
+      }
+      this->overflow.push_back(_typeId);
+      ++this->count;
     }
 
     public: void erase(const ComponentTypeId _typeId)
     {
-      auto it = std::find(this->ids.begin(), this->ids.end(), _typeId);
-      if (it != this->ids.end())
-        this->ids.erase(it);
+      ComponentTypeId *first = this->Data();
+      ComponentTypeId *last = first + this->count;
+      ComponentTypeId *it = std::find(first, last, _typeId);
+      if (it == last)
+        return;
+      std::copy(it + 1, last, it);
+      --this->count;
+      if (!this->overflow.empty())
+        this->overflow.pop_back();
     }
 
     public: bool contains(const ComponentTypeId _typeId) const
     {
-      return std::find(this->ids.begin(), this->ids.end(), _typeId) !=
-          this->ids.end();
+      return std::find(this->begin(), this->end(), _typeId) != this->end();
     }
 
-    public: bool empty() const { return this->ids.empty(); }
+    public: bool empty() const { return this->count == 0; }
 
-    public: auto begin() const { return this->ids.begin(); }
+    public: const ComponentTypeId *begin() const
+    {
+      return this->overflow.empty() ? this->local.data() :
+          this->overflow.data();
+    }
 
-    public: auto end() const { return this->ids.end(); }
+    public: const ComponentTypeId *end() const
+    {
+      return this->begin() + this->count;
+    }
 
-    private: std::vector<ComponentTypeId> ids;
+    private: ComponentTypeId *Data()
+    {
+      return this->overflow.empty() ? this->local.data() :
+          this->overflow.data();
+    }
+
+    /// \brief Number of ids kept inside the object.
+    private: static constexpr std::size_t kInline{4};
+
+    /// \brief Number of ids in the set.
+    private: std::size_t count{0};
+
+    /// \brief Ids of a set with up to kInline ids.
+    private: std::array<ComponentTypeId, kInline> local{};
+
+    /// \brief Ids of a set that has outgrown local. Empty otherwise.
+    private: std::vector<ComponentTypeId> overflow;
   };
 
   /// \brief Internal component containing the components marked as one time
