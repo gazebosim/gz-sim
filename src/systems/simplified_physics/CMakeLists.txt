@@ -1,8 +1,8 @@
 # Collision queries for the planar modes, built on the collision code of
-# Box2D. Internal and not installed. Nothing links it yet: the system will
-# once it uses the collision queries. The file is compiled without floating
-# point contraction, as Box2D is, so that results are bit-identical across
-# compilers that would otherwise fuse multiply-adds.
+# Box2D. Internal and not installed. The simplified-physics system links it.
+# The file is compiled without floating point contraction, as Box2D is, so
+# that results are bit-identical across compilers that would otherwise fuse
+# multiply-adds.
 add_library(gz-sim-planar-collision STATIC PlanarCollision.cc)
 set_target_properties(gz-sim-planar-collision PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
@@ -45,6 +45,7 @@ gz_add_system(simplified-physics
     gz-physics::core
   PRIVATE_LINK_LIBS
     gz-sim-physics-helpers
+    gz-sim-planar-collision
 )
 
 gz_build_tests(TYPE UNIT

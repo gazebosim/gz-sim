@@ -1763,8 +1763,10 @@ simplified_physics_test_sources = glob(
         src.split("/")[-1].replace("_TEST.cc", ""),
         "src/systems/simplified_physics/%s.hh" %
         src.split("/")[-1].replace("_TEST.cc", ""),
-        # The collision header includes it.
+        # Headers that the headers under test include.
+        "src/systems/simplified_physics/PlanarCollision.hh",
         "src/systems/simplified_physics/PlanarMotion.hh",
+        "src/systems/simplified_physics/WheelKinematics.hh",
     ],
     # Some tests need private headers. The collision code needs unfused
     # floating point for its determinism guarantee, as in CMake.

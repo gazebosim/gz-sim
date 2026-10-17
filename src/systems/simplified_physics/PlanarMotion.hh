@@ -22,6 +22,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
 
+#include "WheelKinematics.hh"
 #include "gz/sim/config.hh"
 
 namespace gz::sim
@@ -80,6 +81,25 @@ namespace systems::simplified_physics
   /// \param[in] _dt Duration, in seconds.
   /// \return Displacement of the body origin and the change of heading.
   PlanarDelta IntegrateArc(double _yaw, double _vx, double _vy, double _wz,
+      double _dt);
+
+  /// \brief The body-frame twist that IntegrateArc turns into a displacement.
+  ///
+  /// This is the inverse of IntegrateArc for one step. A motion that
+  /// collisions cut is a displacement and a turn that no command asked for,
+  /// and the wheel joints and the velocities that readers see must follow it.
+  /// The inverse of the 2x2 matrix [s -c; c s] of IntegrateArc is
+  /// [s c; -c s] / (s^2 + c^2), with the same series for small angles.
+  ///
+  /// A non-positive or non-finite _dt, or a non-finite displacement, gives a
+  /// zero twist.
+  ///
+  /// \param[in] _yaw Heading of the body at the start, in radians.
+  /// \param[in] _delta Displacement of the body origin and change of heading.
+  /// \param[in] _dt Duration, in seconds.
+  /// \return Velocity of the body origin in the body frame, and the angular
+  /// velocity, that IntegrateArc would integrate to _delta.
+  PlanarTwist TwistFromDelta(double _yaw, const PlanarDelta &_delta,
       double _dt);
 
   /// \brief Pose, velocity and acceleration of a frame, all in the world

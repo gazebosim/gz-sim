@@ -60,6 +60,11 @@ namespace systems
   ///   that its VelocityControl system commands. `planar_dynamic` is not
   ///   implemented yet: the plugin prints a warning and keeps the model on
   ///   `full`. An unknown value also keeps the model on `full`.
+  /// - `<collision_response>`: `slide` (default) or `stop`, for
+  ///   `planar_kinematic`. What the model does when its motion runs into the
+  ///   world or another model: `slide` keeps the part of the motion along the
+  ///   obstacle, `stop` ends the motion at the first touch. Any other value
+  ///   is ignored with a warning and `slide` is used.
   /// - `<odometry_noise>`: fraction, default 0 (off). Only for a model with
   ///   wheel joints. Adds a fixed scale error per wheel, drawn once, and a
   ///   zero-mean random walk to the wheel positions that the model reports,

@@ -23,6 +23,7 @@
 
 #include <sdf/Element.hh>
 
+#include "PlanarCollision.hh"
 #include "gz/sim/config.hh"
 
 namespace gz::sim
@@ -56,6 +57,10 @@ namespace systems::simplified_physics
 
     /// \brief Value of `<animate_wheels>`. Not implemented yet.
     bool animateWheels{false};
+
+    /// \brief Value of `<collision_response>`: what the model does when its
+    /// motion runs into an obstacle. Slide unless the element says `stop`.
+    PlanarResponse collisionResponse{PlanarResponse::Slide};
   };
 
   /// \brief Name of the SimplifiedPhysicsModel plugin as the `name` attribute
@@ -72,7 +77,8 @@ namespace systems::simplified_physics
   /// \brief Read the parameters from the contents of the plugin element.
   ///
   /// A value that cannot be used (a negative or non-numeric noise, a
-  /// `<wheel>` without a name) is skipped and reported with a warning if
+  /// `<wheel>` without a name, a `collision_response` other than `stop` or
+  /// `slide`) is skipped and reported with a warning if
   /// `_warn` is set.
   ///
   /// \param[in] _contents The children of the `<plugin>` element, as

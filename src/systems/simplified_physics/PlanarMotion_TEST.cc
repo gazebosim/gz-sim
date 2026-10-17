@@ -264,3 +264,42 @@ TEST(PlanarMotion, FrameAtOffset)
   EXPECT_TRUE(sensor.linearVelocity.Equal(frame.linearVelocity, 1e-12));
   EXPECT_TRUE(sensor.linearAcceleration.Equal(frame.linearAcceleration, 1e-12));
 }
+
+/////////////////////////////////////////////////
+TEST(PlanarMotion, TwistFromDeltaInvertsTheArc)
+{
+  const double yaws[] = {0.0, 0.7, -2.5, 3.1};
+  const double speeds[][3] = {
+      {1.0, 0.0, 0.0}, {-0.5, 0.0, 0.0}, {0.8, 0.0, 0.4}, {0.3, -0.2, -1.1},
+      {0.0, 0.0, 2.0}, {1.2, 0.1, 1e-6}, {0.4, 0.0, 30.0}};
+  for (const double yaw : yaws)
+  {
+    for (const auto &v : speeds)
+    {
+      for (const double dt : {0.001, 0.01, 0.1})
+      {
+        const auto delta = IntegrateArc(yaw, v[0], v[1], v[2], dt);
+        const auto twist = TwistFromDelta(yaw, delta, dt);
+        EXPECT_NEAR(v[0], twist.vx, 1e-9) << yaw << " " << dt;
+        EXPECT_NEAR(v[1], twist.vy, 1e-9) << yaw << " " << dt;
+        EXPECT_NEAR(v[2], twist.wz, 1e-9) << yaw << " " << dt;
+      }
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+TEST(PlanarMotion, TwistFromDeltaOfNothing)
+{
+  const auto zero = TwistFromDelta(1.0, PlanarDelta(), 0.001);
+  EXPECT_EQ(0.0, zero.vx);
+  EXPECT_EQ(0.0, zero.vy);
+  EXPECT_EQ(0.0, zero.wz);
+
+  PlanarDelta delta;
+  delta.x = 0.1;
+  EXPECT_EQ(0.0, TwistFromDelta(0.0, delta, 0.0).vx);
+  EXPECT_EQ(0.0, TwistFromDelta(0.0, delta, -1.0).vx);
+  delta.x = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_EQ(0.0, TwistFromDelta(0.0, delta, 0.001).vx);
+}

@@ -38,8 +38,10 @@ namespace systems
   /// The system simulates the models whose `components::PhysicsOwner` names
   /// it. A model gets that component from the SimplifiedPhysicsModel plugin.
   /// The default Physics system skips these models, so the two systems can run
-  /// in one world, each with its own models. Neither sees the other's models
-  /// as bodies: a model on Physics does not collide with one on this system.
+  /// in one world, each with its own models. The view is one-way: models on
+  /// this system collide with the world and with models on Physics (see
+  /// "Collisions"), but Physics does not see the models on this system, so a
+  /// model on Physics drives through them.
   ///
   /// Only the `planar_kinematic` mode exists so far. For each model in that
   /// mode, in every Update:
@@ -56,9 +58,9 @@ namespace systems
   ///    VelocityControl writes in the model frame, are projected onto x, y and
   ///    yaw. They describe the model's canonical link, as on Physics, so the
   ///    model turns about that link and not about its own origin. The model
-  ///    then moves along the exact arc for that velocity over the step. Its
-  ///    z, roll and pitch do not change. A step without a command is a step
-  ///    without motion.
+  ///    then moves along the exact arc for that velocity over the step, unless
+  ///    an obstacle cuts the motion (see "Collisions"). Its z, roll and pitch
+  ///    do not change. A step without a command is a step without motion.
   /// 3. If the model has no model velocity command (or it is zero), the
   ///    `JointVelocityCmd` of its wheel joints moves it (see "Wheels"). A
   ///    non-zero model velocity command takes precedence over wheel commands,
@@ -101,10 +103,12 @@ namespace systems
   ///
   /// The `JointPosition` and `JointVelocity` of every wheel follow the motion
   /// that the model achieved, not the command, so wheel odometry equals the
-  /// ground truth of the planar motion. This holds for a model that moves
-  /// under VelocityControl too. With `<odometry_noise>` above zero the
-  /// written position differs from the achieved motion on purpose (see
-  /// OdometryNoise). A passive wheel on a fixed axle rolls like a driven one.
+  /// ground truth of the planar motion. A robot that a wall or another robot
+  /// stops has wheels that stop, and its odometry stops with it. This holds for
+  /// a model that moves under VelocityControl too. With `<odometry_noise>`
+  /// above zero the written position differs from the achieved motion on
+  /// purpose (see OdometryNoise). A passive wheel on a fixed axle rolls like
+  /// a driven one.
   /// The system fills the components that exist, like Physics, and it fills
   /// a `JointPosition` or `JointVelocity` that has no value in the step in
   /// which it finds it empty, also for a robot that stands still. A robot
@@ -159,11 +163,57 @@ namespace systems
   /// Only an instance attached to the world works. An instance in a model
   /// prints an error and does nothing.
   ///
+  /// ## Collisions
+  ///
+  /// The system keeps a PlanarCollisionWorld with the footprints of every
+  /// top-level model (the collisions projected onto the ground plane, between
+  /// 1 cm and 2 m above the floor; a collision with a zero `collide_bitmask`
+  /// is left out) and moves its models through it:
+  ///
+  /// * A static model, and a model without a pose, is scenery. It enters the
+  ///   world when the system first sees it and is never read again. A static
+  ///   model that is teleported afterwards keeps its old footprint.
+  /// * A model that this system moves is a robot. It moves by the motion that
+  ///   its commands ask for, cut by the scenery, by the other models, and by
+  ///   the other robots that move in the same step. The achieved motion is
+  ///   what the model's `Pose`, its velocities, the frame data of its links and
+  ///   the wheel and joint states follow. A model whose collisions are all out
+  ///   of the band moves through everything.
+  /// * Any other top-level model that is not static, which in practice is a
+  ///   model on the default Physics system, is an obstacle of infinite mass.
+  ///   The system reads its `Pose` in every step, so it lags Physics by one
+  ///   step, and drops its roll and pitch: a box that tips over still blocks
+  ///   as an upright one. The robot does not push the obstacle, and Physics
+  ///   does not see the robot, so a full-physics body that moves into a robot
+  ///   goes through it. Only the rigid compound of the collisions at the time
+  ///   the model is first seen is used: links that move relative to the model
+  ///   (an arm) do not.
+  ///
+  /// `<collision_response>` of the SimplifiedPhysicsModel parameters picks
+  /// what a robot does when it runs into an obstacle: `slide` (default) keeps
+  /// the part of the motion along the obstacle, `stop` ends the motion where
+  /// the robot touches it. A robot that is cut by another robot stops in both
+  /// modes, so a robot that follows a slower one alternates between its full
+  /// speed and zero (see PlanarCollisionWorld). A robot ends a step at least
+  /// 0.1 mm from what stopped it, and a model that is spawned inside an
+  /// obstacle can move out of it, not further in. Models are added and
+  /// removed at runtime, and a world reset builds the collision world again.
+  ///
+  /// Wheel odometry reads the achieved motion through the rolling constraints
+  /// of the wheels, so it cannot see sideways motion: a differential drive
+  /// that slides along a wall at an angle has odometry that follows only the
+  /// part of the slide along its heading. A robot that drives straight into a
+  /// wall, or is stopped by another robot, has exact odometry.
+  ///
+  /// Collisions are not reported to contact sensors yet: a
+  /// `ContactSensorData` on a collision of a planar model stays empty. The
+  /// collision world can report contacts (PlanarCollisionOptions), so this is
+  /// a follow-up and not a limit of the mode.
+  ///
   /// ## Not simulated yet
   ///
-  /// Collisions between models or with the world, link velocity commands,
-  /// contacts, ray hits for CPU lidar and the `planar_dynamic` mode. A model
-  /// moves through everything. Link velocity commands on a model that this
+  /// Link velocity commands, contacts, ray hits for CPU lidar and the
+  /// `planar_dynamic` mode. Link velocity commands on a model that this
   /// system owns are cleared, and the system warns once for the model.
   ///
   /// Wheels and joints: the links of wheels and of articulated joints do not
@@ -216,7 +266,8 @@ namespace systems
   ///   truth. Slip comes only from `<odometry_noise>`. The noise is sized for
   ///   a differential drive (see OdometryNoise).
   ///
-  /// The system has no parameters yet.
+  /// The system has no parameters yet. The collision world uses the defaults
+  /// of PlanarCollisionOptions.
   class SimplifiedPhysics:
     public System,
     public ISystemConfigure,

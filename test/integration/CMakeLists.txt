@@ -88,6 +88,7 @@ set(tests
   sdf_include.cc
   sensor.cc
   simplified_physics.cc
+  simplified_physics_collision.cc
   simplified_physics_wheels.cc
   spherical_coordinates.cc
   swerve_drive_system.cc

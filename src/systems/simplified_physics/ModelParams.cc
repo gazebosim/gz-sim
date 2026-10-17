@@ -105,6 +105,23 @@ ModelParams ParseModelParams(const std::vector<sdf::ElementPtr> &_contents,
                << std::endl;
       }
     }
+    else if (name == "collision_response")
+    {
+      if (text == "stop")
+      {
+        params.collisionResponse = PlanarResponse::Stop;
+      }
+      else if (text == "slide")
+      {
+        params.collisionResponse = PlanarResponse::Slide;
+      }
+      else if (_warn)
+      {
+        gzwarn << "Model [" << _model << "] has an unknown "
+               << "collision_response [" << text << "]. Known values are "
+               << "[stop] and [slide]. The model uses [slide]." << std::endl;
+      }
+    }
     else if (name == "wheel")
     {
       WheelOverride entry;

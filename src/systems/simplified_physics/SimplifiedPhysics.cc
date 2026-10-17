@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -45,6 +46,7 @@
 #include "ModelParams.hh"
 #include "OdometryNoise.hh"
 #include "PhysicsMode.hh"
+#include "PlanarCollision.hh"
 #include "PlanarMotion.hh"
 #include "WheelInference.hh"
 #include "WheelKinematics.hh"
@@ -110,6 +112,24 @@ bool IsValidPose(const math::Pose3d &_pose)
 bool NonZero(double _value)
 {
   return std::fpclassify(_value) != FP_ZERO;
+}
+
+/// \brief True if two poses are bit-for-bit the same in position and
+/// rotation. The collision world is told about a pose only when it differs
+/// from the last one that it holds, so the test must not use the tolerance of
+/// gz-math's operator==.
+/// \param[in] _a A pose.
+/// \param[in] _b Another pose.
+/// \return True if no component differs.
+bool SamePose(const math::Pose3d &_a, const math::Pose3d &_b)
+{
+  return !(NonZero(_a.Pos().X() - _b.Pos().X()) ||
+      NonZero(_a.Pos().Y() - _b.Pos().Y()) ||
+      NonZero(_a.Pos().Z() - _b.Pos().Z()) ||
+      NonZero(_a.Rot().W() - _b.Rot().W()) ||
+      NonZero(_a.Rot().X() - _b.Rot().X()) ||
+      NonZero(_a.Rot().Y() - _b.Rot().Y()) ||
+      NonZero(_a.Rot().Z() - _b.Rot().Z()));
 }
 
 /// \brief True if the entity has one of the nine frame data components.
@@ -325,9 +345,55 @@ struct JointState
   bool held{false};
 };
 
+/// \brief What a model wants to do in one step, before collisions. Plan
+/// fills it and Finish reads it.
+struct StepPlan
+{
+  /// \brief The model's Pose component, which stays valid between Plan and
+  /// Finish because nothing creates or removes a Pose in between.
+  components::Pose *poseComp{nullptr};
+
+  /// \brief Pose at the start of the motion, after a teleport.
+  math::Pose3d pose;
+
+  /// \brief True if a WorldPoseCmd moved the model in this step.
+  bool teleported{false};
+
+  /// \brief Motion without obstacles.
+  PlanarDelta delta;
+
+  /// \brief Velocity of the model origin in the world frame at the end of the
+  /// motion without obstacles.
+  math::Vector3d velocity;
+
+  /// \brief Yaw rate of that motion.
+  double wz{0.0};
+
+  /// \brief Twist in the model frame that gives the motion.
+  PlanarTwist bodyTwist;
+
+  /// \brief Index of the model's request for the collision world, or -1.
+  int request{-1};
+};
+
 /// \brief A model that the system simulates.
 struct OwnedModel
 {
+  /// \brief What the model wants to do in this step.
+  StepPlan plan;
+
+  /// \brief Reaction to obstacles (`collision_response`).
+  PlanarResponse response{PlanarResponse::Slide};
+
+  /// \brief True if the collision world holds footprints for the model. A
+  /// model without a collision in the height band moves through everything.
+  bool collides{false};
+
+  /// \brief The pose that the collision world holds for the model, as of the
+  /// end of the last step. A different Pose component means that something
+  /// else moved the model, and the world is told before the next motion.
+  math::Pose3d worldPose;
+
   /// \brief Links of the model, including links of nested models.
   std::vector<Entity> links;
 
@@ -497,14 +563,55 @@ class gz::sim::systems::SimplifiedPhysicsPrivate
   /// \param[in] _ecm Mutable reference to the ECM.
   public: void UpdateModels(EntityComponentManager &_ecm);
 
-  /// \brief Apply the commands of one model and move it.
+  /// \brief Read the commands of one model and work out the motion that it
+  /// wants. Nothing moves yet: the collision world decides how far it gets.
+  /// \param[in,out] _ecm Mutable reference to the ECM.
+  /// \param[in] _model Model entity.
+  /// \param[in,out] _owned State of the model. Its plan is filled.
+  /// \param[in] _dt Time step in seconds. Zero when paused.
+  /// \return False if the model has no pose and cannot move.
+  public: bool Plan(EntityComponentManager &_ecm, const Entity &_model,
+              OwnedModel &_owned, double _dt);
+
+  /// \brief Move one model by the motion that the collision world allowed,
+  /// and update everything that follows the motion: the pose, the wheel and
+  /// joint states and the frame data.
   /// \param[in,out] _ecm Mutable reference to the ECM.
   /// \param[in] _model Model entity.
   /// \param[in,out] _owned State of the model.
   /// \param[in] _dt Time step in seconds. Zero when paused.
+  /// \param[in] _result What the collision world did with the model's
+  /// request, or null if the model had none: it moves as it wanted.
   /// \return True if frame data was written for the model.
-  public: bool Step(EntityComponentManager &_ecm, const Entity &_model,
-              OwnedModel &_owned, double _dt);
+  public: bool Finish(EntityComponentManager &_ecm, const Entity &_model,
+              OwnedModel &_owned, double _dt,
+              const PlanarMotionResult *_result);
+
+  /// \brief Note a model that this system does not move. It enters the
+  /// collision world in FlushObstacles, once the system moves a model at all.
+  /// A world that loads the system but has no planar model pays nothing for
+  /// the footprints of its scenery.
+  /// \param[in] _model Candidate model.
+  public: void AddObstacle(const Entity &_model);
+
+  /// \brief Put the noted models into the collision world if the system moves
+  /// at least one model: scenery if nothing can move a model, else a body
+  /// that other code moves, which is an obstacle that follows the model's
+  /// Pose.
+  /// \param[in] _ecm Constant reference to the ECM.
+  public: void FlushObstacles(const EntityComponentManager &_ecm);
+
+  /// \brief Put one top-level model into the collision world.
+  /// \param[in] _ecm Constant reference to the ECM.
+  /// \param[in] _model Top-level model.
+  public: void AddObstacleNow(const EntityComponentManager &_ecm,
+              const Entity &_model);
+
+  /// \brief Tell the collision world where the models that other systems move
+  /// are now. They lag Physics by one step, because Physics writes their
+  /// poses after this system ran.
+  /// \param[in] _ecm Constant reference to the ECM.
+  public: void FollowForeignModels(const EntityComponentManager &_ecm);
 
   /// \brief Look for frame data components that were created in this step
   /// under the models. Components created in a step carry a one-time change
@@ -526,6 +633,24 @@ class gz::sim::systems::SimplifiedPhysicsPrivate
 
   /// \brief State of the links of all models.
   public: std::unordered_map<Entity, LinkState> links;
+
+  /// \brief Footprints of the scenery, of the models that the system moves and
+  /// of the bodies of other physics systems. Planar models are moved through
+  /// it with one call per step.
+  public: std::unique_ptr<PlanarCollisionWorld> collision{
+              std::make_unique<PlanarCollisionWorld>()};
+
+  /// \brief Models that other systems move, with the pose the collision world
+  /// holds for them. Their pose is read from the Pose component each step.
+  public: std::unordered_map<Entity, math::Pose3d> foreign;
+
+  /// \brief Models seen by AddModel that no planar model has needed yet.
+  public: std::unordered_set<Entity> pendingObstacles;
+
+  /// \brief Requests for the collision world in this step, ordered by the
+  /// entity of the model, and the results.
+  public: std::vector<PlanarMotionRequest> requests;
+  public: std::vector<PlanarMotionResult> results;
 
   /// \brief The wheels and joints that the system follows, by joint entity.
   public: std::unordered_map<Entity, JointRef> jointRefs;
@@ -603,6 +728,9 @@ void SimplifiedPhysics::Reset(const UpdateInfo &/*_info*/,
   this->dataPtr->links.clear();
   this->dataPtr->jointRefs.clear();
   this->dataPtr->ownedEntities.clear();
+  this->dataPtr->foreign.clear();
+  this->dataPtr->pendingObstacles.clear();
+  this->dataPtr->collision = std::make_unique<PlanarCollisionWorld>();
   this->dataPtr->needsScan = true;
 }
 
@@ -626,10 +754,51 @@ void SimplifiedPhysics::Update(const UpdateInfo &_info,
 
   this->dataPtr->ApplyJointResets(_ecm);
 
+  // Every model says what it wants to do, the collision world decides how
+  // far each one gets, and then the models move. Models are ordered by entity,
+  // so the requests do not depend on hashing.
+  auto &requests = this->dataPtr->requests;
+  requests.clear();
+  for (auto &[model, owned] : this->dataPtr->models)
+  {
+    owned.plan.request = -1;
+    if (!this->dataPtr->Plan(_ecm, model, owned, dt) || !owned.collides)
+      continue;
+
+    // A teleport, or any other change of the pose, moves the model in the
+    // collision world before the motion starts from there.
+    if (!SamePose(owned.plan.pose, owned.worldPose))
+    {
+      this->dataPtr->collision->SetPose(model, owned.plan.pose);
+      owned.worldPose = owned.plan.pose;
+    }
+
+    if (!owned.plan.delta.IsZero())
+    {
+      owned.plan.request = static_cast<int>(requests.size());
+      PlanarMotionRequest request;
+      request.model = model;
+      request.desired = owned.plan.delta;
+      request.response = owned.response;
+      requests.push_back(request);
+    }
+  }
+
+  if (!this->dataPtr->foreign.empty())
+    this->dataPtr->FollowForeignModels(_ecm);
+  if (!requests.empty())
+    this->dataPtr->collision->Move(requests, this->dataPtr->results);
+
   bool wroteFrameData{false};
   for (auto &[model, owned] : this->dataPtr->models)
   {
-    if (this->dataPtr->Step(_ecm, model, owned, dt))
+    const PlanarMotionResult *result{nullptr};
+    if (owned.plan.request >= 0)
+    {
+      result = &this->dataPtr->results[
+          static_cast<std::size_t>(owned.plan.request)];
+    }
+    if (this->dataPtr->Finish(_ecm, model, owned, dt, result))
       wroteFrameData = true;
   }
 
@@ -742,6 +911,7 @@ void SimplifiedPhysicsPrivate::UpdateModels(EntityComponentManager &_ecm)
           this->AddModel(_ecm, owner, _entity);
           return true;
         });
+    this->FlushObstacles(_ecm);
     return;
   }
 
@@ -751,6 +921,7 @@ void SimplifiedPhysicsPrivate::UpdateModels(EntityComponentManager &_ecm)
         this->AddModel(_ecm, owner, _entity);
         return true;
       });
+  this->FlushObstacles(_ecm);
 
   // A link, joint or collision added to a model that is already owned is
   // owned too.
@@ -905,7 +1076,10 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
     return;
 
   if (!_owner.Owns(_model))
+  {
+    this->AddObstacle(_model);
     return;
+  }
 
   // The model plugin refuses nested models, but the world default can still
   // reach them. Their pose is relative to the parent, and the parent decides.
@@ -913,7 +1087,10 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
     return;
 
   if (!this->ClaimModel(_ecm, _model))
+  {
+    this->AddObstacle(_model);
     return;
+  }
 
   const auto modelPose = worldPose(_model, _ecm);
 
@@ -955,6 +1132,13 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
         return HasFrameComponent(_ecm, _entity);
       });
 
+  // The footprints of the model's collisions. A model without any in the
+  // height band is not part of the collision world and moves through
+  // everything.
+  owned.collides = this->collision->AddMovableModel(_ecm, _model);
+  if (const auto *poseComp = _ecm.Component<components::Pose>(_model))
+    owned.worldPose = poseComp->Data();
+
   const auto it = this->models.emplace(_model, std::move(owned)).first;
   for (const auto &link : it->second.links)
     this->links[link].owner = &it->second;
@@ -962,6 +1146,72 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
     this->jointRefs[it->second.wheels[i].joint] = {_model, true, i};
   for (std::size_t i = 0; i < it->second.joints.size(); ++i)
     this->jointRefs[it->second.joints[i].joint] = {_model, false, i};
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::AddObstacle(const Entity &_model)
+{
+  this->pendingObstacles.insert(_model);
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::FlushObstacles(
+    const EntityComponentManager &_ecm)
+{
+  if (this->models.empty() || this->pendingObstacles.empty())
+    return;
+
+  // The order of insertion into the collision world decides ties between
+  // obstacles that are hit at the same time, so add them in entity order.
+  std::vector<Entity> pending(this->pendingObstacles.begin(),
+      this->pendingObstacles.end());
+  this->pendingObstacles.clear();
+  std::sort(pending.begin(), pending.end());
+  for (const auto &model : pending)
+  {
+    // Nested models are part of their top-level model's footprints.
+    if (_ecm.Component<components::Model>(model) &&
+        topLevelModel(model, _ecm) == model)
+    {
+      this->AddObstacleNow(_ecm, model);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::AddObstacleNow(
+    const EntityComponentManager &_ecm, const Entity &_model)
+{
+  const auto isStatic = _ecm.ComponentData<components::Static>(_model);
+  const auto *poseComp = _ecm.Component<components::Pose>(_model);
+  if ((isStatic.has_value() && *isStatic) || !poseComp)
+  {
+    // Nothing moves it. It is added once and never read again, so a static
+    // model that is teleported later stays where it was added.
+    this->collision->AddStaticModel(_ecm, _model);
+    return;
+  }
+
+  // Another system moves this model, Physics for the most part. The planar
+  // models see it as an obstacle of infinite mass at the pose of the Pose
+  // component, and do not push it.
+  if (this->collision->AddMovableModel(_ecm, _model))
+    this->foreign[_model] = poseComp->Data();
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::FollowForeignModels(
+    const EntityComponentManager &_ecm)
+{
+  for (auto &[model, known] : this->foreign)
+  {
+    const auto *poseComp = _ecm.Component<components::Pose>(model);
+    if (!poseComp || SamePose(poseComp->Data(), known))
+      continue;
+
+    known = poseComp->Data();
+    this->collision->SetPose(model, known);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -974,6 +1224,7 @@ void SimplifiedPhysicsPrivate::AddJoints(const EntityComponentManager &_ecm,
   const auto params = LoadParams(_ecm, _model, name);
   auto roles = ClassifyJoints(_ecm, _model, _canonicalLink, _modelPose,
       params.wheels, name);
+  _owned.response = params.collisionResponse;
 
   if (!roles.wheels.empty())
   {
@@ -1030,6 +1281,11 @@ void SimplifiedPhysicsPrivate::AddJoints(const EntityComponentManager &_ecm,
 //////////////////////////////////////////////////
 void SimplifiedPhysicsPrivate::RemoveModel(const Entity &_model)
 {
+  // Scenery and bodies of other systems are in the collision world too.
+  this->collision->RemoveModel(_model);
+  this->foreign.erase(_model);
+  this->pendingObstacles.erase(_model);
+
   auto it = this->models.find(_model);
   if (it == this->models.end())
     return;
@@ -1046,14 +1302,16 @@ void SimplifiedPhysicsPrivate::RemoveModel(const Entity &_model)
 }
 
 //////////////////////////////////////////////////
-bool SimplifiedPhysicsPrivate::Step(EntityComponentManager &_ecm,
+bool SimplifiedPhysicsPrivate::Plan(EntityComponentManager &_ecm,
     const Entity &_model, OwnedModel &_owned, double _dt)
 {
-  auto poseComp = _ecm.Component<components::Pose>(_model);
-  if (!poseComp)
+  auto &plan = _owned.plan;
+  plan = StepPlan();
+  plan.poseComp = _ecm.Component<components::Pose>(_model);
+  if (!plan.poseComp)
     return false;
 
-  math::Pose3d pose = poseComp->Data();
+  math::Pose3d pose = plan.poseComp->Data();
 
   // A WorldPoseCmd stays in the ECM for one more step after the step that
   // applies it. Applying it a second time would undo one step of motion, so
@@ -1178,6 +1436,47 @@ bool SimplifiedPhysicsPrivate::Step(EntityComponentManager &_ecm,
     }
   }
 
+  plan.pose = pose;
+  plan.teleported = teleported;
+  plan.delta = delta;
+  plan.velocity = velocity;
+  plan.wz = wz;
+  plan.bodyTwist = bodyTwist;
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool SimplifiedPhysicsPrivate::Finish(EntityComponentManager &_ecm,
+    const Entity &_model, OwnedModel &_owned, double _dt,
+    const PlanarMotionResult *_result)
+{
+  auto &plan = _owned.plan;
+  if (!plan.poseComp)
+    return false;
+
+  math::Pose3d pose = plan.pose;
+  const bool teleported = plan.teleported;
+  PlanarDelta delta = plan.delta;
+  math::Vector3d velocity = plan.velocity;
+  double wz = plan.wz;
+  PlanarTwist bodyTwist = plan.bodyTwist;
+
+  // A cut motion is a displacement that no command asked for. The wheels and
+  // the velocities that readers see follow the motion that happened, so the
+  // twist is worked out again from it. A free motion is exactly the one that
+  // was asked for, and keeps its command.
+  if (_result && _result->known && _result->blocked)
+  {
+    delta = _result->achieved;
+    bodyTwist = TwistFromDelta(pose.Rot().Yaw(), delta, _dt);
+    wz = bodyTwist.wz;
+    const double heading = pose.Rot().Yaw() + delta.yaw;
+    const double c = std::cos(heading);
+    const double s = std::sin(heading);
+    velocity.Set(c * bodyTwist.vx - s * bodyTwist.vy,
+        s * bodyTwist.vx + c * bodyTwist.vy, 0.0);
+  }
+
   const bool moved = !delta.IsZero();
   if (moved)
   {
@@ -1190,11 +1489,13 @@ bool SimplifiedPhysicsPrivate::Step(EntityComponentManager &_ecm,
 
   if (moved || teleported)
   {
-    *poseComp = components::Pose(pose);
+    *plan.poseComp = components::Pose(pose);
     _ecm.SetChanged(_model, components::Pose::typeId,
         teleported ? ComponentState::OneTimeChange :
                      ComponentState::PeriodicChange);
   }
+  if (_owned.collides)
+    _owned.worldPose = pose;
 
   // The wheels follow the motion the model achieved, not the commands.
   if (!_owned.wheels.empty() || !_owned.joints.empty() ||

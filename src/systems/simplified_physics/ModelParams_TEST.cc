@@ -58,6 +58,26 @@ TEST(ModelParams, Defaults)
   EXPECT_TRUE(params.wheels.empty());
   EXPECT_EQ(0.0, params.odometryNoise);
   EXPECT_FALSE(params.animateWheels);
+  EXPECT_EQ(PlanarResponse::Slide, params.collisionResponse);
+}
+
+/////////////////////////////////////////////////
+TEST(ModelParams, CollisionResponse)
+{
+  EXPECT_EQ(PlanarResponse::Stop,
+      Parse("<collision_response>stop</collision_response>")
+          .collisionResponse);
+  EXPECT_EQ(PlanarResponse::Slide,
+      Parse("<collision_response>slide</collision_response>")
+          .collisionResponse);
+
+  // A value that is not known leaves the default.
+  for (const std::string bad : {"bounce", "Stop", "", "1"})
+  {
+    EXPECT_EQ(PlanarResponse::Slide,
+        Parse("<collision_response>" + bad + "</collision_response>")
+            .collisionResponse) << bad;
+  }
 }
 
 /////////////////////////////////////////////////
