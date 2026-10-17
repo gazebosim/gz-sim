@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -78,8 +79,13 @@ constexpr double kApproachEps{1e-6};
 /// \brief Iteration limit of one conservative advancement.
 constexpr int kMaxAdvance{64};
 
-/// \brief After this many steps a turning pair is sampled instead.
+/// \brief After this many steps a turning pair is certified by interval
+/// splitting instead.
 constexpr int kSlowAfter{10};
+
+/// \brief Limit on the distance queries of one interval split. A split that
+/// runs out stops the motion at the start of the interval it was on.
+constexpr int kMaxLooks{1024};
 
 /// \brief Margin around the box of a movable model in the broadphase, in
 /// meters. A model that stays inside it needs no tree update.
@@ -89,6 +95,12 @@ constexpr double kFatMargin{0.25};
 /// rounding of coordinates to floats.
 constexpr double kTreePad{5e-3};
 
+/// \brief Most passes between robots, however large a group of linked robots
+/// is. The freeze that follows makes the result safe whatever this is.
+constexpr int kMaxRobotPassesHard{64};
+
+/// \brief Most knots of a path: the start, one per bend of a slide, and the
+/// end.
 constexpr int kMaxKnots{12};
 
 /// \brief Index of a "whole model" entry in a tree user data.
@@ -972,33 +984,64 @@ PairHit PairSweep(const SweepSettings &_set, const Shape &_a, const Path &_pa,
       return result;
     }
 
-    // Within the skin and turning, or advancing too slowly. The bound cannot
-    // tell whether the shapes approach, so look at the distance itself at a
-    // few times in the segment, and bisect to the first one that is too
-    // close.
-    const double minAllowed = std::min(st.dist, skin) - 2e-7;
-    constexpr int kSamples = 8;
+    // Within the skin and turning, or advancing too slowly. The bound of the
+    // advancement is no use here, so certify the rest of the segment with the
+    // Lipschitz bound of the distance instead. The distance changes by at most
+    // `scale` per unit time, so an interval [t0, t1] with distances d0 and d1
+    // stays above 0.5 (d0 + d1 - scale (t1 - t0)). Intervals that fail the
+    // test are halved until they are shorter than the resolution, where the
+    // distance can dip at most half the resolution below the smaller end.
+    // The distance may not fall below `floor`. It is the skin less the
+    // rounding of the distance, which lets a robot at rest in the skin turn
+    // without a false hit. If the floor followed the current distance, every
+    // step could sink 2e-7 deeper, so it never goes below a quarter of the
+    // skin: a robot closer than that to a shape may not get closer at all.
+    // The floor must stay above zero, because the distance of overlapping
+    // shapes is reported as zero.
+    const double minGap = 0.25 * skin;
+    const double minAllowed = st.dist >= minGap ?
+        std::max(std::min(st.dist, skin) - 2e-7, minGap) : st.dist;
+    const double resolution = 0.4 * skin;
+    int budget = kMaxLooks;
     double lo = t;
     double hi = t;
-    bool bad = false;
-    for (int k = 1; k <= kSamples; ++k)
+    // Returns true if the distance falls below minAllowed in [_t0, _t1],
+    // with lo and hi bracketing the first drop. The distance at _t0 is at
+    // least minAllowed.
+    std::function<bool(double, double, double, double)> search =
+        [&](double _t0, double _d0, double _t1, double _d1)
     {
-      const double tk = t + (segEnd - t) * k / kSamples;
-      if (look(tk).dist < minAllowed)
+      const bool endsOk = _d1 >= minAllowed;
+      const double span = scale * (_t1 - _t0);
+      if (endsOk && 0.5 * (_d0 + _d1 - span) >= minAllowed)
+        return false;
+      if (span <= resolution || budget <= 0)
       {
-        hi = tk;
-        bad = true;
-        break;
+        if (endsOk && span <= resolution)
+          return false;
+        // Either the end is too close, or the budget ran out. Stop at the
+        // start, which is allowed: stopping early never passes through.
+        lo = _t0;
+        hi = endsOk ? _t0 : _t1;
+        return true;
       }
-      lo = tk;
-    }
+      const double tm = 0.5 * (_t0 + _t1);
+      --budget;
+      const double dm = look(tm).dist;
+      if (search(_t0, _d0, tm, dm))
+        return true;
+      // The left half is clear, so dm >= minAllowed.
+      return search(tm, dm, _t1, _d1);
+    };
+    --budget;
+    const bool bad = search(t, st.dist, segEnd, look(segEnd).dist);
     if (!bad)
     {
       if (next())
         continue;
       return result;
     }
-    for (int k = 0; k < 16; ++k)
+    for (int k = 0; k < 24 && scale * (hi - lo) > 1e-6; ++k)
     {
       const double mid = 0.5 * (lo + hi);
       if (look(mid).dist >= minAllowed)
@@ -1111,6 +1154,7 @@ struct Mover
     this->stationary = false;
     this->blocked = false;
     this->blockedBy = kNullEntity;
+    this->blockedAt = kInf;
     this->cutTime = kInf;
     this->cutBy = kNullEntity;
     this->path.count = 1;
@@ -1129,6 +1173,10 @@ struct Mover
   bool stationary{false};
   bool blocked{false};
   Entity blockedBy{kNullEntity};
+
+  /// \brief Step time of the first hit against scenery or a model that does
+  /// not move.
+  double blockedAt{kInf};
 
   /// \brief The earliest time another robot cut the path, and which one.
   double cutTime{kInf};
@@ -1235,9 +1283,12 @@ class PlanarCollisionWorld::Implementation
     Model *model = this->Insert(_entity, true);
     for (auto fp : _footprints)
     {
+      // A shape that only touches the band from below or above is outside it.
+      const bool outside = fp.zMax <= this->options.bandMin ||
+          fp.zMin >= this->options.bandMax;
       fp.zMin = std::max(fp.zMin, this->options.bandMin);
       fp.zMax = std::min(fp.zMax, this->options.bandMax);
-      if (fp.zMin > fp.zMax || fp.points.empty() ||
+      if (outside || fp.zMin > fp.zMax || fp.points.empty() ||
           model->shapes.size() >= kWholeModel)
       {
         continue;
@@ -1468,7 +1519,7 @@ class PlanarCollisionWorld::Implementation
   }
 
   /// \brief Fill _contacts with the contacts of _a at its current pose.
-  /// \param[in] _skipMovers If not null, other models with a request in
+  /// \param[in] _skipLowerRequests If true, other models with a request in
   /// this call and a lower entity id are left to their own turn.
   public: void ContactsFor(const Model &_a, bool _skipLowerRequests,
       std::vector<PlanarContact> &_contacts) const
@@ -1558,6 +1609,9 @@ class PlanarCollisionWorld::Implementation
   public: std::vector<std::pair<int, int>> pairs;
   public: std::vector<double> caps;
   public: std::vector<double> newCaps;
+  public: std::vector<std::pair<double, double>> pairCaps;
+  public: std::vector<int> group;
+  public: std::vector<int> groupSize;
 };
 
 void PlanarCollisionWorld::Implementation::Move(
@@ -1661,7 +1715,7 @@ void PlanarCollisionWorld::Implementation::Move(
     Pose2 cur = m.start;
     double remX = d.x, remY = d.y, remYaw = d.yaw;
     double time = 0.0;
-    Vec2 planes[kMaxKnots];
+    Vec2 planes[kMaxKnots];  // One per slide iteration; maxSlide is clamped.
     int planeCount = 0;
     for (int iter = 0; iter <= maxSlide; ++iter)
     {
@@ -1685,9 +1739,15 @@ void PlanarCollisionWorld::Implementation::Move(
         break;
       m.blocked = true;
       if (m.blockedBy == kNullEntity)
+      {
         m.blockedBy = blocker;
+        m.blockedAt = time;
+      }
       if (!slide)
         break;
+      // How far the fastest point of the robot got before the hit.
+      const double reached = adv * (std::hypot(remX, remY) +
+          std::abs(remYaw) * m.model->radius);
       remX *= 1.0 - adv;
       remY *= 1.0 - adv;
       remYaw *= 1.0 - adv;
@@ -1712,8 +1772,9 @@ void PlanarCollisionWorld::Implementation::Move(
         remX = remY = 0.0;
       }
       planes[planeCount++] = n;
-      // A turn that makes no progress runs into the obstacle. Drop it.
-      if (adv < 1e-9)
+      // A turn that gets nowhere runs into the obstacle. Drop it, or it
+      // would use up the iterations in steps smaller than the skin.
+      if (reached < 0.5 * this->settings.skin)
         remYaw = 0.0;
       if (std::hypot(remX, remY) < 1e-12 && IsZero(remYaw))
         break;
@@ -1736,12 +1797,14 @@ void PlanarCollisionWorld::Implementation::Move(
   // Pass 2: robots against each other, in Jacobi passes. Every pass reads the
   // caps of the previous pass.
   this->caps.assign(count, 1.0);
+  this->pairCaps.assign(this->pairs.size(), {-1.0, -1.0});
   const double margin = 2.0 * this->options.contactSkin;
   auto pairPass = [&](bool _freeze) {
     this->newCaps = this->caps;
     bool changed = false;
-    for (const auto &pr : this->pairs)
+    for (std::size_t p = 0; p < this->pairs.size(); ++p)
     {
+      const auto &pr = this->pairs[p];
       // The lower entity id is A. The roles decide the frame the queries
       // run in, and the order of the requests must not change the rounding.
       std::size_t ia = static_cast<std::size_t>(pr.first);
@@ -1750,6 +1813,15 @@ void PlanarCollisionWorld::Implementation::Move(
         std::swap(ia, ib);
       Mover &ma = this->movers[ia];
       Mover &mb = this->movers[ib];
+      // The sweep of a pair depends on the two caps only. If they are the
+      // ones of the last sweep, its cut is already in the caps.
+      const auto &last = this->pairCaps[p];
+      if (!(last.first < this->caps[ia]) && !(this->caps[ia] < last.first) &&
+          !(last.second < this->caps[ib]) && !(this->caps[ib] < last.second))
+      {
+        continue;
+      }
+      this->pairCaps[p] = {this->caps[ia], this->caps[ib]};
       PairHit best;
       best.t = 1.0;
       for (const auto &sa : ma.model->shapes)
@@ -1801,8 +1873,33 @@ void PlanarCollisionWorld::Implementation::Move(
   };
   if (!this->pairs.empty())
   {
+    // A queue of robots at the same speed needs one pass per robot to settle:
+    // robot k is cut only after robot k-1's cap is known. So allow as many
+    // passes as the largest group of robots that are linked by pairs.
+    int passes = this->options.maxRobotPasses;
+    this->group.assign(count, 0);
+    std::iota(this->group.begin(), this->group.end(), 0);
+    std::function<int(int)> root = [&](int _i)
+    {
+      while (this->group[_i] != _i)
+      {
+        this->group[_i] = this->group[this->group[_i]];
+        _i = this->group[_i];
+      }
+      return _i;
+    };
+    for (const auto &pr : this->pairs)
+      this->group[root(pr.first)] = root(pr.second);
+    this->groupSize.assign(count, 0);
+    for (std::size_t i = 0; i < count; ++i)
+    {
+      const int r = root(static_cast<int>(i));
+      passes = std::max(passes, ++this->groupSize[r]);
+    }
+    passes = std::min(passes, kMaxRobotPassesHard);
+
     bool settled = false;
-    for (int pass = 0; pass < this->options.maxRobotPasses; ++pass)
+    for (int pass = 0; pass < passes; ++pass)
     {
       if (!pairPass(false))
       {
@@ -1812,8 +1909,13 @@ void PlanarCollisionWorld::Implementation::Move(
     }
     if (!settled)
     {
-      // Robots still in conflict stay where they were.
-      pairPass(true);
+      // Robots still in conflict stay where they were. A robot that is
+      // frozen can put the one behind it in conflict, so repeat until nothing
+      // changes. Each round freezes at least one more robot, so this ends
+      // within `count` rounds, and no pair that approaches is left with a
+      // moving robot.
+      this->pairCaps.assign(this->pairs.size(), {-1.0, -1.0});
+      while (pairPass(true)) {}
     }
   }
 
@@ -1845,13 +1947,18 @@ void PlanarCollisionWorld::Implementation::Move(
       this->Refit(model);
     }
     r.blocked = m.blocked;
-    r.blockedBy = m.blockedBy != kNullEntity ? m.blockedBy : m.cutBy;
+    // The model that stopped the robot first. A tie goes to the scenery.
+    r.blockedBy = (m.blockedBy != kNullEntity && m.blockedAt <= m.cutTime) ?
+        m.blockedBy : m.cutBy;
   }
 
   if (this->options.reportContacts)
   {
     for (std::size_t k = 0; k < count; ++k)
       this->ContactsFor(*this->movers[k].model, true, this->contacts);
+    // The blocks come in request order. Sort them all, so that the list does
+    // not depend on it.
+    std::sort(this->contacts.begin(), this->contacts.end(), ContactLess);
   }
   for (std::size_t k = 0; k < count; ++k)
     this->movers[k].model->request = -1;

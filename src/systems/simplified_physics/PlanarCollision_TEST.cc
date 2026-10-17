@@ -1270,3 +1270,308 @@ TEST(PlanarCollision, RandomMovesNeverPenetrateAndStopAtContact)
   EXPECT_GT(blocked, 100);
   EXPECT_GT(turned, 30);
 }
+
+/////////////////////////////////////////////////
+/// \brief Smallest separation of a model to anything within the contact
+/// margin, or the margin if it touches nothing.
+double MinSeparation(const PlanarCollisionWorld &_world, Entity _model)
+{
+  std::vector<PlanarContact> contacts;
+  _world.ContactsOf(_model, contacts);
+  return std::accumulate(contacts.begin(), contacts.end(),
+      PlanarCollisionOptions().contactMargin,
+      [](double _s, const PlanarContact &_c)
+      {
+        return std::min(_s, _c.separation);
+      });
+}
+
+/// \brief Smallest separation of a model along a straight motion from
+/// _before by _delta, sampled _n times. The model is put back where it was.
+double SweptMinSeparation(PlanarCollisionWorld &_world, Entity _model,
+    const math::Pose3d &_before, const PlanarDelta &_delta, int _n)
+{
+  const math::Pose3d after = _world.Pose(_model);
+  double sep = PlanarCollisionOptions().contactMargin;
+  for (int k = 0; k <= _n; ++k)
+  {
+    const double u = static_cast<double>(k) / _n;
+    _world.SetPose(_model, math::Pose3d(_before.Pos().X() + u * _delta.x,
+        _before.Pos().Y() + u * _delta.y, 0, 0, 0,
+        _before.Rot().Yaw() + u * _delta.yaw));
+    sep = std::min(sep, MinSeparation(_world, _model));
+  }
+  _world.SetPose(_model, after);
+  return sep;
+}
+
+/////////////////////////////////////////////////
+/// \brief Ten robots in a queue, all asked for the same motion, against a
+/// wall. More robots than passes: robot k is cut only after robot k-1 is.
+TEST(PlanarCollision, LongQueueDoesNotOverlap)
+{
+  PlanarCollisionWorld world;
+  world.AddStaticFootprints(1000, {BoxFp(10.0, 0.0, 0.2, 4.0)});
+  const int n = 10;
+  std::vector<PlanarMotionRequest> reqs;
+  for (int i = 0; i < n; ++i)
+  {
+    const Entity e = static_cast<Entity>(i + 1);
+    world.AddMovableFootprints(e, {BoxFp(0, 0, 0.6, 0.4)},
+        math::Pose3d(9.9 - 0.3 - 0.0005 - i * 0.601, 0, 0, 0, 0, 0));
+    reqs.push_back(Req(e, 0.05, 0.0, 0.0));
+  }
+  std::vector<PlanarMotionResult> results;
+  world.Move(reqs, results);
+  for (int i = 0; i < n; ++i)
+    EXPECT_GE(MinSeparation(world, i + 1), -1e-6) << "robot " << i + 1;
+  // The head stops at the wall, and the queue behind it stops.
+  for (int i = 0; i < n; ++i)
+    EXPECT_LT(results[static_cast<std::size_t>(i)].achieved.x, 0.0501);
+}
+
+/////////////////////////////////////////////////
+/// \brief Twenty robots at the same speed drive into a wall, 1 ms steps.
+TEST(PlanarCollision, EqualSpeedQueueDoesNotOverlap)
+{
+  PlanarCollisionWorld world;
+  world.AddStaticFootprints(1000, {BoxFp(10.0, 0.0, 0.2, 4.0)});
+  const int n = 20;
+  std::vector<PlanarMotionRequest> reqs;
+  for (int i = 0; i < n; ++i)
+  {
+    const Entity e = static_cast<Entity>(i + 1);
+    world.AddMovableFootprints(e, {BoxFp(0, 0, 0.6, 0.4)},
+        math::Pose3d(9.0 - i * 0.62, 0, 0, 0, 0, 0));
+    reqs.push_back(Req(e, 0.001, 0.0, 0.0));
+  }
+  std::vector<PlanarMotionResult> results;
+  double worst = 1.0;
+  for (int step = 0; step < 1500; ++step)
+  {
+    world.Move(reqs, results);
+    for (int i = 0; i < n; ++i)
+        worst = std::min(worst, MinSeparation(world, i + 1));
+  }
+  EXPECT_GE(worst, -1e-6);
+  // The head reached the wall and the queue closed up behind it.
+  EXPECT_NEAR(9.9 - 0.3, world.Pose(1).Pos().X(), 2e-3);
+  EXPECT_GT(world.Pose(2).Pos().X(), 9.0 - 0.62 + 0.1);
+}
+
+/////////////////////////////////////////////////
+/// \brief Random groups of robots: boxes and circles, equal and unequal
+/// speeds, turns, Stop and Slide, scenery. Nobody ends a step inside
+/// anything.
+TEST(PlanarCollision, RandomRobotGroupsNeverOverlap)
+{
+  std::mt19937 gen(77);
+  std::uniform_real_distribution<double> uni(-1.0, 1.0);
+  int blocked = 0;
+  int groups = 0;
+  for (int trial = 0; trial < 60; ++trial)
+  {
+    PlanarCollisionWorld world;
+    world.AddStaticFootprints(900, {BoxFp(3.0, 0.0, 0.2, 8.0)});
+    world.AddStaticFootprints(901, {BoxFp(0.0, 2.0, 6.0, 0.2)});
+    const int n = 4 + trial % 14;
+    std::vector<Entity> robots;
+    // A row of robots 1 mm to 5 cm apart, or a loose cluster.
+    const bool row = trial % 2 == 0;
+    double x = 2.5;
+    for (int i = 0; i < n; ++i)
+    {
+      const Entity e = static_cast<Entity>(i + 1);
+      const bool box = (i + trial) % 3 != 0;
+      const PlanarFootprint body = box ? BoxFp(0, 0, 0.6, 0.4) :
+          CircleFp(0, 0, 0.25);
+      math::Pose3d pose;
+      if (row)
+      {
+        const double half = box ? 0.3 : 0.25;
+        x -= half;
+        pose = math::Pose3d(x, 0.0, 0, 0, 0, 0);
+        x -= half + 0.001 + 0.05 * std::abs(uni(gen));
+      }
+      else
+      {
+        pose = math::Pose3d(-1.5 + 1.0 * (i % 4), -1.5 + 0.8 * (i / 4),
+            0, 0, 0, 3.0 * uni(gen));
+      }
+      world.AddMovableFootprints(e, {body}, pose);
+      robots.push_back(e);
+    }
+    // Skip groups that start inside each other or the scenery.
+    bool clear = true;
+    for (const Entity e : robots)
+      clear = clear && MinSeparation(world, e) >= 0.0;
+    if (!clear)
+      continue;
+    ++groups;
+
+    const double speed = 0.05 + 0.1 * std::abs(uni(gen));
+    for (int step = 0; step < 40; ++step)
+    {
+      std::vector<PlanarMotionRequest> reqs;
+      for (const Entity e : robots)
+      {
+        const bool equal = trial % 4 < 2;
+        const double v = equal ? speed : speed * (0.5 + 0.5 * uni(gen));
+        const double dir = row ? 0.0 : 3.0 * uni(gen);
+        reqs.push_back(Req(e, v * std::cos(dir), v * std::sin(dir),
+            (step % 3 == 0) ? 0.1 * uni(gen) : 0.0,
+            (step + trial) % 2 ? PlanarResponse::Slide :
+            PlanarResponse::Stop));
+      }
+      if (trial % 3 == 0)
+        std::reverse(reqs.begin(), reqs.end());
+      std::vector<PlanarMotionResult> results;
+      world.Move(reqs, results);
+      blocked += static_cast<int>(std::count_if(results.begin(),
+          results.end(),
+          [](const PlanarMotionResult &_r) { return _r.blocked; }));
+      for (const Entity e : robots)
+      {
+        ASSERT_GE(MinSeparation(world, e), -1e-6) << "trial " << trial
+            << " step " << step << " robot " << e;
+      }
+    }
+  }
+  EXPECT_GT(groups, 30);
+  EXPECT_GT(blocked, 500);
+}
+
+/////////////////////////////////////////////////
+/// \brief A 2 m bar turns about its center past a 1 cm post. Every turn
+/// beyond a quarter turn must stop: at 90 degrees the bar lies on the post.
+TEST(PlanarCollision, TurningBarDoesNotPassThroughPost)
+{
+  int stopped = 0;
+  for (int i = 0; i < 351; ++i)
+  {
+    const double turn = 1.7 + (3.0 - 1.7) * i / 350.0;
+    for (const double sign : {1.0, -1.0})
+    {
+      PlanarCollisionWorld world;
+      world.AddMovableFootprints(1, {BoxFp(0, 0, 2.0, 0.02)},
+          math::Pose3d::Zero);
+      // The post sits on the side the bar turns toward.
+      world.AddStaticFootprints(2, {CircleFp(0.0, sign * 0.975, 0.005)});
+      std::vector<PlanarMotionResult> results;
+      world.Move({Req(1, 0.0, 0.0, sign * turn)}, results);
+      EXPECT_TRUE(results[0].blocked) << "turn " << turn;
+      EXPECT_LT(std::abs(results[0].achieved.yaw), GZ_PI / 2)
+          << "turn " << turn;
+      EXPECT_GE(MinSeparation(world, 1), -1e-6) << "turn " << turn;
+      stopped += results[0].blocked ? 1 : 0;
+    }
+  }
+  EXPECT_EQ(702, stopped);
+}
+
+/////////////////////////////////////////////////
+/// \brief The same bar, turning while it travels, past a thin wall and with
+/// several step sizes. The achieved path never goes through.
+TEST(PlanarCollision, TurningRobotSweptPathStaysClear)
+{
+  std::mt19937 gen(5);
+  std::uniform_real_distribution<double> uni(-1.0, 1.0);
+  int blocked = 0;
+  for (int trial = 0; trial < 300; ++trial)
+  {
+    PlanarCollisionWorld world;
+    // Thin features: a 2 mm wall, a post, a thin box.
+    world.AddStaticFootprints(10, {BoxFp(0.9 * uni(gen), 1.0 + 0.3 * uni(gen),
+        1.0, 0.002, 0.05, 0.5, 3.0 * uni(gen))});
+    world.AddStaticFootprints(11, {CircleFp(0.8 * uni(gen), 0.8 * uni(gen),
+        0.004)});
+    world.AddStaticFootprints(12, {BoxFp(0.8 * uni(gen), -1.0 * uni(gen),
+        0.01, 0.4, 0.05, 0.5, 3.0 * uni(gen))});
+    const PlanarFootprint body = BoxFp(0, 0, 1.6, 0.03);
+    const math::Pose3d start(0.0, 0.0, 0, 0, 0, 3.0 * uni(gen));
+    world.AddMovableFootprints(1, {body}, start);
+    if (MinSeparation(world, 1) < 0.0)
+      continue;
+    std::vector<PlanarMotionResult> results;
+    world.Move({Req(1, 0.2 * uni(gen), 0.2 * uni(gen), 3.0 * uni(gen))},
+        results);
+    blocked += results[0].blocked ? 1 : 0;
+    EXPECT_GE(SweptMinSeparation(world, 1, start,
+        results[0].achieved, 400), -(0.5 * kSkin + 1e-6))
+        << "trial " << trial;
+  }
+  EXPECT_GT(blocked, 100);
+}
+
+/////////////////////////////////////////////////
+/// \brief The contact list is sorted by model ids, whatever the order of the
+/// requests.
+TEST(PlanarCollision, ContactsDoNotDependOnRequestOrder)
+{
+  PlanarCollisionOptions options;
+  options.reportContacts = true;
+  auto run = [&](bool _reversed)
+  {
+    PlanarCollisionWorld world(options);
+    world.AddStaticFootprints(100, {BoxFp(2.0, 0.0, 0.2, 10.0)});
+    world.AddMovableFootprints(1, {BoxFp(0, 0, 0.6, 0.4)},
+        math::Pose3d(0.0, -1.0, 0, 0, 0, 0));
+    world.AddMovableFootprints(2, {BoxFp(0, 0, 0.6, 0.4)},
+        math::Pose3d(0.0, 1.0, 0, 0, 0, 0));
+    std::vector<PlanarMotionRequest> reqs{Req(1, 5.0, 0.0, 0.0),
+        Req(2, 5.0, 0.0, 0.0)};
+    if (_reversed)
+      std::reverse(reqs.begin(), reqs.end());
+    std::vector<PlanarMotionResult> results;
+    world.Move(reqs, results);
+    return world.Contacts();
+  };
+  const auto a = run(false);
+  const auto b = run(true);
+  ASSERT_EQ(a.size(), b.size());
+  ASSERT_GE(a.size(), 4u);
+  for (std::size_t i = 0; i < a.size(); ++i)
+  {
+    EXPECT_EQ(a[i].modelA, b[i].modelA);
+    EXPECT_EQ(a[i].modelB, b[i].modelB);
+    if (i > 0)
+    {
+      EXPECT_LE(a[i - 1].modelA, a[i].modelA);
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+/// \brief A robot that the scenery would stop late is stopped first by a
+/// robot, and the result names the robot.
+TEST(PlanarCollision, BlockedByNamesTheFirstCut)
+{
+  PlanarCollisionWorld world;
+  world.AddStaticFootprints(100, {BoxFp(1.2, 0.0, 0.2, 4.0)});
+  world.AddMovableFootprints(1, {BoxFp(0, 0, 0.6, 0.4)}, math::Pose3d::Zero);
+  world.AddMovableFootprints(2, {BoxFp(0, 0, 0.6, 0.4)},
+      math::Pose3d(0.7, 0.0, 0, 0, 0, 0));
+  std::vector<PlanarMotionResult> results;
+  world.Move({Req(1, 1.0, 0.0, 0.0), Req(2, 0.001, 0.0, 0.0)}, results);
+  EXPECT_TRUE(results[0].blocked);
+  EXPECT_EQ(2u, results[0].blockedBy);
+}
+
+/////////////////////////////////////////////////
+/// \brief A floor slab whose top is at the bottom of the band is not an
+/// obstacle.
+TEST(PlanarCollision, SlabEndingAtTheBandIsDropped)
+{
+  PlanarCollisionOptions options;
+  options.bandMin = 0.0;
+  PlanarCollisionWorld world(options);
+  EXPECT_FALSE(world.AddStaticFootprints(1,
+      {BoxFp(0, 0, 100.0, 100.0, -0.1, 0.0)}));
+  PlanarCollisionWorld world2;
+  EXPECT_FALSE(world2.AddStaticFootprints(1,
+      {BoxFp(0, 0, 100.0, 100.0, -0.1, 0.01)}));
+  EXPECT_FALSE(world2.AddStaticFootprints(2,
+      {BoxFp(0, 0, 100.0, 100.0, 2.0, 2.5)}));
+  EXPECT_TRUE(world2.AddStaticFootprints(3,
+      {BoxFp(0, 0, 100.0, 100.0, -0.1, 0.02)}));
+}
