@@ -21,6 +21,7 @@
 #include <gz/common/Console.hh>
 #include <sdf/Element.hh>
 
+#include "ModelParams.hh"
 #include "PhysicsMode.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
@@ -134,6 +135,10 @@ void SimplifiedPhysicsModel::Configure(const Entity &_entity,
     KeepOnPhysics(_ecm, _entity);
     return;
   }
+
+  // The system reads these parameters again from the model's SDF. Reading
+  // them here prints the warnings about values it cannot use.
+  ParseModelParams(PluginContents(*_sdf), name, true);
 
   // Both components must exist before the next step: the default Physics
   // system reads the owner when it creates the model, and the system manager

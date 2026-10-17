@@ -59,14 +59,56 @@ namespace systems
   ///    then moves along the exact arc for that velocity over the step. Its
   ///    z, roll and pitch do not change. A step without a command is a step
   ///    without motion.
-  /// 3. The system writes the frame data of the model's links, sensors and
+  /// 3. If the model has no model velocity command (or it is zero), the
+  ///    `JointVelocityCmd` of its wheel joints moves it (see "Wheels"). A
+  ///    non-zero model velocity command takes precedence over wheel commands,
+  ///    and the system warns once per model if both are non-zero in one
+  ///    step. The wheels still follow the motion that the model achieves.
+  /// 4. The system writes the frame data of the model's links, sensors and
   ///    collisions that other systems have asked for (world pose, velocities
-  ///    and accelerations, in the world and body frames), and the model's
-  ///    `Pose`. It marks `Pose` as changed only when the model moved.
-  /// 4. The system clears the commands it consumed. The model's velocity
-  ///    commands stay in the ECM with a zero value instead of being removed,
-  ///    because a system that writes them in every step then overwrites a
-  ///    component and does not create one.
+  ///    and accelerations, in the world and body frames), the model's
+  ///    `Pose`, and the `JointPosition` and `JointVelocity` of wheels and
+  ///    other joints that have those components. It marks `Pose` as changed
+  ///    only when the model moved. It computes frame data only while some
+  ///    entity other than the wind has one of the nine frame data components,
+  ///    so models without a reader cost nothing for it.
+  /// 5. The system clears the commands it consumed. The velocity commands of
+  ///    the model and of its joints stay in the ECM with a zero value instead
+  ///    of being removed, because a system that writes them in every step
+  ///    then overwrites a component and does not create one.
+  ///
+  /// ## Wheels
+  ///
+  /// The system finds the drive wheels of a model once, when it first sees
+  /// it. A joint is a wheel if it is revolute or continuous with a horizontal
+  /// axis, joins the canonical link (the chassis) to a link with a sphere
+  /// collision or a cylinder collision along the axis, and that collision
+  /// reaches down to the lowest point of the model. The collision gives the
+  /// radius and the contact point. `<wheel>` elements in the
+  /// SimplifiedPhysicsModel parameters replace the inference. See
+  /// WheelDrive for the rolling constraints that turn wheel rates into the
+  /// planar twist. A DiffDrive model needs nothing else: its
+  /// `JointVelocityCmd` on the two wheels give v = r (wL + wR) / 2 and
+  /// wz = r (wR - wL) / b exactly. The same geometry covers skid-steer
+  /// vehicles with several wheels per side.
+  ///
+  /// The `JointPosition` and `JointVelocity` of every wheel follow the motion
+  /// that the model achieved, not the command, so wheel odometry equals the
+  /// ground truth of the planar motion. This holds for a model that moves
+  /// under VelocityControl too. With `<odometry_noise>` above zero the
+  /// written position differs from the achieved motion on purpose (see
+  /// OdometryNoise). A passive wheel on a fixed axle rolls like a driven one.
+  /// The system fills the components that exist, like Physics. A consumer
+  /// that creates `JointPosition` after the first step finds it empty until
+  /// the wheel moves, and one that creates `JointVelocity` late finds it
+  /// empty until the wheel's velocity changes. DiffDrive and the joint state
+  /// publisher create theirs in the first step.
+  ///
+  /// Other revolute, continuous and prismatic joints (steering joints,
+  /// swivel casters, lifts, turntables) integrate their `JointVelocityCmd`
+  /// into `JointPosition` and `JointVelocity` and stop at their limits. A
+  /// `JointPositionReset` sets the position. The child link does not move,
+  /// there is no dynamics, and no force or effort is simulated.
   ///
   /// The system runs at `kPrePhysicsPriority`, before Physics. It reads the
   /// commands of its models and clears them, and Physics, which does not own
@@ -97,12 +139,22 @@ namespace systems
   ///
   /// ## Not simulated yet
   ///
-  /// Collisions between models or with the world, wheel joints and joint
-  /// commands, link velocity commands, contacts, ray hits for CPU lidar and
-  /// the `planar_dynamic` mode. A model moves through everything, and wheel
-  /// joints stay at their initial position, so wheel odometry does not work.
-  /// A joint or link velocity command on a model that this system owns is
-  /// cleared, and the system warns once for the model.
+  /// Collisions between models or with the world, link velocity commands,
+  /// contacts, ray hits for CPU lidar and the `planar_dynamic` mode. A model
+  /// moves through everything. Link velocity commands on a model that this
+  /// system owns are cleared, and the system warns once for the model.
+  ///
+  /// Wheels and joints: the links of wheels and of articulated joints do not
+  /// move or turn (`animate_wheels` is not implemented), so a rendered wheel
+  /// stays still and a sensor on a lift does not follow it. Joint velocity
+  /// commands on two-axis, screw and gearbox joints are ignored, with one
+  /// warning per model. `JointVelocityReset`, forces, efforts and limit
+  /// commands have no effect. A model whose steering joints change the rolling
+  /// direction of its wheels (Ackermann) or whose wheels slide sideways by
+  /// design (mecanum) is not supported: wheels see only the fixed direction of
+  /// their axis. Such a model drives straight or not at all. Wheels that the
+  /// model attaches to something other than the canonical link are not
+  /// inferred, unless `<wheel>` names them.
   ///
   /// The relative poses of a model's links are read once, when the model is
   /// first seen, and are assumed constant.
@@ -118,9 +170,17 @@ namespace systems
   /// * The frame data of a link uses the same 1e-6 tolerance as Physics, so a
   ///   link's `WorldPose` does not update for motion below 1 micrometer per
   ///   step, while the model's `Pose` is written exactly.
-  /// * A component that a system adds to an idle model after the first step
-  ///   keeps its initial value until the model moves. Physics refreshes it in
-  ///   every step.
+  /// * A frame data component that a system adds to an idle model gets its
+  ///   first value in the next step, but is not refreshed after that until
+  ///   the model moves. Physics refreshes it in every step.
+  /// * A wheel touches the floor at the center of its collision. A flat
+  ///   cylinder on dartsim touches it at an edge, so a model with 4 cm wide
+  ///   wheels on a 0.4 m track turns 10 percent faster there than on this
+  ///   mode, for the same wheel speeds. Sphere wheels agree to 0.02 percent
+  ///   of the distance (INTEGRATION_simplified_physics_wheels, MatchesDartsim).
+  /// * Wheels roll without slip, so wheel odometry equals the planar ground
+  ///   truth. Slip comes only from `<odometry_noise>`. The noise is sized for
+  ///   a differential drive (see OdometryNoise).
   ///
   /// The system has no parameters yet.
   class SimplifiedPhysics:

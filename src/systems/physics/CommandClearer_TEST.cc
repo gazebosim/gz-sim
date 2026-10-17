@@ -226,3 +226,39 @@ TEST(CommandClearer, ZeroesVelocityCommandsOnRequest)
   EXPECT_EQ((std::vector<double>{0.0, 0.0}),
       ecm.Component<components::JointForceCmd>(entity)->Data());
 }
+
+/////////////////////////////////////////////////
+TEST(CommandClearer, ZeroesJointVelocityCommandsOnRequest)
+{
+  EntityComponentManager ecm;
+  const auto entity = AddEntityWithCommands(ecm, "");
+  ecm.Component<components::JointVelocityCmd>(entity)->Data() = {1.5, -2.5};
+
+  ClearCommands(ecm, OwnerFilter(), false, true);
+
+  // The joint command stays with its size and holds zeros.
+  const auto cmd = ecm.Component<components::JointVelocityCmd>(entity);
+  ASSERT_NE(nullptr, cmd);
+  EXPECT_EQ((std::vector<double>{0.0, 0.0}), cmd->Data());
+
+  // The model velocity commands are removed, as without the flag.
+  EXPECT_EQ(nullptr, ecm.Component<components::LinearVelocityCmd>(entity));
+  EXPECT_EQ(nullptr, ecm.Component<components::AngularVelocityCmd>(entity));
+  EXPECT_EQ(nullptr, ecm.Component<components::JointPositionReset>(entity));
+}
+
+/////////////////////////////////////////////////
+TEST(CommandClearer, ZeroedJointVelocityCommandsRespectTheFilter)
+{
+  EntityComponentManager ecm;
+  const auto own = AddEntityWithCommands(ecm, "");
+  const auto other = AddEntityWithCommands(ecm, kOther);
+
+  ClearCommands(ecm, OwnerFilter::ForProvider(ecm, "Default", true), false,
+      true);
+
+  EXPECT_EQ((std::vector<double>{0.0}),
+      ecm.Component<components::JointVelocityCmd>(own)->Data());
+  EXPECT_EQ((std::vector<double>{1.0}),
+      ecm.Component<components::JointVelocityCmd>(other)->Data());
+}

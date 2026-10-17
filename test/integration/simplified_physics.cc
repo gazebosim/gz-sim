@@ -1064,8 +1064,8 @@ TEST_F(SimplifiedPhysicsTest, TeleportWhilePaused)
 }
 
 /////////////////////////////////////////////////
-/// Joint and link velocity commands are not followed yet. The system clears
-/// them, warns once for the model, and Physics does not clear them for it.
+/// Link velocity commands are not followed. The system clears them, warns
+/// once for the model, and Physics does not clear them for it.
 TEST_F(SimplifiedPhysicsTest, UnsupportedCommandsWarnOnce)
 {
   ::testing::internal::CaptureStderr();
@@ -1074,7 +1074,6 @@ TEST_F(SimplifiedPhysicsTest, UnsupportedCommandsWarnOnce)
   Entity link{kNullEntity};
   Entity model{kNullEntity};
   int step{0};
-  int jointCmdKept{0};
   int linkCmdMoved{0};
   math::Pose3d first, last;
   fixture.OnPreUpdate([&](const UpdateInfo &, EntityComponentManager &_ecm)
@@ -1089,17 +1088,12 @@ TEST_F(SimplifiedPhysicsTest, UnsupportedCommandsWarnOnce)
         }
         if (step >= 3 && step <= 6)
         {
-          // The component type is what the system looks at, not the entity
-          // type, so a link stands in for a joint here.
-          _ecm.SetComponentData<components::JointVelocityCmd>(link, {1.0});
           _ecm.SetComponentData<components::LinearVelocityCmd>(link,
               {1.0, 0, 0});
         }
       })
   .OnPostUpdate([&](const UpdateInfo &, const EntityComponentManager &_ecm)
       {
-        if (_ecm.Component<components::JointVelocityCmd>(link))
-          ++jointCmdKept;
         auto linkCmd = _ecm.Component<components::LinearVelocityCmd>(link);
         if (linkCmd && linkCmd->Data() != math::Vector3d::Zero)
           ++linkCmdMoved;
@@ -1108,12 +1102,10 @@ TEST_F(SimplifiedPhysicsTest, UnsupportedCommandsWarnOnce)
   fixture.Server()->Run(true, 10, false);
   const auto output = ::testing::internal::GetCapturedStderr();
 
-  EXPECT_EQ(0, jointCmdKept);
   EXPECT_EQ(0, linkCmdMoved);
   EXPECT_EQ(first, last);
 
-  const std::string text{"Model [kin_idle] gets a joint or link velocity "
-                         "command"};
+  const std::string text{"Model [kin_idle] gets a link velocity command"};
   const auto pos = output.find(text);
   ASSERT_NE(std::string::npos, pos) << output;
   EXPECT_EQ(std::string::npos, output.find(text, pos + 1)) << output;

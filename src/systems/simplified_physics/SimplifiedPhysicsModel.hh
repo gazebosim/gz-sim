@@ -60,6 +60,22 @@ namespace systems
   ///   that its VelocityControl system commands. `planar_dynamic` is not
   ///   implemented yet: the plugin prints a warning and keeps the model on
   ///   `full`. An unknown value also keeps the model on `full`.
+  /// - `<odometry_noise>`: fraction, default 0 (off). Only for a model with
+  ///   wheel joints. Adds a fixed scale error per wheel, drawn once, and a
+  ///   zero-mean random walk to the wheel positions that the model reports,
+  ///   so that wheel odometry (DiffDrive) drifts. It is sized so that a
+  ///   differential drive ends a 10 m straight run with a median odometry
+  ///   error of this fraction of the distance (0.015 gives 15 cm), mostly
+  ///   sideways. The noise is repeatable for a fixed world seed (the
+  ///   server's `--seed`): each wheel's seed comes from the world seed and
+  ///   the joint's scoped name. Without a seed the server picks a random one
+  ///   and runs differ. The actual motion of the model stays exact.
+  /// - `<wheel radius="r">joint</wheel>`: repeatable. Names a wheel joint
+  ///   and optionally its radius in meters. When present these joints are
+  ///   the wheels and nothing is inferred. A named joint needs a sphere or
+  ///   cylinder collision on its child link, or a radius.
+  /// - `<animate_wheels>`: accepted and warned about. The wheel links do not
+  ///   turn yet.
   ///
   /// ## Example
   ///

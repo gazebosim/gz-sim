@@ -88,7 +88,7 @@ void ResetComponents(EntityComponentManager &_ecm, const OwnerFilter &_owner,
 
 //////////////////////////////////////////////////
 void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner,
-    bool _zeroVelocityCmds)
+    bool _zeroVelocityCmds, bool _zeroJointVelocityCmds)
 {
   // Clear reset components
   RemoveComponents<components::JointPositionReset>(_ecm, _owner);
@@ -108,7 +108,15 @@ void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner,
       [](auto &_data) {_data.clear();});
   ResetComponents<components::JointEffortLimitsCmd>(_ecm, _owner,
       [](auto &_data) {_data.clear();});
-  RemoveComponents<components::JointVelocityCmd>(_ecm, _owner);
+  if (_zeroJointVelocityCmds)
+  {
+    ResetComponents<components::JointVelocityCmd>(_ecm, _owner,
+        [](auto &_data) {std::fill(_data.begin(), _data.end(), 0.0);});
+  }
+  else
+  {
+    RemoveComponents<components::JointVelocityCmd>(_ecm, _owner);
+  }
   ResetComponents<components::SlipComplianceCmd>(_ecm, _owner,
       [](auto &_data) {std::fill(_data.begin(), _data.end(), 0.0);});
   if (_zeroVelocityCmds)

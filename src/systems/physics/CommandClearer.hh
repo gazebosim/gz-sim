@@ -30,14 +30,16 @@ namespace systems::physics_system
   /// has consumed in the current step, for the entities the filter accepts.
   ///
   /// * Removed: JointPositionReset, JointVelocityReset,
-  ///   WorldLinearVelocityReset, WorldAngularVelocityReset,
-  ///   EnableContactSurfaceCustomization and JointVelocityCmd. Also
-  ///   AngularVelocityCmd and LinearVelocityCmd, unless `_zeroVelocityCmds`
-  ///   is set.
+  ///   WorldLinearVelocityReset, WorldAngularVelocityReset and
+  ///   EnableContactSurfaceCustomization. Also AngularVelocityCmd and
+  ///   LinearVelocityCmd, unless `_zeroVelocityCmds` is set, and
+  ///   JointVelocityCmd, unless `_zeroJointVelocityCmds` is set.
   /// * Zeroed or emptied, but kept: JointForceCmd, ExternalWorldWrenchCmd,
   ///   JointPositionLimitsCmd, JointVelocityLimitsCmd, JointEffortLimitsCmd
   ///   and SlipComplianceCmd. Also AngularVelocityCmd and LinearVelocityCmd
-  ///   if `_zeroVelocityCmds` is set.
+  ///   if `_zeroVelocityCmds` is set, and JointVelocityCmd if
+  ///   `_zeroJointVelocityCmds` is set (every entry becomes zero and the
+  ///   vector keeps its size).
   ///
   /// Each provider clears only its own entities. Otherwise a provider that
   /// runs first would erase the commands that another provider has not read
@@ -50,8 +52,12 @@ namespace systems::physics_system
   /// VelocityControl writes them every step. When the component is gone it
   /// creates it again, which costs several times more than overwriting it.
   /// A provider that treats a zero command as no motion can use this.
+  /// \param[in] _zeroJointVelocityCmds Same for the joint velocity commands,
+  /// which a wheel controller such as DiffDrive writes in every step. A
+  /// provider that treats a zero joint command as a joint that does not move
+  /// can use this.
   void ClearCommands(EntityComponentManager &_ecm, const OwnerFilter &_owner,
-      bool _zeroVelocityCmds = false);
+      bool _zeroVelocityCmds = false, bool _zeroJointVelocityCmds = false);
 }
 }
 }

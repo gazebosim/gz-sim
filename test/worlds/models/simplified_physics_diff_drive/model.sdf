@@ -1,0 +1,80 @@
+<?xml version="1.0" ?>
+<!--
+  A small differential drive robot: a 2 kg chassis, two cylinder wheels
+  (radius 0.1 m, track 0.4 m, axle 0.05 m ahead of the model origin) and a
+  ball caster. DiffDrive is configured with the same radius and track.
+-->
+<sdf version="1.9">
+  <model name="diff_drive">
+    <link name="chassis">
+      <inertial>
+        <mass>2</mass>
+        <inertia><ixx>0.0073</ixx><iyy>0.0272</iyy><izz>0.0333</izz></inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry><box><size>0.4 0.2 0.06</size></box></geometry>
+      </collision>
+    </link>
+    <link name="left_wheel">
+      <pose relative_to="chassis">0.05 0.2 0 -1.570796327 0 0</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia><ixx>0.00132</ixx><iyy>0.00132</iyy><izz>0.0025</izz></inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <cylinder><radius>0.1</radius><length>0.04</length></cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="right_wheel">
+      <pose relative_to="chassis">0.05 -0.2 0 -1.570796327 0 0</pose>
+      <inertial>
+        <mass>0.5</mass>
+        <inertia><ixx>0.00132</ixx><iyy>0.00132</iyy><izz>0.0025</izz></inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <cylinder><radius>0.1</radius><length>0.04</length></cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <link name="caster">
+      <pose relative_to="chassis">-0.2 0 -0.07 0 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.0001</ixx><iyy>0.0001</iyy><izz>0.0001</izz></inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry><sphere><radius>0.03</radius></sphere></geometry>
+        <surface><friction><ode><mu>0</mu><mu2>0</mu2></ode></friction></surface>
+      </collision>
+    </link>
+    <joint name="left_wheel_joint" type="revolute">
+      <parent>chassis</parent>
+      <child>left_wheel</child>
+      <axis><xyz>0 0 1</xyz></axis>
+    </joint>
+    <joint name="right_wheel_joint" type="revolute">
+      <parent>chassis</parent>
+      <child>right_wheel</child>
+      <axis><xyz>0 0 1</xyz></axis>
+    </joint>
+    <joint name="caster_joint" type="ball">
+      <parent>chassis</parent>
+      <child>caster</child>
+    </joint>
+    <plugin filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+      <left_joint>left_wheel_joint</left_joint>
+      <right_joint>right_wheel_joint</right_joint>
+      <wheel_separation>0.4</wheel_separation>
+      <wheel_radius>0.1</wheel_radius>
+      <odom_publish_frequency>1000</odom_publish_frequency>
+      <max_linear_acceleration>2</max_linear_acceleration>
+      <min_linear_acceleration>-2</min_linear_acceleration>
+      <max_angular_acceleration>4</max_angular_acceleration>
+      <min_angular_acceleration>-4</min_angular_acceleration>
+    </plugin>
+  </model>
+</sdf>
