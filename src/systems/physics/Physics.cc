@@ -289,6 +289,26 @@ class gz::sim::systems::PhysicsPrivate
               const std::optional<gz::physics::ForwardStep::Output>
                 &_updatedLinks);
 
+  /// \brief Decide whether the engine must step in this update, and record
+  /// the decision. The step is skipped only when it cannot change anything
+  /// an earlier step has not already published: no link in the engine can
+  /// move, nothing was written to the engine and no entity was created since
+  /// the last unpaused update, and that update was idle too (so the contacts
+  /// and poses of the last step are the ones a new step would give).
+  /// \param[in] _ecm Constant reference to ECM.
+  /// \return True if the engine must step.
+  public: bool ShouldStep(const EntityComponentManager &_ecm);
+
+  /// \brief Check if every link in the engine is in a model that the engine
+  /// reports as static, with every ancestor model static as well. The engine
+  /// decides, because an engine can simulate a nested model without
+  /// `<static>` as dynamic inside a static parent. Without the static-state
+  /// feature a link counts as dynamic. The result is cached until a model or
+  /// link is added or removed, or a model changes its static state.
+  /// \param[in] _ecm Constant reference to ECM.
+  /// \return True if no link in the engine can move.
+  public: bool OnlyStaticBodies(const EntityComponentManager &_ecm);
+
   /// \brief Check if a model contains any plane collision geometry.
   /// \param[in] modelEntity The entity of the model to check.
   /// \param[in] _ecm The entity component manager.
@@ -372,6 +392,35 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Keep track of what entities are static (models and links).
   public: std::unordered_set<Entity> staticEntities;
+
+  /// \brief True when `onlyStaticBodies` may be out of date. The cache is
+  /// also recomputed when the number of links or static entities differs
+  /// from the numbers it was computed for, so code that adds a link to the
+  /// engine cannot leave it out of date by forgetting this flag.
+  public: bool onlyStaticBodiesStale{true};
+
+  /// \brief Number of links in the engine when `onlyStaticBodies` was
+  /// computed.
+  public: std::size_t onlyStaticBodiesLinks{0};
+
+  /// \brief Number of static entities when `onlyStaticBodies` was computed.
+  public: std::size_t onlyStaticBodiesStatics{0};
+
+  /// \brief Cached result of `OnlyStaticBodies`.
+  public: bool onlyStaticBodies{false};
+
+  /// \brief True when a command wrote to the engine, or an entity was
+  /// created, in a way that only a step publishes to the ECM (a pose, a joint
+  /// state, a velocity, a static state change, a new body). It stays set
+  /// across paused updates and is cleared when `ShouldStep` consumes it, so
+  /// a change made while paused reaches the first step after the pause.
+  public: bool engineStateWritten{false};
+
+  /// \brief True when the last unpaused update was idle: nothing but static
+  /// bodies, nothing written. A further step would repeat that one. Cleared
+  /// when a model leaves the engine, because the engine's last contact result
+  /// then refers to freed shapes, and by a reset.
+  public: bool lastStepWasIdle{false};
 
   /// \brief Keep track of poses for links attached to non-static models.
   /// This allows for skipping pose updates if a link's pose didn't change
@@ -1129,10 +1178,21 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
-    const std::optional<gz::physics::ForwardStep::Output> emptyStepOutput;
-    const auto &stepOutput = _info.paused ? emptyStepOutput :
-        this->dataPtr->Step(_info.dt);
-    auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
+    std::map<Entity, physics::FrameData3d> changedLinks;
+    // New bodies are published by a step. Record them now, so that a paused
+    // update does not forget them.
+    if (_ecm.HasNewEntities())
+      this->dataPtr->engineStateWritten = true;
+    if (_info.paused)
+    {
+      const std::optional<gz::physics::ForwardStep::Output> emptyStepOutput;
+      changedLinks = this->dataPtr->ChangedLinks(_ecm, emptyStepOutput);
+    }
+    else if (this->dataPtr->ShouldStep(_ecm))
+    {
+      const auto &stepOutput = this->dataPtr->Step(_info.dt);
+      changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
+    }
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
     // Entities scheduled to be removed should be removed from physics after the
@@ -1169,6 +1229,9 @@ void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm,
   this->CreateCollisionEntities(_ecm, _warnIfEntityExists);
   this->CreateJointEntities(_ecm, _warnIfEntityExists);
   this->CreateBatteryEntities(_ecm);
+
+  if (_ecm.HasNewEntities())
+    this->onlyStaticBodiesStale = true;
 }
 
 //////////////////////////////////////////////////
@@ -2326,6 +2389,11 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
           this->topLevelModelMap.erase(_entity);
           this->staticEntities.erase(_entity);
           this->modelWorldPoses.erase(_entity);
+          this->onlyStaticBodiesStale = true;
+          // The engine's last contact result holds pointers to the shapes of
+          // the removed model. Only a step replaces it, and reading it before
+          // that would touch freed memory.
+          this->lastStepWasIdle = false;
         }
         return true;
       });
@@ -2335,6 +2403,7 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
 void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdatePhysics");
+
   // Gravity state
   _ecm.Each<components::Gravity>(
       [&](const Entity & _entity, const components::Gravity *_gravity)
@@ -2496,6 +2565,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _entity);
         if (posLimits && !posLimits->Data().empty())
         {
+          this->engineStateWritten = true;
           const auto& limits = posLimits->Data();
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
@@ -2527,6 +2597,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _entity);
         if (velLimits && !velLimits->Data().empty())
         {
+          this->engineStateWritten = true;
           const auto& limits = velLimits->Data();
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
@@ -2558,6 +2629,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             _entity);
         if (effLimits && !effLimits->Data().empty())
         {
+          this->engineStateWritten = true;
           const auto& limits = effLimits->Data();
 
           if (limits.size() != jointPhys->GetDegreesOfFreedom())
@@ -2593,6 +2665,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // Reset the velocity
         if (velReset)
         {
+          this->engineStateWritten = true;
           auto& jointVelocity = velReset->Data();
 
           if (jointVelocity.size() != jointPhys->GetDegreesOfFreedom())
@@ -2618,6 +2691,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // Reset the position
         if (posReset)
         {
+          this->engineStateWritten = true;
           auto &jointPosition = posReset->Data();
 
           if (jointPosition.size() != jointPhys->GetDegreesOfFreedom())
@@ -2643,6 +2717,10 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         if (force)
         {
+          // The component stays on the joint with zeros between commands.
+          this->engineStateWritten = this->engineStateWritten ||
+              std::any_of(force->Data().begin(), force->Data().end(),
+                  [](const double _value) { return _value != 0.0; });
           if (force->Data().size() != jointPhys->GetDegreesOfFreedom())
           {
             gzwarn << "There is a mismatch in the degrees of freedom between "
@@ -2662,6 +2740,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         // If both the cmd and reset components are found, cmd is ignored.
         else if (velCmd)
         {
+          this->engineStateWritten = true;
           auto velocityCmd = velCmd->Data();
 
           if (velReset)
@@ -2830,6 +2909,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         }
 
         modelStaticStateFeature->SetStatic(_staticCmd->Data());
+        this->onlyStaticBodiesStale = true;
+        this->engineStateWritten = true;
         return true;
       });
 
@@ -3054,6 +3135,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         freeGroup->SetWorldPose(math::eigen3::convert(worldPoseCmd *
                                 linkPose));
+        this->engineStateWritten = true;
 
         // Process pose commands for static models here, as one-time changes
         if (this->staticEntities.find(_entity) != this->staticEntities.end())
@@ -3161,6 +3243,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
+        this->engineStateWritten = true;
         return true;
       });
 
@@ -3211,6 +3294,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
+        this->engineStateWritten = true;
 
         return true;
       });
@@ -3263,6 +3347,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             * modelToLinkTransform.Rot() * _angularVelocityCmd->Data();
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
+        this->engineStateWritten = true;
 
         return true;
       });
@@ -3315,6 +3400,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             * modelToLinkTransform.Rot() * _linearVelocityCmd->Data();
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
+        this->engineStateWritten = true;
 
         return true;
       });
@@ -3373,6 +3459,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         worldLinearVelFeature->SetWorldLinearVelocity(
             math::eigen3::convert(worldLinearVel));
+        this->engineStateWritten = true;
 
         return true;
       });
@@ -3432,6 +3519,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
         worldAngularVelFeature->SetWorldAngularVelocity(
             math::eigen3::convert(worldAngularVel));
+        this->engineStateWritten = true;
 
         return true;
       });
@@ -3461,6 +3549,8 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
   this->canonicalLinkModelTracker.AddAllModels(_ecm);
+  this->onlyStaticBodiesStale = true;
+  this->lastStepWasIdle = false;
 
   // Update link pose, linear velocity, and angular velocity
   _ecm.Each<components::Link>(
@@ -3587,6 +3677,62 @@ const std::optional<gz::physics::ForwardStep::Output> &PhysicsPrivate::Step(
   }
 
   return this->stepOutput;
+}
+
+//////////////////////////////////////////////////
+bool PhysicsPrivate::OnlyStaticBodies(const EntityComponentManager &_ecm)
+{
+  const auto linkCount = this->entityLinkMap.Map().size();
+  if (!this->onlyStaticBodiesStale &&
+      linkCount == this->onlyStaticBodiesLinks &&
+      this->staticEntities.size() == this->onlyStaticBodiesStatics)
+  {
+    return this->onlyStaticBodies;
+  }
+
+  // A link counts as static when its model and every ancestor model are
+  // static in the engine. A static nested model in a dynamic parent counts as
+  // dynamic, since the parent can carry it.
+  auto modelIsStatic = [&](Entity _model)
+  {
+    while (_ecm.Component<components::Model>(_model) &&
+           this->entityModelMap.HasEntity(_model))
+    {
+      auto feature =
+          this->entityModelMap.EntityCast<StaticStateFeatureList>(_model);
+      if (!feature || !feature->GetStatic())
+        return false;
+      _model = _ecm.ParentEntity(_model);
+    }
+    return true;
+  };
+
+  this->onlyStaticBodies = true;
+  for (const auto &linkAndPtr : this->entityLinkMap.Map())
+  {
+    if (!modelIsStatic(_ecm.ParentEntity(linkAndPtr.first)))
+    {
+      this->onlyStaticBodies = false;
+      break;
+    }
+  }
+  this->onlyStaticBodiesStale = false;
+  this->onlyStaticBodiesLinks = linkCount;
+  this->onlyStaticBodiesStatics = this->staticEntities.size();
+  return this->onlyStaticBodies;
+}
+
+//////////////////////////////////////////////////
+bool PhysicsPrivate::ShouldStep(const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("PhysicsPrivate::ShouldStep");
+  // The first step after anything changed still runs: it publishes what the
+  // change caused, and it replaces the contacts of the previous step.
+  const bool idle = !this->engineStateWritten && this->OnlyStaticBodies(_ecm);
+  const bool step = !idle || !this->lastStepWasIdle;
+  this->engineStateWritten = false;
+  this->lastStepWasIdle = idle;
+  return step;
 }
 
 //////////////////////////////////////////////////
