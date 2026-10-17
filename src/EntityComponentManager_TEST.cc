@@ -2467,6 +2467,276 @@ TEST_P(EntityComponentManagerFixture,
 }
 
 //////////////////////////////////////////////////
+// The tests below cover how SetChanged moves a component type between the
+// one time, periodic and unchanged sets of an entity.
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetChangedStateTransitions))
+{
+  const Entity e = manager.CreateEntity();
+  manager.CreateComponent(e, IntComponent(1));
+  manager.CreateComponent(e, DoubleComponent(2.0));
+  const auto intType = IntComponent::typeId;
+  const auto doubleType = DoubleComponent::typeId;
+  manager.RunClearNewlyCreatedEntities();
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+
+  manager.SetChanged(e, intType, ComponentState::PeriodicChange);
+  manager.SetChanged(e, doubleType, ComponentState::OneTimeChange);
+  EXPECT_EQ(ComponentState::PeriodicChange, manager.ComponentState(e, intType));
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e, doubleType));
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(1, manager.ChangedState().entities_size());
+
+  // Periodic to one time. The entity keeps no periodic set.
+  manager.SetChanged(e, intType, ComponentState::OneTimeChange);
+  EXPECT_EQ(ComponentState::OneTimeChange, manager.ComponentState(e, intType));
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+
+  // One time to periodic. The double stays one time.
+  manager.SetChanged(e, intType, ComponentState::PeriodicChange);
+  EXPECT_EQ(ComponentState::PeriodicChange, manager.ComponentState(e, intType));
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e, doubleType));
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+
+  // Marking a type again does not duplicate it.
+  manager.SetChanged(e, intType, ComponentState::PeriodicChange);
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+  ASSERT_EQ(1, stateMsg.entities_size());
+  EXPECT_EQ(2, stateMsg.entities().at(e).components_size());
+
+  // Unchanged removes only the given type.
+  manager.SetChanged(e, doubleType, ComponentState::NoChange);
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, doubleType));
+  EXPECT_EQ(ComponentState::PeriodicChange, manager.ComponentState(e, intType));
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
+
+  manager.SetChanged(e, intType, ComponentState::NoChange);
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, intType));
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+
+  // A type the entity does not have is ignored.
+  manager.SetChanged(e, StringComponent::typeId,
+      ComponentState::PeriodicChange);
+  EXPECT_EQ(ComponentState::NoChange,
+      manager.ComponentState(e, StringComponent::typeId));
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+
+  // The end of a step clears everything.
+  manager.SetChanged(e, intType, ComponentState::PeriodicChange);
+  manager.SetChanged(e, doubleType, ComponentState::OneTimeChange);
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, intType));
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, doubleType));
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetChangedManyTypesOnOneEntity))
+{
+  // More types than a small inline set would hold.
+  const Entity e = manager.CreateEntity();
+  const std::vector<ComponentTypeId> types{
+      IntComponent::typeId, UIntComponent::typeId, DoubleComponent::typeId,
+      FloatComponent::typeId, BoolComponent::typeId,
+      StringComponent::typeId};
+  manager.CreateComponent(e, IntComponent(1));
+  manager.CreateComponent(e, UIntComponent(2));
+  manager.CreateComponent(e, DoubleComponent(3.0));
+  manager.CreateComponent(e, FloatComponent(4.0f));
+  manager.CreateComponent(e, BoolComponent(true));
+  manager.CreateComponent(e, StringComponent("six"));
+  manager.RunClearNewlyCreatedEntities();
+  manager.RunSetAllComponentsUnchanged();
+
+  auto serialized = [&]() -> int
+  {
+    msgs::SerializedStateMap msg;
+    manager.State(msg);
+    auto it = msg.entities().find(e);
+    return it == msg.entities().end() ? 0 : it->second.components_size();
+  };
+
+  for (const auto type : types)
+    manager.SetChanged(e, type, ComponentState::PeriodicChange);
+  for (const auto type : types)
+    EXPECT_EQ(ComponentState::PeriodicChange, manager.ComponentState(e, type));
+  EXPECT_EQ(6, serialized());
+
+  // Marking all of them again changes nothing.
+  for (const auto type : types)
+    manager.SetChanged(e, type, ComponentState::PeriodicChange);
+  EXPECT_EQ(6, serialized());
+
+  // Move the first, third and fifth type to one time and drop the second.
+  manager.SetChanged(e, types[0], ComponentState::OneTimeChange);
+  manager.SetChanged(e, types[2], ComponentState::OneTimeChange);
+  manager.SetChanged(e, types[4], ComponentState::OneTimeChange);
+  manager.SetChanged(e, types[1], ComponentState::NoChange);
+  EXPECT_EQ(ComponentState::OneTimeChange, manager.ComponentState(e, types[0]));
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, types[1]));
+  EXPECT_EQ(ComponentState::OneTimeChange, manager.ComponentState(e, types[2]));
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e, types[3]));
+  EXPECT_EQ(ComponentState::OneTimeChange, manager.ComponentState(e, types[4]));
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e, types[5]));
+  EXPECT_EQ(5, serialized());
+
+  // A type can be marked again after others left the sets.
+  manager.SetChanged(e, types[1], ComponentState::PeriodicChange);
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e, types[1]));
+  EXPECT_EQ(6, serialized());
+  manager.SetChanged(e, types[1], ComponentState::NoChange);
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, types[1]));
+  EXPECT_EQ(5, serialized());
+
+  // Remove the last type and drop the rest one by one.
+  EXPECT_TRUE(manager.RemoveComponent(e, types[5]));
+  EXPECT_EQ(ComponentState::NoChange, manager.ComponentState(e, types[5]));
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
+  manager.SetChanged(e, types[3], ComponentState::NoChange);
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+  for (const auto type : {types[0], types[2], types[4]})
+  {
+    EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+    manager.SetChanged(e, type, ComponentState::NoChange);
+  }
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  // Only the removal of the last type is left.
+  EXPECT_EQ(1, serialized());
+
+  // A step ends with no state left over and the entity can be marked again.
+  manager.RunSetAllComponentsUnchanged();
+  manager.RunClearRemovedComponents();
+  manager.SetChanged(e, types[3], ComponentState::PeriodicChange);
+  EXPECT_EQ(1, serialized());
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetChangedUnremovesComponent))
+{
+  const Entity e = manager.CreateEntity();
+  manager.CreateComponent(e, IntComponent(1));
+  manager.CreateComponent(e, DoubleComponent(2.0));
+  manager.RunClearNewlyCreatedEntities();
+  manager.RunSetAllComponentsUnchanged();
+  manager.RunClearRemovedComponents();
+  EXPECT_FALSE(manager.HasRemovedComponents());
+
+  EXPECT_TRUE(manager.RemoveComponent<IntComponent>(e));
+  EXPECT_TRUE(manager.RemoveComponent<DoubleComponent>(e));
+  EXPECT_TRUE(manager.HasRemovedComponents());
+  msgs::SerializedStateMap removedMsg;
+  manager.State(removedMsg);
+  ASSERT_EQ(1, removedMsg.entities_size());
+  EXPECT_EQ(2, removedMsg.entities().at(e).components_size());
+
+  // Creating a component again in the same step cancels its removal.
+  manager.CreateComponent(e, IntComponent(3));
+  EXPECT_TRUE(manager.HasRemovedComponents());
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e, IntComponent::typeId));
+  msgs::SerializedStateMap msg;
+  manager.State(msg);
+  ASSERT_EQ(1, msg.entities_size());
+  EXPECT_EQ(2, msg.entities().at(e).components_size());
+  for (const auto &[id, comp] : msg.entities().at(e).components())
+  {
+    if (comp.type() == IntComponent::typeId)
+      EXPECT_FALSE(comp.remove());
+    else
+      EXPECT_TRUE(comp.remove());
+  }
+
+  manager.CreateComponent(e, DoubleComponent(4.0));
+  EXPECT_FALSE(manager.HasRemovedComponents());
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetChangedNewEntity))
+{
+  // A new entity is reported as new, not as modified. Its changed components
+  // are tracked all the same.
+  const Entity e = manager.CreateEntity();
+  manager.CreateComponent(e, IntComponent(1));
+  manager.SetChanged(e, IntComponent::typeId, ComponentState::PeriodicChange);
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e, IntComponent::typeId));
+  EXPECT_EQ(1, manager.ChangedState().entities_size());
+
+  // The entity is not modified, so it is gone from the changed state once it
+  // is no longer new.
+  manager.RunClearNewlyCreatedEntities();
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e, IntComponent::typeId));
+
+  // A change after that makes the entity modified, once.
+  manager.SetChanged(e, IntComponent::typeId, ComponentState::PeriodicChange);
+  manager.SetChanged(e, IntComponent::typeId, ComponentState::OneTimeChange);
+  EXPECT_EQ(1, manager.ChangedState().entities_size());
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(SetChangedAfterResetTo))
+{
+  const Entity e = manager.CreateEntity();
+  manager.CreateComponent(e, IntComponent(1));
+  manager.CreateComponent(e, DoubleComponent(2.0));
+  manager.RunClearNewlyCreatedEntities();
+  manager.RunSetAllComponentsUnchanged();
+
+  EntityCompMgrTest initial;
+  initial.CopyFrom(manager);
+
+  // Change state that exists when the ECM is reset must not survive.
+  manager.SetChanged(e, IntComponent::typeId, ComponentState::PeriodicChange);
+  manager.SetChanged(e, DoubleComponent::typeId, ComponentState::OneTimeChange);
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
+  manager.ResetTo(initial);
+  manager.RunClearNewlyCreatedEntities();
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+
+  // Marking works on the reset ECM.
+  manager.SetChanged(e, IntComponent::typeId, ComponentState::PeriodicChange);
+  manager.SetChanged(e, DoubleComponent::typeId, ComponentState::OneTimeChange);
+  EXPECT_EQ(ComponentState::PeriodicChange,
+      manager.ComponentState(e, IntComponent::typeId));
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e, DoubleComponent::typeId));
+  EXPECT_TRUE(manager.HasPeriodicComponentChanges());
+  EXPECT_TRUE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(1, manager.ChangedState().entities_size());
+
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+}
+
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
     GZ_UTILS_TEST_DISABLED_ON_WIN32(SetEntityCreateOffset))
 {

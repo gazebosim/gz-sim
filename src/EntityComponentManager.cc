@@ -114,6 +114,40 @@ namespace
   struct RemovedComponents {
     std::unordered_set<ComponentTypeId> data;
   };
+
+  /// \brief Insert a component type into the set that _storage holds for
+  /// _entity, creating the set if the entity has none.
+  /// \param[in] _storage Storage of OneTimeChangedComponents,
+  /// PeriodicChangedComponents or RemovedComponents.
+  /// \param[in] _entity Entity whose set is changed.
+  /// \param[in] _type Component type to insert.
+  template<typename StorageT>
+  void InsertChangedType(StorageT &_storage, const Entity _entity,
+      const ComponentTypeId _type)
+  {
+    if (_storage.contains(_entity))
+      _storage.get(_entity).data.insert(_type);
+    else
+      _storage.emplace(_entity).data.insert(_type);
+  }
+
+  /// \brief Erase a component type from the set that _storage holds for
+  /// _entity. The set is destroyed when it becomes empty.
+  /// \param[in] _storage Storage of OneTimeChangedComponents,
+  /// PeriodicChangedComponents or RemovedComponents.
+  /// \param[in] _entity Entity whose set is changed.
+  /// \param[in] _type Component type to erase.
+  template<typename StorageT>
+  void EraseChangedType(StorageT &_storage, const Entity _entity,
+      const ComponentTypeId _type)
+  {
+    if (!_storage.contains(_entity))
+      return;
+    auto &set = _storage.get(_entity).data;
+    set.erase(_type);
+    if (set.empty())
+      _storage.erase(_entity);
+  }
 }
 
 class gz::sim::EntityComponentManagerPrivate
@@ -238,6 +272,39 @@ class gz::sim::EntityComponentManagerPrivate
 
   /// \brief Registry.
   public: entt::basic_registry<Entity> registry;
+
+  // The registry finds the storage of a component type through a hash map on
+  // every typed access. SetChanged runs for every changed component and step,
+  // so it uses these references to the storages of the internal marker types
+  // instead. A registry keeps its storages for its lifetime, also across
+  // registry.clear(), so the references stay valid. They must be declared
+  // after the registry.
+
+  /// \brief Storage of NewEntity.
+  public: entt::storage_for_t<NewEntity, Entity> &newEntityStorage{
+              registry.storage<NewEntity>()};
+
+  /// \brief Storage of RemoveEntity.
+  public: entt::storage_for_t<RemoveEntity, Entity> &removeEntityStorage{
+              registry.storage<RemoveEntity>()};
+
+  /// \brief Storage of ModifiedComponent.
+  public: entt::storage_for_t<ModifiedComponent, Entity> &modifiedStorage{
+              registry.storage<ModifiedComponent>()};
+
+  /// \brief Storage of OneTimeChangedComponents.
+  public: entt::storage_for_t<OneTimeChangedComponents, Entity>
+              &oneTimeChangedStorage{
+              registry.storage<OneTimeChangedComponents>()};
+
+  /// \brief Storage of PeriodicChangedComponents.
+  public: entt::storage_for_t<PeriodicChangedComponents, Entity>
+              &periodicChangedStorage{
+              registry.storage<PeriodicChangedComponents>()};
+
+  /// \brief Storage of RemovedComponents.
+  public: entt::storage_for_t<RemovedComponents, Entity> &removedStorage{
+              registry.storage<RemovedComponents>()};
 };
 
 //////////////////////////////////////////////////
@@ -277,14 +344,9 @@ void EntityComponentManager::EnqueueGroup(
 EntityComponentManager::EntityComponentManager()
   : dataPtr(new EntityComponentManagerPrivate)
 {
-  this->Registry().storage<NewEntity>();
-  this->Registry().storage<RemoveEntity>();
-  this->Registry().storage<ModifiedComponent>();
+  // The storages of the other internal types are created by the private data.
   this->Registry().storage<PinnedEntity>();
   this->Registry().storage<Children>();
-  this->Registry().storage<OneTimeChangedComponents>();
-  this->Registry().storage<PeriodicChangedComponents>();
-  this->Registry().storage<RemovedComponents>();
 
   // No replace hooks since we have no public API to replace components
   this->Registry().on_construct<components::ParentEntity>()
@@ -1770,78 +1832,32 @@ void EntityComponentManager::SetChanged(
   if (storage == nullptr || !storage->contains(_entity))
     return;
 
+  auto &d = *this->dataPtr;
+
   // If it was removed in this iteration, un-remove it
-  auto* removedComp = this->Registry().try_get<RemovedComponents>(_entity);
-  if (removedComp)
-  {
-    removedComp->data.erase(_type);
-    if (removedComp->data.empty())
-    {
-      this->Registry().erase<RemovedComponents>(_entity);
-    }
-  }
+  EraseChangedType(d.removedStorage, _entity, _type);
 
   if (_c == ComponentState::PeriodicChange)
   {
-    auto& periodicChangedComp =
-      this->Registry().get_or_emplace<PeriodicChangedComponents>(_entity);
-    periodicChangedComp.data.insert(_type);
-    auto* oneTimeChangeComp =
-      this->Registry().try_get<OneTimeChangedComponents>(_entity);
-    if (oneTimeChangeComp)
-    {
-      oneTimeChangeComp->data.erase(_type);
-      if (oneTimeChangeComp->data.empty())
-      {
-        this->Registry().erase<OneTimeChangedComponents>(_entity);
-      }
-    }
+    InsertChangedType(d.periodicChangedStorage, _entity, _type);
+    EraseChangedType(d.oneTimeChangedStorage, _entity, _type);
   }
   else if (_c == ComponentState::OneTimeChange)
   {
-    auto* periodicChangeComp =
-      this->Registry().try_get<PeriodicChangedComponents>(_entity);
-    if (periodicChangeComp)
-    {
-      periodicChangeComp->data.erase(_type);
-      if (periodicChangeComp->data.empty())
-      {
-        this->Registry().erase<PeriodicChangedComponents>(_entity);
-      }
-    }
-    auto& oneTimeChangedComp =
-      this->Registry().get_or_emplace<OneTimeChangedComponents>(_entity);
-    oneTimeChangedComp.data.insert(_type);
+    EraseChangedType(d.periodicChangedStorage, _entity, _type);
+    InsertChangedType(d.oneTimeChangedStorage, _entity, _type);
   }
   else
   {
-    auto* periodicChangeComp =
-      this->Registry().try_get<PeriodicChangedComponents>(_entity);
-    if (periodicChangeComp)
-    {
-      periodicChangeComp->data.erase(_type);
-      if (periodicChangeComp->data.empty())
-      {
-        this->Registry().erase<PeriodicChangedComponents>(_entity);
-      }
-    }
-    auto* oneTimeChangeComp =
-      this->Registry().try_get<OneTimeChangedComponents>(_entity);
-    if (oneTimeChangeComp)
-    {
-      oneTimeChangeComp->data.erase(_type);
-      if (oneTimeChangeComp->data.empty())
-      {
-        this->Registry().erase<OneTimeChangedComponents>(_entity);
-      }
-    }
+    EraseChangedType(d.periodicChangedStorage, _entity, _type);
+    EraseChangedType(d.oneTimeChangedStorage, _entity, _type);
 
     // the component state is flagged as no change, so don't mark the
     // corresponding entity as one with a modified component
     return;
   }
 
-  this->dataPtr->AddModifiedComponent(_entity);
+  d.AddModifiedComponent(_entity);
 }
 
 /////////////////////////////////////////////////
@@ -1889,15 +1905,16 @@ bool EntityComponentManager::LockAddingEntitiesToViews() const
 /////////////////////////////////////////////////
 void EntityComponentManagerPrivate::AddModifiedComponent(const Entity &_entity)
 {
-  if (this->registry.any_of<NewEntity, RemoveEntity, ModifiedComponent>(
-        _entity))
+  if (this->newEntityStorage.contains(_entity) ||
+      this->removeEntityStorage.contains(_entity) ||
+      this->modifiedStorage.contains(_entity))
   {
     // modified component is already in newlyCreatedEntities,
     // toRemoveEntities list, or already marked as modified.
     return;
   }
 
-  this->registry.emplace<ModifiedComponent>(_entity);
+  this->modifiedStorage.emplace(_entity);
 }
 
 /////////////////////////////////////////////////
