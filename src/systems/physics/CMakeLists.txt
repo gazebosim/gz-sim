@@ -1,6 +1,9 @@
 gz_add_system(physics
   SOURCES
+    CommandClearer.cc
+    ContactWriter.cc
     FrameDataWriter.cc
+    JointStateWriter.cc
     Physics.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
@@ -11,8 +14,12 @@ gz_add_system(physics
 )
 
 set (gtest_sources
+  CommandClearer_TEST.cc
+  ContactWriter_TEST.cc
   EntityFeatureMap_TEST.cc
   FrameDataWriter_TEST.cc
+  JointStateWriter_TEST.cc
+  OwnerFilter_TEST.cc
 )
 
 if (MSVC)
@@ -35,6 +42,18 @@ gz_build_tests(TYPE UNIT
   GZ_IP=127.0.0.1
 )
 
+if (TARGET UNIT_CommandClearer_TEST)
+  target_sources(UNIT_CommandClearer_TEST PRIVATE CommandClearer.cc)
+endif()
+
+if (TARGET UNIT_ContactWriter_TEST)
+  target_sources(UNIT_ContactWriter_TEST PRIVATE ContactWriter.cc)
+endif()
+
 if (TARGET UNIT_FrameDataWriter_TEST)
   target_sources(UNIT_FrameDataWriter_TEST PRIVATE FrameDataWriter.cc)
+endif()
+
+if (TARGET UNIT_JointStateWriter_TEST)
+  target_sources(UNIT_JointStateWriter_TEST PRIVATE JointStateWriter.cc)
 endif()

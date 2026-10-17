@@ -159,8 +159,12 @@
 // Events
 #include "gz/sim/physics/Events.hh"
 
+#include "CommandClearer.hh"
+#include "ContactWriter.hh"
 #include "EntityFeatureMap.hh"
 #include "FrameDataWriter.hh"
+#include "JointStateWriter.hh"
+#include "OwnerFilter.hh"
 
 using namespace gz;
 using namespace gz::sim;
@@ -579,85 +583,6 @@ class gz::sim::systems::PhysicsPrivate
   public: using GCFeature = physics::GetContactsFromLastStepFeature;
   public: using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
-  /// \brief A contact is described by a contactPoint and the corresponding
-  /// extraContactData which we bundle in a pair data structure
-  public: using ContactData = std::pair<const WorldShapeType::ContactPoint *,
-                                const ExtraContactData *>;
-  /// \brief Each contact object we get from gz-physics contains the EntityPtrs
-  /// of the two colliding entities and other data about the contact such as the
-  /// position and extra contact date (wrench, normal and penetration depth).
-  /// This map groups contacts so that it is easy to query all the
-  /// contacts of one entity.
-  public: using EntityContactMap = std::unordered_map<
-            Entity, std::deque<ContactData>>;
-
-  /// \brief msgs::Contacts equality comparison function.
-  public: bool contactsEql(const msgs::Contacts &_msg,
-                           const EntityContactMap &_map)
-  {
-    if (_msg.contact_size() != static_cast<int>(_map.size()))
-    {
-      return false;
-    }
-
-    auto mapIt = _map.begin();
-    for (int i = 0; i < _msg.contact_size(); ++i, ++mapIt)
-    {
-      const auto &contactData = mapIt->second;
-      if (_msg.contact(i).position_size() !=
-          static_cast<int>(contactData.size()))
-      {
-        return false;
-      }
-
-      for (int j = 0; j < _msg.contact(i).position_size(); ++j)
-      {
-        const auto &contact = contactData[j];
-        auto pos1 = _msg.contact(i).position(j);
-        auto pos2 = contact.first->point;
-
-        if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
-            !math::equal(pos1.y(), pos2.y(), 1e-6) ||
-            !math::equal(pos1.z(), pos2.z(), 1e-6))
-        {
-          return false;
-        }
-
-        if(contact.second != nullptr)
-        {
-          // Compare normals
-          auto normal1 = _msg.contact(i).normal(j);
-          auto normal2 = contact.second->normal;
-          if (!math::equal(normal1.x(), normal2.x(), 1e-6) ||
-              !math::equal(normal1.y(), normal2.y(), 1e-6) ||
-              !math::equal(normal1.z(), normal2.z(), 1e-6))
-          {
-            return false;
-          }
-          // Compare body1 and body2 forces
-          auto body1force1 = _msg.contact(i).wrench(j).body_1_wrench().force();
-          auto body1force2 = contact.second->force;
-          if (!math::equal(body1force1.x(), body1force2.x(), 1e-6) ||
-              !math::equal(body1force1.y(), body1force2.y(), 1e-6) ||
-              !math::equal(body1force1.z(), body1force2.z(), 1e-6))
-          {
-            return false;
-          }
-
-          auto body2force1 = _msg.contact(i).wrench(j).body_2_wrench().force();
-          auto body2force2 = -contact.second->force;
-          if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
-              !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
-              !math::equal(body2force1.z(), body2force2.z(), 1e-6))
-          {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
-  }
-
   //////////////////////////////////////////////////
   // Collision filtering with bitmasks
 
@@ -924,6 +849,11 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+
+  /// \brief Selects the entities whose state this system writes and whose
+  /// commands it clears. It accepts every entity, because this system builds
+  /// a physics body for every model in the ECM.
+  public: OwnerFilter ownerFilter;
 
   /// \brief Cached physics output, to reduce allocations / deallocations
   std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
@@ -4000,198 +3930,36 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       });
   GZ_PROFILE_END();
 
-  // Clear reset components
+  // Clear reset components and consumed commands
   GZ_PROFILE_BEGIN("Clear / reset components");
-  std::vector<Entity> entitiesPositionReset;
-  _ecm.Each<components::JointPositionReset>(
-      [&](const Entity &_entity, components::JointPositionReset *) -> bool
-      {
-        entitiesPositionReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesPositionReset)
-  {
-    _ecm.RemoveComponent<components::JointPositionReset>(entity);
-  }
-
-  std::vector<Entity> entitiesVelocityReset;
-  _ecm.Each<components::JointVelocityReset>(
-      [&](const Entity &_entity, components::JointVelocityReset *) -> bool
-      {
-        entitiesVelocityReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesVelocityReset)
-  {
-    _ecm.RemoveComponent<components::JointVelocityReset>(entity);
-  }
-
-  std::vector<Entity> entitiesLinearVelocityReset;
-  _ecm.Each<components::WorldLinearVelocityReset>(
-      [&](const Entity &_entity,
-      components::WorldLinearVelocityReset *) -> bool
-      {
-        entitiesLinearVelocityReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesLinearVelocityReset)
-  {
-    _ecm.RemoveComponent<components::WorldLinearVelocityReset>(entity);
-  }
-
-  std::vector<Entity> entitiesAngularVelocityReset;
-  _ecm.Each<components::WorldAngularVelocityReset>(
-      [&](const Entity &_entity,
-      components::WorldAngularVelocityReset *) -> bool
-      {
-        entitiesAngularVelocityReset.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesAngularVelocityReset)
-  {
-    _ecm.RemoveComponent<components::WorldAngularVelocityReset>(entity);
-  }
-
-  std::vector<Entity> entitiesCustomContactSurface;
-  _ecm.Each<components::EnableContactSurfaceCustomization>(
-      [&](const Entity &_entity,
-      components::EnableContactSurfaceCustomization *) -> bool
-      {
-        entitiesCustomContactSurface.push_back(_entity);
-        return true;
-      });
-
-  for (const auto entity : entitiesCustomContactSurface)
-  {
-    _ecm.RemoveComponent<components::EnableContactSurfaceCustomization>(entity);
-  }
-
-  // Clear pending commands
-  _ecm.Each<components::JointForceCmd>(
-      [&](const Entity &, components::JointForceCmd *_force) -> bool
-      {
-        std::fill(_force->Data().begin(), _force->Data().end(), 0.0);
-        return true;
-      });
-
-  _ecm.Each<components::ExternalWorldWrenchCmd >(
-      [&](const Entity &, components::ExternalWorldWrenchCmd *_wrench) -> bool
-      {
-        _wrench->Data().Clear();
-        return true;
-      });
-
-  _ecm.Each<components::JointPositionLimitsCmd>(
-      [&](const Entity &, components::JointPositionLimitsCmd *_limits) -> bool
-      {
-        _limits->Data().clear();
-        return true;
-      });
-
-  _ecm.Each<components::JointVelocityLimitsCmd>(
-      [&](const Entity &, components::JointVelocityLimitsCmd *_limits) -> bool
-      {
-        _limits->Data().clear();
-        return true;
-      });
-
-  _ecm.Each<components::JointEffortLimitsCmd>(
-      [&](const Entity &, components::JointEffortLimitsCmd *_limits) -> bool
-      {
-        _limits->Data().clear();
-        return true;
-      });
-
-  {
-    std::vector<Entity> entitiesJointVelocityCmd;
-    _ecm.Each<components::JointVelocityCmd>(
-        [&](const Entity &_entity, components::JointVelocityCmd *) -> bool
-        {
-          entitiesJointVelocityCmd.push_back(_entity);
-          return true;
-        });
-
-    for (const auto entity : entitiesJointVelocityCmd)
-    {
-      _ecm.RemoveComponent<components::JointVelocityCmd>(entity);
-    }
-  }
-
-  _ecm.Each<components::SlipComplianceCmd>(
-      [&](const Entity &, components::SlipComplianceCmd *_slip) -> bool
-      {
-        std::fill(_slip->Data().begin(), _slip->Data().end(), 0.0);
-        return true;
-      });
-
-  {
-    std::vector<Entity> entitiesAngularVelocityCmd;
-    _ecm.Each<components::AngularVelocityCmd>(
-        [&](const Entity &_entity, components::AngularVelocityCmd *) -> bool
-        {
-          entitiesAngularVelocityCmd.push_back(_entity);
-          return true;
-        });
-
-    for (const auto entity : entitiesAngularVelocityCmd)
-    {
-      _ecm.RemoveComponent<components::AngularVelocityCmd>(entity);
-    }
-  }
-
-  {
-    std::vector<Entity> entitiesLinearVelocityCmd;
-    _ecm.Each<components::LinearVelocityCmd>(
-        [&](const Entity &_entity, components::LinearVelocityCmd *) -> bool
-        {
-          entitiesLinearVelocityCmd.push_back(_entity);
-          return true;
-        });
-
-    for (const auto entity : entitiesLinearVelocityCmd)
-    {
-      _ecm.RemoveComponent<components::LinearVelocityCmd>(entity);
-    }
-  }
+  ClearCommands(_ecm, this->ownerFilter);
   GZ_PROFILE_END();
 
-  // Update joint positions
+  // Update joint positions and velocities
   GZ_PROFILE_BEGIN("Joints");
-  _ecm.Each<components::Joint, components::JointPosition>(
-      [&](const Entity &_entity, components::Joint *,
-          components::JointPosition *_jointPos) -> bool
+  WriteJointPositions(_ecm, this->ownerFilter,
+      [this](const Entity &_joint, std::vector<double> &_position) -> bool
       {
-        if (auto jointPhys = this->entityJointMap.Get(_entity))
-        {
-          _jointPos->Data().resize(jointPhys->GetDegreesOfFreedom());
-          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
-          {
-            _jointPos->Data()[i] = jointPhys->GetPosition(i);
-          }
-          _ecm.SetChanged(_entity, components::JointPosition::typeId,
-              ComponentState::PeriodicChange);
-        }
+        auto jointPhys = this->entityJointMap.Get(_joint);
+        if (!jointPhys)
+          return false;
+
+        _position.resize(jointPhys->GetDegreesOfFreedom());
+        for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
+          _position[i] = jointPhys->GetPosition(i);
         return true;
       });
 
-  // Update joint Velocities
-  _ecm.Each<components::Joint, components::JointVelocity>(
-      [&](const Entity &_entity, components::Joint *,
-          components::JointVelocity *_jointVel) -> bool
+  WriteJointVelocities(_ecm, this->ownerFilter,
+      [this](const Entity &_joint, std::vector<double> &_velocity) -> bool
       {
-        if (auto jointPhys = this->entityJointMap.Get(_entity))
-        {
-          _jointVel->Data().resize(jointPhys->GetDegreesOfFreedom());
-          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom();
-               ++i)
-          {
-            _jointVel->Data()[i] = jointPhys->GetVelocity(i);
-          }
-        }
+        auto jointPhys = this->entityJointMap.Get(_joint);
+        if (!jointPhys)
+          return false;
+
+        _velocity.resize(jointPhys->GetDegreesOfFreedom());
+        for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
+          _velocity[i] = jointPhys->GetVelocity(i);
         return true;
       });
   GZ_PROFILE_END();
@@ -4297,13 +4065,10 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
   }
 
   // This data structure is essentially a mapping between a pair of entities and
-  // a list of pointers to their contact object. We use a map inside a map to
-  // create msgs::Contact objects conveniently later on.
-  std::unordered_map<Entity, EntityContactMap> entityContactMap;
+  // a list of their contact points. We use a map inside a map to create
+  // msgs::Contact objects conveniently later on.
+  ContactMap entityContactMap;
 
-  // Note that we are temporarily storing pointers to elements in this
-  // ("allContacts") container. Thus, we must make sure it doesn't get destroyed
-  // until the end of this function.
   auto allContacts = worldCollisionFeature->GetContactsFromLastStep();
 
   for (const auto &contactComposite : allContacts)
@@ -4318,103 +4083,22 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
-      ContactData data = std::make_pair(&contactPoint, extraContactData);
+      ContactPointData data;
+      data.point = math::eigen3::convert(contactPoint.point);
+      if (extraContactData != nullptr)
+      {
+        data.extra = ContactPointData::Extra{
+            math::eigen3::convert(extraContactData->normal),
+            math::eigen3::convert(extraContactData->force),
+            extraContactData->depth};
+      }
       entityContactMap[coll1Entity][coll2Entity].push_back(data);
       entityContactMap[coll2Entity][coll1Entity].push_back(data);
     }
   }
 
-  // Go through each collision entity that has a ContactData component and
-  // set the component value to the list of contacts that correspond to
-  // the collision entity
-  _ecm.Each<components::Collision, components::ContactSensorData>(
-      [&](const Entity &_collEntity1, components::Collision *,
-          components::ContactSensorData *_contacts) -> bool
-      {
-        const auto contactMapIt = entityContactMap.find(_collEntity1);
-        if (contactMapIt == entityContactMap.end())
-        {
-          // Clear the last contact data
-          bool changed = _contacts->Data().contact_size() > 0;
-          if (changed)
-          {
-            _contacts->Data().Clear();
-          }
-
-          auto state = changed ?
-            ComponentState::PeriodicChange :
-            ComponentState::NoChange;
-          _ecm.SetChanged(
-            _collEntity1, components::ContactSensorData::typeId, state);
-          return true;
-        }
-
-        const auto &contactMap = contactMapIt->second;
-
-        bool changed = !this->contactsEql(_contacts->Data(), contactMap);
-        auto state = changed ?
-          ComponentState::PeriodicChange :
-          ComponentState::NoChange;
-        _ecm.SetChanged(
-          _collEntity1, components::ContactSensorData::typeId, state);
-
-        // If contacts are unchanged, no need to update them again
-        if (!changed)
-        {
-          return true;
-        }
-
-        // If contacts have changed, first clear data then add contacts
-        _contacts->Data().Clear();
-        for (const auto &[collEntity2, contactData] : contactMap)
-        {
-          msgs::Contact *contactMsg = _contacts->Data().add_contact();
-          contactMsg->mutable_collision1()->set_id(_collEntity1);
-          contactMsg->mutable_collision2()->set_id(collEntity2);
-          if (this->contactsEntityNames)
-          {
-            contactMsg->mutable_collision1()->set_name(
-              removeParentScope(scopedName(_collEntity1, _ecm, "::", 0), "::"));
-            contactMsg->mutable_collision2()->set_name(
-              removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
-          }
-          for (const auto &contact : contactData)
-          {
-            auto *position = contactMsg->add_position();
-            position->set_x(contact.first->point.x());
-            position->set_y(contact.first->point.y());
-            position->set_z(contact.first->point.z());
-
-            // Check if the extra contact data exists,
-            // since not all physics engines support it.
-            // Then, fill the msg with extra data.
-            if(contact.second != nullptr)
-            {
-              auto *normal = contactMsg->add_normal();
-              normal->set_x(contact.second->normal.x());
-              normal->set_y(contact.second->normal.y());
-              normal->set_z(contact.second->normal.z());
-
-              auto *wrench = contactMsg->add_wrench();
-              auto *body1Wrench = wrench->mutable_body_1_wrench();
-              auto *body1Force = body1Wrench->mutable_force();
-              body1Force->set_x(contact.second->force.x());
-              body1Force->set_y(contact.second->force.y());
-              body1Force->set_z(contact.second->force.z());
-
-              // The force on the second body is equal and opposite
-              auto *body2Wrench = wrench->mutable_body_2_wrench();
-              auto *body2Force = body2Wrench->mutable_force();
-              body2Force->set_x(-contact.second->force.x());
-              body2Force->set_y(-contact.second->force.y());
-              body2Force->set_z(-contact.second->force.z());
-
-              contactMsg->add_depth(contact.second->depth);
-            }
-          }
-        }
-        return true;
-      });
+  WriteContacts(_ecm, this->ownerFilter, entityContactMap,
+      this->contactsEntityNames);
 }
 
 //////////////////////////////////////////////////
