@@ -1739,11 +1739,14 @@ gz_sim_system_libraries(
     deps = [
         ":gz-sim",
         ":gz-sim-physics-helpers",
+        "//vendor/box2d",
+        "@gz-common//graphics",
         "@gz-common//profiler",
         "@gz-math",
         "@gz-math//eigen3",
         "@gz-physics",
         "@gz-plugin//:register",
+        "@gz-utils//:ImplPtr",
         "@sdformat",
     ],
 )
@@ -1765,9 +1768,13 @@ simplified_physics_test_sources = glob(
     copts = ["-Wno-private-header"],
     deps = [
         ":gz-sim",
+        "//vendor/box2d",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
+        "@gz-common//graphics",
         "@gz-math",
+        "@gz-utils//:ImplPtr",
+        "@sdformat",
     ],
 ) for src in simplified_physics_test_sources]
 
