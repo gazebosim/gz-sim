@@ -102,6 +102,7 @@ namespace gz
       /// \brief Name of the XML element from which the physics requirements
       /// of a system will be parsed. See ISystemPhysicsRequirements.
       public: constexpr static std::string_view
+          // cppcheck-suppress unusedStructMember
           kPhysicsRequirementsElementName = {"gz:physics_requirements"};
 
       /// \brief Constructor
