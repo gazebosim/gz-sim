@@ -810,11 +810,13 @@ environmental_sensor_system_test_sources = glob([
     # Some tests need private headers.
     copts = ["-Wno-private-header"],
     deps = [
+        ":gz-sim",
         ":gz-sim-environmental-sensor-system-static",
         "//test:Helpers",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
     ],
 ) for src in environmental_sensor_system_test_sources]
 
@@ -862,6 +864,7 @@ gz_sim_system_libraries(
             "src/systems/force_torque/**/*.cc",
             "src/systems/force_torque/**/*.hh",
         ],
+        exclude = ["src/systems/force_torque/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-forcetorque-system.so",
     static_lib_name = "gz-sim-forcetorque-system-static",
@@ -877,6 +880,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+force_torque_test_sources = glob([
+    "src/systems/force_torque/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-forcetorque-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in force_torque_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -943,6 +964,7 @@ gz_sim_system_libraries(
             "src/systems/imu/**/*.cc",
             "src/systems/imu/**/*.hh",
         ],
+        exclude = ["src/systems/imu/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-imu-system.so",
     static_lib_name = "gz-sim-imu-system-static",
@@ -956,6 +978,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+imu_test_sources = glob([
+    "src/systems/imu/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-imu-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in imu_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1211,6 +1251,7 @@ gz_sim_system_libraries(
             "src/systems/logical_camera/**/*.cc",
             "src/systems/logical_camera/**/*.hh",
         ],
+        exclude = ["src/systems/logical_camera/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-logical-camera-system.so",
     static_lib_name = "gz-sim-logical-camera-system-static",
@@ -1227,6 +1268,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+logical_camera_test_sources = glob([
+    "src/systems/logical_camera/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-logical-camera-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in logical_camera_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1278,6 +1337,7 @@ gz_sim_system_libraries(
             "src/systems/magnetometer/**/*.cc",
             "src/systems/magnetometer/**/*.hh",
         ],
+        exclude = ["src/systems/magnetometer/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-magnetometer-system.so",
     static_lib_name = "gz-sim-magnetometer-system-static",
@@ -1292,6 +1352,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+magnetometer_test_sources = glob([
+    "src/systems/magnetometer/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-magnetometer-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in magnetometer_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1385,6 +1463,7 @@ gz_sim_system_libraries(
             "src/systems/navsat/**/*.cc",
             "src/systems/navsat/**/*.hh",
         ],
+        exclude = ["src/systems/navsat/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-navsat-system.so",
     static_lib_name = "gz-sim-navsat-system-static",
@@ -1402,6 +1481,24 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+navsat_test_sources = glob([
+    "src/systems/navsat/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-navsat-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@sdformat",
+    ],
+) for src in navsat_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(

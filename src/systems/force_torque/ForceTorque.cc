@@ -75,6 +75,9 @@ class gz::sim::systems::ForceTorquePrivate
   /// \brief Cache of the entities associated with the sensor
   public: std::unordered_map<Entity, SensorJointAndLinks> sensorJointLinkMap;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -226,6 +229,12 @@ void ForceTorque::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> ForceTorque::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 Entity ForceTorquePrivate::GetLinkFromScopedName(
     const EntityComponentManager &_ecm, const std::string &_name,
     Entity _parentModel) const
@@ -357,12 +366,21 @@ void ForceTorquePrivate::AddSensor(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _forceTorque->Data();
   data.SetName(sensorScopedName);
+
+  // generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/forcetorque";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = ns;
+  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.defaultTopicSuffix = "forcetorque";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::ForceTorqueSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::ForceTorqueSensor>(data);
@@ -454,6 +472,16 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved FT sensor topic"
+                << " name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

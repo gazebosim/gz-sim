@@ -6,3 +6,17 @@ gz_add_system(magnetometer
   PRIVATE_LINK_LIBS
     gz-sensors::magnetometer
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    Magnetometer_TEST.cc
+  LIB_DEPS
+    gz-sensors::magnetometer
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+)
+
+if (TARGET UNIT_Magnetometer_TEST)
+  target_sources(UNIT_Magnetometer_TEST PRIVATE Magnetometer.cc)
+  target_include_directories(UNIT_Magnetometer_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
+endif()
