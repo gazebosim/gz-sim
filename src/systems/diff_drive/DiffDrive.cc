@@ -26,6 +26,7 @@
 
 #include <limits>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -176,6 +177,20 @@ class gz::sim::systems::DiffDrivePrivate
 
   /// \brief child_frame_id from sdf.
   public: std::string sdfChildFrameId;
+
+  /// \brief True once odomFrameId and childFrameId have been resolved. It
+  /// stays false while the canonical link has no name, so the lookup is
+  /// retried on the next message.
+  public: bool framesResolved{false};
+
+  /// \brief frame_id used in published messages.
+  public: std::string odomFrameId;
+
+  /// \brief child_frame_id used in published messages.
+  public: std::string childFrameId;
+
+  /// \brief True if published messages carry a child_frame_id.
+  public: bool hasChildFrameId{false};
 };
 
 //////////////////////////////////////////////////
@@ -635,6 +650,40 @@ void DiffDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
   }
   this->lastOdomPubTime = _info.simTime;
 
+  // Nobody to receive the messages, so skip building them. The throttling
+  // above still runs, so a subscriber that appears later gets messages at
+  // the configured rate.
+  const bool odomConnected = this->odomPub.Valid() &&
+      this->odomPub.HasConnections();
+  const bool tfConnected = this->tfPub.Valid() && this->tfPub.HasConnections();
+  if (!odomConnected && !tfConnected)
+    return;
+
+  // The frame names do not change once resolved.
+  if (!this->framesResolved)
+  {
+    if (this->sdfFrameId.empty())
+      this->odomFrameId = this->model.Name(_ecm) + "/odom";
+    else
+      this->odomFrameId = this->sdfFrameId;
+
+    if (this->sdfChildFrameId.empty())
+    {
+      std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
+      if (linkName)
+      {
+        this->childFrameId = this->model.Name(_ecm) + "/" + *linkName;
+        this->hasChildFrameId = true;
+      }
+    }
+    else
+    {
+      this->childFrameId = this->sdfChildFrameId;
+      this->hasChildFrameId = true;
+    }
+    this->framesResolved = this->hasChildFrameId;
+  }
+
   // Construct the odometry message and publish it.
   msgs::Odometry msg;
   msg.mutable_pose()->mutable_position()->set_x(this->odom.X());
@@ -653,41 +702,31 @@ void DiffDrivePrivate::UpdateOdometry(const UpdateInfo &_info,
   // Set the frame id.
   auto frame = msg.mutable_header()->add_data();
   frame->set_key("frame_id");
-  if (this->sdfFrameId.empty())
-  {
-    frame->add_value(this->model.Name(_ecm) + "/odom");
-  }
-  else
-  {
-    frame->add_value(this->sdfFrameId);
-  }
+  frame->add_value(this->odomFrameId);
 
-  std::optional<std::string> linkName = this->canonicalLink.Name(_ecm);
-  if (this->sdfChildFrameId.empty())
-  {
-    if (linkName)
-    {
-      auto childFrame = msg.mutable_header()->add_data();
-      childFrame->set_key("child_frame_id");
-      childFrame->add_value(this->model.Name(_ecm) + "/" + *linkName);
-    }
-  }
-  else
+  if (this->hasChildFrameId)
   {
     auto childFrame = msg.mutable_header()->add_data();
     childFrame->set_key("child_frame_id");
-    childFrame->add_value(this->sdfChildFrameId);
+    childFrame->add_value(this->childFrameId);
+  }
+
+  if (!tfConnected)
+  {
+    this->odomPub.Publish(msg);
+    return;
   }
 
   // Construct the Pose_V/tf message and publish it.
   msgs::Pose_V tfMsg;
   msgs::Pose *tfMsgPose = tfMsg.add_pose();
-  tfMsgPose->mutable_header()->CopyFrom(*msg.mutable_header());
-  tfMsgPose->mutable_position()->CopyFrom(msg.mutable_pose()->position());
-  tfMsgPose->mutable_orientation()->CopyFrom(msg.mutable_pose()->orientation());
+  tfMsgPose->mutable_header()->CopyFrom(msg.header());
+  tfMsgPose->mutable_position()->CopyFrom(msg.pose().position());
+  tfMsgPose->mutable_orientation()->CopyFrom(msg.pose().orientation());
 
   // Publish the messages
-  this->odomPub.Publish(msg);
+  if (odomConnected)
+    this->odomPub.Publish(msg);
   this->tfPub.Publish(tfMsg);
 }
 

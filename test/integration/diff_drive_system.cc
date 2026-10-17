@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/twist.pb.h>
@@ -546,6 +548,76 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OdomFrameId))
   ASSERT_NE(maxSleep, sleep);
 
   EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+// The system does not build odometry or tf messages while nobody listens.
+// A subscriber that connects later still gets them at the configured rate,
+// with the same frames.
+TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LateSubscriber))
+{
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive.sdf");
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(0ns);
+
+  std::atomic<unsigned int> odomCount{0};
+  std::atomic<unsigned int> tfCount{0};
+  std::function<void(const msgs::Odometry &)> odomCb =
+    [&odomCount](const msgs::Odometry &_msg)
+    {
+      ASSERT_GT(_msg.header().data_size(), 1);
+      EXPECT_STREQ(_msg.header().data(0).key().c_str(), "frame_id");
+      EXPECT_STREQ(
+            _msg.header().data(0).value().Get(0).c_str(), "vehicle/odom");
+      EXPECT_STREQ(_msg.header().data(1).key().c_str(), "child_frame_id");
+      EXPECT_STREQ(
+            _msg.header().data(1).value().Get(0).c_str(), "vehicle/chassis");
+      odomCount++;
+    };
+  std::function<void(const msgs::Pose_V &)> tfCb =
+    [&tfCount](const msgs::Pose_V &_msg)
+    {
+      ASSERT_EQ(1, _msg.pose_size());
+      ASSERT_GT(_msg.pose(0).header().data_size(), 1);
+      EXPECT_STREQ(_msg.pose(0).header().data(0).value().Get(0).c_str(),
+          "vehicle/odom");
+      EXPECT_STREQ(_msg.pose(0).header().data(1).value().Get(0).c_str(),
+          "vehicle/chassis");
+      tfCount++;
+    };
+
+  transport::Node node;
+  auto pub = node.Advertise<msgs::Twist>("/model/vehicle/cmd_vel");
+
+  msgs::Twist msg;
+  msgs::Set(msg.mutable_linear(), math::Vector3d(0.5, 0, 0));
+  msgs::Set(msg.mutable_angular(), math::Vector3d(0.0, 0, 0.2));
+  pub.Publish(msg);
+
+  // No subscriber: nothing to receive.
+  server.Run(true, 100, false);
+  EXPECT_EQ(0u, odomCount);
+  EXPECT_EQ(0u, tfCount);
+
+  // Subscribe, then run 100 steps, which is five odometry periods.
+  node.Subscribe("/model/vehicle/odometry", odomCb);
+  node.Subscribe("/model/vehicle/tf", tfCb);
+  server.Run(true, 100, false);
+
+  int sleep = 0;
+  int maxSleep = 30;
+  for (; (odomCount < 5 || tfCount < 5) && sleep < maxSleep; ++sleep)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  ASSERT_NE(maxSleep, sleep);
+
+  EXPECT_EQ(5u, odomCount);
+  EXPECT_EQ(5u, tfCount);
 }
 
 /////////////////////////////////////////////////
