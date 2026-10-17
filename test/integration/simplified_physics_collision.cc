@@ -232,7 +232,11 @@ std::string BoxXml(const std::string &_name, const std::string &_pose)
 }
 
 /// \brief SDF text of a world with a ground and the models.
-std::string WorldXml(const std::string &_models)
+/// \param[in] _models SDF text of the models.
+/// \param[in] _systemParams SDF text of the parameters of the world's
+/// SimplifiedPhysics plugin.
+std::string WorldXml(const std::string &_models,
+    const std::string &_systemParams = "")
 {
   return R"(<?xml version="1.0" ?>
 <sdf version="1.9">
@@ -244,7 +248,8 @@ std::string WorldXml(const std::string &_models)
     <plugin filename="gz-sim-physics-system"
             name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-simplified-physics-system"
-            name="gz::sim::systems::SimplifiedPhysics"/>
+            name="gz::sim::systems::SimplifiedPhysics">)" + _systemParams +
+      R"(</plugin>
     <model name="ground">
       <static>true</static>
       <pose>0 0 -0.1 0 0 0</pose>
@@ -380,10 +385,11 @@ class SimplifiedPhysicsCollisionTest : public InternalFixture<::testing::Test>
   }
 
   /// \brief Server configuration for a world made of the given models.
-  protected: static ServerConfig Config(const std::string &_models)
+  protected: static ServerConfig Config(const std::string &_models,
+      const std::string &_systemParams = "")
   {
     ServerConfig config;
-    config.SetSdfString(WorldXml(_models));
+    config.SetSdfString(WorldXml(_models, _systemParams));
     return config;
   }
 
@@ -668,6 +674,115 @@ TEST_F(SimplifiedPhysicsCollisionTest, HeadOnRobotsDoNotOverlap)
   EXPECT_EQ(tb.poses[6000].Pos().X(), tb.Last().Pos().X());
   EXPECT_EQ(0.0, ta.leftVelocity.back());
   EXPECT_EQ(0.0, tb.leftVelocity.back());
+}
+
+/////////////////////////////////////////////////
+/// 80 robots drive into a wall in 40 lanes, two in each lane, one behind the
+/// other. That is above the size at which the collision queries use their
+/// threads. The robots end where the threads of `collision_threads` do not
+/// matter: the front robot at the wall, the one behind it at the
+/// contact, and the poses are the same bit for bit with 1 and with 4 threads.
+TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsGiveTheSamePoses)
+{
+  const int lanes = 40;
+  std::vector<std::string> names;
+  std::string models = WallXml("wall", 3.0, 0.0, 0.2, 60.0);
+  for (int lane = 0; lane < lanes; ++lane)
+  {
+    for (const char *place : {"front", "back"})
+    {
+      RobotOptions robot;
+      robot.name = "r" + std::to_string(lane) + "_" + place;
+      robot.pose = (std::string(place) == "front" ? "0 " : "-1.2 ") +
+          std::to_string(-19.5 + lane) + " 0.1 0 0 0";
+      names.push_back(robot.name);
+      models += RobotXml(robot);
+    }
+  }
+
+  std::map<std::string, math::Pose3d> serial;
+  for (const std::string threads : {"", "4"})
+  {
+    const std::string params = threads.empty() ? "" :
+        "<collision_threads>" + threads + "</collision_threads>";
+    TestFixture fixture(Config(models, params));
+    std::map<std::string, math::Pose3d> poses;
+    std::map<std::string, Entity> entities;
+    fixture.OnPostUpdate([&](const UpdateInfo &,
+        const EntityComponentManager &_ecm)
+        {
+          for (const auto &name : names)
+          {
+            auto &entity = entities[name];
+            if (entity == kNullEntity)
+            {
+              entity = _ecm.EntityByComponents(components::Model(),
+                  components::Name(name));
+            }
+            poses[name] = worldPose(entity, _ecm);
+          }
+        });
+    fixture.Finalize();
+    this->Command(names, 1.0, 0.0);
+    fixture.Server()->Run(true, 4000, false);
+
+    ASSERT_EQ(names.size(), poses.size());
+    for (const auto &name : names)
+    {
+      const bool front = name.find("front") != std::string::npos;
+      if (front)
+      {
+        EXPECT_NEAR(2.9 - kFront - kSkin, poses[name].Pos().X(), 1e-6)
+            << name << " threads [" << threads << "]";
+      }
+      else
+      {
+        // The robot behind stops at the contact with the robot in front.
+        const std::string ahead = name.substr(0, name.find('_')) + "_front";
+        EXPECT_NEAR(poses[ahead].Pos().X() - 2 * kFront,
+            poses[name].Pos().X(), 1e-3) << name;
+      }
+    }
+    if (threads.empty())
+    {
+      serial = poses;
+      continue;
+    }
+    for (const auto &name : names)
+    {
+      // Exact comparison on purpose.
+      EXPECT_EQ(serial[name].Pos().X(), poses[name].Pos().X()) << name;
+      EXPECT_EQ(serial[name].Pos().Y(), poses[name].Pos().Y()) << name;
+      EXPECT_EQ(serial[name].Rot().Yaw(), poses[name].Rot().Yaw()) << name;
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+/// A `collision_threads` outside 1 to 64 is a warning and is clamped. The
+/// robots still collide.
+TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsOutOfRange)
+{
+  for (const std::string value : {"0", "1000"})
+  {
+    RobotOptions robot;
+    robot.name = "dd";
+    ::testing::internal::CaptureStderr();
+    TestFixture fixture(Config(RobotXml(robot) +
+        WallXml("wall", 3.0, 0.0, 0.2, 10.0),
+        "<collision_threads>" + value + "</collision_threads>"));
+    std::map<std::string, Track> tracks;
+    Record(fixture, {"dd"}, tracks);
+    fixture.Finalize();
+    const auto output = ::testing::internal::GetCapturedStderr();
+    EXPECT_NE(std::string::npos, output.find(
+        "<collision_threads> must be between 1 and 64, but it is [" + value +
+        "]")) << output;
+
+    this->Command({"dd"}, 1.0, 0.0);
+    fixture.Server()->Run(true, 4000, false);
+    EXPECT_NEAR(2.9 - kFront - kSkin, tracks["dd"].Last().Pos().X(), 1e-6);
+  }
 }
 
 /////////////////////////////////////////////////

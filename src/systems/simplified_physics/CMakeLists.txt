@@ -3,7 +3,9 @@
 # The file is compiled without floating point contraction, as Box2D is, so
 # that results are bit-identical across compilers that would otherwise fuse
 # multiply-adds.
-add_library(gz-sim-planar-collision STATIC PlanarCollision.cc)
+add_library(gz-sim-planar-collision STATIC
+  ForkJoinPool.cc
+  PlanarCollision.cc)
 set_target_properties(gz-sim-planar-collision PROPERTIES
   POSITION_INDEPENDENT_CODE ON)
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
@@ -20,6 +22,7 @@ target_link_libraries(gz-sim-planar-collision
 
 gz_build_tests(TYPE UNIT
   SOURCES
+    ForkJoinPool_TEST.cc
     PlanarCollision_TEST.cc
   LIB_DEPS
     gz-sim-planar-collision
