@@ -171,8 +171,11 @@ namespace systems
   /// is left out) and moves its models through it:
   ///
   /// * A static model, and a model without a pose, is scenery. It enters the
-  ///   world when the system first sees it and is never read again. A static
-  ///   model that is teleported afterwards keeps its old footprint.
+  ///   world when the system first sees it. A static model that Physics moves
+  ///   on a `WorldPoseCmd` (the GUI transform tool, the `set_pose` service)
+  ///   gets its footprints again, one step after Physics wrote the new pose.
+  ///   Nothing else is read again: a static model that another system writes
+  ///   a `Pose` to keeps its old footprint.
   /// * A model that this system moves is a robot. It moves by the motion that
   ///   its commands ask for, cut by the scenery, by the other models, and by
   ///   the other robots that move in the same step. The achieved motion is
@@ -185,18 +188,24 @@ namespace systems
   ///   step, and drops its roll and pitch: a box that tips over still blocks
   ///   as an upright one. The robot does not push the obstacle, and Physics
   ///   does not see the robot, so a full-physics body that moves into a robot
-  ///   goes through it. Only the rigid compound of the collisions at the time
-  ///   the model is first seen is used: links that move relative to the model
-  ///   (an arm) do not.
+  ///   goes through it. Because of the lag, a body that moves toward a robot
+  ///   ends a step up to one step of its motion inside the robot. Only the
+  ///   rigid compound of the collisions at the time the model is first seen
+  ///   is used: links that move relative to the model (an arm) do not.
   ///
   /// `<collision_response>` of the SimplifiedPhysicsModel parameters picks
   /// what a robot does when it runs into an obstacle: `slide` (default) keeps
   /// the part of the motion along the obstacle, `stop` ends the motion where
   /// the robot touches it. A robot that is cut by another robot stops in both
   /// modes, so a robot that follows a slower one alternates between its full
-  /// speed and zero (see PlanarCollisionWorld). A robot ends a step at least
-  /// 0.1 mm from what stopped it, and a model that is spawned inside an
-  /// obstacle can move out of it, not further in. Models are added and
+  /// speed and zero (see PlanarCollisionWorld). Against scenery and against
+  /// robots, a robot ends a step at least 0.1 mm from what stopped it. A model
+  /// that is spawned inside an obstacle can move out of it, not further in.
+  ///
+  /// A robot that touches an obstacle cannot turn in place if the turn would
+  /// sweep into it, and two robots whose commands push them into each other
+  /// stay where they are until a command changes. A spin-in-place recovery
+  /// next to a wall or a neighbour does nothing. Models are added and
   /// removed at runtime, and a world reset builds the collision world again.
   ///
   /// Wheel odometry reads the achieved motion through the rolling constraints
@@ -206,7 +215,8 @@ namespace systems
   /// wall, or is stopped by another robot, has exact odometry.
   ///
   /// Collisions are not reported to contact sensors yet: a
-  /// `ContactSensorData` on a collision of a planar model stays empty. The
+  /// `ContactSensorData` on a collision of a planar model stays empty, and the
+  /// system prints a warning for a model with a contact sensor. The
   /// collision world can report contacts (PlanarCollisionOptions), so this is
   /// a follow-up and not a limit of the mode.
   ///

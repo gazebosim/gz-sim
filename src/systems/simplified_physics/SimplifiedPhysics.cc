@@ -56,6 +56,7 @@
 #include "gz/sim/components/AngularAcceleration.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
+#include "gz/sim/components/ContactSensor.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/JointPositionReset.hh"
 #include "gz/sim/components/JointVelocity.hh"
@@ -386,7 +387,8 @@ struct OwnedModel
   PlanarResponse response{PlanarResponse::Slide};
 
   /// \brief True if the collision world holds footprints for the model. A
-  /// model without a collision in the height band moves through everything.
+  /// model whose collisions all have a zero collide_bitmask, or none with a
+  /// shape, moves through everything.
   bool collides{false};
 
   /// \brief The pose that the collision world holds for the model, as of the
@@ -613,6 +615,12 @@ class gz::sim::systems::SimplifiedPhysicsPrivate
   /// \param[in] _ecm Constant reference to the ECM.
   public: void FollowForeignModels(const EntityComponentManager &_ecm);
 
+  /// \brief Build the footprints of static models again that Physics moved
+  /// on a WorldPoseCmd. Physics writes the new Pose after this system ran, so
+  /// the footprints lag by one step, like those of the foreign models.
+  /// \param[in] _ecm Constant reference to the ECM.
+  public: void FollowScenery(const EntityComponentManager &_ecm);
+
   /// \brief Look for frame data components that were created in this step
   /// under the models. Components created in a step carry a one-time change
   /// until the step ends, so this runs in PostUpdate, after every system had
@@ -643,6 +651,11 @@ class gz::sim::systems::SimplifiedPhysicsPrivate
   /// \brief Models that other systems move, with the pose the collision world
   /// holds for them. Their pose is read from the Pose component each step.
   public: std::unordered_map<Entity, math::Pose3d> foreign;
+
+  /// \brief Static models in the collision world, with the pose their
+  /// footprints were built at. A WorldPoseCmd on one of them (the GUI
+  /// transform tool, the set_pose service) builds them again.
+  public: std::unordered_map<Entity, math::Pose3d> scenery;
 
   /// \brief Models seen by AddModel that no planar model has needed yet.
   public: std::unordered_set<Entity> pendingObstacles;
@@ -729,6 +742,7 @@ void SimplifiedPhysics::Reset(const UpdateInfo &/*_info*/,
   this->dataPtr->jointRefs.clear();
   this->dataPtr->ownedEntities.clear();
   this->dataPtr->foreign.clear();
+  this->dataPtr->scenery.clear();
   this->dataPtr->pendingObstacles.clear();
   this->dataPtr->collision = std::make_unique<PlanarCollisionWorld>();
   this->dataPtr->needsScan = true;
@@ -786,6 +800,8 @@ void SimplifiedPhysics::Update(const UpdateInfo &_info,
 
   if (!this->dataPtr->foreign.empty())
     this->dataPtr->FollowForeignModels(_ecm);
+  if (!this->dataPtr->scenery.empty())
+    this->dataPtr->FollowScenery(_ecm);
   if (!requests.empty())
     this->dataPtr->collision->Move(requests, this->dataPtr->results);
 
@@ -1121,6 +1137,23 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
   this->AddJoints(_ecm, _model, modelPose, canonical, owned);
 
   const auto descendants = _ecm.Descendants(_model);
+
+  // The collision world reports no contacts yet, so a contact sensor on the
+  // model never fires.
+  const bool hasContactSensor = std::any_of(descendants.begin(),
+      descendants.end(), [&](const Entity &_entity)
+      {
+        return _ecm.Component<components::ContactSensor>(_entity) != nullptr;
+      });
+  if (hasContactSensor)
+  {
+    const auto modelName = _ecm.ComponentData<components::Name>(_model)
+        .value_or(std::to_string(_model));
+    gzwarn << "Model [" << modelName
+           << "] has a contact sensor, which reports nothing in physics mode ["
+           << ModeName(PhysicsMode::PlanarKinematic) << "]." << std::endl;
+  }
+
   owned.entities.assign(descendants.begin(), descendants.end());
   this->ownedEntities.insert(descendants.begin(), descendants.end());
 
@@ -1132,9 +1165,9 @@ void SimplifiedPhysicsPrivate::AddModel(EntityComponentManager &_ecm,
         return HasFrameComponent(_ecm, _entity);
       });
 
-  // The footprints of the model's collisions. A model without any in the
-  // height band is not part of the collision world and moves through
-  // everything.
+  // The footprints of the model's collisions. A model whose collisions all
+  // have a zero collide_bitmask, or none with a shape, is not part of the
+  // collision world and moves through everything.
   owned.collides = this->collision->AddMovableModel(_ecm, _model);
   if (const auto *poseComp = _ecm.Component<components::Pose>(_model))
     owned.worldPose = poseComp->Data();
@@ -1186,9 +1219,10 @@ void SimplifiedPhysicsPrivate::AddObstacleNow(
   const auto *poseComp = _ecm.Component<components::Pose>(_model);
   if ((isStatic.has_value() && *isStatic) || !poseComp)
   {
-    // Nothing moves it. It is added once and never read again, so a static
-    // model that is teleported later stays where it was added.
-    this->collision->AddStaticModel(_ecm, _model);
+    // Nothing integrates its motion. Only a WorldPoseCmd moves it, which
+    // FollowScenery watches for.
+    if (this->collision->AddStaticModel(_ecm, _model) && poseComp)
+      this->scenery[_model] = poseComp->Data();
     return;
   }
 
@@ -1212,6 +1246,30 @@ void SimplifiedPhysicsPrivate::FollowForeignModels(
     known = poseComp->Data();
     this->collision->SetPose(model, known);
   }
+}
+
+//////////////////////////////////////////////////
+void SimplifiedPhysicsPrivate::FollowScenery(
+    const EntityComponentManager &_ecm)
+{
+  // The view is empty in nearly every step. A command stays in the ECM for
+  // two steps, and Physics writes the Pose in the first of them, after this
+  // system ran. The Pose differs from the known one in the second step.
+  _ecm.Each<components::Model, components::WorldPoseCmd>(
+      [&](const Entity &_model, const components::Model *,
+          const components::WorldPoseCmd *) -> bool
+      {
+        auto it = this->scenery.find(_model);
+        if (it == this->scenery.end())
+          return true;
+        const auto *poseComp = _ecm.Component<components::Pose>(_model);
+        if (!poseComp || SamePose(poseComp->Data(), it->second))
+          return true;
+
+        it->second = poseComp->Data();
+        this->collision->AddStaticModel(_ecm, _model);
+        return true;
+      });
 }
 
 //////////////////////////////////////////////////
@@ -1284,6 +1342,7 @@ void SimplifiedPhysicsPrivate::RemoveModel(const Entity &_model)
   // Scenery and bodies of other systems are in the collision world too.
   this->collision->RemoveModel(_model);
   this->foreign.erase(_model);
+  this->scenery.erase(_model);
   this->pendingObstacles.erase(_model);
 
   auto it = this->models.find(_model);
@@ -1465,7 +1524,7 @@ bool SimplifiedPhysicsPrivate::Finish(EntityComponentManager &_ecm,
   // the velocities that readers see follow the motion that happened, so the
   // twist is worked out again from it. A free motion is exactly the one that
   // was asked for, and keeps its command.
-  if (_result && _result->known && _result->blocked)
+  if (_result && (_result->blocked || !_result->known))
   {
     delta = _result->achieved;
     bodyTwist = TwistFromDelta(pose.Rot().Yaw(), delta, _dt);

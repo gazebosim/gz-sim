@@ -20,6 +20,8 @@
 #include <chrono>
 #include <cmath>
 #include <cstdint>
+#include <fstream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -782,6 +784,77 @@ TEST_F(SimplifiedPhysicsCollisionTest, SpawnAndRemoveAtRuntime)
   fixture.Server()->Run(true, 2000, false);
   EXPECT_GT(tracks["first"].Last().Pos().X(), stop + 0.9);
   EXPECT_GT(tracks["late"].Last().Pos().X(), stop + 0.9);
+}
+
+/////////////////////////////////////////////////
+/// A robot that is parked in the lane blocks another one, and the other one
+/// drives on once the parked robot is removed.
+TEST_F(SimplifiedPhysicsCollisionTest, RemovingABlockingRobotFreesTheLane)
+{
+  RobotOptions robot;
+  robot.name = "dd";
+  RobotOptions parked;
+  parked.name = "parked";
+  parked.pose = "1 0 0.1 0 0 0";
+  TestFixture fixture(Config(RobotXml(robot) + RobotXml(parked)));
+  std::map<std::string, Track> tracks;
+  Record(fixture, {"dd", "parked"}, tracks);
+  fixture.Finalize();
+
+  this->Command({"dd"}, 0.5, 0.0);
+  fixture.Server()->Run(true, 3000, false);
+
+  // The rear of the parked robot is at 0.8.
+  const double stop = 0.8 - kFront - kSkin;
+  EXPECT_NEAR(stop, tracks["dd"].Last().Pos().X(), 1e-6);
+  EXPECT_NEAR(1.0, tracks["parked"].Last().Pos().X(), 1e-9);
+
+  this->Remove("parked");
+  fixture.Server()->Run(true, 2000, false);
+  EXPECT_NEAR(stop + 1.0, tracks["dd"].Last().Pos().X(), 0.05);
+}
+
+/////////////////////////////////////////////////
+/// A static wall that is moved with a pose command takes its footprint along:
+/// the robot drives through the place where the wall was and stops at the
+/// place where it is now.
+TEST_F(SimplifiedPhysicsCollisionTest, MovedStaticWallMovesItsFootprint)
+{
+  RobotOptions robot;
+  robot.name = "dd";
+  TestFixture fixture(Config(RobotXml(robot) +
+      WallXml("wall", 3.0, 0.0, 0.2, 10.0)));
+  std::map<std::string, Track> tracks;
+  Record(fixture, {"dd", "wall"}, tracks);
+
+  Entity wall{kNullEntity};
+  std::int64_t steps{0};
+  fixture.OnPreUpdate([&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        if (wall == kNullEntity)
+        {
+          wall = _ecm.EntityByComponents(components::Model(),
+              components::Name("wall"));
+        }
+        // The robot is 0.5 m along, well short of the wall.
+        if (++steps == 1000)
+        {
+          _ecm.SetComponentData<components::WorldPoseCmd>(wall,
+              math::Pose3d(5.0, 0.0, 0.5, 0, 0, 0));
+        }
+      });
+  fixture.Finalize();
+
+  this->Command({"dd"}, 0.5, 0.0);
+  fixture.Server()->Run(true, 11000, false);
+
+  const auto &dd = tracks["dd"];
+  EXPECT_NEAR(5.0, tracks["wall"].Last().Pos().X(), 1e-3);
+
+  // The robot went past the old face, at 2.9, and stopped at the new one.
+  EXPECT_GT(dd.poses[7000].Pos().X(), 2.9 + kFront);
+  EXPECT_NEAR(4.9 - kFront - kSkin, dd.Last().Pos().X(), 1e-6);
+  EXPECT_EQ(dd.poses[10500].Pos().X(), dd.Last().Pos().X());
 }
 
 /////////////////////////////////////////////////
