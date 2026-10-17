@@ -24,6 +24,7 @@
 #include <gz/msgs/time.pb.h>
 #include <gz/msgs/twist.pb.h>
 
+#include <array>
 #include <functional>
 #include <limits>
 #include <mutex>
@@ -156,6 +157,26 @@ class gz::sim::systems::DiffDrivePrivate
 
   /// \brief Previous control command to last0Cmd.
   public: Commands last1Cmd;
+
+  /// \brief Inputs and outputs of the last speed limiter call.
+  public: struct LimitCache
+  {
+    /// \brief Target and previous commands: target lin, target ang,
+    /// last0 lin, last0 ang, last1 lin, last1 ang.
+    std::array<double, 6> key;
+
+    /// \brief Step size of the call.
+    std::chrono::steady_clock::duration dt{0};
+
+    /// \brief Limited linear velocity.
+    double lin{0};
+
+    /// \brief Limited angular velocity.
+    double ang{0};
+  } limitCache;
+
+  /// \brief True once limitCache holds a result.
+  public: bool limitCacheValid{false};
 
   /// \brief Last target velocity requested.
   public: msgs::Twist targetVel;
@@ -743,11 +764,31 @@ void DiffDrivePrivate::UpdateVelocity(const UpdateInfo &_info,
     angVel = this->targetVel.angular().z();
   }
 
-  // Limit the target velocity if needed.
-  this->limiterLin->Limit(
-      linVel, this->last0Cmd.lin, this->last1Cmd.lin, _info.dt);
-  this->limiterAng->Limit(
-      angVel, this->last0Cmd.ang, this->last1Cmd.ang, _info.dt);
+  // Limit the target velocity if needed. The limiters are pure functions of
+  // the target, the two previous commands and the step size. A robot that
+  // holds a constant command presents the same inputs every step, so reuse
+  // the last result in that case.
+  const std::array<double, 6> limitKey{linVel, angVel,
+      this->last0Cmd.lin, this->last0Cmd.ang,
+      this->last1Cmd.lin, this->last1Cmd.ang};
+  if (!this->limitCacheValid || limitKey != this->limitCache.key ||
+      _info.dt != this->limitCache.dt)
+  {
+    this->limiterLin->Limit(
+        linVel, this->last0Cmd.lin, this->last1Cmd.lin, _info.dt);
+    this->limiterAng->Limit(
+        angVel, this->last0Cmd.ang, this->last1Cmd.ang, _info.dt);
+    this->limitCache.key = limitKey;
+    this->limitCache.dt = _info.dt;
+    this->limitCache.lin = linVel;
+    this->limitCache.ang = angVel;
+    this->limitCacheValid = true;
+  }
+  else
+  {
+    linVel = this->limitCache.lin;
+    angVel = this->limitCache.ang;
+  }
 
   // Update history of commands.
   this->last1Cmd = last0Cmd;
