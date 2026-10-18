@@ -14,6 +14,7 @@ gz_build_tests(TYPE UNIT
     gz-sensors::cpu_lidar
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 if (TARGET UNIT_CpuLidar_TEST)
