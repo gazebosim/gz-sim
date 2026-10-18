@@ -229,6 +229,7 @@
         <wheel_radius>0.3</wheel_radius>
         <topic>/model/foo/cmdvel</topic>
         <odom_topic>/model/bar/odom</odom_topic>
+        <enable_topic>/model/baz/enable</enable_topic>
         <max_linear_acceleration>1</max_linear_acceleration>
         <min_linear_acceleration>-1</min_linear_acceleration>
         <max_angular_acceleration>2</max_angular_acceleration>

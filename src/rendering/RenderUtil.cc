@@ -2474,9 +2474,12 @@ void RenderUtilPrivate::RemoveRenderingEntities(
       [&](const Entity &_entity, const components::Light *)->bool
       {
         this->removeEntities[_entity] = _info.iterations;
-        this->removeEntities[matchLightWithVisuals[_entity]] =
-          _info.iterations;
-        matchLightWithVisuals.erase(_entity);
+        auto visualIt = this->matchLightWithVisuals.find(_entity);
+        if (visualIt != this->matchLightWithVisuals.end())
+        {
+          this->removeEntities[visualIt->second] = _info.iterations;
+          this->matchLightWithVisuals.erase(visualIt);
+        }
         return true;
       });
 
@@ -3002,11 +3005,15 @@ void RenderUtilPrivate::UpdateLights(
     auto l = std::dynamic_pointer_cast<rendering::Light>(node);
     if (l)
     {
-      rendering::VisualPtr lightVisual =
-          this->sceneManager.VisualById(
-            this->matchLightWithVisuals[light.first]);
-      if (lightVisual)
-        lightVisual->SetVisible(light.second.visualize_visual());
+      // Light visuals exist only when enableSensors is false (see Create path).
+      auto visualIt = this->matchLightWithVisuals.find(light.first);
+      if (visualIt != this->matchLightWithVisuals.end())
+      {
+        rendering::VisualPtr lightVisual =
+            this->sceneManager.VisualById(visualIt->second);
+        if (lightVisual)
+          lightVisual->SetVisible(light.second.visualize_visual());
+      }
 
       if (!light.second.is_light_off())
       {

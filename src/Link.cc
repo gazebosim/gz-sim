@@ -324,38 +324,16 @@ void Link::EnableVelocityChecks(EntityComponentManager &_ecm, bool _enable)
 void Link::SetLinearVelocity(EntityComponentManager &_ecm,
   const math::Vector3d &_vel) const
 {
-    auto vel =
-      _ecm.Component<components::LinearVelocityCmd>(this->dataPtr->id);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          this->dataPtr->id,
-          components::LinearVelocityCmd(_vel));
-    }
-    else
-    {
-      vel->Data() = _vel;
-    }
+  _ecm.SetComponentData<components::LinearVelocityCmd>(
+      this->dataPtr->id, _vel);
 }
 
 //////////////////////////////////////////////////
 void Link::SetAngularVelocity(EntityComponentManager &_ecm,
   const math::Vector3d &_vel) const
 {
-    auto vel =
-      _ecm.Component<components::AngularVelocityCmd>(this->dataPtr->id);
-
-    if (vel == nullptr)
-    {
-      _ecm.CreateComponent(
-          this->dataPtr->id,
-          components::AngularVelocityCmd(_vel));
-    }
-    else
-    {
-      vel->Data() = _vel;
-    }
+  _ecm.SetComponentData<components::AngularVelocityCmd>(
+      this->dataPtr->id, _vel);
 }
 
 //////////////////////////////////////////////////

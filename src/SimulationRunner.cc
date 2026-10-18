@@ -557,9 +557,16 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
   clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
+
+  auto curTime = GZ_SYSTEM_TIME();
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+    curTime.time_since_epoch()).count();
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+    curTime.time_since_epoch()).count();
+  clockMsg.mutable_system()->set_sec(seconds);
   clockMsg.mutable_system()->set_nsec(
-      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
+    ns - seconds * GZ_SEC_TO_NANO);
+
   this->clockPub.Publish(clockMsg);
 
   // Only publish to root topic if no others are.
