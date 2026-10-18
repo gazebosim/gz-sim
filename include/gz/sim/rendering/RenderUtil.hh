@@ -80,6 +80,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     public: void UpdateFromECM(const UpdateInfo &_info,
                                const EntityComponentManager &_ecm);
 
+    /// \brief Collect only entity removals from the ECM
+    /// \param[in] _info Sim update info
+    /// \param[in] _ecm Const reference to the entity component manager
+    public: void UpdateRemovalsFromECM(const UpdateInfo &_info,
+                                     const EntityComponentManager &_ecm);
+
     /// \brief Helper function to create visuals for new entities created in
     /// ECM. This function is intended to be used by other GUI plugins when
     /// new entities are created on the GUI side.

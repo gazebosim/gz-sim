@@ -845,6 +845,15 @@ void RenderUtil::UpdateFromECM(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+void RenderUtil::UpdateRemovalsFromECM(const UpdateInfo &_info,
+                                      const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("RenderUtil::UpdateRemovalsFromECM");
+  std::lock_guard<std::mutex> lock(this->dataPtr->updateMutex);
+  this->dataPtr->RemoveRenderingEntities(_ecm, _info);
+}
+
+//////////////////////////////////////////////////
 std::vector<Entity> RenderUtilPrivate::FindChildLinksFromECM(
     const EntityComponentManager &_ecm, const Entity &_entity)
 {

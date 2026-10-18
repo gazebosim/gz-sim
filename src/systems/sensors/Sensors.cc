@@ -867,7 +867,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::Reset");
 
@@ -898,6 +898,7 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
     this->dataPtr->updateTime =  _info.simTime;
     this->dataPtr->updateTimeToApply =  _info.simTime;
     this->dataPtr->updateTimeApplied =  _info.simTime;
+    this->dataPtr->renderUtil.UpdateRemovalsFromECM(_info, _ecm);
   }
 }
 
