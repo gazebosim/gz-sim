@@ -279,14 +279,18 @@ namespace systems
   /// The system takes one parameter, in the world plugin element:
   ///
   /// * `<collision_threads>`: threads for the collision queries of the planar
-  ///   robots, counting the server thread. 1 runs the queries on the server
-  ///   thread with no extra threads. More threads speed up steps with many
-  ///   robots (the system wakes them only for 64 or more moving robots) and
-  ///   never change the result: the poses are bit-identical for any number.
-  ///   The threads belong to the system instance and are created at the first
-  ///   step that uses them. Range 1 to 64. The default is half the cores of
-  ///   the machine, at most 4. The other collision settings are the defaults
-  ///   of PlanarCollisionOptions.
+  ///   robots, counting the server thread. The default is 1: the queries run
+  ///   on the server thread and no thread is created. A larger number speeds
+  ///   up steps with many robots (the system uses the threads only for 64 or
+  ///   more moving robots) and never changes the result: the poses are
+  ///   bit-identical for any number. 0 asks for an automatic number, half of
+  ///   the CPUs that the process may run on (the affinity mask counts, so
+  ///   taskset and cpusets do; a CFS quota does not), at most 4. Otherwise the
+  ///   range is 1 to 64, and a number above the available CPUs gets a
+  ///   warning. The threads belong to the system instance and are created at
+  ///   the first step that uses them. At 500 robots in a warehouse 4 threads
+  ///   cut the step time by about a fifth. The other collision settings are
+  ///   the defaults of PlanarCollisionOptions.
   class SimplifiedPhysics:
     public System,
     public ISystemConfigure,

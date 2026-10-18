@@ -22,6 +22,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <mutex>
+#include <system_error>
 #include <thread>
 #include <vector>
 
@@ -37,6 +38,12 @@ namespace systems::simplified_physics
 namespace
 {
 constexpr int kMaxThreads{256};
+
+/// \brief Alignment that keeps two atomics on separate cache lines.
+constexpr std::size_t kCacheLine{64};
+
+/// \brief How long the caller spins for a busy worker before it yields.
+constexpr std::chrono::microseconds kCallerSpin{50};
 
 /// \brief Tell the CPU that this thread is spinning.
 inline void Relax()
@@ -66,10 +73,23 @@ class ForkJoinPool::Implementation
   public: Implementation(int _threads, int _spinMicroseconds)
       : spin(std::chrono::microseconds(std::max(0, _spinMicroseconds)))
   {
-    this->threadCount = std::clamp(_threads, 1, kMaxThreads);
-    this->workers.reserve(static_cast<std::size_t>(this->threadCount - 1));
-    for (int id = 1; id < this->threadCount; ++id)
-      this->workers.emplace_back([this, id] { this->WorkerLoop(id); });
+    const int wanted = std::clamp(_threads, 1, kMaxThreads);
+    this->workers.reserve(static_cast<std::size_t>(wanted - 1));
+    for (int id = 1; id < wanted; ++id)
+    {
+      try
+      {
+        this->workers.emplace_back([this, id] { this->WorkerLoop(id); });
+      }
+      catch (const std::system_error &)
+      {
+        // The system refuses more threads (a limit on processes, no memory).
+        // Work with the ones that started: a pool with fewer threads gives
+        // the same results.
+        break;
+      }
+    }
+    this->threadCount = static_cast<int>(this->workers.size()) + 1;
   }
 
   /// \brief Stop and join the workers.
@@ -174,12 +194,33 @@ class ForkJoinPool::Implementation
     }
 
     this->Work(0);
-    while (this->done.load(std::memory_order_acquire) < _count)
-      Relax();
+    this->WaitUntil([&]
+        { return this->done.load(std::memory_order_acquire) >= _count; });
 
     this->closed.store(true);
-    while (this->inside.load() != 0)
+    this->WaitUntil([&] { return this->inside.load() == 0; });
+  }
+
+  /// \brief Wait for a worker that is still busy. A worker that was
+  /// descheduled may need a whole time slice, and the caller must not burn
+  /// its own slice waiting for it, so the wait spins for a short time and then
+  /// gives the CPU away.
+  /// \param[in] _ready Returns true when the wait is over.
+  public: template<typename Ready>
+  void WaitUntil(Ready &&_ready) const
+  {
+    const auto deadline = std::chrono::steady_clock::now() + kCallerSpin;
+    int tick = 0;
+    while (!_ready())
+    {
       Relax();
+      if ((++tick & 127) == 0 && std::chrono::steady_clock::now() >= deadline)
+      {
+        while (!_ready())
+          std::this_thread::yield();
+        return;
+      }
+    }
   }
 
   public: int threadCount{1};
@@ -188,24 +229,28 @@ class ForkJoinPool::Implementation
   public: std::mutex mutex;
   public: std::condition_variable wake;
 
+  // The counters sit on lines of their own. Idle workers spin on `epoch`,
+  // every thread writes `next` and `done` once per block, and the loop
+  // description is only read.
+
   /// \brief Number of loops started, to tell a worker that there is news.
-  public: std::atomic<std::uint64_t> epoch{0};
+  public: alignas(kCacheLine) std::atomic<std::uint64_t> epoch{0};
   public: std::atomic<int> sleepers{0};
   public: std::atomic<bool> stop{false};
 
   /// \brief True while the loop description may not be read.
-  public: std::atomic<bool> closed{true};
+  public: alignas(kCacheLine) std::atomic<bool> closed{true};
 
   /// \brief Workers that may read the loop description.
   public: std::atomic<int> inside{0};
 
   // The loop description. Written by the caller while the job is closed.
-  public: Body body{nullptr};
+  public: alignas(kCacheLine) Body body{nullptr};
   public: void *context{nullptr};
   public: std::size_t items{0};
   public: std::size_t chunk{1};
-  public: std::atomic<std::size_t> next{0};
-  public: std::atomic<std::size_t> done{0};
+  public: alignas(kCacheLine) std::atomic<std::size_t> next{0};
+  public: alignas(kCacheLine) std::atomic<std::size_t> done{0};
 };
 
 //////////////////////////////////////////////////

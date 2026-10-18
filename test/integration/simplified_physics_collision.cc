@@ -681,7 +681,7 @@ TEST_F(SimplifiedPhysicsCollisionTest, HeadOnRobotsDoNotOverlap)
 /// other. That is above the size at which the collision queries use their
 /// threads. The robots end where the threads of `collision_threads` do not
 /// matter: the front robot at the wall, the one behind it at the
-/// contact, and the poses are the same bit for bit with 1 and with 4 threads.
+/// contact, and the poses are the same bit for bit with 1, 3 and 4 threads.
 TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsGiveTheSamePoses)
 {
   const int lanes = 40;
@@ -701,9 +701,9 @@ TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsGiveTheSamePoses)
   }
 
   std::map<std::string, math::Pose3d> serial;
-  for (const std::string threads : {"", "4"})
+  for (const std::string threads : {"1", "3", "4"})
   {
-    const std::string params = threads.empty() ? "" :
+    const std::string params =
         "<collision_threads>" + threads + "</collision_threads>";
     TestFixture fixture(Config(models, params));
     std::map<std::string, math::Pose3d> poses;
@@ -724,7 +724,7 @@ TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsGiveTheSamePoses)
         });
     fixture.Finalize();
     this->Command(names, 1.0, 0.0);
-    fixture.Server()->Run(true, 4000, false);
+    fixture.Server()->Run(true, 3500, false);
 
     ASSERT_EQ(names.size(), poses.size());
     for (const auto &name : names)
@@ -743,7 +743,7 @@ TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsGiveTheSamePoses)
             poses[name].Pos().X(), 1e-3) << name;
       }
     }
-    if (threads.empty())
+    if (threads == "1")
     {
       serial = poses;
       continue;
@@ -759,11 +759,77 @@ TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsGiveTheSamePoses)
 }
 
 /////////////////////////////////////////////////
-/// A `collision_threads` outside 1 to 64 is a warning and is clamped. The
+/// A world reset builds the collision world again, and with it the thread
+/// pool. 70 robots (above the size at which the pool is used) stop at a wall,
+/// the world is reset, and they stop at the wall again. With 0 threads, which
+/// asks for the automatic number.
+TEST_F(SimplifiedPhysicsCollisionTest, ResetWithCollisionThreads)
+{
+  for (const std::string threads : {"3", "0"})
+  {
+    std::vector<std::string> names;
+    std::string models = WallXml("wall", 3.0, 0.0, 0.2, 100.0);
+    for (int lane = 0; lane < 70; ++lane)
+    {
+      RobotOptions robot;
+      robot.name = "r" + std::to_string(lane);
+      robot.pose = "0 " + std::to_string(-34.5 + lane) + " 0.1 0 0 0";
+      names.push_back(robot.name);
+      models += RobotXml(robot);
+    }
+    TestFixture fixture(Config(models,
+        "<collision_threads>" + threads + "</collision_threads>"));
+    std::map<std::string, math::Pose3d> poses;
+    std::map<std::string, Entity> entities;
+    fixture.OnPostUpdate([&](const UpdateInfo &,
+        const EntityComponentManager &_ecm)
+        {
+          for (const auto &name : names)
+          {
+            auto &entity = entities[name];
+            if (entity == kNullEntity)
+            {
+              entity = _ecm.EntityByComponents(components::Model(),
+                  components::Name(name));
+            }
+            poses[name] = worldPose(entity, _ecm);
+          }
+        });
+    fixture.Finalize();
+
+    const double stop = 2.9 - kFront - kSkin;
+    this->Command(names, 1.0, 0.0);
+    fixture.Server()->Run(true, 3200, false);
+    for (const auto &name : names)
+      EXPECT_NEAR(stop, poses[name].Pos().X(), 1e-6) << name;
+
+    msgs::WorldControl req;
+    msgs::Boolean rep;
+    req.mutable_reset()->set_all(true);
+    transport::Node node;
+    bool result{false};
+    ASSERT_TRUE(node.Request("/world/collision_test/control", req, 1000, rep,
+        result));
+    ASSERT_TRUE(result);
+    ASSERT_TRUE(rep.data());
+
+    // DiffDrive does not drive again after a reset, so it gets a command.
+    fixture.Server()->Run(true, 100, false);
+    for (const auto &name : names)
+      EXPECT_LT(poses[name].Pos().X(), 0.2) << name;
+    this->Command(names, 1.0, 0.0);
+    fixture.Server()->Run(true, 3200, false);
+    for (const auto &name : names)
+      EXPECT_NEAR(stop, poses[name].Pos().X(), 1e-6) << name;
+  }
+}
+
+/////////////////////////////////////////////////
+/// A `collision_threads` outside 0 to 64 is a warning and is clamped. The
 /// robots still collide.
 TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsOutOfRange)
 {
-  for (const std::string value : {"0", "1000"})
+  for (const std::string value : {"-1", "1000"})
   {
     RobotOptions robot;
     robot.name = "dd";
@@ -776,8 +842,8 @@ TEST_F(SimplifiedPhysicsCollisionTest, CollisionThreadsOutOfRange)
     fixture.Finalize();
     const auto output = ::testing::internal::GetCapturedStderr();
     EXPECT_NE(std::string::npos, output.find(
-        "<collision_threads> must be between 1 and 64, but it is [" + value +
-        "]")) << output;
+        "<collision_threads> must be 0 (automatic) or between 1 and 64, but "
+        "it is [" + value + "]")) << output;
 
     this->Command({"dd"}, 1.0, 0.0);
     fixture.Server()->Run(true, 4000, false);

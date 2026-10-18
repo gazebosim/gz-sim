@@ -1646,9 +1646,10 @@ class PlanarCollisionWorld::Implementation
           static_cast<std::size_t>(this->pool->Threads()));
     }
     // Small blocks balance the load (a robot in contact costs ten times a
-    // free one) and keep the counter traffic low.
+    // free one) and keep the counter traffic low. The pool may have fewer
+    // threads than asked for.
     const std::size_t block = std::clamp<std::size_t>(
-        _count / (4u * static_cast<std::size_t>(this->options.threads)),
+        _count / (4u * static_cast<std::size_t>(this->pool->Threads())),
         1u, 16u);
     const std::size_t blocks = (_count + block - 1) / block;
     this->pool->For(blocks, 1u, [&](std::size_t _b, int _thread)
@@ -1685,7 +1686,13 @@ class PlanarCollisionWorld::Implementation
   public: std::unique_ptr<ForkJoinPool> pool;
 
   /// \brief Query output of each thread of the pool. Thread 0 is the caller.
-  public: std::vector<std::vector<uint64_t>> threadScratch;
+  /// Each entry has a cache line of its own, because a thread writes the
+  /// vector header on every push.
+  public: struct alignas(64) ThreadScratch
+  {
+    std::vector<uint64_t> movable;
+  };
+  public: std::vector<ThreadScratch> threadScratch;
 };
 
 void PlanarCollisionWorld::Implementation::Move(
@@ -1763,7 +1770,7 @@ void PlanarCollisionWorld::Implementation::Move(
     if (m.stationary)
       return;
     std::vector<uint64_t> &movable =
-        this->threadScratch[static_cast<std::size_t>(thread)];
+        this->threadScratch[static_cast<std::size_t>(thread)].movable;
     this->Query(m.x0, m.y0, m.x1, m.y1, m.staticCandidates, movable);
     for (const uint64_t u : movable)
     {

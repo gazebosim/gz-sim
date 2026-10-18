@@ -54,7 +54,9 @@ namespace systems::simplified_physics
     /// \brief Constructor.
     /// \param[in] _threads Number of threads that take part in a loop,
     /// including the caller. Values below 2 create no threads, and `For`
-    /// then runs the loop on the caller. Clamped to 256.
+    /// then runs the loop on the caller. Clamped to 256. If the system
+    /// refuses to start a thread, the pool keeps the ones that started; see
+    /// Threads().
     /// \param[in] _spinMicroseconds How long a thread that finished a loop
     /// waits for the next one before it sleeps.
     public: explicit ForkJoinPool(int _threads, int _spinMicroseconds = 50);
@@ -78,13 +80,15 @@ namespace systems::simplified_physics
     /// \param[in] _count Number of iterations.
     /// \param[in] _chunk Items per block. Zero is treated as one.
     /// \param[in] _fn A callable `void(std::size_t item, int thread)`. It
-    /// must not throw and must not call `For`.
+    /// must not call `For`. It must not throw: an exception ends the program
+    /// at the throw, because the loop cannot be unwound while other threads
+    /// run it.
     public: template<typename Fn>
     void For(std::size_t _count, std::size_t _chunk, Fn &&_fn)
     {
       using Callable = std::remove_reference_t<Fn>;
       this->Run(_count, _chunk,
-          [](void *_context, std::size_t _item, int _thread)
+          [](void *_context, std::size_t _item, int _thread) noexcept
           {
             (*static_cast<Callable *>(_context))(_item, _thread);
           },

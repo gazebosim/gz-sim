@@ -31,6 +31,10 @@
 #include <utility>
 #include <vector>
 
+#if defined(__linux__)
+#include <sched.h>
+#endif
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/math/Helpers.hh>
@@ -117,15 +121,29 @@ bool NonZero(double _value)
   return std::fpclassify(_value) != FP_ZERO;
 }
 
-/// \brief Threads for the collision queries when the world file does not say.
-/// At 500 robots in a warehouse, 2 threads save about 60 percent of the step
-/// time that 8 threads save and 4 threads about 85 percent. A machine with few
-/// cores keeps half of them for the rest of the simulation.
-/// \return Between 1 and 4.
-int DefaultCollisionThreads()
+/// \brief CPUs that this process may run on. Counts the affinity mask on
+/// Linux (taskset, cpusets, and the CPU limit that a container runtime sets
+/// through them) and falls back to the hardware thread count elsewhere.
+/// \return At least 1.
+int AvailableCpus()
 {
-  const int cores = static_cast<int>(std::thread::hardware_concurrency());
-  return std::clamp(cores / 2, 1, 4);
+#if defined(__linux__)
+  cpu_set_t set;
+  CPU_ZERO(&set);
+  if (sched_getaffinity(0, sizeof(set), &set) == 0)
+    return std::max(1, CPU_COUNT(&set));
+#endif
+  return std::max(1, static_cast<int>(std::thread::hardware_concurrency()));
+}
+
+/// \brief Threads for `<collision_threads>0` (automatic): half the CPUs that
+/// the process may use, at most 4. At 500 robots in a warehouse, 2 threads save
+/// about 60 percent of the step time that 8 threads save and 4 threads about
+/// 85 percent. Half of the CPUs stay free for the rest of the simulation.
+/// \return Between 1 and 4.
+int AutomaticCollisionThreads()
+{
+  return std::clamp(AvailableCpus() / 2, 1, 4);
 }
 
 /// \brief True if two poses are bit-for-bit the same in position and
@@ -773,23 +791,32 @@ void SimplifiedPhysics::Configure(const Entity &_entity,
     return;
   }
 
-  int threads = DefaultCollisionThreads();
+  // Threads are opt-in, as the other parallel features of the server are.
+  int threads = 1;
   if (_sdf && _sdf->HasElement("collision_threads"))
   {
     const int requested = _sdf->Get<int>("collision_threads");
-    threads = std::clamp(requested, 1, kMaxPlanarCollisionThreads);
-    if (threads != requested)
+    if (requested == 0)
     {
-      gzwarn << "SimplifiedPhysics: <collision_threads> must be between 1 and "
-             << kMaxPlanarCollisionThreads << ", but it is [" << requested
-             << "]. Using [" << threads << "]." << std::endl;
+      threads = AutomaticCollisionThreads();
     }
-    const unsigned int cores = std::thread::hardware_concurrency();
-    if (cores > 0u && static_cast<unsigned int>(threads) > cores)
+    else
+    {
+      threads = std::clamp(requested, 1, kMaxPlanarCollisionThreads);
+      if (threads != requested)
+      {
+        gzwarn << "SimplifiedPhysics: <collision_threads> must be 0 (automatic)"
+               << " or between 1 and " << kMaxPlanarCollisionThreads
+               << ", but it is [" << requested << "]. Using [" << threads
+               << "]." << std::endl;
+      }
+    }
+    const int cpus = AvailableCpus();
+    if (threads > cpus)
     {
       gzwarn << "SimplifiedPhysics: <collision_threads> is [" << threads
-             << "], more than the [" << cores << "] cores of this machine."
-             << std::endl;
+             << "], more than the [" << cpus << "] CPUs that the server may "
+             << "use." << std::endl;
     }
   }
   this->dataPtr->collisionOptions.threads = threads;
@@ -1503,8 +1530,8 @@ bool SimplifiedPhysicsPrivate::Plan(EntityComponentManager &_ecm,
   // Physics gives it to. The model origin moves as a rigid body with that
   // link: v_origin = v_link - w x pivot. Wheel commands give the velocity of
   // the origin directly. Rotate to the world, keep x, y and yaw, and express
-  // the linear velocity in the heading frame, which is where IntegrateArc
-  // holds it constant.
+  // the linear velocity in the world frame. IntegrateArc turns the arc
+  // about the heading, and the heading cancels (see the call below).
   PlanarDelta delta;
   math::Vector3d velocity;
   double wz{0.0};
