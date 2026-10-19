@@ -529,12 +529,23 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
 
         if plugin.end_with? ".dylib"
 
+            # On macOS, start the server anf GUI as clea processes instead of
+            # forking, which is unsafe after Qt and CoreFoundation initialization.
+            
             serverArgs = originalArgs.dup
 
             guiOptions = [
                 "--gui-config",
                 "--render-engine-gui",
                 "--render-engine-gui-api-backend"
+            ]
+
+            # These options affect both the server and GUI processes.
+            sharedOptions = [
+                "-v",
+                "--verbose",
+                "--render-engine",
+                "--render-engine-api-backend"
             ]
 
             guiArgs = []
@@ -544,7 +555,7 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
             while index < originalArgs.length
                 argument = originalArgs[index]
 
-                if argument == "-v" || argument == "--verbose"
+                if sharedOptions.include?(argument)
                     filteredServerArgs << argument
                     guiArgs << argument
 
@@ -553,7 +564,6 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
                         guiArgs << originalArgs[index + 1]
                         index += 1
                     end
-
                 elsif guiOptions.include?(argument)
                     guiArgs << argument
 
@@ -568,14 +578,19 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
                 index += 1
             end
 
+            # Reuse the current gz executable so the children come from the same
+            # Gazebo installation as the parent instead of resolving gz from PATH.
+
+            gzExecutable = File.realpath($PROGRAM_NAME)
+
             serverPid = Process.spawn(
                 {"RMT_PORT" => "1500"},
-                "gz", "sim", "-s", *filteredServerArgs,
+                gzExecutable, "sim", "-s", *filteredServerArgs,
                 pgroup: true
             )
             guiPid = Process.spawn(
                 {"RMT_PORT" => "1501"},
-                "gz", "sim", "-g", *guiArgs,
+                gzExecutable, "sim", "-g", *guiArgs,
                 pgroup: true
             )
 
