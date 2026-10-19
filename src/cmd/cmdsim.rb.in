@@ -521,13 +521,6 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
 
-#        if plugin.end_with? ".dylib"
-#          puts "On macOS `gz sim` currently only works with either the -s argument
-#or the -g argument, you cannot run both server and gui in one terminal.
-#See https://github.com/gazebosim/gz-sim/issues/44 for more info."
-#          exit(-1)
-#        end
-
         if plugin.end_with? ".dll"
           puts "`ign gazebo` currently only works with the -s argument on Windows.
 See https://github.com/gazebosim/gz-sim/issues/168 for more info."
