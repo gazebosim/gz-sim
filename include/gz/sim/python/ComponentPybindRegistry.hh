@@ -99,6 +99,11 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
       gz::sim::EntityComponentManager &_ecm,
       const gz::sim::Entity &_entity)>;
 
+  /// \brief Converts a component to a Python object without an ECM lookup.
+  /// Null for tag (NoData) components, which have no data to convert.
+  public: using RawGetterFn =
+      pybind11::object (*)(const components::BaseComponent *);
+
   /// \brief Register the ops that back Python access to a component type.
   /// \param[in] _typeId The component type ID.
   /// \param[in] _id Unique identity of the loader (usually address of
@@ -107,10 +112,14 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   /// \param[in] _setter The python setter function.
   /// \param[in] _creator The component creator function.
   /// \param[in] _defaultCreator The default component creator function.
+  /// \param[in] _rawGetter The raw python getter function, or nullptr for
+  /// tag (NoData) components.
+  /// \param[in] _name Name of the component. The registry stores a copy.
   public: void Register(ComponentTypeId _typeId, uintptr_t _id,
                         GetterFn _getter, SetterFn _setter,
                         CreatorFn _creator,
-                        DefaultCreatorFn _defaultCreator);
+                        DefaultCreatorFn _defaultCreator,
+                        RawGetterFn _rawGetter, const char *_name);
 
   /// \brief Unregister the ops a loader contributed for a component type.
   /// \param[in] _typeId The component type ID.
@@ -136,6 +145,17 @@ class GZ_SIM_VISIBLE ComponentPybindRegistry
   /// \param[in] _typeId The component type ID.
   /// \return The default creator function, or nullptr if not found.
   public: DefaultCreatorFn DefaultCreator(ComponentTypeId _typeId) const;
+
+  /// \brief Get the active raw python getter for a component type.
+  /// \param[in] _typeId The component type ID.
+  /// \return The raw getter function, or nullptr if not found or if the
+  /// component is a tag (NoData) component.
+  public: RawGetterFn RawGetter(ComponentTypeId _typeId) const;
+
+  /// \brief Get the registered name of a component type.
+  /// \param[in] _typeId The component type ID.
+  /// \return The component name, or an empty string if not found.
+  public: std::string ComponentName(ComponentTypeId _typeId) const;
 
   /// \brief Check whether python bindings are registered for a component type.
   /// \param[in] _typeId The component type ID.
@@ -244,6 +264,37 @@ struct ComponentOps
         return pybind11::none();
       }
     };
+  }
+
+  /// \brief Convert an already-resolved component to a python object.
+  ///
+  /// This is the counterpart of CreateGetter for callers that have already
+  /// located the component (e.g. a query that iterated the storage), so it
+  /// skips the per-entity ECM lookup.
+  ///
+  /// Only instantiated for data components; tag (NoData) components have no
+  /// data to convert and register a null raw getter instead.
+  ///
+  /// \param[in] _comp Component to convert. Must have been resolved from
+  /// the storage for T::typeId.
+  /// \return A snapshot of the component data as a python object, except
+  /// for pointer-like payloads -- see the LIMITATION note in CreateGetter.
+  static pybind11::object RawGetter(
+      const gz::sim::components::BaseComponent *_comp)
+  {
+    // Safe: _comp was resolved from the storage for T::typeId, and
+    // Component<T, ...> derives non-virtually from BaseComponent.
+    //
+    // Returned by value for the same reasons as in CreateGetter above: a
+    // reference would only be live for payloads bound via pybind11::class_,
+    // and EnTT's swap-and-pop erase can make a retained reference alias
+    // another entity's component.
+    //
+    // The same pointer-like payload LIMITATION documented in CreateGetter
+    // applies here: a pointer payload aliases ECM storage and must be
+    // treated as read-only from Python.
+    return pybind11::cast(static_cast<const T *>(_comp)->Data(),
+                          pybind11::return_value_policy::copy);
   }
 
   /// \brief Type-erased python setter for pybind11.
@@ -371,8 +422,19 @@ struct ComponentOps
   /// \param[in] _name Name of the component.
   static void Register(uintptr_t _id, const char *_name)
   {
+    // Tag (NoData) components have no data to convert, so they get no raw
+    // getter. Taking the address under `if constexpr` also keeps RawGetter
+    // from being instantiated for a type that has no Data().
+    ComponentPybindRegistry::RawGetterFn rawGetter = nullptr;
+    if constexpr (!std::is_same_v<typename T::Type,
+                                  gz::sim::components::NoData>)
+    {
+      rawGetter = &RawGetter;
+    }
+
     ComponentPybindRegistry::Instance()->Register(
-        T::typeId, _id, CreateGetter(_name), Setter, Creator, CreateDefault);
+        T::typeId, _id, CreateGetter(_name), Setter, Creator, CreateDefault,
+        rawGetter, _name);
   }
 
   /// \brief Unregister this type's ops from the registry.
