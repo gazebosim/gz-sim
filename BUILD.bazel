@@ -1764,6 +1764,28 @@ gz_sim_system_libraries(
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/timeline_publisher/**/*.cc",
+            "src/systems/timeline_publisher/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-timeline-publisher-system.so",
+    static_lib_name = "gz-sim-timeline-publisher-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@com_google_protobuf//:protobuf",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-msgs",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/touch_plugin/**/*.cc",
             "src/systems/touch_plugin/**/*.hh",
         ],
