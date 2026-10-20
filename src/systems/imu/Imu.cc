@@ -194,6 +194,7 @@ void ImuPrivate::AddSensor(
   std::string sensorScopedName =
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _imu->Data();
+  data.SetFrameId(sensorFrameId(_entity, _ecm, data));
   data.SetName(sensorScopedName);
   // check topic
   if (data.Topic().empty())

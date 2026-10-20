@@ -213,7 +213,8 @@ int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
     const char *_renderEngineServer, const char *_renderEngineServerApiBackend,
     const char *_renderEngineGui, const char *_renderEngineGuiApiBackend,
     const char *_file, std::vector<std::string> _recordTopics, int _waitGui,
-    int _headless, float _recordPeriod, int _seed, int _waitForAssets)
+    int _headless, float _recordPeriod, int _seed, int _waitForAssets,
+    const std::vector<std::string> &_policies)
 {
   std::string startingWorldPath{""};
 
@@ -496,6 +497,19 @@ int createServerConfig(sim::ServerConfig &_config, const char *_sdfString,
   }
 
   _config.SetWaitForAssets(_waitForAssets);
+
+  for (const std::string &policyStr : _policies)
+  {
+    auto eqPos = policyStr.find('=');
+    if (eqPos == std::string::npos || eqPos == 0)
+    {
+      gzerr << "Invalid --policy [" << policyStr
+            << "]. Expected <name>=<value> (e.g. frame_ids=namespaced).\n";
+      return -1;
+    }
+    _config.AddPolicy(policyStr.substr(0, eqPos),
+                      policyStr.substr(eqPos + 1));
+  }
 
   return 0;
 }

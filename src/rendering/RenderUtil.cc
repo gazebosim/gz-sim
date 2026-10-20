@@ -1723,6 +1723,7 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
     const std::string &_topicSuffix)
 {
   sdf::Sensor sdfDataCopy(_sdfData);
+  sdfDataCopy.SetFrameId(sensorFrameId(_entity, _ecm, sdfDataCopy));
   std::string sensorScopedName =
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdfDataCopy.SetName(sensorScopedName);

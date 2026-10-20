@@ -1,0 +1,180 @@
+<?xml version="1.0" ?>
+<!--
+  Frame ID Policy Demo: scoped (legacy backward-compatibility mode)
+
+  Run the simulation:
+    export GZ_IP=127.0.0.1
+    gz sim -r frame_ids_scoped.sdf
+
+  Inspect legacy frame_id / child_frame_id on Gazebo topics:
+    gz topic -e -t /robot1/odometry -n 1
+      -> frame_id: "robot1/odom", child_frame_id: "robot1/chassis"
+    gz topic -e -t /robot1/imu -n 1
+      -> frame_id: "robot1::chassis::imu_sensor"
+    gz topic -e -t /model/robot1/pose -n 1
+      -> frame_id: "frame_ids_scoped" -> child_frame_id: "robot1",
+         "robot1::chassis" -> "robot1::left_wheel", etc.
+-->
+<sdf version="1.12">
+  <world name="frame_ids_scoped">
+    <gz:policies>
+      <frame_ids>scoped</frame_ids>
+    </gz:policies>
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="robot1" namespace="robot1">
+      <pose>0 0 0.325 0 0 0</pose>
+
+      <link name="chassis">
+        <pose>-0.151427 0 0.175 0 0 0</pose>
+        <inertial>
+          <mass>1.14395</mass>
+          <inertia>
+            <ixx>0.126164</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>0.416519</iyy><iyz>0</iyz><izz>0.481014</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><box><size>2.01142 1 0.568726</size></box></geometry>
+        </visual>
+        <collision name="collision">
+          <geometry><box><size>2.01142 1 0.568726</size></box></geometry>
+        </collision>
+
+        <sensor name="imu_sensor" type="imu">
+          <always_on>1</always_on>
+          <update_rate>10</update_rate>
+          <topic>/robot1/imu</topic>
+        </sensor>
+      </link>
+
+      <link name="left_wheel">
+        <pose>0.554283 0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>0.145833</iyy><iyz>0</iyz><izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><sphere><radius>0.3</radius></sphere></geometry>
+        </visual>
+        <collision name="collision">
+          <geometry><sphere><radius>0.3</radius></sphere></geometry>
+        </collision>
+      </link>
+
+      <link name="right_wheel">
+        <pose>0.554282 -0.625029 -0.025 -1.5707 0 0</pose>
+        <inertial>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.145833</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>0.145833</iyy><iyz>0</iyz><izz>0.125</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><sphere><radius>0.3</radius></sphere></geometry>
+        </visual>
+        <collision name="collision">
+          <geometry><sphere><radius>0.3</radius></sphere></geometry>
+        </collision>
+      </link>
+
+      <link name="caster">
+        <pose>-0.957138 0 -0.125 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.1</ixx><ixy>0</ixy><ixz>0</ixz>
+            <iyy>0.1</iyy><iyz>0</iyz><izz>0.1</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+        </visual>
+        <collision name="collision">
+          <geometry><sphere><radius>0.2</radius></sphere></geometry>
+        </collision>
+      </link>
+
+      <joint name="left_wheel_joint" type="revolute">
+        <parent>chassis</parent>
+        <child>left_wheel</child>
+        <axis><xyz>0 0 1</xyz></axis>
+      </joint>
+
+      <joint name="right_wheel_joint" type="revolute">
+        <parent>chassis</parent>
+        <child>right_wheel</child>
+        <axis><xyz>0 0 1</xyz></axis>
+      </joint>
+
+      <joint name="caster_wheel" type="ball">
+        <parent>chassis</parent>
+        <child>caster</child>
+      </joint>
+
+      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>1.25</wheel_separation>
+        <wheel_radius>0.3</wheel_radius>
+        <odom_publish_frequency>5</odom_publish_frequency>
+      </plugin>
+
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_sensor_pose>true</publish_sensor_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <static_publisher>true</static_publisher>
+        <update_frequency>5</update_frequency>
+        <static_update_frequency>1</static_update_frequency>
+      </plugin>
+    </model>
+  </world>
+</sdf>
