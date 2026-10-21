@@ -174,13 +174,6 @@ void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
   }
   ASSERT_LT(sleep, maxSleep);
 
-  std::vector<std::string> topicdebugs;
-  node.TopicList(topicdebugs);
-  for (auto & topic : topicdebugs)
-  {
-    std::cout << topic << std::endl;
-  }
-
   for (const std::string &topic : _topics)
   {
     publishers.clear();
@@ -193,20 +186,10 @@ void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
     if (_checkPublished)
     {
       EXPECT_EQ(1u, publishers.size());
-
-      if (publishers.size() != 1u)
-      {
-        std::cout << topic << std::endl;
-      }
     }
     else
     {
       EXPECT_EQ(1u, subscribers.size());
-
-      if (subscribers.size() != 1u)
-      {
-        std::cout << topic << std::endl;
-      }
     }
   }
 }
