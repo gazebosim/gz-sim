@@ -1,0 +1,1285 @@
+<?xml version="1.0" ?>
+<!--
+  Kinematic workshop: a demo of kinematic links interacting with dynamic
+  bodies using the gz-physics-bullet-featherstone plugin.
+
+  Orange parts are kinematic: they ignore gravity and contact forces and only
+  move as commanded with velocities. Blue parts are dynamic and react to them.
+
+  - A kinematic arm, driven by JointPositionController in velocity mode,
+    swings through a tower of blocks.
+  - A carousel spins up until its cargo flies off.
+  - A ferry flies a circle in mid air with loose cargo on its deck. Fly it
+    yourself with the "Fly the ferry" panel.
+  - A TimelinePublisher plays the show, then puts the blocks and the carousel
+    cargo back, every 30 seconds.
+
+  The models come from the kinematic_workshop collection on Fuel and are
+  downloaded on the first run:
+  https://app.gazebosim.org/caguero/fuel/collections/kinematic_workshop
+
+  How to read this file:
+
+  A link with <kinematic>true</kinematic> moves only as commanded: gravity
+  and contacts never move it. Links without it are dynamic. The file is
+  ordered by role:
+
+  1. Stations, the kinematic parts. Each one is a Fuel model whose links
+     already declare <kinematic>true</kinematic>: its <include> adds the
+     plugins that drive it.
+     - Arm: kinematic from the base to the forearm, with a dynamic hand at
+       the end (a hybrid chain). A JointPositionController in velocity mode
+       drives each joint, and a force torque sensor in the wrist measures
+       the load on the hand.
+     - Carousel: one kinematic link, driven by VelocityControl.
+     - Ferry: one kinematic link, driven by VelocityControl or by the
+       Teleop panel in the GUI.
+  2. Props, the dynamic objects: the tower blocks and the cargo.
+  3. Environment: floor, walls and lights.
+  4. Show: a TimelinePublisher sends the arm targets and the carousel
+     speeds, and puts the props back every 30 seconds.
+
+  Run with:
+
+    gz sim -r kinematic_workshop.sdf
+
+  Watch the load on the hand with:
+
+    gz topic -e -t /arm/hand_ft
+-->
+<sdf version="1.11">
+  <world name="kinematic_workshop">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+      <!--
+        20 solver iterations instead of the default 50 make the world
+        run faster
+      -->
+      <bullet>
+        <solver>
+          <iters>20</iters>
+        </solver>
+      </bullet>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics">
+      <engine>
+        <filename>gz-physics-bullet-featherstone-plugin</filename>
+      </engine>
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-forcetorque-system"
+            name="gz::sim::systems::ForceTorque"/>
+
+    <gz:policies>
+      <include_gui_default_plugins>false</include_gui_default_plugins>
+    </gz:policies>
+
+    <gui fullscreen="0">
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.16 0.16 0.19</ambient_light>
+        <background_color>0.0055 0.0065 0.0095</background_color>
+        <camera_pose>4.7 -5.2 3.0 0 0.278 2.24</camera_pose>
+        <camera_clip>
+          <near>0.1</near>
+          <far>100</far>
+        </camera_clip>
+        <!-- In degrees -->
+        <horizontal_fov>75</horizontal_fov>
+        <shadows>
+          <texture_size light_type="directional">4096</texture_size>
+        </shadows>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="SelectEntities" name="Select Entities">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>false</start_paused>
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+      </plugin>
+      <plugin filename="Teleop" name="Fly the ferry">
+        <gz-gui>
+          <title>Fly the ferry</title>
+          <property type="bool" key="showTitleBar">true</property>
+          <property type="bool" key="resizable">true</property>
+          <property type="double" key="width">330</property>
+          <property type="double" key="height">690</property>
+          <property type="string" key="cardBackground">#F0F0F0</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="top" target="top"/>
+          </anchors>
+        </gz-gui>
+        <topic>/model/ferry/cmd_vel</topic>
+      </plugin>
+    </gui>
+
+    <scene>
+      <ambient>0.16 0.16 0.19 1</ambient>
+      <background>0.0055 0.0065 0.0095 1</background>
+      <grid>false</grid>
+      <shadows>true</shadows>
+    </scene>
+
+    <!-- 1. Stations: the kinematic parts and what drives them -->
+
+    <!--
+      A hybrid arm: every link up to the forearm is kinematic, so gravity
+      and contacts never move it. The hand at the end of the chain is
+      dynamic: gravity pulls on it and the blocks push back. The
+      kinematic joints move exactly as commanded, while the wrist is
+      driven by a joint motor. A force torque sensor in the wrist measures
+      the load on the hand.
+    -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_arm</uri>
+      <name>arm</name>
+      <pose>0 0 0 0 0 0</pose>
+      <!--
+        What drives the arm: each joint listens for a position target on
+        /model/arm/joint/<joint>/0/cmd_pos and moves there with joint
+        velocity commands, capped at cmd_max.
+      -->
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>yaw</joint_name>
+        <use_velocity_commands>true</use_velocity_commands>
+        <cmd_max>3.5</cmd_max>
+        <cmd_min>-3.5</cmd_min>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>shoulder</joint_name>
+        <use_velocity_commands>true</use_velocity_commands>
+        <cmd_max>1.6</cmd_max>
+        <cmd_min>-1.6</cmd_min>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>elbow</joint_name>
+        <use_velocity_commands>true</use_velocity_commands>
+        <cmd_max>1.8</cmd_max>
+        <cmd_min>-1.8</cmd_min>
+      </plugin>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>wrist</joint_name>
+        <use_velocity_commands>true</use_velocity_commands>
+        <cmd_max>2.5</cmd_max>
+        <cmd_min>-2.5</cmd_min>
+      </plugin>
+    </include>
+
+    <!--
+      Carousel: a single kinematic link spun by a velocity command. The
+      objects on it are dynamic and ride along by friction alone.
+    -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_carousel</uri>
+      <name>carousel</name>
+      <pose>-4.2 2.6 0.08 0 0 0</pose>
+      <!--
+        What drives the carousel: velocity commands on
+        /model/carousel/cmd_vel, sent by the show timeline.
+      -->
+      <plugin filename="gz-sim-velocity-control-system"
+              name="gz::sim::systems::VelocityControl">
+        <initial_angular>0 0 0</initial_angular>
+      </plugin>
+    </include>
+
+    <!--
+      Flying ferry: a single kinematic link that hovers with no support.
+      VelocityControl applies a body frame twist, so a constant forward
+      speed and turn rate fly a circle of radius 3.8 m. Use the Teleop
+      panel in the GUI to fly it yourself.
+    -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_ferry</uri>
+      <name>ferry</name>
+      <pose>-3.4744 1.539 1.6 0 0 -1.9878</pose>
+      <!--
+        What drives the ferry: velocity commands on /model/ferry/cmd_vel.
+        It starts with a constant twist that flies the circle; the Teleop
+        panel publishes on the same topic.
+      -->
+      <plugin filename="gz-sim-velocity-control-system"
+              name="gz::sim::systems::VelocityControl">
+        <initial_linear>0.795870 0 0</initial_linear>
+        <initial_angular>0 0 0.209440</initial_angular>
+      </plugin>
+    </include>
+
+    <!-- 2. Props: the dynamic objects that the stations move -->
+
+    <!-- Tower of dynamic blocks -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_00</name>
+      <pose>1.35 -0.1 0.03 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_01</name>
+      <pose>1.35 0 0.03 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_02</name>
+      <pose>1.35 0.1 0.03 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_03</name>
+      <pose>1.25 0 0.09 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_04</name>
+      <pose>1.35 0 0.09 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_05</name>
+      <pose>1.45 0 0.09 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_06</name>
+      <pose>1.35 -0.1 0.15 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_07</name>
+      <pose>1.35 0 0.15 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_08</name>
+      <pose>1.35 0.1 0.15 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_09</name>
+      <pose>1.25 0 0.21 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_10</name>
+      <pose>1.35 0 0.21 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_11</name>
+      <pose>1.45 0 0.21 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_12</name>
+      <pose>1.35 -0.1 0.27 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_13</name>
+      <pose>1.35 0 0.27 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_14</name>
+      <pose>1.35 0.1 0.27 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_15</name>
+      <pose>1.25 0 0.33 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_16</name>
+      <pose>1.35 0 0.33 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_17</name>
+      <pose>1.45 0 0.33 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_18</name>
+      <pose>1.35 -0.1 0.39 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_19</name>
+      <pose>1.35 0 0.39 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_20</name>
+      <pose>1.35 0.1 0.39 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_21</name>
+      <pose>1.25 0 0.45 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_22</name>
+      <pose>1.35 0 0.45 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_23</name>
+      <pose>1.45 0 0.45 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_24</name>
+      <pose>1.35 -0.1 0.51 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_25</name>
+      <pose>1.35 0 0.51 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_26</name>
+      <pose>1.35 0.1 0.51 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_27</name>
+      <pose>1.25 0 0.57 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_28</name>
+      <pose>1.35 0 0.57 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_29</name>
+      <pose>1.45 0 0.57 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_30</name>
+      <pose>1.35 -0.1 0.63 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_31</name>
+      <pose>1.35 0 0.63 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_blue</uri>
+      <name>block_32</name>
+      <pose>1.35 0.1 0.63 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_33</name>
+      <pose>1.25 0 0.69 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_34</name>
+      <pose>1.35 0 0.69 0 0 1.5708</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_block_light</uri>
+      <name>block_35</name>
+      <pose>1.45 0 0.69 0 0 1.5708</pose>
+    </include>
+
+    <!-- Dynamic cargo on the carousel -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_00</name>
+      <pose>-3.52 2.6 0.24 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_light</uri>
+      <name>crate_01</name>
+      <pose>-3.52 2.6 0.48 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_02</name>
+      <pose>-3.52 2.6 0.72 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_10</name>
+      <pose>-4.54 3.1889 0.24 0 0 2.0944</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_light</uri>
+      <name>crate_11</name>
+      <pose>-4.54 3.1889 0.48 0 0 2.0944</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_12</name>
+      <pose>-4.54 3.1889 0.72 0 0 2.0944</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_20</name>
+      <pose>-4.54 2.0111 0.24 0 0 4.1888</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_light</uri>
+      <name>crate_21</name>
+      <pose>-4.54 2.0111 0.48 0 0 4.1888</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_22</name>
+      <pose>-4.54 2.0111 0.72 0 0 4.1888</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_can</uri>
+      <name>can_0</name>
+      <pose>-3.89 3.1369 0.3 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_can</uri>
+      <name>can_1</name>
+      <pose>-4.82 2.6 0.3 0 0 0.0000</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_can</uri>
+      <name>can_2</name>
+      <pose>-3.89 2.0631 0.3 0 0 0.0000</pose>
+    </include>
+
+    <!-- Dynamic cargo on the ferry -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_large</uri>
+      <name>ferry_crate_0</name>
+      <pose>-3.236 1.7068 1.77 0 0 -1.9878</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_medium</uri>
+      <name>ferry_crate_1</name>
+      <pose>-3.6671 1.3509 1.745 0 0 -1.6878</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_small</uri>
+      <name>ferry_crate_2</name>
+      <pose>-3.236 1.7068 2.02 0 0 -1.5878</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_ball</uri>
+      <name>ferry_ball</name>
+      <pose>-3.3673 1.1635 1.72 0 0 -1.9878</pose>
+    </include>
+
+    <!-- 3. Environment: floor, walls and lights -->
+    <model name="floor">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 500</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 500</size>
+            </plane>
+          </geometry>
+          <material>
+            <diffuse>0.045 0.05 0.06 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.0</metalness>
+                <roughness>0.35</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="arena_floor">
+      <static>true</static>
+      <pose>0 0 0.005 0 0 0</pose>
+      <link name="link">
+        <visual name="platform">
+          <pose>0 0 0 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>2.7</radius>
+              <length>0.01</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <diffuse>0.12 0.125 0.14 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.05</metalness>
+                <roughness>0.7</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <visual name="ring">
+          <pose>1.35 0 0 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>1.6</radius>
+              <length>0.012</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <diffuse>0.085 0.09 0.1 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.05</metalness>
+                <roughness>0.75</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_arena_wall</uri>
+      <name>arena_wall</name>
+      <pose>0 0 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_carousel_wall</uri>
+      <name>carousel_wall</name>
+      <pose>-4.2 2.6 0 0 0 0</pose>
+    </include>
+
+    <!--
+      Lighting: a dim cool moon, warm key spots on each station, a teal rim
+      from behind, and orange wash lights along the arena wall.
+    -->
+    <light type="directional" name="moon">
+      <pose>0 0 10 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.16 0.19 0.26 1</diffuse>
+      <specular>0.1 0.1 0.12 1</specular>
+      <direction>0.4 -0.5 -0.75</direction>
+    </light>
+    <light type="spot" name="arena_key">
+      <pose>2 -2.5 7 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.95 0.85 0.72 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>-0.2104 0.3288 -0.9207</direction>
+      <attenuation>
+        <range>25.0</range>
+        <constant>0.2</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0.3</inner_angle>
+        <outer_angle>0.55</outer_angle>
+        <falloff>1.0</falloff>
+      </spot>
+    </light>
+    <light type="spot" name="carousel_key">
+      <pose>-3.2 1.1 6.5 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.88 0.75 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>-0.1482 0.2224 -0.9636</direction>
+      <attenuation>
+        <range>25.0</range>
+        <constant>0.2</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0.25</inner_angle>
+        <outer_angle>0.42</outer_angle>
+        <falloff>1.0</falloff>
+      </spot>
+    </light>
+    <light type="spot" name="teal_rim">
+      <pose>-3 9 4 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.2 0.65 1.0 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>0.2233 -0.893 -0.3907</direction>
+      <attenuation>
+        <range>30.0</range>
+        <constant>0.2</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0.5</inner_angle>
+        <outer_angle>0.8</outer_angle>
+        <falloff>1.0</falloff>
+      </spot>
+    </light>
+    <light type="spot" name="front_fill">
+      <pose>7 -8.5 4.5 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.32 0.32 0.38 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>-0.6134 0.7361 -0.2863</direction>
+      <attenuation>
+        <range>30.0</range>
+        <constant>0.2</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0.6</inner_angle>
+        <outer_angle>0.9</outer_angle>
+        <falloff>1.0</falloff>
+      </spot>
+    </light>
+    <light type="point" name="arena_wash_0">
+      <pose>2.1218 1.225 0.35 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.4 0.08 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>2.0</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="arena_wash_1">
+      <pose>0 2.45 0.35 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.4 0.08 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>2.0</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="arena_wash_2">
+      <pose>-2.1218 1.225 0.35 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.4 0.08 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>2.0</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="arena_wash_3">
+      <pose>-2.1218 -1.225 0.35 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.4 0.08 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>2.0</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="arena_wash_4">
+      <pose>-0 -2.45 0.35 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.4 0.08 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>2.0</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="arena_wash_5">
+      <pose>2.1218 -1.225 0.35 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>1.0 0.4 0.08 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>2.0</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="carousel_wash_0">
+      <pose>-3.0333 3.7667 0.4 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.2 0.6 1.0 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>1.6</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="carousel_wash_1">
+      <pose>-5.3667 3.7667 0.4 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.2 0.6 1.0 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>1.6</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="carousel_wash_2">
+      <pose>-5.3667 1.4333 0.4 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.2 0.6 1.0 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>1.6</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+    <light type="point" name="carousel_wash_3">
+      <pose>-3.0333 1.4333 0.4 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.2 0.6 1.0 1</diffuse>
+      <specular>0.05 0.05 0.05 1</specular>
+      <attenuation>
+        <range>1.6</range>
+        <constant>0.5</constant>
+        <linear>0.5</linear>
+        <quadratic>1.0</quadratic>
+      </attenuation>
+    </light>
+
+    <!-- 4. Show: the timeline that plays the stations -->
+
+    <!--
+      The show: one looping timeline drives the arm and the carousel, then
+      puts the blocks and the carousel cargo back.
+    -->
+    <plugin filename="gz-sim-timeline-publisher-system"
+            name="gz::sim::systems::TimelinePublisher">
+      <loop>true</loop>
+      <period>30.0</period>
+      <keyframe time="0.0">
+        <output topic="/model/arm/joint/yaw/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.0
+        </output>
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: 0.45</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 1.2
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.75
+        </output>
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 0.0 }
+        </output>
+      </keyframe>
+      <keyframe time="1.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 0.5 }
+        </output>
+      </keyframe>
+      <keyframe time="2.5">
+        <output topic="/model/arm/joint/yaw/0/cmd_pos" type="gz.msgs.Double">
+          data: -1.5
+        </output>
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: 0.8</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 1.0
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.4
+        </output>
+      </keyframe>
+      <keyframe time="4.0">
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: 1.45</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.25
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.0
+        </output>
+      </keyframe>
+      <keyframe time="5.2">
+        <output topic="/model/arm/joint/yaw/0/cmd_pos" type="gz.msgs.Double">
+          data: 1.7
+        </output>
+      </keyframe>
+      <keyframe time="6.8">
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: -0.35</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.5
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.9
+        </output>
+      </keyframe>
+      <keyframe time="9.0">
+        <output topic="/model/arm/joint/yaw/0/cmd_pos" type="gz.msgs.Double">
+          data: 2.55
+        </output>
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: 0.55</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.75
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.6
+        </output>
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 0.9 }
+        </output>
+      </keyframe>
+      <keyframe time="11.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 1.3 }
+        </output>
+      </keyframe>
+      <keyframe time="12.0">
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.2
+        </output>
+      </keyframe>
+      <keyframe time="13.0">
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.9
+        </output>
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 1.7 }
+        </output>
+      </keyframe>
+      <keyframe time="14.0">
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.2
+        </output>
+      </keyframe>
+      <keyframe time="15.0">
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.9
+        </output>
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 2.1 }
+        </output>
+      </keyframe>
+      <keyframe time="17.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 2.6 }
+        </output>
+      </keyframe>
+      <keyframe time="19.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 3.2 }
+        </output>
+      </keyframe>
+      <keyframe time="20.0">
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: -2.5</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 1.6
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 1.0
+        </output>
+      </keyframe>
+      <keyframe time="21.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 1.6 }
+        </output>
+      </keyframe>
+      <keyframe time="22.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 0.6 }
+        </output>
+      </keyframe>
+      <keyframe time="23.0">
+        <output topic="/model/carousel/cmd_vel" type="gz.msgs.Twist">
+          angular { z: 0.0 }
+        </output>
+      </keyframe>
+      <keyframe time="24.0">
+        <output topic="/model/arm/joint/yaw/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.0
+        </output>
+        <output topic="/model/arm/joint/shoulder/0/cmd_pos"
+                type="gz.msgs.Double">data: 0.45</output>
+        <output topic="/model/arm/joint/elbow/0/cmd_pos" type="gz.msgs.Double">
+          data: 1.2
+        </output>
+        <output topic="/model/arm/joint/wrist/0/cmd_pos" type="gz.msgs.Double">
+          data: 0.75
+        </output>
+      </keyframe>
+      <keyframe time="26.0">
+        <service name="/world/kinematic_workshop/set_pose_vector"
+                 reqType="gz.msgs.Pose_V"
+                 repType="gz.msgs.Boolean"
+                 timeout="3000">
+          pose {
+            name: 'block_00'
+            position { x: 1.35 y: -0.1 z: 0.03 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_01'
+            position { x: 1.35 y: 0 z: 0.03 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_02'
+            position { x: 1.35 y: 0.1 z: 0.03 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_03'
+            position { x: 1.25 y: 0 z: 0.09 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_04'
+            position { x: 1.35 y: 0 z: 0.09 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_05'
+            position { x: 1.45 y: 0 z: 0.09 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_06'
+            position { x: 1.35 y: -0.1 z: 0.15 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_07'
+            position { x: 1.35 y: 0 z: 0.15 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_08'
+            position { x: 1.35 y: 0.1 z: 0.15 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_09'
+            position { x: 1.25 y: 0 z: 0.21 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_10'
+            position { x: 1.35 y: 0 z: 0.21 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_11'
+            position { x: 1.45 y: 0 z: 0.21 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_12'
+            position { x: 1.35 y: -0.1 z: 0.27 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_13'
+            position { x: 1.35 y: 0 z: 0.27 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_14'
+            position { x: 1.35 y: 0.1 z: 0.27 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_15'
+            position { x: 1.25 y: 0 z: 0.33 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_16'
+            position { x: 1.35 y: 0 z: 0.33 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_17'
+            position { x: 1.45 y: 0 z: 0.33 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_18'
+            position { x: 1.35 y: -0.1 z: 0.39 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_19'
+            position { x: 1.35 y: 0 z: 0.39 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_20'
+            position { x: 1.35 y: 0.1 z: 0.39 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_21'
+            position { x: 1.25 y: 0 z: 0.45 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_22'
+            position { x: 1.35 y: 0 z: 0.45 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_23'
+            position { x: 1.45 y: 0 z: 0.45 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_24'
+            position { x: 1.35 y: -0.1 z: 0.51 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_25'
+            position { x: 1.35 y: 0 z: 0.51 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_26'
+            position { x: 1.35 y: 0.1 z: 0.51 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_27'
+            position { x: 1.25 y: 0 z: 0.57 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_28'
+            position { x: 1.35 y: 0 z: 0.57 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_29'
+            position { x: 1.45 y: 0 z: 0.57 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_30'
+            position { x: 1.35 y: -0.1 z: 0.63 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_31'
+            position { x: 1.35 y: 0 z: 0.63 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_32'
+            position { x: 1.35 y: 0.1 z: 0.63 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'block_33'
+            position { x: 1.25 y: 0 z: 0.69 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_34'
+            position { x: 1.35 y: 0 z: 0.69 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'block_35'
+            position { x: 1.45 y: 0 z: 0.69 }
+            orientation { w: 0.7071 z: 0.7071 }
+          }
+          pose {
+            name: 'crate_00'
+            position { x: -3.52 y: 2.6 z: 0.24 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'crate_01'
+            position { x: -3.52 y: 2.6 z: 0.48 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'crate_02'
+            position { x: -3.52 y: 2.6 z: 0.72 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'crate_10'
+            position { x: -4.54 y: 3.1889 z: 0.24 }
+            orientation { w: 0.5 z: 0.866 }
+          }
+          pose {
+            name: 'crate_11'
+            position { x: -4.54 y: 3.1889 z: 0.48 }
+            orientation { w: 0.5 z: 0.866 }
+          }
+          pose {
+            name: 'crate_12'
+            position { x: -4.54 y: 3.1889 z: 0.72 }
+            orientation { w: 0.5 z: 0.866 }
+          }
+          pose {
+            name: 'crate_20'
+            position { x: -4.54 y: 2.0111 z: 0.24 }
+            orientation { w: -0.5 z: 0.866 }
+          }
+          pose {
+            name: 'crate_21'
+            position { x: -4.54 y: 2.0111 z: 0.48 }
+            orientation { w: -0.5 z: 0.866 }
+          }
+          pose {
+            name: 'crate_22'
+            position { x: -4.54 y: 2.0111 z: 0.72 }
+            orientation { w: -0.5 z: 0.866 }
+          }
+          pose {
+            name: 'can_0'
+            position { x: -3.89 y: 3.1369 z: 0.3 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'can_1'
+            position { x: -4.82 y: 2.6 z: 0.3 }
+            orientation { w: 1 z: 0 }
+          }
+          pose {
+            name: 'can_2'
+            position { x: -3.89 y: 2.0631 z: 0.3 }
+            orientation { w: 1 z: 0 }
+          }
+        </service>
+      </keyframe>
+    </plugin>
+  </world>
+</sdf>
