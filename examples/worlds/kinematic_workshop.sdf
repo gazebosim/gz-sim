@@ -217,7 +217,7 @@
       the load on the hand.
     -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_arm/3</uri>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_arm</uri>
       <name>arm</name>
       <pose>0 0 0 0 0 0</pose>
       <!--
@@ -260,7 +260,7 @@
       objects on it are dynamic and ride along by friction alone.
     -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_carousel/3</uri>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_carousel</uri>
       <name>carousel</name>
       <pose>-4.2 2.6 0.08 0 0 0</pose>
       <!--
@@ -280,7 +280,7 @@
       panel in the GUI to fly it yourself.
     -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_ferry/3</uri>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_ferry</uri>
       <name>ferry</name>
       <pose>-3.4744 1.539 1.6 0 0 -1.9878</pose>
       <!--
