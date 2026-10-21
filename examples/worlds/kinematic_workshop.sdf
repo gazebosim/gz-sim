@@ -53,8 +53,8 @@
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
       <!--
-        20 solver iterations instead of the default 50 keep the world
-        running at real time
+        20 solver iterations instead of the default 50 make the world
+        run faster
       -->
       <bullet>
         <solver>
