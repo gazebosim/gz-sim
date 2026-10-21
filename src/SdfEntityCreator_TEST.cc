@@ -36,6 +36,7 @@
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointAxis.hh"
+#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/JointType.hh"
 #include "gz/sim/components/LaserRetro.hh"
 #include "gz/sim/components/Light.hh"
@@ -673,6 +674,55 @@ TEST_F(SdfEntityCreatorTest, CreateEntities)
     });
 
   EXPECT_EQ(1u, lightCount);
+}
+
+/////////////////////////////////////////////////
+TEST_F(SdfEntityCreatorTest, KinematicComponent)
+{
+  // The Kinematic component is created only for links whose SDF sets
+  // <kinematic>, with its value, so that the Physics system can tell them
+  // apart from links that take its default.
+  SdfEntityCreator creator(this->ecm, evm);
+
+  sdf::Root root;
+  const std::string sdfStr = R"(
+    <sdf version="1.9">
+      <world name="default">
+        <model name="model">
+          <link name="unset"/>
+          <link name="kinematic">
+            <kinematic>true</kinematic>
+          </link>
+          <link name="dynamic">
+            <kinematic>false</kinematic>
+          </link>
+        </model>
+      </world>
+    </sdf>)";
+  ASSERT_TRUE(root.LoadSdfString(sdfStr).empty());
+  ASSERT_EQ(1u, root.WorldCount());
+
+  const sdf::World *world = root.WorldByIndex(0);
+  creator.CreateEntities(world);
+
+  auto linkEntity = [this](const std::string &_name)
+  {
+    return this->ecm.EntityByComponents(components::Link(),
+        components::Name(_name));
+  };
+
+  const Entity unset = linkEntity("unset");
+  const Entity kinematic = linkEntity("kinematic");
+  const Entity dynamic = linkEntity("dynamic");
+  ASSERT_NE(kNullEntity, unset);
+  ASSERT_NE(kNullEntity, kinematic);
+  ASSERT_NE(kNullEntity, dynamic);
+
+  EXPECT_EQ(nullptr, this->ecm.Component<components::Kinematic>(unset));
+  ASSERT_NE(nullptr, this->ecm.Component<components::Kinematic>(kinematic));
+  EXPECT_TRUE(this->ecm.Component<components::Kinematic>(kinematic)->Data());
+  ASSERT_NE(nullptr, this->ecm.Component<components::Kinematic>(dynamic));
+  EXPECT_FALSE(this->ecm.Component<components::Kinematic>(dynamic)->Data());
 }
 
 /////////////////////////////////////////////////

@@ -130,6 +130,7 @@
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
+#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
@@ -236,9 +237,14 @@ class gz::sim::systems::PhysicsPrivate
   public: void CreateLinkEntities(const EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
 
-  /// \brief Set a link entity to be kinematic.
-  /// \param[in] _linkEntity The link entity to set as kinematic.
-  public: void SetLinkKinematic(const Entity &_linkEntity);
+  /// \brief Apply the kinematic state of a link entity: the value of its
+  /// Kinematic component if its SDF set one, otherwise the default of the
+  /// `<kinematic><enabled>` parameter. Links that end up dynamic are left
+  /// alone, which is how the physics engine creates them.
+  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _linkEntity The link entity.
+  public: void SetLinkKinematic(const EntityComponentManager &_ecm,
+                                const Entity &_linkEntity);
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -821,6 +827,14 @@ class gz::sim::systems::PhysicsPrivate
             physics::KinematicLink>{};
 
   //////////////////////////////////////////////////
+  // Kinematic contacts
+  /// \brief Feature list for enabling or disabling the contacts between
+  /// kinematic links and static or kinematic links.
+  public: struct KinematicContactsFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::KinematicContacts>{};
+
+  //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
   public: using WorldEntityMap = EntityFeatureMap3d<
           physics::World,
@@ -835,7 +849,8 @@ class gz::sim::systems::PhysicsPrivate
           CollisionDetectorFeatureList,
           SolverFeatureList,
           WorldModelFeatureList,
-          CollisionPairMaxContactsFeatureList
+          CollisionPairMaxContactsFeatureList,
+          KinematicContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -944,9 +959,14 @@ class gz::sim::systems::PhysicsPrivate
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
 
-  /// \brief Flag to store whether the links created should be kinematic
-  /// instead of dynamic.
-  public: bool useKinematicMode = false;
+  /// \brief Default kinematic state of links whose SDF does not set
+  /// `<kinematic>`, from the `<kinematic><enabled>` parameter.
+  public: bool kinematicEnabled = false;
+
+  /// \brief Whether contacts between kinematic links and static or other
+  /// kinematic links are detected, from the `<kinematic><contacts><enabled>`
+  /// parameter.
+  public: bool kinematicContacts = true;
 
   /// \brief Cached physics output, to reduce allocations / deallocations
   std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
@@ -1016,10 +1036,18 @@ void Physics::Configure(const Entity &_entity,
       _sdf->Get<bool>("enforce_fixed_constraint",
       this->dataPtr->enforceFixedConstraint).first;
 
-  // Check if kinematic links should be used.
-  this->dataPtr->useKinematicMode =
-      _sdf->Get<bool>("kinematic_mode",
-      this->dataPtr->useKinematicMode).first;
+  // Kinematic link settings.
+  if (auto kinematicElement = _sdf->FindElement("kinematic"))
+  {
+    this->dataPtr->kinematicEnabled = kinematicElement->Get<bool>(
+        "enabled", this->dataPtr->kinematicEnabled).first;
+    if (auto kinematicContactsElement =
+        kinematicElement->FindElement("contacts"))
+    {
+      this->dataPtr->kinematicContacts = kinematicContactsElement->Get<bool>(
+          "enabled", this->dataPtr->kinematicContacts).first;
+    }
+  }
 
   plugin::Loader pluginLoader;
   if (isStaticPlugin(pluginLib))
@@ -1221,6 +1249,32 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
         world.SetGravity(_gravity->Data());
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
+
+        // Kinematic contacts. Set before any model is created so that the
+        // links are created with the right collision filters.
+        if (!this->kinematicContacts)
+        {
+          auto kinematicContactsFeature =
+              this->entityWorldMap.EntityCast<KinematicContactsFeatureList>(
+              _entity);
+          if (!kinematicContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to disable the contacts of kinematic "
+                    << "links, but the physics engine doesn't support "
+                    << "feature [KinematicContacts]. Contacts between "
+                    << "kinematic links and static or kinematic links will "
+                    << "be detected." << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            kinematicContactsFeature->SetKinematicContactsEnabled(false);
+          }
+        }
 
         // Optional world features
         auto collisionDetectorComp =
@@ -1561,10 +1615,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
-          if (this->useKinematicMode)
-          {
-            this->SetLinkKinematic(_entity);
-          }
+          this->SetLinkKinematic(_ecm, _entity);
           return true;
         }
 
@@ -1607,6 +1658,14 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetEnableGravity(gravityEnabled->Data());
         }
 
+        // Kinematic component set in SdfEntityCreator::CreateEntities() if
+        // the link SDF sets <kinematic>, otherwise the default of the
+        // <kinematic><enabled> parameter.
+        const components::Kinematic *kinematicComp =
+            _ecm.Component<components::Kinematic>(_entity);
+        link.SetKinematic(nullptr != kinematicComp ?
+            kinematicComp->Data() : this->kinematicEnabled);
+
         auto constructLinkFeature =
           this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
             _parent->Data());
@@ -1629,17 +1688,33 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
 
-        if (this->useKinematicMode)
-        {
-          this->SetLinkKinematic(_entity);
-        }
+        this->SetLinkKinematic(_ecm, _entity);
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::SetLinkKinematic(const Entity &_linkEntity)
+void PhysicsPrivate::SetLinkKinematic(const EntityComponentManager &_ecm,
+    const Entity &_linkEntity)
 {
+  const components::Kinematic *kinematicComp =
+      _ecm.Component<components::Kinematic>(_linkEntity);
+  const bool kinematic = nullptr != kinematicComp ?
+      kinematicComp->Data() : this->kinematicEnabled;
+
+  if (this->kinematicEnabled && nullptr != kinematicComp &&
+      !kinematicComp->Data())
+  {
+    gzwarn << "Link [" << scopedName(_linkEntity, _ecm) << "] stays dynamic "
+           << "because its SDF sets <kinematic>false</kinematic>, which "
+           << "overrides the <kinematic><enabled> parameter of the Physics "
+           << "system." << std::endl;
+  }
+
+  // Dynamic is how the physics engine creates links.
+  if (!kinematic)
+    return;
+
   auto kinematicLink =
       this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_linkEntity);
   if (!kinematicLink)
@@ -1654,7 +1729,10 @@ void PhysicsPrivate::SetLinkKinematic(const Entity &_linkEntity)
     }
     return;
   }
-  kinematicLink->SetKinematic(true);
+  // The physics engine may have created the link kinematic already from the
+  // <kinematic> element of its SDF.
+  if (!kinematicLink->GetKinematic())
+    kinematicLink->SetKinematic(true);
 }
 
 //////////////////////////////////////////////////

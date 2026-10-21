@@ -79,11 +79,23 @@ namespace systems
   /// external forces, so this setting tells the phyics engine to manually
   /// correct and maintain the relative pose between the parent and child
   /// entities. Defaults to false.
-  /// - `<kinematic_mode>` (optional): Applicable only if physics engine
-  /// supports it (e.g. bullet-featherstone).
-  /// If true, the system will set all the links in the world to be kinematic.
-  /// Kinematic links will not respond to forces like gravity or collisions.
-  /// Defaults to false.
+  /// - `<kinematic>` (optional): Settings for kinematic links. Applicable only
+  /// if the physics engine supports kinematic links (e.g. bullet-featherstone).
+  ///   - `<enabled>`: If true, links are kinematic unless their SDF sets
+  ///   `<kinematic>false</kinematic>`; if false (default), links are dynamic
+  ///   unless their SDF sets `<kinematic>true</kinematic>`. Kinematic links
+  ///   do not respond to forces like gravity or contacts, they are moved by
+  ///   setting their pose or velocity. Note that this is not the `<kinematic>`
+  ///   element of a link.
+  ///   - `<contacts><enabled>`: If false, contacts between kinematic links and
+  ///   static or other kinematic links are not detected. These contacts have
+  ///   no effect on the simulation, they can only be reported, e.g. by
+  ///   contact sensors, and detecting them costs collision detection time on
+  ///   every step for as long as the links overlap, which for kinematic links
+  ///   is forever. Contacts between kinematic and dynamic links are always
+  ///   detected, and a collision that sets
+  ///   `//collision/surface/contact/collide_without_contact` keeps the
+  ///   contacts of its kinematic link detected. Defaults to true.
   ///
   /// ## Example
   ///
@@ -95,7 +107,12 @@ namespace systems
   ///      <include_entity_names>false</include_entity_names>
   ///    </contacts>
   ///    <enforce_fixed_constraint>false</enforce_fixed_constraint>
-  ///    <kinematic_mode>false</kinematic_mode>
+  ///    <kinematic>
+  ///      <enabled>false</enabled>
+  ///      <contacts>
+  ///        <enabled>true</enabled>
+  ///      </contacts>
+  ///    </kinematic>
   ///  </plugin>
   ///  ```
 
