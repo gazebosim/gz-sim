@@ -24,9 +24,9 @@
   and contacts never move it. Links without it are dynamic. The file is
   ordered by role:
 
-  1. Stations, the kinematic parts. Each one is a plain dynamic model: its
-     <include> turns the right links kinematic with <experimental:params>
-     and adds the plugins that drive it.
+  1. Stations, the kinematic parts. Each one is a Fuel model whose links
+     already declare <kinematic>true</kinematic>: its <include> adds the
+     plugins that drive it.
      - Arm: kinematic from the base to the forearm, with a dynamic hand at
        the end (a hybrid chain). A JointPositionController in velocity mode
        drives each joint, and a force torque sensor in the wrist measures
@@ -217,24 +217,9 @@
       the load on the hand.
     -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_arm</uri>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_arm/3</uri>
       <name>arm</name>
       <pose>0 0 0 0 0 0</pose>
-      <experimental:params>
-        <link element_id="base" action="modify">
-          <kinematic>true</kinematic>
-        </link>
-        <link element_id="turret" action="modify">
-          <kinematic>true</kinematic>
-        </link>
-        <link element_id="upper_arm" action="modify">
-          <kinematic>true</kinematic>
-        </link>
-        <link element_id="forearm" action="modify">
-          <kinematic>true</kinematic>
-        </link>
-        <!-- The hand link stays dynamic -->
-      </experimental:params>
       <!--
         What drives the arm: each joint listens for a position target on
         /model/arm/joint/<joint>/0/cmd_pos and moves there with joint
@@ -275,14 +260,9 @@
       objects on it are dynamic and ride along by friction alone.
     -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_carousel</uri>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_carousel/3</uri>
       <name>carousel</name>
       <pose>-4.2 2.6 0.08 0 0 0</pose>
-      <experimental:params>
-        <link element_id="link" action="modify">
-          <kinematic>true</kinematic>
-        </link>
-      </experimental:params>
       <!--
         What drives the carousel: velocity commands on
         /model/carousel/cmd_vel, sent by the show timeline.
@@ -300,14 +280,9 @@
       panel in the GUI to fly it yourself.
     -->
     <include>
-      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_ferry</uri>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_ferry/3</uri>
       <name>ferry</name>
       <pose>-3.4744 1.539 1.6 0 0 -1.9878</pose>
-      <experimental:params>
-        <link element_id="link" action="modify">
-          <kinematic>true</kinematic>
-        </link>
-      </experimental:params>
       <!--
         What drives the ferry: velocity commands on /model/ferry/cmd_vel.
         It starts with a constant twist that flies the circle; the Teleop
