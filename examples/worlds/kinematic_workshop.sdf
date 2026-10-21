@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <!--
-  Kinematic workshop: kinematic bodies doing real work in Bullet Featherstone.
+  Kinematic workshop: a demo of kinematic links interacting with dynamic
+  bodies using the gz-physics-bullet-featherstone plugin.
 
   Orange parts are kinematic: they ignore gravity and contact forces and only
   move as commanded with velocities. Blue parts are dynamic and react to them.
@@ -20,11 +21,11 @@
   How to read this file:
 
   A link with <kinematic>true</kinematic> moves only as commanded: gravity
-  and contacts never move it. Every other link is dynamic. The file is
+  and contacts never move it. Links without it are dynamic. The file is
   ordered by role:
 
   1. Stations, the kinematic parts. Each one is a plain dynamic model: its
-     include turns the right links kinematic with <experimental:params>
+     <include> turns the right links kinematic with <experimental:params>
      and adds the plugins that drive it.
      - Arm: kinematic from the base to the forearm, with a dynamic hand at
        the end (a hybrid chain). A JointPositionController in velocity mode
@@ -38,18 +39,23 @@
   4. Show: a TimelinePublisher sends the arm targets and the carousel
      speeds, and puts the props back every 30 seconds.
 
-  Kinematic links and joints in Bullet Featherstone need gz-physics 10 or
-  later.
-
   Run with:
 
-    gz sim kinematic_workshop.sdf
+    gz sim -r kinematic_workshop.sdf
+
+  Watch the load on the hand with:
+
+    gz topic -e -t /arm/hand_ft
 -->
 <sdf version="1.11">
   <world name="kinematic_workshop">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
+      <!--
+        20 solver iterations instead of the default 50 keep the world
+        running at real time
+      -->
       <bullet>
         <solver>
           <iters>20</iters>
