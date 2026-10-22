@@ -380,6 +380,7 @@ class Cmd
   end # parse()
 
   def execute(args)
+    originalArgs = args.drop(1)
     options = parse(args)
 
     library_name_path = Pathname.new(LIBRARY_NAME)
@@ -520,48 +521,110 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
 
-        if plugin.end_with? ".dylib"
-          puts "On macOS `gz sim` currently only works with either the -s argument
-or the -g argument, you cannot run both server and gui in one terminal.
-See https://github.com/gazebosim/gz-sim/issues/44 for more info."
-          exit(-1)
-        end
-
         if plugin.end_with? ".dll"
           puts "`ign gazebo` currently only works with the -s argument on Windows.
 See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           exit(-1)
         end
 
-        serverPid = Process.fork do
-          ENV['RMT_PORT'] = '1500'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim server')
-          Importer.runServer(parsed,
-            options['iterations'], options['run'], options['hz'],
-            options['initial_sim_time'], options['levels'],
-            options['network_role'], options['network_secondaries'],
-            options['record'], options['record-path'],
-            options['record-resources'], options['log-overwrite'],
-            options['log-compress'], options['playback'],
-            options['physics_engine'],
-            options['render_engine_server'],
-            options['render_engine_server_api_backend'],
-            options['render_engine_gui'],
-            options['render_engine_gui_api_backend'],
-            options['file'], options['record-topics'].join(':'),
-            options['wait_gui'],
-            options['headless-rendering'], options['record-period'],
-            options['seed'])
-        end
+        if plugin.end_with? ".dylib"
 
-        guiPid = Process.fork do
-          ENV['RMT_PORT'] = '1501'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim gui')
-          Importer.runGui(options['gui_config'], options['file'],
-                          options['wait_gui'], options['render_engine_gui'],
-                          options['render_engine_gui_api_backend'])
+            # On macOS, start the server anf GUI as clea processes instead of
+            # forking, which is unsafe after Qt and CoreFoundation initialization.
+            
+            serverArgs = originalArgs.dup
+
+            guiOptions = [
+                "--gui-config",
+                "--render-engine-gui",
+                "--render-engine-gui-api-backend"
+            ]
+
+            # These options affect both the server and GUI processes.
+            sharedOptions = [
+                "-v",
+                "--verbose",
+                "--render-engine",
+                "--render-engine-api-backend"
+            ]
+
+            guiArgs = []
+            filteredServerArgs = []
+            index = 0
+
+            while index < originalArgs.length
+                argument = originalArgs[index]
+
+                if sharedOptions.include?(argument)
+                    filteredServerArgs << argument
+                    guiArgs << argument
+
+                    if index + 1 < originalArgs.length
+                        filteredServerArgs << originalArgs[index + 1]
+                        guiArgs << originalArgs[index + 1]
+                        index += 1
+                    end
+                elsif guiOptions.include?(argument)
+                    guiArgs << argument
+
+                    if index + 1 < originalArgs.length
+                        guiArgs << originalArgs[index + 1]
+                        index += 1
+                    end
+                else
+                    filteredServerArgs << argument
+                end
+
+                index += 1
+            end
+
+            # Reuse the current gz executable so the children come from the same
+            # Gazebo installation as the parent instead of resolving gz from PATH.
+
+            gzExecutable = File.realpath($PROGRAM_NAME)
+
+            serverPid = Process.spawn(
+                {"RMT_PORT" => "1500"},
+                gzExecutable, "sim", "-s", *filteredServerArgs,
+                pgroup: true
+            )
+            guiPid = Process.spawn(
+                {"RMT_PORT" => "1501"},
+                gzExecutable, "sim", "-g", *guiArgs,
+                pgroup: true
+            )
+
+        else
+            serverPid = Process.fork do
+            ENV['RMT_PORT'] = '1500'
+            Process.setpgid(0, 0)
+            Process.setproctitle('gz sim server')
+            Importer.runServer(parsed,
+                options['iterations'], options['run'], options['hz'],
+                options['initial_sim_time'], options['levels'],
+                options['network_role'], options['network_secondaries'],
+                options['record'], options['record-path'],
+                options['record-resources'], options['log-overwrite'],
+                options['log-compress'], options['playback'],
+                options['physics_engine'],
+                options['render_engine_server'],
+                options['render_engine_server_api_backend'],
+                options['render_engine_gui'],
+                options['render_engine_gui_api_backend'],
+                options['file'], options['record-topics'].join(':'),
+                options['wait_gui'],
+                options['headless-rendering'], options['record-period'],
+                options['seed'])
+            end
+
+            guiPid = Process.fork do
+            ENV['RMT_PORT'] = '1501'
+            Process.setpgid(0, 0)
+            Process.setproctitle('gz sim gui')
+            Importer.runGui(options['gui_config'], options['file'],
+                            options['wait_gui'], options['render_engine_gui'],
+                            options['render_engine_gui_api_backend'])
+            end
         end
 
         # Handle SIGINT and SIGTERM signals
