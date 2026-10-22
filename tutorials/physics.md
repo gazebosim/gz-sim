@@ -128,6 +128,36 @@ this order:
 3. The `GZ_SIM_PHYSICS_ENGINE` environment variable.
 4. DART, the default.
 
+## Running the tests with other engines
+
+Integration tests declare the engines they are known to pass with in their
+source file, for example:
+
+```
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
+```
+
+CMake runs each of these tests once per engine and labels each run with the
+engine name. To run the tests of a single engine, select its label:
+
+```
+ctest -L '^bullet-featherstone$'
+```
+
+The label is a regular expression, so anchor it. Otherwise `bullet` would also
+match `bullet-featherstone`.
+
+Setting `GZ_SIM_PHYSICS_ENGINE` before running `ctest` doesn't restrict the
+tests to one engine. The runs of the tests that declare their engines set the
+variable themselves, while the other tests inherit it from your shell. This is
+handy to try a new engine with the tests that don't declare it yet:
+
+```
+GZ_SIM_PHYSICS_ENGINE=gz-physics-mujoco-plugin ctest -LE '^(dartsim|bullet-featherstone)$'
+```
+
+Tests that pass this way can then add the engine to their declaration.
+
 ## Engine configuration
 
 Gazebo supports the following physics engine configurations through SDF.
