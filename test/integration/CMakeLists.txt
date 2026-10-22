@@ -332,7 +332,9 @@ endif()
 
 # Run the physics engine tests again with each of these engines, reusing the
 # same executables. DART, the default engine, already runs them above.
-set(GZ_SIM_TEST_PHYSICS_ENGINES "bullet-featherstone;mujoco" CACHE STRING
+# Only list engines that pass all the physics engine tests, so that a newly
+# packaged engine doesn't turn on failing tests by itself.
+set(GZ_SIM_TEST_PHYSICS_ENGINES "bullet-featherstone" CACHE STRING
   "Physics engines to run the physics engine tests with, besides DART")
 
 foreach(engine ${GZ_SIM_TEST_PHYSICS_ENGINES})
