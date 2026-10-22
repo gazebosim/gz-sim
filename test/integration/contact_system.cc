@@ -19,6 +19,8 @@
 
 #include <gz/msgs/contacts.pb.h>
 
+#include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <thread>
 
@@ -517,4 +519,76 @@ TEST_F(ContactSystemTest,
     std::lock_guard<std::mutex> lock(contactMutex);
     EXPECT_EQ(0u, contactMsgs.size());
   }
+}
+
+/////////////////////////////////////////////////
+// This test verifies that a contact sensor with an update rate publishes once
+// per period, with the contacts gathered since its last publication.
+TEST_F(ContactSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UpdateRate))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact_update_rate.sdf");
+  Server server(serverConfig);
+
+  std::mutex contactMutex;
+  std::vector<msgs::Contacts> everyIteration;
+  std::vector<msgs::Contacts> hundredHz;
+
+  // Messages arrive asynchronously: keep them all, count them by stamp
+  transport::Node node;
+  auto everyIterationCb = std::function<void(const msgs::Contacts &)>(
+      [&](const msgs::Contacts &_msg)
+      {
+        std::lock_guard<std::mutex> lock(contactMutex);
+        everyIteration.push_back(_msg);
+      });
+  auto hundredHzCb = std::function<void(const msgs::Contacts &)>(
+      [&](const msgs::Contacts &_msg)
+      {
+        std::lock_guard<std::mutex> lock(contactMutex);
+        hundredHz.push_back(_msg);
+      });
+  node.Subscribe("/contacts/every_iteration", everyIterationCb);
+  node.Subscribe("/contacts/hundred_hz", hundredHzCb);
+
+  // Let the sphere settle on the ground (0.1 s), then count over 1 s
+  server.Run(true, 1100, false);
+
+  // Wait for the last messages, stamped 1.1 s
+  auto stampOf = [](const msgs::Contacts &_msg)
+  {
+    return _msg.header().stamp().sec() * 1000 +
+        _msg.header().stamp().nsec() / 1000000;
+  };
+  for (int i = 0; i < 100; ++i)
+  {
+    {
+      std::lock_guard<std::mutex> lock(contactMutex);
+      if (!everyIteration.empty() && !hundredHz.empty() &&
+          stampOf(everyIteration.back()) >= 1100 &&
+          stampOf(hundredHz.back()) >= 1100)
+      {
+        break;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  }
+
+  std::lock_guard<std::mutex> lock(contactMutex);
+  auto countAfterSettling = [&](const std::vector<msgs::Contacts> &_msgs)
+  {
+    return std::count_if(_msgs.begin(), _msgs.end(),
+        [&](const msgs::Contacts &_msg) {return stampOf(_msg) > 100;});
+  };
+  EXPECT_EQ(1000, countAfterSettling(everyIteration));
+  EXPECT_EQ(100, countAfterSettling(hundredHz));
+
+  // Both sensors watch the same collision: the 100 Hz messages carry the
+  // contacts of the 10 iterations since their last publication
+  ASSERT_FALSE(everyIteration.empty());
+  ASSERT_FALSE(hundredHz.empty());
+  const int perIteration = everyIteration.back().contact_size();
+  EXPECT_GT(perIteration, 0);
+  EXPECT_EQ(10 * perIteration, hundredHz.back().contact_size());
 }

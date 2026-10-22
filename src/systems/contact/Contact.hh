@@ -36,6 +36,11 @@ namespace systems
   **/
   /// \brief Contact sensor system which manages all contact sensors in
   /// simulation
+  ///
+  /// A sensor with a positive `<update_rate>` publishes at most once per
+  /// period of simulation time, with all the contacts gathered since its
+  /// last publication. Without it (or with 0), a sensor publishes at every
+  /// iteration that has contacts.
   class Contact final:
     public System,
     public ISystemPreUpdate,

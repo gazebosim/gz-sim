@@ -22,7 +22,9 @@
 #include <gz/msgs/contact.pb.h>
 #include <gz/msgs/contacts.pb.h>
 
+#include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -65,8 +67,10 @@ class ContactSensor
   public: void AddContacts(const std::chrono::steady_clock::duration &_stamp,
                            const msgs::Contacts &_contacts);
 
-  /// \brief Publish sensor data over gz transport
-  public: void Publish();
+  /// \brief Publish the contacts gathered since the last publication over
+  /// gz transport, if any, when the update period has elapsed.
+  /// \param[in] _simTime Current simulation time
+  public: void Publish(const std::chrono::steady_clock::duration &_simTime);
 
   /// \brief Topic to publish data to
   public: std::string topic;
@@ -93,6 +97,13 @@ class ContactSensor
 
   /// \brief Entities for which this sensor publishes data
   public: std::vector<Entity> collisionEntities;
+
+  /// \brief Simulation time between two publications, from the sensor's
+  /// <update_rate>. Zero publishes at every iteration with contacts.
+  public: std::chrono::steady_clock::duration updatePeriod{0};
+
+  /// \brief Simulation time of the last publication, empty before the first.
+  public: std::optional<std::chrono::steady_clock::duration> lastPublishTime;
 };
 
 class gz::sim::systems::ContactPrivate
@@ -139,6 +150,14 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
     this->topic = tmpTopic;
   }
 
+  const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
+  if (updateRate > 0.0)
+  {
+    this->updatePeriod =
+        std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+            std::chrono::duration<double>(1.0 / updateRate));
+  }
+
   gzmsg << "Contact system publishing on " << this->topic << std::endl;
   this->pub = this->node.Advertise<msgs::Contacts>(this->topic);
 }
@@ -160,8 +179,21 @@ void ContactSensor::AddContacts(
 }
 
 //////////////////////////////////////////////////
-void ContactSensor::Publish()
+void ContactSensor::Publish(
+    const std::chrono::steady_clock::duration &_simTime)
 {
+  // A jump back in time restarts the period
+  if (this->lastPublishTime && _simTime < *this->lastPublishTime)
+    this->lastPublishTime.reset();
+
+  // Keep gathering contacts until the update period has elapsed
+  if (this->lastPublishTime &&
+      _simTime - *this->lastPublishTime < this->updatePeriod)
+  {
+    return;
+  }
+  this->lastPublishTime = _simTime;
+
   // Only publish if there are contacts
   if (this->contactsMsg->contact_size() > 0)
   {
@@ -331,7 +363,7 @@ void Contact::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       // Publish sensor data
-      it.second->Publish();
+      it.second->Publish(_info.simTime);
     }
   }
 
