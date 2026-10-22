@@ -106,6 +106,28 @@ serverConfig.SetPhysicsEngine("CustomEngine");
 gz::sim::Server server(serverConfig);
 ```
 
+### From an environment variable
+
+The `GZ_SIM_PHYSICS_ENGINE` environment variable sets the engine to use when
+neither the server configuration nor the SDF chooses one, for example:
+
+```
+export GZ_SIM_PHYSICS_ENGINE=gz-physics-bullet-featherstone-plugin
+```
+
+Worlds that choose an engine in SDF keep using it. This is how the test suite
+runs the same tests with more than one engine.
+
+### Precedence
+
+When more than one method is used, Gazebo loads the first engine it finds in
+this order:
+
+1. Command line or C++ API.
+2. SDF.
+3. The `GZ_SIM_PHYSICS_ENGINE` environment variable.
+4. DART, the default.
+
 ## Engine configuration
 
 Gazebo supports the following physics engine configurations through SDF.

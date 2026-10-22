@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -78,6 +79,7 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/PoseCmd.hh"
 #include "gz/sim/components/RaycastData.hh"
@@ -3702,4 +3704,106 @@ TEST_F(PhysicsSystemFixture,
   auto modelPose = ecm->Component<components::Pose>(modelEntity)->Data();
   double zFinal = modelPose.Pos().Z();
   EXPECT_LT(zFinal, 0.0);
+}
+
+/// \brief Sets an environment variable, or unsets it when no value is given,
+/// and restores the previous state when destroyed.
+class ScopedEnv
+{
+  /// \brief Constructor.
+  /// \param[in] _name Name of the environment variable.
+  /// \param[in] _value Value to set, or std::nullopt to unset it.
+  public: ScopedEnv(const std::string &_name,
+                    const std::optional<std::string> &_value)
+    : name(_name)
+  {
+    std::string value;
+    if (common::env(this->name, value))
+      this->previous = value;
+
+    if (_value)
+      common::setenv(this->name, *_value);
+    else
+      common::unsetenv(this->name);
+  }
+
+  /// \brief Destructor. Restores the previous state.
+  public: ~ScopedEnv()
+  {
+    if (this->previous)
+      common::setenv(this->name, *this->previous);
+    else
+      common::unsetenv(this->name);
+  }
+
+  /// \brief Name of the environment variable.
+  private: std::string name;
+
+  /// \brief Value before construction, if it was set.
+  private: std::optional<std::string> previous;
+};
+
+/////////////////////////////////////////////////
+/// \brief Load a world and return the engine chosen by the physics system.
+/// \param[in] _engineSdf SDF snippet placed inside the physics system plugin.
+/// \param[in] _serverConfigEngine Engine set through the server configuration.
+/// \return The value of the world's PhysicsEnginePlugin component.
+std::string chosenPhysicsEngine(const std::string &_engineSdf,
+    const std::string &_serverConfigEngine)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetPhysicsEngine(_serverConfigEngine);
+  serverConfig.SetSdfString(R"(
+    <?xml version="1.0"?>
+    <sdf version="1.12">
+      <world name="default">
+        <plugin
+          filename="gz-sim-physics-system"
+          name="gz::sim::systems::Physics">)" + _engineSdf + R"(
+        </plugin>
+      </world>
+    </sdf>)");
+
+  Server server(serverConfig);
+
+  std::string engine;
+  test::Relay testSystem;
+  testSystem.OnPreUpdate(
+    [&engine](const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      engine = _ecm.ComponentData<components::PhysicsEnginePlugin>(
+          worldEntity(_ecm)).value_or("");
+    });
+  server.AddSystem(testSystem.systemPtr);
+  server.RunOnce();
+
+  return engine;
+}
+
+/////////////////////////////////////////////////
+TEST_F(PhysicsSystemFixture, EngineSelectionPrecedence)
+{
+  const std::string sdfEngine =
+      "<engine><filename>gz-physics-bullet-featherstone-plugin</filename>"
+      "</engine>";
+
+  {
+    ScopedEnv engineEnv("GZ_SIM_PHYSICS_ENGINE", std::nullopt);
+
+    // DART is the default
+    EXPECT_EQ("gz-physics-dartsim-plugin", chosenPhysicsEngine("", ""));
+  }
+
+  ScopedEnv engineEnv("GZ_SIM_PHYSICS_ENGINE", "gz-physics-tpe-plugin");
+
+  // The environment variable replaces the default
+  EXPECT_EQ("gz-physics-tpe-plugin", chosenPhysicsEngine("", ""));
+
+  // SDF takes precedence over the environment variable
+  EXPECT_EQ("gz-physics-bullet-featherstone-plugin",
+      chosenPhysicsEngine(sdfEngine, ""));
+
+  // The server configuration takes precedence over SDF
+  EXPECT_EQ("gz-physics-dartsim-plugin",
+      chosenPhysicsEngine(sdfEngine, "gz-physics-dartsim-plugin"));
 }

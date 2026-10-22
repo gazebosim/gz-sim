@@ -1,6 +1,24 @@
 set(TEST_TYPE "INTEGRATION")
 
+# Tests that also run with each engine in GZ_SIM_TEST_PHYSICS_ENGINES, see the
+# end of this file
+set(physics_engine_tests
+  apply_joint_force_system.cc
+  buoyancy_engine.cc
+  halt_motion.cc
+  hydrodynamics.cc
+  hydrodynamics_flags.cc
+  joint_trajectory_controller_system.cc
+  lighter_than_air_dynamics.cc
+  reset.cc
+  reset_detachable_joint.cc
+  spacecraft.cc
+  touch_plugin.cc
+  velocity_control_system.cc
+)
+
 set(tests
+  ${physics_engine_tests}
   ackermann_steering_system.cc
   actor.cc
   acoustic_comms.cc
@@ -8,12 +26,10 @@ set(tests
   air_speed_system.cc
   altimeter_system.cc
   added_mass.cc
-  apply_joint_force_system.cc
   apply_link_wrench_system.cc
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
-  buoyancy_engine.cc
   collada_world_exporter.cc
   components.cc
   contact_system.cc
@@ -32,23 +48,18 @@ set(tests
   follow_actor_system.cc
   force_torque_system.cc
   fuel_cached_server.cc
-  halt_motion.cc
-  hydrodynamics.cc
-  hydrodynamics_flags.cc
   imu_system.cc
   include_sim_hh.cc
   joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
-  joint_trajectory_controller_system.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
   legacy_default_plugins.cc
   light.cc
-  lighter_than_air_dynamics.cc
   link.cc
   load_system_static_registry.cc
   logical_camera_system.cc
@@ -77,10 +88,7 @@ set(tests
   projector.cc
   rf_comms.cc
   recreate_entities.cc
-  reset.cc
-  reset_detachable_joint.cc
   save_world.cc
-  spacecraft.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
@@ -89,11 +97,9 @@ set(tests
   swerve_drive_system.cc
   thruster.cc
   timeline_publisher.cc
-  touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
   user_commands.cc
-  velocity_control_system.cc
   log_system.cc
   wheel_slip.cc
   wind_effects.cc
@@ -323,3 +329,46 @@ if (TARGET INTEGRATION_load_system_static_registry)
       $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-whole-archive>)
   endif()
 endif()
+
+# Run the physics engine tests again with each of these engines, reusing the
+# same executables. DART, the default engine, already runs them above.
+set(GZ_SIM_TEST_PHYSICS_ENGINES "bullet-featherstone;mujoco" CACHE STRING
+  "Physics engines to run the physics engine tests with, besides DART")
+
+foreach(engine ${GZ_SIM_TEST_PHYSICS_ENGINES})
+  find_package(gz-physics QUIET COMPONENTS ${engine}-plugin)
+  if (NOT TARGET gz-physics::${engine}-plugin)
+    message(STATUS "Skipping INTEGRATION tests with the [${engine}] "
+      "physics engine because its plugin was not found")
+    continue()
+  endif()
+
+  foreach(test_source ${physics_engine_tests})
+    get_filename_component(test_name ${test_source} NAME_WE)
+    set(base_test INTEGRATION_${test_name})
+    if (NOT TEST ${base_test})
+      continue()
+    endif()
+
+    set(engine_test ${base_test}_${engine})
+    add_test(NAME ${engine_test} COMMAND ${base_test}
+      --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
+
+    # Keep the settings of the DART run and only change the engine
+    foreach(property ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+      get_test_property(${base_test} ${property} value)
+      if (value)
+        set_property(TEST ${engine_test} PROPERTY ${property} "${value}")
+      endif()
+    endforeach()
+    set_property(TEST ${engine_test} APPEND PROPERTY
+      ENVIRONMENT "GZ_SIM_PHYSICS_ENGINE=gz-physics-${engine}-plugin")
+    set_property(TEST ${engine_test} APPEND PROPERTY LABELS ${engine})
+
+    if (Python3_Interpreter_FOUND)
+      add_test(check_${engine_test} ${Python3_EXECUTABLE}
+        ${GZ_CMAKE_TOOLS_DIR}/check_test_ran.py
+        ${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
+    endif()
+  endforeach()
+endforeach()

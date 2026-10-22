@@ -40,6 +40,7 @@
 #include <gz/common/Profiler.hh>
 #include <gz/common/StringUtils.hh>
 #include <gz/common/SystemPaths.hh>
+#include <gz/common/Util.hh>
 #include <gz/common/Uuid.hh>
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/eigen3/Conversions.hh>
@@ -470,6 +471,10 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Environment variable which holds paths to look for engine plugins
   public: std::string pluginPathEnv = "GZ_SIM_PHYSICS_ENGINE_PATH";
+
+  /// \brief Environment variable which holds the engine plugin to load when
+  /// neither the server configuration nor the SDF chooses one
+  public: std::string pluginEnv = "GZ_SIM_PHYSICS_ENGINE";
 
   //////////////////////////////////////////////////
   ////////////// Optional Features /////////////////
@@ -969,7 +974,13 @@ void Physics::Configure(const Entity &_entity,
     pluginLib = engineElem->Get<std::string>("filename", pluginLib).first;
   }
 
-  // 3. Use DART by default
+  // 3. Engine from environment variable
+  if (pluginLib.empty())
+  {
+    common::env(this->dataPtr->pluginEnv, pluginLib);
+  }
+
+  // 4. Use DART by default
   if (pluginLib.empty())
   {
     pluginLib = "gz-physics-dartsim-plugin";
