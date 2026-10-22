@@ -102,8 +102,10 @@ class ContactSensor
   /// <update_rate>. Zero publishes at every iteration with contacts.
   public: std::chrono::steady_clock::duration updatePeriod{0};
 
-  /// \brief Simulation time of the last publication, empty before the first.
-  public: std::optional<std::chrono::steady_clock::duration> lastPublishTime;
+  /// \brief Simulation time of the next publication, empty before the
+  /// first. It advances by whole update periods, so the average rate is the
+  /// update rate even when the period is not a multiple of the physics step.
+  public: std::optional<std::chrono::steady_clock::duration> nextPublishTime;
 };
 
 class gz::sim::systems::ContactPrivate
@@ -182,17 +184,27 @@ void ContactSensor::AddContacts(
 void ContactSensor::Publish(
     const std::chrono::steady_clock::duration &_simTime)
 {
-  // A jump back in time restarts the period
-  if (this->lastPublishTime && _simTime < *this->lastPublishTime)
-    this->lastPublishTime.reset();
-
-  // Keep gathering contacts until the update period has elapsed
-  if (this->lastPublishTime &&
-      _simTime - *this->lastPublishTime < this->updatePeriod)
+  if (this->updatePeriod > std::chrono::steady_clock::duration::zero())
   {
-    return;
+    // A jump back in time (before the previous publication) restarts the
+    // schedule
+    if (this->nextPublishTime &&
+        _simTime < *this->nextPublishTime - this->updatePeriod)
+    {
+      this->nextPublishTime.reset();
+    }
+
+    // Keep gathering contacts until the next publication time
+    if (this->nextPublishTime && _simTime < *this->nextPublishTime)
+      return;
+
+    // Advance by whole periods; a step longer than the period publishes at
+    // every step instead of catching up with a burst
+    this->nextPublishTime =
+        this->nextPublishTime.value_or(_simTime) + this->updatePeriod;
+    if (*this->nextPublishTime <= _simTime)
+      this->nextPublishTime = _simTime + this->updatePeriod;
   }
-  this->lastPublishTime = _simTime;
 
   // Only publish if there are contacts
   if (this->contactsMsg->contact_size() > 0)

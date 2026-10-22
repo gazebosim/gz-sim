@@ -29,7 +29,7 @@
       <pose>0 0 -0.5 0 0 0</pose>
     </model>
 
-    <!-- A sphere resting on the ground, watched by two contact sensors -->
+    <!-- A sphere resting on the ground, watched by three contact sensors -->
     <model name="sphere">
       <pose>0 0 0.5 0 0 0</pose>
       <link name="link">
@@ -56,6 +56,15 @@
           </contact>
           <always_on>1</always_on>
           <update_rate>100</update_rate>
+        </sensor>
+        <!-- 30 Hz: the period (33.3 ms) is not a multiple of the 1 ms step -->
+        <sensor name="thirty_hz" type="contact">
+          <contact>
+            <collision>collision</collision>
+            <topic>/contacts/thirty_hz</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
         </sensor>
       </link>
     </model>
