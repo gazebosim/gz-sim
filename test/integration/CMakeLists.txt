@@ -324,76 +324,88 @@ if (TARGET INTEGRATION_load_system_static_registry)
   endif()
 endif()
 
-# Physics engines that run the tests in their <engine>_tests list, besides
-# DART, the default engine, which runs every test. The engine name matches the
+# Physics engines each test is known to pass with. The engine name matches the
 # gz-physics plugin, e.g. bullet-featherstone for
-# gz-physics-bullet-featherstone-plugin.
-set(physics_engines
-  bullet-featherstone
-)
+# gz-physics-bullet-featherstone-plugin. Tests without an entry only run with
+# the default engine, which must match the default of the Physics system.
+set(default_physics_engine dartsim)
 
-# Tests known to pass with bullet-featherstone
-set(bullet-featherstone_tests
-  apply_joint_force_system.cc
-  buoyancy_engine.cc
-  halt_motion.cc
-  hydrodynamics.cc
-  hydrodynamics_flags.cc
-  joint_trajectory_controller_system.cc
-  lighter_than_air_dynamics.cc
-  reset.cc
-  reset_detachable_joint.cc
-  spacecraft.cc
-  touch_plugin.cc
-  velocity_control_system.cc
-)
+set(apply_joint_force_system_physics_engines dartsim bullet-featherstone)
+set(buoyancy_engine_physics_engines dartsim bullet-featherstone)
+set(halt_motion_physics_engines dartsim bullet-featherstone)
+set(hydrodynamics_physics_engines dartsim bullet-featherstone)
+set(hydrodynamics_flags_physics_engines dartsim bullet-featherstone)
+set(joint_trajectory_controller_system_physics_engines
+  dartsim bullet-featherstone)
+set(lighter_than_air_dynamics_physics_engines dartsim bullet-featherstone)
+set(reset_physics_engines dartsim bullet-featherstone)
+set(reset_detachable_joint_physics_engines dartsim bullet-featherstone)
+set(spacecraft_physics_engines dartsim bullet-featherstone)
+set(touch_plugin_physics_engines dartsim bullet-featherstone)
+set(velocity_control_system_physics_engines dartsim bullet-featherstone)
 
-# Run each listed test again with its engine, reusing the same executable
-foreach(engine ${physics_engines})
-  find_package(gz-physics QUIET COMPONENTS ${engine}-plugin)
-  set(engine_found TRUE)
-  if (NOT TARGET gz-physics::${engine}-plugin)
-    set(engine_found FALSE)
-    message(STATUS "Skipping INTEGRATION tests with the [${engine}] "
-      "physics engine because its plugin was not found")
+# Run each test with the physics engines it lists, reusing the same executable.
+# The default engine uses the plain test, which is disabled when the test
+# doesn't list that engine.
+foreach(test_source ${tests})
+  get_filename_component(test_name ${test_source} NAME_WE)
+  set(base_test INTEGRATION_${test_name})
+  if (NOT DEFINED ${test_name}_physics_engines OR NOT TEST ${base_test})
+    continue()
   endif()
 
-  foreach(test_source ${${engine}_tests})
-    get_filename_component(test_name ${test_source} NAME_WE)
-    set(base_test INTEGRATION_${test_name})
-    if (NOT TEST ${base_test})
-      continue()
+  if (NOT default_physics_engine IN_LIST ${test_name}_physics_engines)
+    set_tests_properties(${base_test} PROPERTIES DISABLED TRUE)
+    if (TEST check_${base_test})
+      set_tests_properties(check_${base_test} PROPERTIES DISABLED TRUE)
     endif()
+  endif()
 
-    # Label the DART run too, so each engine can be selected with ctest -L
-    get_test_property(${base_test} LABELS base_labels)
-    if (NOT "dartsim" IN_LIST base_labels)
-      set_property(TEST ${base_test} APPEND PROPERTY LABELS dartsim)
-    endif()
+  # Settings of the plain test, copied to the runs with other engines before
+  # any engine is set
+  foreach(property ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+    get_test_property(${base_test} ${property} base_${property})
+  endforeach()
 
-    if (NOT engine_found)
-      continue()
-    endif()
-
-    set(engine_test ${base_test}_${engine})
-    add_test(NAME ${engine_test} COMMAND ${base_test}
-      --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
-
-    # Keep the settings of the DART run and only change the engine
-    foreach(property ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
-      get_test_property(${base_test} ${property} value)
-      if (value)
-        set_property(TEST ${engine_test} PROPERTY ${property} "${value}")
+  foreach(engine ${${test_name}_physics_engines})
+    # Look for each engine plugin only once
+    if (NOT DEFINED ${engine}_plugin_found)
+      find_package(gz-physics QUIET COMPONENTS ${engine}-plugin)
+      if (TARGET gz-physics::${engine}-plugin)
+        set(${engine}_plugin_found TRUE)
+      else()
+        set(${engine}_plugin_found FALSE)
+        message(STATUS "Skipping INTEGRATION tests with the [${engine}] "
+          "physics engine because its plugin was not found")
       endif()
-    endforeach()
+    endif()
+    if (NOT ${engine}_plugin_found)
+      continue()
+    endif()
+
+    if (engine STREQUAL default_physics_engine)
+      set(engine_test ${base_test})
+    else()
+      set(engine_test ${base_test}_${engine})
+      add_test(NAME ${engine_test} COMMAND ${base_test}
+        --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
+
+      foreach(property ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+        if (base_${property})
+          set_property(TEST ${engine_test} PROPERTY ${property}
+            "${base_${property}}")
+        endif()
+      endforeach()
+
+      if (Python3_Interpreter_FOUND)
+        add_test(check_${engine_test} ${Python3_EXECUTABLE}
+          ${GZ_CMAKE_TOOLS_DIR}/check_test_ran.py
+          ${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
+      endif()
+    endif()
+
     set_property(TEST ${engine_test} APPEND PROPERTY
       ENVIRONMENT "GZ_SIM_PHYSICS_ENGINE=gz-physics-${engine}-plugin")
     set_property(TEST ${engine_test} APPEND PROPERTY LABELS ${engine})
-
-    if (Python3_Interpreter_FOUND)
-      add_test(check_${engine_test} ${Python3_EXECUTABLE}
-        ${GZ_CMAKE_TOOLS_DIR}/check_test_ran.py
-        ${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
-    endif()
   endforeach()
 endforeach()
