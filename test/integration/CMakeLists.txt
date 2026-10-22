@@ -324,35 +324,37 @@ if (TARGET INTEGRATION_load_system_static_registry)
   endif()
 endif()
 
-# Physics engines each test is known to pass with. The engine name matches the
-# gz-physics plugin, e.g. bullet-featherstone for
-# gz-physics-bullet-featherstone-plugin. Tests without an entry only run with
-# the default engine, which must match the default of the Physics system.
+# Physics engines each test file is known to pass with, declared in the file
+# with GZ_SIM_TEST_PHYSICS_ENGINES, see test/helpers/PhysicsEngines.hh. Files
+# without it only run with the default engine, which must match the default of
+# the Physics system.
 set(default_physics_engine dartsim)
 
-set(apply_joint_force_system_physics_engines dartsim bullet-featherstone)
-set(buoyancy_engine_physics_engines dartsim bullet-featherstone)
-set(halt_motion_physics_engines dartsim bullet-featherstone)
-set(hydrodynamics_physics_engines dartsim bullet-featherstone)
-set(hydrodynamics_flags_physics_engines dartsim bullet-featherstone)
-set(joint_trajectory_controller_system_physics_engines
-  dartsim bullet-featherstone)
-set(lighter_than_air_dynamics_physics_engines dartsim bullet-featherstone)
-set(reset_physics_engines dartsim bullet-featherstone)
-set(reset_detachable_joint_physics_engines dartsim bullet-featherstone)
-set(spacecraft_physics_engines dartsim bullet-featherstone)
-set(touch_plugin_physics_engines dartsim bullet-featherstone)
-set(velocity_control_system_physics_engines dartsim bullet-featherstone)
-
-# Run each test with the physics engines it lists, reusing the same executable.
-# The default engine uses the plain test, which is disabled when the test
-# doesn't list that engine.
+# Run each test with the physics engines it declares, reusing the same
+# executable. The default engine uses the plain test, which is disabled when the
+# file doesn't declare that engine.
 foreach(test_source ${tests})
   get_filename_component(test_name ${test_source} NAME_WE)
   set(base_test INTEGRATION_${test_name})
-  if (NOT DEFINED ${test_name}_physics_engines OR NOT TEST ${base_test})
+  set(test_path ${CMAKE_CURRENT_SOURCE_DIR}/${test_source})
+  if (NOT TEST ${base_test} OR NOT EXISTS ${test_path})
     continue()
   endif()
+
+  # Configure again when the file changes, so that edits to the declaration
+  # take effect on the next build
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${test_path})
+
+  file(STRINGS ${test_path} declaration
+    REGEX "^GZ_SIM_TEST_PHYSICS_ENGINES\\(.*\\)")
+  if (NOT declaration)
+    continue()
+  endif()
+  list(GET declaration 0 declaration)
+  string(REGEX REPLACE "^GZ_SIM_TEST_PHYSICS_ENGINES\\((.*)\\).*" "\\1"
+    engines "${declaration}")
+  string(REGEX REPLACE "[\" \t]" "" engines "${engines}")
+  string(REPLACE "," ";" ${test_name}_physics_engines "${engines}")
 
   if (NOT default_physics_engine IN_LIST ${test_name}_physics_engines)
     set_tests_properties(${base_test} PROPERTIES DISABLED TRUE)

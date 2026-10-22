@@ -35,12 +35,15 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 #define tol 10e-4
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 /// \brief Test DiffDrive system
 class HaltMotionTest : public InternalFixture<::testing::TestWithParam<int>>
