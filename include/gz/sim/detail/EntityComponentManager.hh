@@ -143,6 +143,60 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 //////////////////////////////////////////////////
 namespace detail
 {
+  /// \brief Helper trait to split a template parameter pack into required
+  /// (`Get`) and excluded (`Exclude`) component type lists.
+  template <typename T>
+  struct ComponentTypeSplit
+  {
+    using Get = entt::type_list<T>;
+    using Exclude = entt::type_list<>;
+  };
+
+  template <typename... ExcludeTs>
+  struct ComponentTypeSplit<entt::exclude_t<ExcludeTs...>>
+  {
+    using Get = entt::type_list<>;
+    using Exclude = entt::type_list<const ExcludeTs...>;
+  };
+
+  template <typename GetList, typename ExcludeList>
+  struct QueryHelper;
+
+  template <typename... GetTs, typename... ExcludeTs>
+  struct QueryHelper<entt::type_list<GetTs...>, entt::type_list<ExcludeTs...>>
+  {
+    static constexpr bool kSingleView =
+        sizeof...(GetTs) == 1 && sizeof...(ExcludeTs) == 0;
+    using Get = entt::get_t<GetTs...>;
+    using Exclude = entt::exclude_t<ExcludeTs...>;
+
+    static std::vector<ComponentTypeId> GroupIds()
+    {
+      // Use an invalid component type ID as a delimiter between required (Get)
+      // and excluded (Exclude) components so queries with the same component
+      // types split differently (e.g. Each<A, B, Exclude<C>> vs
+      // Each<A, Exclude<B, C>>) do not collide in the pendingGroups map.
+      return {GetTs::typeId..., kComponentTypeIdInvalid, ExcludeTs::typeId...};
+    }
+
+    template <typename... PrefixTs, typename RegistryT>
+    static auto View(RegistryT &_reg)
+    {
+      return _reg.template view<PrefixTs..., GetTs...>(Exclude{});
+    }
+
+    template <typename Func, typename Iterable>
+    static bool Invoke(Func &_f, Iterable &_it, Entity _e)
+    {
+      return _f(_e, std::addressof(_it.template get<GetTs>(_e))...);
+    }
+  };
+
+  template <typename... Ts>
+  using FilterComponentTypes = QueryHelper<
+      entt::type_list_cat_t<typename ComponentTypeSplit<Ts>::Get...>,
+      entt::type_list_cat_t<typename ComponentTypeSplit<Ts>::Exclude...>>;
+
   /// \brief Base class for enqueuing group creation.
   class GroupQueuer
   {
@@ -159,7 +213,9 @@ namespace detail
     /// not owning specific components for the requested component set.
     public: void CreateGroup(entt::basic_registry<Entity> &_registry) override
     {
-      _registry.template group<>(entt::get<ComponentTypeTs...>);
+      using Query = FilterComponentTypes<ComponentTypeTs...>;
+      _registry.template group<>(
+          typename Query::Get{}, typename Query::Exclude{});
     }
   };
 }
@@ -301,9 +357,10 @@ void EntityComponentManager::EachNoCache(Func &&_f)
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::Each(Func &&_f) const
 {
-  if constexpr (sizeof...(ComponentTypeTs) == 1)
+  using Query = detail::FilterComponentTypes<ComponentTypeTs...>;
+  if constexpr (Query::kSingleView)
   {
-    auto view = this->Registry().template view<const ComponentTypeTs...>();
+    auto view = Query::View(this->Registry());
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -316,24 +373,23 @@ void EntityComponentManager::Each(Func &&_f) const
     {
       for (const auto entity : iterable)
       {
-        if (!_f(entity, std::addressof(
-                iterable.template get<const ComponentTypeTs>(entity))...))
+        if (!Query::Invoke(_f, iterable, entity))
           break;
       }
     };
 
     if (auto group = this->Registry().template group_if_exists<>(
-        entt::get<const ComponentTypeTs...>); group)
+        typename Query::Get{}, typename Query::Exclude{}); group)
     {
       iterate(group);
       return;
     }
 
     // Enqueue group creation for next iteration
-    this->EnqueueGroup({ComponentTypeTs::typeId...}, std::make_unique<
+    this->EnqueueGroup(Query::GroupIds(), std::make_unique<
         detail::GroupQueuerImpl<std::remove_const_t<ComponentTypeTs>...>>());
 
-    iterate(this->Registry().template view<const ComponentTypeTs...>());
+    iterate(Query::View(this->Registry()));
   }
 }
 
@@ -341,9 +397,10 @@ void EntityComponentManager::Each(Func &&_f) const
 template<typename ...ComponentTypeTs, typename Func>
 void EntityComponentManager::Each(Func &&_f)
 {
-  if constexpr (sizeof...(ComponentTypeTs) == 1)
+  using Query = detail::FilterComponentTypes<ComponentTypeTs...>;
+  if constexpr (Query::kSingleView)
   {
-    auto view = this->Registry().template view<ComponentTypeTs...>();
+    auto view = Query::View(this->Registry());
     for (auto &&[entity, comp] : view.each())
     {
       if (!_f(entity, std::addressof(comp)))
@@ -352,12 +409,11 @@ void EntityComponentManager::Each(Func &&_f)
   }
   else
   {
-    const auto group =
-      this->Registry().template group<>(entt::get<ComponentTypeTs...>);
+    const auto group = this->Registry().template group<>(
+        typename Query::Get{}, typename Query::Exclude{});
     for (const auto entity : group)
     {
-      if (!_f(entity, std::addressof(
-              group.template get<ComponentTypeTs>(entity))...))
+      if (!Query::Invoke(_f, group, entity))
         break;
     }
   }
@@ -384,14 +440,14 @@ void EntityComponentManager::EachNew(Func &&_f)
   if (!this->HasNewEntities())
     return;
 
-  auto view = this->Registry().template view<NewEntity, ComponentTypeTs...>();
+  using Query = detail::FilterComponentTypes<ComponentTypeTs...>;
+  auto view = Query::template View<NewEntity>(this->Registry());
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
   for (const auto entity : view)
   {
-    if (!_f(entity, (
-            std::addressof(view.template get<ComponentTypeTs>(entity)))...))
+    if (!Query::Invoke(_f, view, entity))
       break;
   }
 }
@@ -405,15 +461,14 @@ void EntityComponentManager::EachNew(Func &&_f) const
   if (!this->HasNewEntities())
     return;
 
-  auto view = this->Registry().template view<
-    const NewEntity, const ComponentTypeTs...>();
+  using Query = detail::FilterComponentTypes<ComponentTypeTs...>;
+  auto view = Query::template View<NewEntity>(this->Registry());
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
   for (const auto entity : view)
   {
-    if (!_f(entity, std::addressof(
-            view.template get<const ComponentTypeTs>(entity))...))
+    if (!Query::Invoke(_f, view, entity))
       break;
   }
 }
@@ -427,15 +482,14 @@ void EntityComponentManager::EachRemoved(Func &&_f) const
   if (!this->HasEntitiesMarkedForRemoval())
     return;
 
-  auto view = this->Registry().template view<
-    const RemoveEntity, const ComponentTypeTs...>();
+  using Query = detail::FilterComponentTypes<ComponentTypeTs...>;
+  auto view = Query::template View<RemoveEntity>(this->Registry());
 
   // Iterate over the entities in the view, and invoke the callback
   // function.
   for (const auto entity : view)
   {
-    if (!_f(entity, std::addressof(
-            view.template get<const ComponentTypeTs>(entity))...))
+    if (!Query::Invoke(_f, view, entity))
       break;
   }
 }
