@@ -81,7 +81,8 @@ ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
   return static_cast<ComponentTypeT *>(this->CreateComponentImplementation(
-      _entity, ComponentTypeT::typeId, &_data));
+      _entity, ComponentTypeT::typeId, &_data,
+      &this->Registry().template storage<ComponentTypeT>()));
 }
 
 //////////////////////////////////////////////////

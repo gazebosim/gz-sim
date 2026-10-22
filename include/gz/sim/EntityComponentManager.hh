@@ -846,11 +846,13 @@ namespace gz
       /// the component.
       /// \param[in] _componentTypeId Id of the component type.
       /// \param[in] _data Data used to construct the component.
+      /// \param[in] _storage Optional pointer to the EnTT component storage.
       /// \return Pointer to the created component, or nullptr on failure.
       private: components::BaseComponent *CreateComponentImplementation(
                    const Entity _entity,
                    const ComponentTypeId _componentTypeId,
-                   const components::BaseComponent *_data);
+                   const components::BaseComponent *_data,
+                   entt::basic_sparse_set<Entity> *_storage = nullptr);
 
       /// \brief Get a component based on a component type.
       /// \param[in] _entity The entity.
