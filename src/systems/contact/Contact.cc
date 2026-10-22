@@ -153,7 +153,13 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
   }
 
   const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
-  if (updateRate > 0.0)
+  if (updateRate < 0.0)
+  {
+    gzwarn << "Contact sensor on [" << this->topic << "] has a negative "
+           << "<update_rate> [" << updateRate << "]; publishing at every "
+           << "iteration with contacts." << std::endl;
+  }
+  else if (updateRate > 0.0)
   {
     this->updatePeriod =
         std::chrono::duration_cast<std::chrono::steady_clock::duration>(
@@ -176,8 +182,6 @@ void ContactSensor::AddContacts(
     newContact->CopyFrom(contact);
     newContact->mutable_header()->mutable_stamp()->CopyFrom(stamp);
   }
-
-  this->contactsMsg->mutable_header()->mutable_stamp()->CopyFrom(stamp);
 }
 
 //////////////////////////////////////////////////
@@ -209,6 +213,9 @@ void ContactSensor::Publish(
   // Only publish if there are contacts
   if (this->contactsMsg->contact_size() > 0)
   {
+    // The publication time; each contact keeps the time of its iteration
+    this->contactsMsg->mutable_header()->mutable_stamp()->CopyFrom(
+        convert<msgs::Time>(_simTime));
     this->pub.Publish(*this->contactsMsg);
     // Reset (not Clear): Clear() walks the field tree, while arena.Reset()
     // is O(1) and lets the next add_contact() bump-allocate fresh entries.
