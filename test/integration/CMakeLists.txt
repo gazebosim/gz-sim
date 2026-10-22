@@ -330,6 +330,13 @@ endif()
 # the Physics system.
 set(default_physics_engine dartsim)
 
+# Engines that GZ_SIM_TEST_PHYSICS_ENGINES accepts, one per gz-physics engine
+# plugin. Declaring any other name is an error, to catch typos.
+set(known_physics_engines dartsim tpe bullet bullet-featherstone mujoco)
+
+# Settings of the plain test that the runs with other engines keep
+set(copied_test_properties ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+
 # Run each test with the physics engines it declares, reusing the same
 # executable. The default engine uses the plain test, which is disabled when the
 # file doesn't declare that engine.
@@ -346,15 +353,22 @@ foreach(test_source ${tests})
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${test_path})
 
   file(STRINGS ${test_path} declaration
-    REGEX "^GZ_SIM_TEST_PHYSICS_ENGINES\\(.*\\)")
+    REGEX "^[ \t]*GZ_SIM_TEST_PHYSICS_ENGINES\\(.*\\)")
   if (NOT declaration)
     continue()
   endif()
   list(GET declaration 0 declaration)
-  string(REGEX REPLACE "^GZ_SIM_TEST_PHYSICS_ENGINES\\((.*)\\).*" "\\1"
+  string(REGEX REPLACE "^[ \t]*GZ_SIM_TEST_PHYSICS_ENGINES\\((.*)\\).*" "\\1"
     engines "${declaration}")
   string(REGEX REPLACE "[\" \t]" "" engines "${engines}")
   string(REPLACE "," ";" ${test_name}_physics_engines "${engines}")
+  foreach(engine ${${test_name}_physics_engines})
+    if (NOT engine IN_LIST known_physics_engines)
+      list(JOIN known_physics_engines ", " known_engines)
+      message(FATAL_ERROR "${test_source} declares the unknown physics engine "
+        "[${engine}]. Known engines: ${known_engines}")
+    endif()
+  endforeach()
 
   if (NOT default_physics_engine IN_LIST ${test_name}_physics_engines)
     set_tests_properties(${base_test} PROPERTIES DISABLED TRUE)
@@ -363,9 +377,8 @@ foreach(test_source ${tests})
     endif()
   endif()
 
-  # Settings of the plain test, copied to the runs with other engines before
-  # any engine is set
-  foreach(property ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+  # Read the settings before any engine is set on the plain test
+  foreach(property ${copied_test_properties})
     get_test_property(${base_test} ${property} base_${property})
   endforeach()
 
@@ -392,7 +405,7 @@ foreach(test_source ${tests})
       add_test(NAME ${engine_test} COMMAND ${base_test}
         --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
 
-      foreach(property ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+      foreach(property ${copied_test_properties})
         if (base_${property})
           set_property(TEST ${engine_test} PROPERTY ${property}
             "${base_${property}}")

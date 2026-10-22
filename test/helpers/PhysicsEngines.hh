@@ -26,9 +26,9 @@
 ///
 /// Each name matches a gz-physics engine plugin, e.g. bullet-featherstone for
 /// gz-physics-bullet-featherstone-plugin. CMake reads this line from the source
-/// file and runs the test once per engine, so write it on a single line at the
-/// start of the line, at file scope. Files without it only run with DART, the
-/// default engine.
-#define GZ_SIM_TEST_PHYSICS_ENGINES(...) static_assert(true, "")
+/// file and runs the test once per engine, so write it on a single line at
+/// file scope. Unknown engine names are a CMake error. Files without it only
+/// run with DART, the default engine.
+#define GZ_SIM_TEST_PHYSICS_ENGINES(...) static_assert(true)
 
 #endif

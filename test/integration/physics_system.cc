@@ -3706,6 +3706,8 @@ TEST_F(PhysicsSystemFixture,
   EXPECT_LT(zFinal, 0.0);
 }
 
+namespace
+{
 /// \brief Sets an environment variable, or unsets it when no value is given,
 /// and restores the previous state when destroyed.
 class ScopedEnv
@@ -3718,7 +3720,7 @@ class ScopedEnv
     : name(_name)
   {
     std::string value;
-    if (common::env(this->name, value))
+    if (common::env(this->name, value, true))
       this->previous = value;
 
     if (_value)
@@ -3726,6 +3728,12 @@ class ScopedEnv
     else
       common::unsetenv(this->name);
   }
+
+  /// \brief Restoring the state twice could undo newer changes.
+  public: ScopedEnv(const ScopedEnv &) = delete;
+
+  /// \brief Restoring the state twice could undo newer changes.
+  public: ScopedEnv &operator=(const ScopedEnv &) = delete;
 
   /// \brief Destructor. Restores the previous state.
   public: ~ScopedEnv()
@@ -3779,6 +3787,7 @@ std::string chosenPhysicsEngine(const std::string &_engineSdf,
 
   return engine;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 TEST_F(PhysicsSystemFixture, EngineSelectionPrecedence)

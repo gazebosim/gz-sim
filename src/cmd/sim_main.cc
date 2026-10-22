@@ -326,6 +326,7 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
   _app.add_option("--physics-engine", _opt->physicsEngine,
                   "Gazebo Physics engine plugin to load. Gazebo\n"
                   "will use DART by default (gz-physics-dartsim-plugin)\n"
+                  "unless the world or GZ_SIM_PHYSICS_ENGINE sets one.\n"
                   "Make sure custom plugins are inside\n"
                   "GZ_SIM_PHYSICS_ENGINE_PATH.");
   #ifdef WITH_GUI
