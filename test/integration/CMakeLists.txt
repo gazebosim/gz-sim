@@ -1,24 +1,6 @@
 set(TEST_TYPE "INTEGRATION")
 
-# Tests that also run with each engine in GZ_SIM_TEST_PHYSICS_ENGINES, see the
-# end of this file
-set(physics_engine_tests
-  apply_joint_force_system.cc
-  buoyancy_engine.cc
-  halt_motion.cc
-  hydrodynamics.cc
-  hydrodynamics_flags.cc
-  joint_trajectory_controller_system.cc
-  lighter_than_air_dynamics.cc
-  reset.cc
-  reset_detachable_joint.cc
-  spacecraft.cc
-  touch_plugin.cc
-  velocity_control_system.cc
-)
-
 set(tests
-  ${physics_engine_tests}
   ackermann_steering_system.cc
   actor.cc
   acoustic_comms.cc
@@ -26,10 +8,12 @@ set(tests
   air_speed_system.cc
   altimeter_system.cc
   added_mass.cc
+  apply_joint_force_system.cc
   apply_link_wrench_system.cc
   battery_plugin.cc
   breadcrumbs.cc
   buoyancy.cc
+  buoyancy_engine.cc
   collada_world_exporter.cc
   components.cc
   contact_system.cc
@@ -48,18 +32,23 @@ set(tests
   follow_actor_system.cc
   force_torque_system.cc
   fuel_cached_server.cc
+  halt_motion.cc
+  hydrodynamics.cc
+  hydrodynamics_flags.cc
   imu_system.cc
   include_sim_hh.cc
   joint.cc
   joint_controller_system.cc
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
+  joint_trajectory_controller_system.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
   level_manager_runtime_performers.cc
   legacy_default_plugins.cc
   light.cc
+  lighter_than_air_dynamics.cc
   link.cc
   load_system_static_registry.cc
   logical_camera_system.cc
@@ -88,7 +77,10 @@ set(tests
   projector.cc
   rf_comms.cc
   recreate_entities.cc
+  reset.cc
+  reset_detachable_joint.cc
   save_world.cc
+  spacecraft.cc
   scene_broadcaster_system.cc
   sdf_frame_semantics.cc
   sdf_include.cc
@@ -97,9 +89,11 @@ set(tests
   swerve_drive_system.cc
   thruster.cc
   timeline_publisher.cc
+  touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
   user_commands.cc
+  velocity_control_system.cc
   log_system.cc
   wheel_slip.cc
   wind_effects.cc
@@ -330,25 +324,54 @@ if (TARGET INTEGRATION_load_system_static_registry)
   endif()
 endif()
 
-# Run the physics engine tests again with each of these engines, reusing the
-# same executables. DART, the default engine, already runs them above.
-# Only list engines that pass all the physics engine tests, so that a newly
-# packaged engine doesn't turn on failing tests by itself.
-set(GZ_SIM_TEST_PHYSICS_ENGINES "bullet-featherstone" CACHE STRING
-  "Physics engines to run the physics engine tests with, besides DART")
+# Physics engines that run the tests in their <engine>_tests list, besides
+# DART, the default engine, which runs every test. The engine name matches the
+# gz-physics plugin, e.g. bullet-featherstone for
+# gz-physics-bullet-featherstone-plugin.
+set(physics_engines
+  bullet-featherstone
+)
 
-foreach(engine ${GZ_SIM_TEST_PHYSICS_ENGINES})
+# Tests known to pass with bullet-featherstone
+set(bullet-featherstone_tests
+  apply_joint_force_system.cc
+  buoyancy_engine.cc
+  halt_motion.cc
+  hydrodynamics.cc
+  hydrodynamics_flags.cc
+  joint_trajectory_controller_system.cc
+  lighter_than_air_dynamics.cc
+  reset.cc
+  reset_detachable_joint.cc
+  spacecraft.cc
+  touch_plugin.cc
+  velocity_control_system.cc
+)
+
+# Run each listed test again with its engine, reusing the same executable
+foreach(engine ${physics_engines})
   find_package(gz-physics QUIET COMPONENTS ${engine}-plugin)
+  set(engine_found TRUE)
   if (NOT TARGET gz-physics::${engine}-plugin)
+    set(engine_found FALSE)
     message(STATUS "Skipping INTEGRATION tests with the [${engine}] "
       "physics engine because its plugin was not found")
-    continue()
   endif()
 
-  foreach(test_source ${physics_engine_tests})
+  foreach(test_source ${${engine}_tests})
     get_filename_component(test_name ${test_source} NAME_WE)
     set(base_test INTEGRATION_${test_name})
     if (NOT TEST ${base_test})
+      continue()
+    endif()
+
+    # Label the DART run too, so each engine can be selected with ctest -L
+    get_test_property(${base_test} LABELS base_labels)
+    if (NOT "dartsim" IN_LIST base_labels)
+      set_property(TEST ${base_test} APPEND PROPERTY LABELS dartsim)
+    endif()
+
+    if (NOT engine_found)
       continue()
     endif()
 
