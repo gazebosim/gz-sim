@@ -38,11 +38,14 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 #define TOL 1e-4
 
 using namespace gz;
 using namespace sim;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 /// \brief Test fixture for JointTrajectoryController system
 class JointTrajectoryControllerTestFixture

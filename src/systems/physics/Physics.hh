@@ -79,6 +79,18 @@ namespace systems
   /// external forces, so this setting tells the phyics engine to manually
   /// correct and maintain the relative pose between the parent and child
   /// entities. Defaults to false.
+  /// - `<engine><filename>`: Optional. Name of the gz-physics engine plugin
+  /// to load.
+  ///
+  /// ## Choosing the physics engine
+  ///
+  /// The engine plugin is chosen from the first of these that is set:
+  ///
+  /// 1. \ref gz::sim::ServerConfig::SetPhysicsEngine, also set by the
+  ///    `--physics-engine` command line option.
+  /// 2. The `<engine><filename>` system parameter.
+  /// 3. The `GZ_SIM_PHYSICS_ENGINE` environment variable.
+  /// 4. `gz-physics-dartsim-plugin`.
   ///
   /// ## Example
   ///
