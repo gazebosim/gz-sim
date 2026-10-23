@@ -23,6 +23,7 @@
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
+#include <gz/sim/Entity.hh>
 
 #include <istream>
 #include <ostream>
@@ -57,6 +58,9 @@ struct RaycastResultInfo
 
   /// \brief The normal at the hit point in entity frame
   gz::math::Vector3d normal;
+
+  /// \brief The entity at the hit point
+  Entity entity{kNullEntity};
 };
 
 /// @brief A struct that holds the raycasting data, including ray and results
