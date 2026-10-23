@@ -1299,6 +1299,7 @@ gz_sim_system_libraries(
             "src/systems/mecanum_drive/**/*.cc",
             "src/systems/mecanum_drive/**/*.hh",
         ],
+        exclude = ["src/systems/mecanum_drive/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-mecanum-drive-system.so",
     static_lib_name = "gz-sim-mecanum-drive-system-static",
@@ -1312,6 +1313,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+mecanum_drive_test_sources = glob([
+    "src/systems/mecanum_drive/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-mecanum-drive-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in mecanum_drive_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
