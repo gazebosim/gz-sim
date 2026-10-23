@@ -502,7 +502,7 @@ class gz::sim::systems::UserCommandsPrivate
   public: std::mutex pendingMutex;
 
   /// \brief Global timeout settings for services.
-  /// \TODO(azeey) Consider making this configurable.
+  /// \todo(azeey) Consider making this configurable.
   public: const unsigned int kServiceHandlerTimeoutMs{5000};
 };
 
