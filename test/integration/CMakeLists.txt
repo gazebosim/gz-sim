@@ -88,6 +88,7 @@ set(tests
   spherical_coordinates.cc
   swerve_drive_system.cc
   thruster.cc
+  timeline_publisher.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
