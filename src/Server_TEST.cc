@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/server_control.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
@@ -25,6 +26,7 @@
 
 #include <atomic>
 #include <csignal>
+#include <future>
 #include <thread>
 #include <vector>
 #include <gz/common/StringUtils.hh>
@@ -1381,6 +1383,151 @@ TEST_P(ServerFixture, WorldControlIgnoredOnExit)
   EXPECT_TRUE(executed);
   EXPECT_TRUE(result);
   EXPECT_FALSE(res.data());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PluginErrorExit)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugin_load_error.sdf"));
+  serverConfig.SetWaitForAssets(true);
+  serverConfig.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+
+  // When waiting for assets, entities are created and their plugins are
+  // loaded in the constructor.
+  sim::Server server(serverConfig);
+  EXPECT_EQ(Server::Status::EXITED, server.GetStatus());
+
+  // Attempt to Run, expect failure
+  EXPECT_FALSE(server.Run(true, 1, false));
+
+  // Attempt to RunOnce, expect failure
+  EXPECT_FALSE(server.RunOnce(false));
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PluginErrorExitAsync)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugin_load_error.sdf"));
+  serverConfig.SetWaitForAssets(false);
+  serverConfig.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+
+  sim::Server server(serverConfig);
+
+  // When not waiting for assets, entities are created and their plugins are
+  // loaded while running. Run without an iteration limit, as the command
+  // line tool does by default, and expect the server to stop on its own.
+  // The blocking run is done asynchronously so that the test fails instead
+  // of hanging if the server doesn't stop.
+  auto runResult = std::async(std::launch::async, [&server]()
+      {
+        return server.Run(true, 0, false);
+      });
+
+  if (runResult.wait_for(10s) != std::future_status::ready)
+  {
+    server.Stop();
+    FAIL() << "The server did not stop after a system plugin failed to load";
+  }
+
+  EXPECT_FALSE(runResult.get());
+  EXPECT_EQ(Server::Status::EXITED, server.GetStatus());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PluginErrorContinue)
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "plugin_load_error.sdf"));
+  serverConfig.SetWaitForAssets(true);
+
+  // By default, plugins that fail to load are skipped
+  sim::Server server(serverConfig);
+  EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+
+  EXPECT_TRUE(server.Run(true, 1, false));
+  EXPECT_EQ(1u, *server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PluginErrorIgnoresLevelsPlugin)
+{
+  // The levels feature uses a plugin named "gz::sim" that is not expected
+  // to load, so it should not stop the server.
+  std::string levelsSdf = R"(
+    <sdf version="1.12">
+      <world name="levels_plugin">
+        <plugin filename="dummy" name="gz::sim"/>
+      </world>
+    </sdf>)";
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(levelsSdf);
+  serverConfig.SetWaitForAssets(true);
+  serverConfig.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+
+  sim::Server server(serverConfig);
+  EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+
+  EXPECT_TRUE(server.Run(true, 1, false));
+  EXPECT_EQ(1u, *server.IterationCount());
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, PluginErrorAtRuntimeContinues)
+{
+  std::string worldSdf = R"(
+    <sdf version="1.12">
+      <world name="plugin_error_runtime"/>
+    </sdf>)";
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(worldSdf);
+  serverConfig.SetWaitForAssets(true);
+  serverConfig.SetBehaviorOnPluginErrors(
+      ServerConfig::PluginErrorBehavior::EXIT_IMMEDIATELY);
+
+  sim::Server server(serverConfig);
+  ASSERT_EQ(Server::Status::STOPPED, server.GetStatus());
+  ASSERT_TRUE(server.Run(true, 1, false));
+
+  // Spawn a model with a plugin that fails to load. Plugin errors are only
+  // fatal at startup, so the server should keep running.
+  std::string modelSdf = R"(
+    <sdf version="1.12">
+      <model name="spawned_model">
+        <static>true</static>
+        <link name="link"/>
+        <plugin filename="gz-sim-nonexistent-test-system"
+                name="gz::sim::systems::NonexistentTestSystem"/>
+      </model>
+    </sdf>)";
+
+  transport::Node node;
+  msgs::EntityFactory req;
+  req.set_sdf(modelSdf);
+  msgs::Boolean res;
+  bool result{false};
+
+  const std::string createService = "/world/plugin_error_runtime/create";
+  ASSERT_TRUE(test::waitForService(node, createService, 1000));
+  EXPECT_TRUE(node.Request(createService, req, 5000, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run the server to create the model and attempt to load its plugin
+  EXPECT_TRUE(server.Run(true, 10, false));
+  EXPECT_NE(std::nullopt, server.EntityByName("spawned_model"));
+  EXPECT_EQ(Server::Status::STOPPED, server.GetStatus());
+
+  EXPECT_TRUE(server.Run(true, 1, false));
 }
 
 // Run multiple times. We want to make sure that static globals don't cause
