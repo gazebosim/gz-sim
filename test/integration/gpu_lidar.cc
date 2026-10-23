@@ -29,6 +29,8 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 #define LASER_TOL 1e-4
 
@@ -49,6 +51,21 @@ void laserCb(const msgs::LaserScan &_msg)
   mutex.lock();
   laserMsgs.push_back(_msg);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+void expectSameLaserScan(const msgs::LaserScan &_expected,
+    const msgs::LaserScan &_actual)
+{
+  ASSERT_EQ(_expected.ranges_size(), _actual.ranges_size());
+  ASSERT_GT(_actual.ranges_size(), 0);
+
+  const int mid = _actual.ranges_size() / 2;
+  const int last = _actual.ranges_size() - 1;
+  EXPECT_DOUBLE_EQ(_expected.ranges(0), _actual.ranges(0));
+  EXPECT_NEAR(_expected.ranges(mid), _actual.ranges(mid), LASER_TOL);
+  EXPECT_DOUBLE_EQ(_expected.ranges(last), _actual.ranges(last));
+  EXPECT_EQ(_expected.frame(), _actual.frame());
 }
 
 /////////////////////////////////////////////////
@@ -105,4 +122,44 @@ TEST_F(GpuLidarTest, GZ_UTILS_TEST_DISABLED_ON_MAC(GpuLidarBox))
               LASER_TOL);
   EXPECT_DOUBLE_EQ(lastMsg.ranges(last), math::INF_D);
   EXPECT_EQ("gpu_lidar::gpu_lidar_link::gpu_lidar", lastMsg.frame());
+}
+
+/////////////////////////////////////////////////
+TEST_F(GpuLidarTest, GZ_UTILS_TEST_DISABLED_ON_MAC(ResetKeepsPublishing))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/gpu_lidar_sensor.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  transport::Node node;
+  Subscription<msgs::LaserScan> initialScan;
+  initialScan.Subscribe(node, "/lidar", 1);
+  auto waitForLaserScan =
+      [&server](Subscription<msgs::LaserScan> &_scan)
+      {
+        return test::StepUntil(server, 3000, [&]
+        {
+          return _scan.Count() > 0u;
+        });
+      };
+
+  ASSERT_TRUE(waitForLaserScan(initialScan));
+  const auto baseline = initialScan.Last();
+
+  // Move well past the first scan window before issuing reset.
+  server.Run(true, 300, false);
+  server.ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::LaserScan> postResetScan;
+  postResetScan.Subscribe(postResetNode, "/lidar", 1);
+
+  ASSERT_TRUE(waitForLaserScan(postResetScan));
+  const auto postReset = postResetScan.Last();
+  expectSameLaserScan(baseline, postReset);
 }

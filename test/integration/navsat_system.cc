@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/navsat.pb.h>
+#include <cmath>
 #include <mutex>
 
 #include <gz/common/Console.hh>
@@ -38,6 +39,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -56,6 +59,19 @@ void navsatCb(const msgs::NavSat &_msg)
   mutex.lock();
   navSatMsgs.push_back(_msg);
   mutex.unlock();
+}
+
+/////////////////////////////////////////////////
+bool earlyEpisodeNavSatReading(const msgs::NavSat &_baseline,
+    const msgs::NavSat &_actual)
+{
+  return _baseline.frame_id() == _actual.frame_id() &&
+      std::abs(_baseline.latitude_deg() - _actual.latitude_deg()) < 1e-9 &&
+      std::abs(_baseline.longitude_deg() - _actual.longitude_deg()) < 1e-9 &&
+      std::abs(_actual.velocity_east()) < 1e-6 &&
+      std::abs(_actual.velocity_north()) < 1e-6 &&
+      _actual.altitude() > -1.0 &&
+      _actual.velocity_up() > -5.0;
 }
 
 /////////////////////////////////////////////////
@@ -125,4 +141,70 @@ TEST_F(NavSatTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   // Falling due to gravity
   EXPECT_GT(0.0, lastMsg.altitude());
   EXPECT_GT(0.0, lastMsg.velocity_up());
+}
+
+/////////////////////////////////////////////////
+TEST_F(NavSatTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresEarlyReadings))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "navsat.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string topic = "world/navsat_sensor/"
+      "model/navsat_model/link/link/sensor/navsat_sensor/navsat";
+
+  transport::Node node;
+  Subscription<msgs::NavSat> initialNavSat;
+  initialNavSat.Subscribe(node, topic, 1);
+  auto waitForNavSat =
+      [&server](Subscription<msgs::NavSat> &_subscription, auto _predicate)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u &&
+              _predicate(_subscription.Last());
+        });
+      };
+
+  ASSERT_TRUE(waitForNavSat(initialNavSat,
+      [](const msgs::NavSat &) { return true; }));
+  const auto baseline = initialNavSat.Last();
+
+  // Let the falling model move away from the early-episode reading.
+  server.Run(true, 1000, false);
+  const auto preReset = initialNavSat.Last();
+  EXPECT_LT(preReset.altitude(), baseline.altitude() - 1.0);
+  EXPECT_LT(preReset.velocity_up(), baseline.velocity_up() - 1.0);
+  server.ResetAll();
+
+  transport::Node postResetNode;
+  Subscription<msgs::NavSat> postResetNavSat;
+  postResetNavSat.Subscribe(postResetNode, topic, 1);
+
+  msgs::NavSat postReset;
+  ASSERT_TRUE(waitForNavSat(postResetNavSat,
+      [&baseline, &preReset, &postReset](const msgs::NavSat &_msg)
+      {
+        if (!earlyEpisodeNavSatReading(baseline, _msg))
+        {
+          return false;
+        }
+        if (_msg.altitude() <= preReset.altitude() + 1.0 ||
+            _msg.velocity_up() <= preReset.velocity_up() + 1.0)
+        {
+          return false;
+        }
+        postReset = _msg;
+        return true;
+      }));
+  EXPECT_EQ(baseline.frame_id(), postReset.frame_id());
+  EXPECT_NEAR(baseline.latitude_deg(), postReset.latitude_deg(), 1e-9);
+  EXPECT_NEAR(baseline.longitude_deg(), postReset.longitude_deg(), 1e-9);
+  EXPECT_NEAR(0.0, postReset.velocity_east(), 1e-6);
+  EXPECT_NEAR(0.0, postReset.velocity_north(), 1e-6);
 }
