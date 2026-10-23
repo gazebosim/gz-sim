@@ -17,7 +17,13 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <thread>
+#include <utility>
+#include <vector>
+
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/vector3d.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -31,9 +37,13 @@
 #include "gz/sim/TestFixture.hh"
 #include "gz/sim/Util.hh"
 #include "gz/sim/World.hh"
+#include "gz/sim/components/Model.hh"
+#include "gz/sim/components/Name.hh"
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/Relay.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -200,4 +210,230 @@ TEST_F(HydrodynamicsTest,
     EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsRuntimeCurrentState))
+{
+  using namespace std::chrono_literals;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "hydrodynamics_reset.sdf"));
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(0ns);
+
+  Link body;
+  std::vector<math::Pose3d> poses;
+  std::vector<math::Vector3d> linearVelocities;
+  test::Relay recorder;
+  recorder.OnPreUpdate(
+      [&](const UpdateInfo &,
+          EntityComponentManager &_ecm)
+      {
+        if (body.Entity() != kNullEntity && _ecm.HasEntity(body.Entity()))
+          return;
+
+        const auto modelEntity = _ecm.EntityByComponents(
+            components::Model(), components::Name("reset_body"));
+        if (kNullEntity == modelEntity)
+          return;
+
+        Model model(modelEntity);
+        const auto bodyEntity = model.LinkByName(_ecm, "body");
+        if (kNullEntity == bodyEntity)
+          return;
+
+        body = Link(bodyEntity);
+        body.EnableVelocityChecks(_ecm);
+      });
+  recorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+      {
+        if (body.Entity() == kNullEntity || !_ecm.HasEntity(body.Entity()))
+          return;
+
+        const auto bodyPose = body.WorldPose(_ecm);
+        const auto bodyVelocity = body.WorldLinearVelocity(_ecm);
+        if (!bodyPose.has_value() || !bodyVelocity.has_value())
+          return;
+
+        poses.push_back(bodyPose.value());
+        linearVelocities.push_back(bodyVelocity.value());
+      });
+  server.AddSystem(recorder.systemPtr);
+
+  server.Run(true, 50, false);
+  ASSERT_FALSE(poses.empty());
+  const auto initialPose = poses.front();
+  EXPECT_NEAR(initialPose.Pos().X(), poses.back().Pos().X(), 1e-6);
+  EXPECT_NEAR(0.0, linearVelocities.back().X(), 1e-6);
+
+  // Drive the plugin with runtime current so any stale input or derivative
+  // state becomes visible after reset.
+  msgs::Vector3d currentMsg;
+  currentMsg.set_x(1.0);
+  currentMsg.set_y(0.0);
+  currentMsg.set_z(0.0);
+  {
+    transport::Node node;
+    auto currentPub = node.Advertise<msgs::Vector3d>(
+        "/model/reset_body/ocean_current");
+    ASSERT_TRUE(gz::sim::test::WaitUntil(2s, [&currentPub]
+        {
+          return currentPub.HasConnections();
+        }));
+    EXPECT_TRUE(currentPub.Publish(currentMsg));
+    std::this_thread::sleep_for(100ms);
+
+    poses.clear();
+    linearVelocities.clear();
+    server.Run(true, 500, false);
+    ASSERT_FALSE(poses.empty());
+    ASSERT_FALSE(linearVelocities.empty());
+    EXPECT_LT(poses.back().Pos().X(), initialPose.Pos().X() - 0.05);
+    EXPECT_LT(linearVelocities.back().X(), -0.05);
+  }
+  std::this_thread::sleep_for(100ms);
+
+  server.ResetAll();
+  server.Run(true, 2, false);
+
+  poses.clear();
+  linearVelocities.clear();
+  server.Run(true, 200, false);
+  ASSERT_FALSE(poses.empty());
+  ASSERT_FALSE(linearVelocities.empty());
+
+  // Without a fresh current message, reset should return the model to a calm
+  // episode instead of continuing the pre-reset ocean current.
+  EXPECT_NEAR(poses.back().Pos().X(), initialPose.Pos().X(), 0.02);
+  EXPECT_NEAR(poses.back().Pos().Y(), initialPose.Pos().Y(), 0.02);
+  EXPECT_NEAR(linearVelocities.back().X(), 0.0, 0.02);
+  EXPECT_NEAR(linearVelocities.back().Y(), 0.0, 0.02);
+  EXPECT_NEAR(linearVelocities.back().Z(), 0.0, 0.02);
+
+  // Fresh runtime current should still influence the body after reset.
+  transport::Node node;
+  auto currentPub = node.Advertise<msgs::Vector3d>(
+      "/model/reset_body/ocean_current");
+  ASSERT_TRUE(gz::sim::test::WaitUntil(2s, [&currentPub]
+      {
+        return currentPub.HasConnections();
+      }));
+  EXPECT_TRUE(currentPub.Publish(currentMsg));
+  std::this_thread::sleep_for(100ms);
+
+  poses.clear();
+  linearVelocities.clear();
+  server.Run(true, 500, false);
+  ASSERT_FALSE(poses.empty());
+  ASSERT_FALSE(linearVelocities.empty());
+  EXPECT_LT(poses.back().Pos().X(), initialPose.Pos().X() - 0.05);
+  EXPECT_LT(linearVelocities.back().X(), -0.05);
+}
+
+/////////////////////////////////////////////////
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresLookupCurrentTable))
+{
+  using namespace std::chrono_literals;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "hydrodynamics.sdf"));
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(0ns);
+
+  Link body;
+  std::vector<math::Pose3d> poses;
+  std::vector<math::Vector3d> linearVelocities;
+  test::Relay recorder;
+  recorder.OnPreUpdate(
+      [&](const UpdateInfo &,
+          EntityComponentManager &_ecm)
+      {
+        if (body.Entity() != kNullEntity && _ecm.HasEntity(body.Entity()))
+          return;
+
+        const auto modelEntity = _ecm.EntityByComponents(
+            components::Model(), components::Name("sphere_current"));
+        if (kNullEntity == modelEntity)
+          return;
+
+        Model model(modelEntity);
+        const auto bodyEntity = model.LinkByName(_ecm, "sphere_current_link");
+        if (kNullEntity == bodyEntity)
+          return;
+
+        body = Link(bodyEntity);
+        body.EnableVelocityChecks(_ecm);
+      });
+  recorder.OnPostUpdate([&](const UpdateInfo &,
+      const EntityComponentManager &_ecm)
+      {
+        if (body.Entity() == kNullEntity || !_ecm.HasEntity(body.Entity()))
+          return;
+
+        const auto bodyPose = body.WorldPose(_ecm);
+        const auto bodyVelocity = body.WorldLinearVelocity(_ecm);
+        if (!bodyPose.has_value() || !bodyVelocity.has_value())
+          return;
+
+        poses.push_back(bodyPose.value());
+        linearVelocities.push_back(bodyVelocity.value());
+      });
+  server.AddSystem(recorder.systemPtr);
+
+  auto runAndCapture = [&](uint64_t _iterations)
+      -> std::pair<std::vector<math::Pose3d>, std::vector<math::Vector3d>>
+      {
+        poses.clear();
+        linearVelocities.clear();
+        server.Run(true, _iterations, false);
+        EXPECT_FALSE(poses.empty());
+        EXPECT_FALSE(linearVelocities.empty());
+        return {poses, linearVelocities};
+      };
+
+  server.Run(true, 2, false);
+
+  const auto preResetSamples = runAndCapture(1000);
+  const auto &preResetPoses = preResetSamples.first;
+  const auto &preResetVelocities = preResetSamples.second;
+  ASSERT_FALSE(preResetPoses.empty());
+  ASSERT_FALSE(preResetVelocities.empty());
+  const auto preResetStartPose = preResetPoses.front();
+  const auto preResetEndPose = preResetPoses.back();
+  const auto preResetEndVelocity = preResetVelocities.back();
+  const auto preResetDeltaX =
+      preResetEndPose.Pos().X() - preResetStartPose.Pos().X();
+  EXPECT_GT(preResetDeltaX, 0.05);
+  EXPECT_GT(preResetEndVelocity.X(), 0.05);
+
+  server.ResetAll();
+  server.Run(true, 2, false);
+
+  const auto postResetSamples = runAndCapture(1000);
+  const auto &postResetPoses = postResetSamples.first;
+  const auto &postResetVelocities = postResetSamples.second;
+  ASSERT_FALSE(postResetPoses.empty());
+  ASSERT_FALSE(postResetVelocities.empty());
+  const auto postResetStartPose = postResetPoses.front();
+  const auto postResetEndPose = postResetPoses.back();
+  const auto postResetEndVelocity = postResetVelocities.back();
+  const auto postResetDeltaX =
+      postResetEndPose.Pos().X() - postResetStartPose.Pos().X();
+
+  // Reset should restore the early episode baseline and also rebuild the
+  // lookup-table current path so the body sees the same steady drift again.
+  EXPECT_NEAR(postResetStartPose.Pos().X(), preResetStartPose.Pos().X(), 0.02);
+  EXPECT_NEAR(postResetStartPose.Pos().Y(), preResetStartPose.Pos().Y(), 0.02);
+  EXPECT_GT(postResetDeltaX, 0.05);
+  EXPECT_GT(postResetEndVelocity.X(), 0.05);
+  EXPECT_NEAR(postResetDeltaX, preResetDeltaX, 0.05);
+  EXPECT_NEAR(postResetEndVelocity.X(), preResetEndVelocity.X(), 0.05);
 }
