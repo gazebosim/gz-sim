@@ -173,14 +173,29 @@ void LogPlayback::Configure(const Entity &,
   {
     std::string extension = common::lowercase(this->dataPtr->logPath.substr(
         this->dataPtr->logPath.find_last_of(".") + 1));
-    if (extension != "zip")
+    if (extension == "tlog" && common::basename(this->dataPtr->logPath) ==
+                                   std::string("state.tlog"))
     {
-      gzerr << "Please specify a zip file.\n";
-      return;
+      // The user likely passed the path to the state.tlog file inside a
+      // recording, rather than the recording directory itself.
+      // Use the parent directory so playback finds state.tlog.
+      gzmsg << "Path points to a .tlog file, using parent directory ["
+             << common::parentPath(this->dataPtr->logPath) << "] instead.\n";
+      this->dataPtr->logPath = common::parentPath(this->dataPtr->logPath);
     }
-    if (!this->dataPtr->ExtractStateAndResources())
+    else if (extension == "zip")
     {
-      gzerr << "Cannot play back files.\n";
+      if (!this->dataPtr->ExtractStateAndResources())
+      {
+        gzerr << "Cannot play back files.\n";
+        return;
+      }
+    }
+    else
+    {
+      gzerr << "Unsupported file type [." << extension << "]. "
+            << "Please specify a directory containing a recorded state, "
+            << "or a zip file of one.\n";
       return;
     }
   }
