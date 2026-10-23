@@ -187,6 +187,9 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   public: std::unordered_map<
     gz::sim::Entity, gz::sensors::SensorId> sensorIdPerEntity;
 
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
+
   /// \brief IDs of sensors updated in the last rendering pass
   public: std::vector<gz::sensors::SensorId> updatedSensorIds;
 
@@ -313,11 +316,19 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
 
       sdf.SetName(sensorScopedName);
 
-      if (sdf.Topic().empty())
-      {
-        // Default to scoped name as topic
-        sdf.SetTopic(scopedName(_entity, _ecm) + "/dvl/velocity");
-      }
+      // Generate namespace
+      std::string ns = scopedNamespace(_ecm, _entity);
+      std::string defaultPrefix = scopedName(_entity, _ecm);
+
+      // check topic
+      TopicNameOptions topicNameOptions;
+      topicNameOptions.sdfElementName = "topic";
+      topicNameOptions.topicNamespace = ns;
+      topicNameOptions.defaultTopicPrefix = defaultPrefix;
+      topicNameOptions.defaultTopicSuffix = "dvl/velocity";
+      auto topic = resolvedTopicName(sdf.Element(), topicNameOptions);
+      this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
+      sdf.SetTopic(topic);
 
       auto parentName =
           _ecm.Component<components::Name>(_parent->Data());
@@ -348,6 +359,7 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
         this->perStepRequests.push_back(
             requests::DestroySensor{_entity});
         this->knownSensorEntities.erase(_entity);
+        this->resolvedTopicNames.erase(_entity);
       }
       return true;
     });
@@ -717,6 +729,13 @@ void DopplerVelocityLogSystem::PostUpdate(
 {
   GZ_PROFILE("DopplerVelocityLogSystem::PostUpdate");
   this->dataPtr->DoPostUpdate(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
+std::unordered_map<Entity, std::string>
+  DopplerVelocityLogSystem::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(DopplerVelocityLogSystem,
