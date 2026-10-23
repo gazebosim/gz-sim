@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="contact_update_rate">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-contact-system"
+      name="gz::sim::systems::Contact">
+    </plugin>
+
+    <model name="ground">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>10 10 1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <pose>0 0 -0.5 0 0 0</pose>
+    </model>
+
+    <!-- A sphere resting on the ground, watched by three contact sensors -->
+    <model name="sphere">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <sphere>
+              <radius>0.5</radius>
+            </sphere>
+          </geometry>
+        </collision>
+        <!-- No update rate: every iteration with contacts -->
+        <sensor name="every_iteration" type="contact">
+          <contact>
+            <collision>collision</collision>
+            <topic>/contacts/every_iteration</topic>
+          </contact>
+          <always_on>1</always_on>
+        </sensor>
+        <!-- 100 Hz: one message every 10 iterations -->
+        <sensor name="hundred_hz" type="contact">
+          <contact>
+            <collision>collision</collision>
+            <topic>/contacts/hundred_hz</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+        </sensor>
+        <!-- 30 Hz: the period (33.3 ms) is not a multiple of the 1 ms step -->
+        <sensor name="thirty_hz" type="contact">
+          <contact>
+            <collision>collision</collision>
+            <topic>/contacts/thirty_hz</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>
