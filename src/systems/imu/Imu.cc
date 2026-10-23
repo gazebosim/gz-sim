@@ -17,9 +17,8 @@
 
 #include "Imu.hh"
 
+#include <memory>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 
 #include <gz/plugin/Register.hh>
@@ -33,6 +32,8 @@
 
 #include "gz/sim/World.hh"
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Imu.hh"
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
@@ -48,52 +49,48 @@ using namespace gz;
 using namespace sim;
 using namespace systems;
 
+namespace gz::sim::systems::imu
+{
+/// \brief Private component that holds the gz-sensors IMU instance for an
+/// entity.
+using ImuSensor = components::Component<
+    std::shared_ptr<sensors::ImuSensor>, class ImuSensorTag>;
+GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_systems_imu.ImuSensor", ImuSensor)
+}  // namespace gz::sim::systems::imu
+
+using ImuSensor = gz::sim::systems::imu::ImuSensor;
+
 /// \brief Private Imu data class.
 class gz::sim::systems::ImuPrivate
 {
-  /// \brief A map of IMU entity to its IMU sensor.
-  public: std::unordered_map<Entity,
-      std::unique_ptr<sensors::ImuSensor>> entitySensorMap;
-
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
-
-  /// \brief Keep list of sensors that were created during the previous
-  /// `PostUpdate`, so that components can be created during the next
-  /// `PreUpdate`.
-  public: std::unordered_set<Entity> newSensors;
 
   /// \brief Keep track of world ID, which is equivalent to the scene's
   /// root visual.
   /// Defaults to zero, which is considered invalid by Gazebo.
   public: Entity worldEntity = kNullEntity;
 
-  /// True if the rendering component is initialized
-  public: bool initialized = false;
-
   /// \brief Create IMU sensors in gz-sensors
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: void CreateSensors(const EntityComponentManager &_ecm);
+  /// \param[in] _ecm Mutable reference to ECM.
+  public: void CreateSensors(EntityComponentManager &_ecm);
 
   /// \brief Update IMU sensor data based on physics data
+  /// \param[in] _info Simulation update info.
   /// \param[in] _ecm Immutable reference to ECM.
-  public: void Update(const EntityComponentManager &_ecm);
+  public: void Update(const UpdateInfo &_info,
+                      const EntityComponentManager &_ecm);
 
   /// \brief Create sensor
-  /// \param[in] _ecm Immutable reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM.
   /// \param[in] _entity Entity of the IMU
   /// \param[in] _imu IMU component.
   /// \param[in] _parent Parent entity component.
   public: void AddSensor(
-    const EntityComponentManager &_ecm,
+    EntityComponentManager &_ecm,
     const Entity _entity,
     const components::Imu *_imu,
     const components::ParentEntity *_parent);
-
-  /// \brief Remove IMU sensors if their entities have been removed from
-  /// simulation.
-  /// \param[in] _ecm Immutable reference to ECM.
-  public: void RemoveImuEntities(const EntityComponentManager &_ecm);
 };
 
 //////////////////////////////////////////////////
@@ -109,21 +106,7 @@ void Imu::PreUpdate(const UpdateInfo &/*_info*/,
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Imu::PreUpdate");
-
-  // Create components
-  for (auto entity : this->dataPtr->newSensors)
-  {
-    auto it = this->dataPtr->entitySensorMap.find(entity);
-    if (it == this->dataPtr->entitySensorMap.end())
-    {
-      gzerr << "Entity [" << entity
-             << "] isn't in sensor map, this shouldn't happen." << std::endl;
-      continue;
-    }
-    // Set topic
-    _ecm.CreateComponent(entity, components::SensorTopic(it->second->Topic()));
-  }
-  this->dataPtr->newSensors.clear();
+  this->dataPtr->CreateSensors(_ecm);
 }
 
 //////////////////////////////////////////////////
@@ -140,44 +123,16 @@ void Imu::PostUpdate(const UpdateInfo &_info,
            << "s]. System may not work properly." << std::endl;
   }
 
-  this->dataPtr->CreateSensors(_ecm);
-
   // Only update and publish if not paused.
   if (!_info.paused)
   {
-    // check to see if update is necessary
-    // we only update if there is at least one sensor that needs data
-    // and that sensor has subscribers.
-    // note: gz-sensors does its own throttling. Here the check is mainly
-    // to avoid doing work in the ImuPrivate::Update function
-    bool needsUpdate = false;
-    for (auto &it : this->dataPtr->entitySensorMap)
-    {
-      if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
-      {
-        needsUpdate = true;
-        break;
-      }
-    }
-    if (!needsUpdate)
-      return;
-
-    this->dataPtr->Update(_ecm);
-
-    for (auto &it : this->dataPtr->entitySensorMap)
-    {
-      // Update measurement time
-      it.second->Update(_info.simTime, false);
-    }
+    this->dataPtr->Update(_info, _ecm);
   }
-
-  this->dataPtr->RemoveImuEntities(_ecm);
 }
 
 //////////////////////////////////////////////////
 void ImuPrivate::AddSensor(
-  const EntityComponentManager &_ecm,
+  EntityComponentManager &_ecm,
   const Entity _entity,
   const components::Imu *_imu,
   const components::ParentEntity *_parent)
@@ -201,7 +156,7 @@ void ImuPrivate::AddSensor(
     std::string topic = scopedName(_entity, _ecm) + "/imu";
     data.SetTopic(topic);
   }
-  std::unique_ptr<sensors::ImuSensor> sensor =
+  std::shared_ptr<sensors::ImuSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::ImuSensor>(data);
   if (nullptr == sensor)
@@ -254,13 +209,12 @@ void ImuPrivate::AddSensor(
         data.ImuSensor()->OrientationEnabled());
   }
 
-  this->entitySensorMap.insert(
-      std::make_pair(_entity, std::move(sensor)));
-  this->newSensors.insert(_entity);
+  _ecm.CreateComponent(_entity, components::SensorTopic(sensor->Topic()));
+  _ecm.CreateComponent(_entity, ImuSensor(std::move(sensor)));
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
+void ImuPrivate::CreateSensors(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("ImuPrivate::CreateImuEntities");
   // Get World Entity
@@ -272,98 +226,66 @@ void ImuPrivate::CreateSensors(const EntityComponentManager &_ecm)
     return;
   }
 
-  if (!this->initialized)
-  {
-    // Create IMUs
-    _ecm.Each<components::Imu, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Imu *_imu,
-          const components::ParentEntity *_parent)->bool
-        {
-          this->AddSensor(_ecm, _entity, _imu, _parent);
-          return true;
-        });
-      this->initialized = true;
-  }
-  else
-  {
-    // Create IMUs
-    _ecm.EachNew<components::Imu, components::ParentEntity>(
-      [&](const Entity &_entity,
-          const components::Imu *_imu,
-          const components::ParentEntity *_parent)->bool
-        {
-          this->AddSensor(_ecm, _entity, _imu, _parent);
-          return true;
-      });
-  }
-}
-
-//////////////////////////////////////////////////
-void ImuPrivate::Update(const EntityComponentManager &_ecm)
-{
-  GZ_PROFILE("ImuPrivate::Update");
-  _ecm.Each<components::Imu,
-            components::WorldPose,
-            components::AngularVelocity,
-            components::LinearAcceleration>(
+  // Create IMUs for any IMU entity that does not yet have an ImuSensor
+  // component.
+  _ecm.Each<components::Imu, components::ParentEntity, Exclude<ImuSensor>>(
     [&](const Entity &_entity,
-        const components::Imu * /*_imu*/,
-        const components::WorldPose *_worldPose,
-        const components::AngularVelocity *_angularVel,
-        const components::LinearAcceleration *_linearAccel)->bool
+        components::Imu *_imu,
+        components::ParentEntity *_parent)->bool
       {
-        auto it = this->entitySensorMap.find(_entity);
-        if (it != this->entitySensorMap.end())
-        {
-          const auto &imuWorldPose = _worldPose->Data();
-          it->second->SetWorldPose(imuWorldPose);
-
-          // Update World Gravity
-          auto gravity = _ecm.Component<components::Gravity>(worldEntity);
-          if (nullptr != gravity)
-          {
-            it->second->SetGravity(gravity->Data());
-          }
-          else
-          {
-            gzerr << "World missing gravity."  <<
-              "Gravity used by imu sensor may be outdated" << std::endl;
-          }
-          // Set the IMU angular velocity (defined in imu's local frame)
-          it->second->SetAngularVelocity(_angularVel->Data());
-
-          // Set the IMU linear acceleration in the imu local frame
-          it->second->SetLinearAcceleration(_linearAccel->Data());
-         }
-        else
-        {
-          gzerr << "Failed to update IMU: " << _entity << ". "
-                 << "Entity not found." << std::endl;
-        }
-
+        this->AddSensor(_ecm, _entity, _imu, _parent);
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void ImuPrivate::RemoveImuEntities(
-    const EntityComponentManager &_ecm)
+void ImuPrivate::Update(const UpdateInfo &_info,
+                        const EntityComponentManager &_ecm)
 {
-  GZ_PROFILE("ImuPrivate::RemoveImuEntities");
-  _ecm.EachRemoved<components::Imu>(
-    [&](const Entity &_entity,
-        const components::Imu *)->bool
+  GZ_PROFILE("ImuPrivate::Update");
+  auto gravity = _ecm.Component<components::Gravity>(this->worldEntity);
+
+  // We only update if a sensor needs data and has subscribers.
+  // Note: gz-sensors does its own throttling; checking here avoids unnecessary
+  // work when the sensor is not due for an update.
+  _ecm.Each<ImuSensor,
+            components::WorldPose,
+            components::AngularVelocity,
+            components::LinearAcceleration>(
+    [&](const Entity &/*_entity*/,
+        const ImuSensor *_imuSensor,
+        const components::WorldPose *_worldPose,
+        const components::AngularVelocity *_angularVel,
+        const components::LinearAcceleration *_linearAccel)->bool
       {
-        auto sensorId = this->entitySensorMap.find(_entity);
-        if (sensorId == this->entitySensorMap.end())
+        const auto &sensor = _imuSensor->Data();
+        if (sensor->NextDataUpdateTime() > _info.simTime ||
+            !sensor->HasConnections())
         {
-          gzerr << "Internal error, missing IMU sensor for entity ["
-                 << _entity << "]" << std::endl;
           return true;
         }
 
-        this->entitySensorMap.erase(sensorId);
+        const auto &imuWorldPose = _worldPose->Data();
+        sensor->SetWorldPose(imuWorldPose);
+
+        // Update World Gravity
+        if (nullptr != gravity)
+        {
+          sensor->SetGravity(gravity->Data());
+        }
+        else
+        {
+          gzerr << "World missing gravity."
+                << "Gravity used by imu sensor may be outdated" << std::endl;
+        }
+        // Set the IMU angular velocity (defined in imu's local frame)
+        sensor->SetAngularVelocity(_angularVel->Data());
+
+        // Set the IMU linear acceleration in the imu local frame
+        sensor->SetLinearAcceleration(_linearAccel->Data());
+
+        // Update measurement time
+        sensor->Update(_info.simTime, false);
 
         return true;
       });

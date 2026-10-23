@@ -98,6 +98,14 @@ struct Custom
 using CustomComponent = Component<Custom, class CustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomComponent",
     CustomComponent)
+
+using PrivateIntComponent = Component<int, class PrivateIntComponentTag>;
+GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_components.PrivateIntComponent",
+    PrivateIntComponent)
+
+using PrivateTagComponent = Component<NoData, class PrivateTagComponentTag>;
+GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_components.PrivateTagComponent",
+    PrivateTagComponent)
 }
 }
 }
@@ -3989,6 +3997,252 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedRejectsInternalTypes)
         return true;
       }));
   EXPECT_EQ(1, calls);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, PrivateComponent)
+{
+  EXPECT_FALSE(components::Factory::Instance()->HasType(
+      PrivateIntComponent::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasType(
+      PrivateTagComponent::typeId));
+
+  Entity e1 = manager.CreateEntity();
+  Entity e2 = manager.CreateEntity();
+  EXPECT_TRUE(manager.SetParentEntity(e2, e1));
+
+  // Create private components on e1 and e2
+  auto *priv1 = manager.CreateComponent(e1, PrivateIntComponent(10));
+  ASSERT_NE(nullptr, priv1);
+  EXPECT_EQ(10, priv1->Data());
+
+  auto *tag1 = manager.CreateComponent(e1, PrivateTagComponent());
+  ASSERT_NE(nullptr, tag1);
+
+  auto *priv2 = manager.ComponentDefault<PrivateIntComponent>(e2, 20);
+  ASSERT_NE(nullptr, priv2);
+  EXPECT_EQ(20, priv2->Data());
+
+  // EachNew
+  EXPECT_EQ(2, newCount<PrivateIntComponent>(manager));
+  EXPECT_EQ(1, newCount<PrivateTagComponent>(manager));
+  EXPECT_EQ(1,
+      (newCount<PrivateIntComponent, PrivateTagComponent>(manager)));
+
+  manager.RunClearNewlyCreatedEntities();
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+
+  // Creating or modifying a private component must not trigger state changes
+  EXPECT_TRUE(manager.SetComponentData<PrivateIntComponent>(e1, 15));
+  EXPECT_FALSE(manager.SetComponentData<PrivateIntComponent>(e1, 15));
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+  EXPECT_FALSE(manager.HasPeriodicComponentChanges());
+  EXPECT_EQ(0, manager.ChangedState().entities_size());
+
+  // Lookup and data accessors
+  EXPECT_TRUE(manager.HasComponentType(PrivateIntComponent::typeId));
+  EXPECT_TRUE(manager.HasComponentType(PrivateTagComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(e1, PrivateIntComponent::typeId));
+  EXPECT_TRUE(manager.EntityHasComponentType(e1, PrivateTagComponent::typeId));
+  EXPECT_FALSE(manager.EntityHasComponentType(e2, PrivateTagComponent::typeId));
+  EXPECT_TRUE(manager.EntityMatches(
+      e1, {PrivateIntComponent::typeId, PrivateTagComponent::typeId}));
+  EXPECT_EQ(15, manager.ComponentData<PrivateIntComponent>(e1));
+  EXPECT_EQ(15, manager.Component<PrivateIntComponent>(e1)->Data());
+
+  // Private component must not appear in ComponentTypes() or State()
+  EXPECT_EQ(0u, manager.ComponentTypes(e1).count(PrivateIntComponent::typeId));
+  EXPECT_EQ(0u, manager.ComponentTypes(e1).count(PrivateTagComponent::typeId));
+  auto stateMsg = manager.State();
+  for (int i = 0; i < stateMsg.entities_size(); ++i)
+  {
+    for (int c = 0; c < stateMsg.entities(i).components_size(); ++c)
+    {
+      EXPECT_NE(PrivateIntComponent::typeId,
+          stateMsg.entities(i).components(c).type());
+      EXPECT_NE(PrivateTagComponent::typeId,
+          stateMsg.entities(i).components(c).type());
+    }
+  }
+
+  // Runtime Each rejects private component type IDs
+  // TODO(luca) consider allowing private components in runtime queries
+  const EntityComponentManager &constManager = manager;
+  int runtimeCalls = 0;
+  EXPECT_FALSE(constManager.Each({PrivateIntComponent::typeId},
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++runtimeCalls;
+        return true;
+      }));
+  EXPECT_EQ(0, runtimeCalls);
+
+  // Add a public component to test multi-component queries and groups
+  manager.CreateComponent(e1, IntComponent(100));
+  manager.CreateComponent(e2, IntComponent(200));
+
+  // EntityByComponents, EntitiesByComponents, ChildrenByComponents
+  EXPECT_EQ(e1, manager.EntityByComponents(PrivateIntComponent(15)));
+  EXPECT_EQ(e1, manager.EntityByComponents(PrivateTagComponent()));
+  EXPECT_EQ(e2, manager.EntityByComponents(
+      IntComponent(200), PrivateIntComponent(20)));
+  EXPECT_EQ(std::vector<Entity>{e2},
+      manager.EntitiesByComponents(IntComponent(200), PrivateIntComponent(20)));
+  EXPECT_EQ(std::vector<Entity>{e2},
+      manager.ChildrenByComponents(e1, PrivateIntComponent(20)));
+
+  // Const Each (1 and 2 components), before and after CreatePendingGroups()
+  for (int pass = 0; pass < 2; ++pass)
+  {
+    int sum = 0;
+    constManager.Each<IntComponent, PrivateIntComponent>(
+        [&](const Entity &, const IntComponent *_pub,
+            const PrivateIntComponent *_priv)
+        {
+          sum += _pub->Data() + _priv->Data();
+          return true;
+        });
+    EXPECT_EQ(335, sum);
+    manager.CreatePendingGroups();
+  }
+
+  // Mutable Each
+  manager.Each<PrivateIntComponent>(
+      [&](const Entity &, PrivateIntComponent *_priv)
+      {
+        _priv->Data() += 1;
+        return true;
+      });
+  EXPECT_EQ(16, manager.Component<PrivateIntComponent>(e1)->Data());
+  EXPECT_EQ(21, manager.Component<PrivateIntComponent>(e2)->Data());
+
+  // Clone must not clone private components (clones both e1 and its child e2)
+  Entity cloned = manager.Clone(e1, kNullEntity, "e1_clone", true);
+  ASSERT_NE(kNullEntity, cloned);
+  auto clonedChildren = manager.ChildrenByComponents(cloned, IntComponent(200));
+  ASSERT_EQ(1u, clonedChildren.size());
+  Entity clonedChild = clonedChildren.front();
+  EXPECT_NE(nullptr, manager.Component<IntComponent>(cloned));
+  EXPECT_EQ(nullptr, manager.Component<PrivateIntComponent>(cloned));
+  EXPECT_EQ(nullptr, manager.Component<PrivateTagComponent>(cloned));
+  EXPECT_NE(nullptr, manager.Component<IntComponent>(clonedChild));
+  EXPECT_EQ(nullptr, manager.Component<PrivateIntComponent>(clonedChild));
+
+  // CopyFrom must not copy private components
+  EntityCompMgrTest copyMgr;
+  copyMgr.CopyFrom(manager);
+  EXPECT_NE(nullptr, copyMgr.Component<IntComponent>(e1));
+  EXPECT_EQ(nullptr, copyMgr.Component<PrivateIntComponent>(e1));
+  EXPECT_EQ(nullptr, copyMgr.Component<PrivateTagComponent>(e1));
+
+  // RemoveComponent on private component must not mark RemovedComponents
+  manager.RunClearRemovedComponents();
+  manager.RunSetAllComponentsUnchanged();
+  EXPECT_TRUE(manager.RemoveComponent<PrivateTagComponent>(e1));
+  EXPECT_EQ(nullptr, manager.Component<PrivateTagComponent>(e1));
+  EXPECT_FALSE(manager.HasComponentType(PrivateTagComponent::typeId));
+  EXPECT_FALSE(manager.HasRemovedComponents());
+  EXPECT_FALSE(manager.HasOneTimeComponentChanges());
+
+  // Entity removal cleans up remaining private components
+  manager.RequestRemoveEntities();
+  EXPECT_EQ(2, removedCount<PrivateIntComponent>(manager));
+  manager.ProcessEntityRemovals();
+  EXPECT_FALSE(manager.HasComponentType(PrivateIntComponent::typeId));
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(Exclude))
+{
+  EntityCompMgrTest manager;
+  const EntityComponentManager &constManager = manager;
+
+  Entity e1 = manager.CreateEntity();
+  Entity e2 = manager.CreateEntity();
+  Entity e3 = manager.CreateEntity();
+
+  manager.CreateComponent(e1, IntComponent(10));
+  manager.CreateComponent(e2, IntComponent(20));
+  manager.CreateComponent(e2, DoubleComponent(2.5));
+  manager.CreateComponent(e3, IntComponent(30));
+  manager.CreateComponent(e3, StringComponent("excluded"));
+
+  // EachNew (const and mutable) with Exclude
+  {
+    std::set<Entity> newWithoutDouble;
+    constManager.EachNew<IntComponent, Exclude<DoubleComponent>>(
+        [&](const Entity &_e, const IntComponent *)
+        {
+          newWithoutDouble.insert(_e);
+          return true;
+        });
+    EXPECT_EQ((std::set<Entity>{e1, e3}), newWithoutDouble);
+
+    std::set<Entity> newWithoutDoubleOrString;
+    manager.EachNew<IntComponent, Exclude<DoubleComponent, StringComponent>>(
+        [&](const Entity &_e, IntComponent *)
+        {
+          newWithoutDoubleOrString.insert(_e);
+          return true;
+        });
+    EXPECT_EQ((std::set<Entity>{e1}), newWithoutDoubleOrString);
+  }
+
+  manager.ClearNewlyCreatedEntities();
+
+  // Const Each with Exclude, before and after CreatePendingGroups()
+  for (int pass = 0; pass < 2; ++pass)
+  {
+    std::set<Entity> withoutDouble;
+    constManager.Each<IntComponent, Exclude<DoubleComponent>>(
+        [&](const Entity &_e, const IntComponent *)
+        {
+          withoutDouble.insert(_e);
+          return true;
+        });
+    EXPECT_EQ((std::set<Entity>{e1, e3}), withoutDouble);
+    manager.CreatePendingGroups();
+  }
+
+  // Mutable Each with Exclude: attach DoubleComponent to entities missing it
+  int initializedCount = 0;
+  manager.Each<IntComponent, Exclude<DoubleComponent>>(
+      [&](const Entity &_e, IntComponent *_intComp)
+      {
+        manager.CreateComponent(
+            _e, DoubleComponent(static_cast<double>(_intComp->Data())));
+        ++initializedCount;
+        return true;
+      });
+  EXPECT_EQ(2, initializedCount);
+  ASSERT_NE(nullptr, manager.Component<DoubleComponent>(e1));
+  EXPECT_DOUBLE_EQ(10.0, manager.Component<DoubleComponent>(e1)->Data());
+  ASSERT_NE(nullptr, manager.Component<DoubleComponent>(e3));
+  EXPECT_DOUBLE_EQ(30.0, manager.Component<DoubleComponent>(e3)->Data());
+
+  // Now all IntComponent entities have DoubleComponent, so Exclude matches 0
+  int remainingMissing = 0;
+  manager.Each<IntComponent, Exclude<DoubleComponent>>(
+      [&](const Entity &, IntComponent *)
+      {
+        ++remainingMissing;
+        return true;
+      });
+  EXPECT_EQ(0, remainingMissing);
+
+  // EachRemoved with Exclude
+  manager.RequestRemoveEntity(e1);
+  manager.RequestRemoveEntity(e3);
+  std::set<Entity> removedWithoutString;
+  constManager.EachRemoved<IntComponent, Exclude<StringComponent>>(
+      [&](const Entity &_e, const IntComponent *)
+      {
+        removedWithoutString.insert(_e);
+        return true;
+      });
+  EXPECT_EQ((std::set<Entity>{e1}), removedWithoutString);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

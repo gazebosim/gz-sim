@@ -91,6 +91,9 @@ GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomMsg", CustomMsg)
 using DeclareOnly = components::Component<int, class DeclareOnlyTag>;
 GZ_SIM_DECLARE_COMPONENT("gz_sim_components.DeclareOnly", DeclareOnly)
 
+using PrivateComp = components::Component<int, class PrivateCompTag>;
+GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_components.PrivateComp", PrivateComp)
+
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
 {
@@ -113,6 +116,17 @@ TEST_F(ComponentTest, DeclareOnlyMacro)
 
   // GZ_SIM_DECLARE_COMPONENT alone must not register with the Factory.
   EXPECT_FALSE(components::Factory::Instance()->HasType(DeclareOnly::typeId));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentTest, RegisterPrivateComponentMacro)
+{
+  EXPECT_EQ(common::hash64("gz_sim_components.PrivateComp"),
+      PrivateComp::typeId);
+  EXPECT_EQ(PrivateComp::typeId, entt::type_hash<PrivateComp>::value());
+  ASSERT_NE(nullptr, PrivateComp::typeName);
+  EXPECT_STREQ("gz_sim_components.PrivateComp", PrivateComp::typeName);
+  EXPECT_FALSE(components::Factory::Instance()->HasType(PrivateComp::typeId));
 }
 
 /////////////////////////////////////////////////

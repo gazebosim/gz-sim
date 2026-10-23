@@ -562,4 +562,25 @@ GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname)
 GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname) \
 GZ_SIM_COMPONENT_REGISTRATION(_compType, _classname)
 
+/// \brief Private component registration macro.
+///
+/// Use this macro to register a component that is private to a system or
+/// translation unit.
+///
+/// \details Unlike GZ_SIM_REGISTER_COMPONENT, a private component is only
+/// registered for compile-time lookup (via ADL helpers) and is not registered
+/// with the global components::Factory singleton. As a result:
+/// - It can be used with all compile-time templated EntityComponentManager
+///   APIs (CreateComponent, Component, ComponentDefault, ComponentData,
+///   SetComponentData, RemoveComponent, Each, EachNew, EachRemoved,
+///   EntityByComponents, EntitiesByComponents, ChildrenByComponents).
+/// - It is not cloned by EntityComponentManager::Clone, not copied by
+///   CopyFrom / ResetTo, not serialized in State / ChangedState messages,
+///   and not returned by ComponentTypes or runtime-typed Each queries.
+/// - It is automatically destroyed when its entity is removed.
+/// \param[in] _compType Component type name.
+/// \param[in] _classname Class name for component.
+#define GZ_SIM_REGISTER_PRIVATE_COMPONENT(_compType, _classname) \
+GZ_SIM_COMPONENT_ADL_HELPERS(_compType, _classname)
+
 #endif

@@ -737,6 +737,9 @@ bool EntityComponentManager::RemoveComponent(
 
   storage->remove(_entity);
 
+  if (!components::Factory::Instance()->HasType(_typeId))
+    return true;
+
   auto* oneTimeChangeComp =
     this->Registry().try_get<OneTimeChangedComponents>(_entity);
   if (oneTimeChangeComp)
@@ -931,7 +934,8 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 components::BaseComponent *
 EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
-    const components::BaseComponent *_data)
+    const components::BaseComponent *_data,
+    entt::basic_sparse_set<Entity> *_storage)
 {
   // make sure the entity exists
   if (!this->HasEntity(_entity))
@@ -942,7 +946,8 @@ EntityComponentManager::CreateComponentImplementation(
     return nullptr;
   }
 
-  auto* storage = this->Registry().storage(_componentTypeId);
+  auto* storage = _storage ? _storage :
+      this->Registry().storage(_componentTypeId);
 
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid
@@ -1765,6 +1770,9 @@ void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
     sim::ComponentState _c)
 {
+  if (!components::Factory::Instance()->HasType(_type))
+    return;
+
   // make sure the entity has a component of type _type
   const auto* storage = this->Registry().storage(_type);
   if (storage == nullptr || !storage->contains(_entity))
