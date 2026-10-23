@@ -228,6 +228,12 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
       header->set_key("optimization");
       header->add_value(meshSdf->OptimizationStr());
     }
+    if (!meshSdf->AssertConvexStr().empty())
+    {
+      auto header = out.mutable_header()->add_data();
+      header->set_key("assert_convex");
+      header->add_value(meshSdf->AssertConvexStr());
+    }
     if (meshSdf->ConvexDecomposition())
     {
       auto header = out.mutable_header()->add_data();
@@ -389,6 +395,10 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
       if (data.key() == "optimization" && data.value_size() > 0)
       {
         meshShape.SetOptimization(data.value(0));
+      }
+      if (data.key() == "assert_convex" && data.value_size() > 0)
+      {
+        meshShape.SetAssertConvex(data.value(0));
       }
       if (data.key() == "max_convex_hulls" && data.value_size() > 0)
       {

@@ -21,6 +21,7 @@
 
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
+#include <gz/common/SubMesh.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Types.hh>
@@ -1218,6 +1219,87 @@ TEST_F(UtilTest, LoadMesh)
   auto *optimizedMesh = loadMesh(meshSdf);
   EXPECT_NE(nullptr, optimizedMesh);
   EXPECT_EQ(16u, optimizedMesh->SubMeshCount());
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, LoadMeshAssertConvex)
+{
+  math::Vector3d center, min, max, hullCenter, hullMin, hullMax;
+
+  // A convex mesh asserted to be convex is loaded as its convex hull, with
+  // all the assertion modes
+  sdf::Mesh boxSdf;
+  boxSdf.SetUri("name://unit_box");
+  const common::Mesh *box = loadMesh(boxSdf);
+  ASSERT_NE(nullptr, box);
+  box->AABB(center, min, max);
+
+  const common::Mesh *boxHull = nullptr;
+  for (const auto assertion : {sdf::ConvexAssertion::NOCHECK,
+      sdf::ConvexAssertion::WARN, sdf::ConvexAssertion::FAIL})
+  {
+    boxSdf.SetAssertConvex(assertion);
+    const common::Mesh *hull = loadMesh(boxSdf);
+    ASSERT_NE(nullptr, hull);
+    EXPECT_NE(box, hull);
+    ASSERT_EQ(1u, hull->SubMeshCount());
+    EXPECT_EQ(8u, hull->SubMeshByIndex(0u).lock()->VertexCount());
+    hull->AABB(hullCenter, hullMin, hullMax);
+    EXPECT_EQ(min, hullMin);
+    EXPECT_EQ(max, hullMax);
+    // The convex hull is cached
+    if (boxHull)
+    {
+      EXPECT_EQ(boxHull, hull);
+    }
+    boxHull = hull;
+  }
+
+  // Same with the convex hull optimization
+  boxSdf.SetOptimization(sdf::MeshOptimization::CONVEX_HULL);
+  EXPECT_EQ(boxHull, loadMesh(boxSdf));
+
+  // A non convex mesh
+  sdf::Mesh duckSdf;
+  duckSdf.SetUri("duck.dae");
+  duckSdf.SetFilePath(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "media", "duck.dae"));
+  const common::Mesh *duck = loadMesh(duckSdf);
+  ASSERT_NE(nullptr, duck);
+  duck->AABB(center, min, max);
+
+  // nocheck: the convex hull is used
+  duckSdf.SetAssertConvex(sdf::ConvexAssertion::NOCHECK);
+  const common::Mesh *duckHull = loadMesh(duckSdf);
+  ASSERT_NE(nullptr, duckHull);
+  EXPECT_NE(duck, duckHull);
+  ASSERT_EQ(1u, duckHull->SubMeshCount());
+  EXPECT_GT(duck->SubMeshByIndex(0u).lock()->VertexCount(),
+      duckHull->SubMeshByIndex(0u).lock()->VertexCount());
+  duckHull->AABB(hullCenter, hullMin, hullMax);
+  EXPECT_EQ(min, hullMin);
+  EXPECT_EQ(max, hullMax);
+
+  // warn: the convex hull is used, with a warning
+  duckSdf.SetAssertConvex(sdf::ConvexAssertion::WARN);
+  EXPECT_EQ(duckHull, loadMesh(duckSdf));
+
+  // error: the mesh is not loaded
+  duckSdf.SetAssertConvex(sdf::ConvexAssertion::FAIL);
+  EXPECT_EQ(nullptr, loadMesh(duckSdf));
+  EXPECT_EQ(nullptr, optimizeMesh(duckSdf, *duck));
+
+  // The assertion is ignored with convex decomposition
+  EXPECT_TRUE(duckSdf.SetOptimization("convex_decomposition"));
+  sdf::ConvexDecomposition convexDecomp;
+  convexDecomp.SetMaxConvexHulls(4u);
+  convexDecomp.SetVoxelResolution(50000u);
+  duckSdf.SetConvexDecomposition(convexDecomp);
+  const common::Mesh *duckDecomposed = loadMesh(duckSdf);
+  ASSERT_NE(nullptr, duckDecomposed);
+  EXPECT_NE(duckHull, duckDecomposed);
+  EXPECT_LT(1u, duckDecomposed->SubMeshCount());
+  EXPECT_GE(4u, duckDecomposed->SubMeshCount());
 }
 
 /////////////////////////////////////////////////
