@@ -66,6 +66,9 @@ namespace ignition
     inline namespace IGNITION_GAZEBO_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+#ifdef _WIN32
+    class SimulationRunnerWinHandleStorage;
+#endif
 
     class IGNITION_GAZEBO_VISIBLE SimulationRunner
     {
@@ -524,6 +527,29 @@ namespace ignition
       /// \brief Set if we need to remove systems due to entity removal
       private: bool threadsNeedCleanUp{false};
 
+<<<<<<< HEAD
+=======
+      /// \brief During a forced pause, the user may request that simulation
+      /// should run. This flag will capture that request, and then be used
+      /// when the forced pause ends.
+      private: bool requestedPause{true};
+
+      private: bool resetInitiated{false};
+
+      /// \brief True to create entities.
+      private: bool createEntities{false};
+      private: bool entitiesCreated{false};
+
+      /// \brief Flag indicating if the server encountered errors during
+      /// initialization and should exit immediately. See
+      /// `SetExitedWithErrors()`.
+      private: bool exitedWithErrors{false};
+#ifdef _WIN32
+      private: std::unique_ptr<SimulationRunnerWinHandleStorage>
+        winPrecisionTimer;
+#endif
+
+>>>>>>> 503bc6b0 (Use high resolution timer on Windows (#3478))
       friend class LevelManager;
     };
     }
