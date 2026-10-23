@@ -1409,6 +1409,7 @@ gz_sim_system_libraries(
             "src/systems/odometry_publisher/**/*.cc",
             "src/systems/odometry_publisher/**/*.hh",
         ],
+        exclude = ["src/systems/odometry_publisher/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-odometry-publisher-system.so",
     static_lib_name = "gz-sim-odometry-publisher-system-static",
@@ -1422,6 +1423,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+odometry_publisher_test_sources = glob([
+    "src/systems/odometry_publisher/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-odometry-publisher-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in odometry_publisher_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
