@@ -70,6 +70,8 @@ std::string findFuelResource(const std::string &_pathToResource);
 /// it receives a world path from GUI.
 /// null to record the default topics.
 /// \param[in] _headless True if server rendering should run headless
+/// \param[in] _renderDevice --render-device value, used to select the
+/// headless rendering device, e.g. /dev/dri/card1. Empty for default.
 /// \param[in] _recordPeriod --record-period option
 /// \param[in] _seed --seed value to be used for random number generator.
 /// \param[in] _waitForAssets True to wait for assets to download before
@@ -88,7 +90,8 @@ int createServerConfig(gz::sim::ServerConfig &_config, const char *_sdfString,
                         const char *_renderEngineGuiApiBackend,
                         const char *_file,
                         std::vector<std::string> _recordTopics, int _waitGui,
-                        int _headless, float _recordPeriod, int _seed,
+                        int _headless, const char *_renderDevice,
+                        float _recordPeriod, int _seed,
                         int _waitForAssets);
 
 #ifdef WITH_GUI

@@ -21,6 +21,30 @@ server to use headless rendering through the
 `ServerConfig::SetHeadlessRendering(bool)` function. Make sure your SDF
 world uses OGRE2.
 
+## Selecting the headless rendering device
+
+On hosts with multiple GPUs (or in containers where the default EGL device
+is not the one you want), you can select which rendering device is used for
+headless rendering with the `--render-device` command line option. Pass a
+DRM device node, e.g.:
+
+```
+DISPLAY= gz sim -v 4 -s -r --headless-rendering --render-device /dev/dri/card1 sensors_demo.sdf
+```
+
+The value is forwarded to the render engine as the `headless_device`
+parameter. Selecting a device also requires render-engine support: the
+Ogre2 engine in gz-rendering reads `headless_device` and maps it onto
+OGRE's `Device` render-system option (the `eglQueryDevicesEXT`
+enumeration), so a gz-rendering release with that support is needed for
+the selection to take effect. With an older gz-rendering, the parameter
+is accepted but ignored and the default device is used. If the option is
+not given, the render engine selects its default device, which preserves
+the previous behavior. As a library user,
+the same can be set through `ServerConfig::SetRenderDevice()`, or per
+world through the `<render_device>` element of the Sensors system plugin
+in SDF.
+
 ## AWS Example
 
 This example will guide you through the process of launching and configuring
