@@ -931,6 +931,18 @@ class gz::sim::systems::PhysicsPrivate
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
 
+  /// \brief Names written into contact messages, by collision entity, so
+  /// they aren't rebuilt from the entity tree on every step. Entries are
+  /// removed with their collision and cleared on reset.
+  public: std::unordered_map<Entity, std::string> contactCollisionNames;
+
+  /// \brief Name of a collision entity as written into contact messages.
+  /// \param[in] _collision Collision entity.
+  /// \param[in] _ecm Entity component manager.
+  /// \return The collision's scoped name without its top-level scope.
+  public: const std::string &ContactCollisionName(const Entity _collision,
+      const EntityComponentManager &_ecm);
+
   /// \brief Cached physics output, to reduce allocations / deallocations
   std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
 };
@@ -2269,6 +2281,15 @@ void PhysicsPrivate::RemovePhysicsEntities(const EntityComponentManager &_ecm)
         return true;
       });
 
+  // Forget the contact names of removed collisions, so a reused entity id
+  // doesn't get a stale name.
+  _ecm.EachRemoved<components::Collision>(
+      [&](const Entity &_entity, const components::Collision *) -> bool
+      {
+        this->contactCollisionNames.erase(_entity);
+        return true;
+      });
+
   // Assume the world will not be erased
   // Only removing models is supported by gz-physics right now so we only
   // remove links, joints and collisions if they are children of the removed
@@ -3457,6 +3478,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->categoryBitmaskCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
   this->collisionEnabledCmdsToRemove.clear();
+  this->contactCollisionNames.clear();
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -4573,6 +4595,19 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
 // TODO (azeey) Reduce size of function and remove the NOLINT above
 
 //////////////////////////////////////////////////
+const std::string &PhysicsPrivate::ContactCollisionName(
+    const Entity _collision, const EntityComponentManager &_ecm)
+{
+  auto it = this->contactCollisionNames.find(_collision);
+  if (it == this->contactCollisionNames.end())
+  {
+    it = this->contactCollisionNames.emplace(_collision,
+        removeParentScope(scopedName(_collision, _ecm, "::", 0), "::")).first;
+  }
+  return it->second;
+}
+
+//////////////////////////////////////////////////
 void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PhysicsPrivate::UpdateCollisions");
@@ -4703,9 +4738,9 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           if (this->contactsEntityNames)
           {
             contactMsg->mutable_collision1()->set_name(
-              removeParentScope(scopedName(_collEntity1, _ecm, "::", 0), "::"));
+              this->ContactCollisionName(_collEntity1, _ecm));
             contactMsg->mutable_collision2()->set_name(
-              removeParentScope(scopedName(collEntity2, _ecm, "::", 0), "::"));
+              this->ContactCollisionName(collEntity2, _ecm));
           }
           for (const auto &contact : contactData)
           {
