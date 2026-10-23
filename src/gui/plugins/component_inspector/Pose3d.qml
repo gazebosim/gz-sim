@@ -97,7 +97,7 @@ Rectangle {
         x: margin + indentation
         readOnly: {
           var isModel = entityType == "model"
-          return !(isModel) || nestedModel
+          return !(isModel) || nestedModel || modelContainsPlane
         }
 
         xValue: model.data[0]
