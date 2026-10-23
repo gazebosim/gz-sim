@@ -130,6 +130,9 @@ class gz::sim::systems::ContactPrivate
   /// \brief A map of Contact entity to its Contact sensor.
   public: std::unordered_map<Entity,
       std::unique_ptr<ContactSensor>> entitySensorMap;
+
+  /// \brief Resolved topic names
+  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
 };
 
 //////////////////////////////////////////////////
@@ -137,20 +140,7 @@ void ContactSensor::Load(const sdf::ElementPtr &_sdf, const std::string &_topic,
                          const std::vector<Entity> &_collisionEntities)
 {
   this->collisionEntities = _collisionEntities;
-
-  auto contactElem = _sdf->GetElement("contact");
-  auto tmpTopic =
-      contactElem->Get<std::string>("topic", "__default_topic__").first;
-
-  if (tmpTopic == "__default_topic__")
-  {
-    // use default topic for sensor
-    this->topic = _topic;
-  }
-  else
-  {
-    this->topic = tmpTopic;
-  }
+  this->topic = _topic;
 
   const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
   if (updateRate < 0.0)
@@ -286,10 +276,27 @@ void ContactPrivate::CreateSensors(EntityComponentManager &_ecm,
         }
       }
 
-      std::string defaultTopic = scopedName(_entity, _ecm, "/") + "/contact";
+      // generate namespace
+      std::string ns = scopedNamespace(_ecm, _entity);
+      std::string defaultPrefix = scopedName(_entity, _ecm, "/");
+
+      // check topic
+      TopicNameOptions topicNameOptions;
+      topicNameOptions.sdfElementName = "topic";
+      topicNameOptions.topicNamespace = ns;
+      topicNameOptions.defaultTopicPrefix = defaultPrefix;
+      topicNameOptions.defaultTopicSuffix = "contact";
+
+      auto contactElem = _contact->Data()->GetElement("contact");
+      auto customTopic =
+          contactElem->Get<std::string>("topic", "__default_topic__").first;
+      auto topicElem = (customTopic == "__default_topic__") ?
+          std::make_shared<sdf::Element>() : contactElem;
+      auto topic = resolvedTopicName(topicElem, topicNameOptions);
+      this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
 
       auto sensor = std::make_unique<ContactSensor>();
-      sensor->Load(_contact->Data(), defaultTopic, collisionEntities);
+      sensor->Load(_contact->Data(), topic, collisionEntities);
       this->entitySensorMap.insert(
           std::make_pair(_entity, std::move(sensor)));
 
@@ -346,6 +353,16 @@ void ContactPrivate::RemoveSensors(
 
         this->entitySensorMap.erase(sensorId);
 
+        auto topicId = this->resolvedTopicNames.find(_entity);
+        if (topicId == this->resolvedTopicNames.end())
+        {
+          gzerr << "Internal error, missing resolved contact sensor topic"
+                << " name for entity [" << _entity << "]" << std::endl;
+          return true;
+        }
+
+        this->resolvedTopicNames.erase(topicId);
+
         return true;
       });
 }
@@ -353,6 +370,9 @@ void ContactPrivate::RemoveSensors(
 Contact::Contact() : System(), dataPtr(std::make_unique<ContactPrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+Contact::~Contact() = default;
 
 //////////////////////////////////////////////////
 void Contact::PreUpdate(const UpdateInfo &, EntityComponentManager &_ecm)
@@ -393,9 +413,16 @@ void Contact::PostUpdate(const UpdateInfo &_info,
 void Contact::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
 {
   this->dataPtr->entitySensorMap.clear();
+  this->dataPtr->resolvedTopicNames.clear();
   // After reset, existing sensor entities are not reported as new entities.
   // Re-scan them so contact sensors keep publishing in the next episode.
   this->dataPtr->CreateSensors(_ecm, true);
+}
+
+//////////////////////////////////////////////////
+std::unordered_map<Entity, std::string> Contact::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(Contact, System,
