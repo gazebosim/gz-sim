@@ -1849,6 +1849,7 @@ gz_sim_system_libraries(
             "src/systems/trajectory_follower/**/*.cc",
             "src/systems/trajectory_follower/**/*.hh",
         ],
+        exclude = ["src/systems/trajectory_follower/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-trajectory-follower-system.so",
     static_lib_name = "gz-sim-trajectory-follower-system-static",
@@ -1863,6 +1864,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+trajectory_follower_test_sources = glob([
+    "src/systems/trajectory_follower/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-trajectory-follower-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in trajectory-follower_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
