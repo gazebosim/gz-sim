@@ -1134,10 +1134,19 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
         this->dataPtr->Step(_info.dt);
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
+  }
+}
 
-    // Entities scheduled to be removed should be removed from physics after the
-    // simulation step. Otherwise, since the to-be-removed entity still shows up
-    // in the ECM::Each the UpdatePhysics and UpdateSim calls will have an error
+//////////////////////////////////////////////////
+void Physics::PostUpdate(const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+{
+  if (this->dataPtr->engine)
+  {
+    // Observe removals after every Update system, while the ECM still owns the
+    // removed entities and their descendants. Physics exclusively owns its
+    // backend and bridge maps; other PostUpdate systems read ECM results. The
+    // runner's phase barriers prevent overlap with Update or ECM destruction.
     this->dataPtr->RemovePhysicsEntities(_ecm);
   }
 }
@@ -5118,6 +5127,7 @@ GZ_ADD_PLUGIN(Physics,
                     System,
                     Physics::ISystemConfigure,
                     Physics::ISystemReset,
-                    Physics::ISystemUpdate)
+                    Physics::ISystemUpdate,
+                    Physics::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(Physics, "gz::sim::systems::Physics")
