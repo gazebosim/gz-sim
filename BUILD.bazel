@@ -1044,6 +1044,7 @@ gz_sim_system_libraries(
             "src/systems/kinetic_energy_monitor/**/*.cc",
             "src/systems/kinetic_energy_monitor/**/*.hh",
         ],
+        exclude = ["src/systems/kinetic_energy_monitor/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-kinetic-energy-monitor-system.so",
     static_lib_name = "gz-sim-kinetic-energy-monitor-system-static",
@@ -1057,6 +1058,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+kinetic_energy_monitor_test_sources = glob([
+    "src/systems/kinetic_energy_monitor/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-kinetic-energy-monitor-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in kinetic_energy_monitor_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
