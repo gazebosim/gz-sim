@@ -25,6 +25,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Link.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
 #include <gz/transport/Node.hh>
 
 #include <atomic>
@@ -77,6 +78,9 @@ class gz::sim::systems::FreeSpaceExplorer::Implementation {
 
   /// \brief Sensor link
   public: std::string sensorLink;
+
+  /// \brief Resolved topic names
+  public: FreeSpaceExplorer::TopicNames resolvedTopicNames;
 
   /// \brief The starting position of the occupancy grid.
   public: math::Pose3d position;
@@ -305,19 +309,19 @@ FreeSpaceExplorer::~FreeSpaceExplorer()
 }
 
 /////////////////////////////////////////////////
+FreeSpaceExplorer::TopicNames FreeSpaceExplorer::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+/////////////////////////////////////////////////
 void FreeSpaceExplorer::Configure(
   const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
-  gz::sim::EntityComponentManager &/*_ecm*/,
+  gz::sim::EntityComponentManager &_ecm,
   gz::sim::EventManager &/*_eventMgr*/)
 {
   this->dataPtr->model = gz::sim::Model(_entity);
-  auto scanTopic =
-    _sdf->Get<std::string>("lidar_topic", "scan").first;
-  auto imageTopic =
-    _sdf->Get<std::string>("image_topic", "scan_image").first;
-  auto startTopic =
-    _sdf->Get<std::string>("start_topic", "start").first;
   this->dataPtr->sensorLink =
     _sdf->Get<std::string>("sensor_link", "link").first;
   this->dataPtr->numRows =
@@ -326,14 +330,69 @@ void FreeSpaceExplorer::Configure(
     _sdf->Get<unsigned int>("height", 10).first;
   this->dataPtr->resolution =
     _sdf->Get<double>("resolution", 1.0).first;
-  this->dataPtr->node.Subscribe(scanTopic,
-    &FreeSpaceExplorer::Implementation::OnLaserScanMsg, this->dataPtr.get());
-  this->dataPtr->node.Subscribe(startTopic,
-    &FreeSpaceExplorer::Implementation::OnStartMsg, this->dataPtr.get());
-  this->dataPtr->imagePub =
-  this->dataPtr->node.Advertise<gz::msgs::Image>(imageTopic);
+
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, _entity);
+
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+
+  // Resolve the lidar topic
+  TopicNameOptions lidarTopicOptions;
+  lidarTopicOptions.sdfElementName = "lidar_topic";
+  lidarTopicOptions.topicNamespace = ns;
+  lidarTopicOptions.defaultTopicSuffix = "scan";
+  resolvedTopicNames.lidarTopic = resolvedTopicName(_sdf, lidarTopicOptions);
+  if (resolvedTopicNames.lidarTopic.empty())
+  {
+    gzerr << "FreeSpaceExplorer failed to find a valid lidar topic. "
+           << "Check the <lidar_topic> and the namespace attribute in the SDF."
+           << std::endl;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(resolvedTopicNames.lidarTopic,
+      &FreeSpaceExplorer::Implementation::OnLaserScanMsg, this->dataPtr.get());
+  }
+
+  // Resolve the start topic
+  TopicNameOptions startTopicOptions;
+  startTopicOptions.sdfElementName = "start_topic";
+  startTopicOptions.topicNamespace = ns;
+  startTopicOptions.defaultTopicSuffix = "start";
+  resolvedTopicNames.startTopic = resolvedTopicName(_sdf, startTopicOptions);
+  if (resolvedTopicNames.startTopic.empty())
+  {
+    gzerr << "FreeSpaceExplorer failed to find a valid start topic. "
+           << "Check the <start_topic> and the namespace attribute in the SDF."
+           << std::endl;
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(resolvedTopicNames.startTopic,
+      &FreeSpaceExplorer::Implementation::OnStartMsg, this->dataPtr.get());
+  }
+
+  // Resolve the occupancy map image topic
+  TopicNameOptions imageTopicOptions;
+  imageTopicOptions.sdfElementName = "image_topic";
+  imageTopicOptions.topicNamespace = ns;
+  imageTopicOptions.defaultTopicSuffix = "scan_image";
+  resolvedTopicNames.imageTopic = resolvedTopicName(_sdf, imageTopicOptions);
+  if (resolvedTopicNames.imageTopic.empty())
+  {
+    gzerr << "FreeSpaceExplorer failed to find a valid image topic. "
+           << "Check the <image_topic> and the namespace attribute in the SDF."
+           << std::endl;
+  }
+  else
+  {
+    this->dataPtr->imagePub =
+      this->dataPtr->node.Advertise<gz::msgs::Image>(
+          resolvedTopicNames.imageTopic);
+  }
+
   gzmsg << "Loaded lidar exploration plugin listening on ["
-    << scanTopic << "] for lidar messages\n";
+    << resolvedTopicNames.lidarTopic << "] for lidar messages\n";
 }
 
 /////////////////////////////////////////////////
