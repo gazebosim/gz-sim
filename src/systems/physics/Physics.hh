@@ -86,7 +86,11 @@ namespace systems
   ///   unless their SDF sets `<kinematic>true</kinematic>`. Kinematic links
   ///   do not respond to forces like gravity or contacts, they are moved by
   ///   setting their pose or velocity. Note that this is not the `<kinematic>`
-  ///   element of a link.
+  ///   element of a link: the default is applied by setting that element on
+  ///   the links that do not set it, in the SDF the model is created from.
+  ///   Links of static models are left alone, and links created at runtime
+  ///   without SDF take the default. When the default is kinematic, the links
+  ///   kept dynamic by their SDF are listed in a message.
   ///   - `<contacts><enabled>`: If false, contacts between kinematic links and
   ///   static or other kinematic links are not detected. These contacts have
   ///   no effect on the simulation, they can only be reported, e.g. by

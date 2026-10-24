@@ -130,7 +130,6 @@
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointVelocityLimitsCmd.hh"
 #include "gz/sim/components/JointVelocityReset.hh"
-#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
@@ -237,14 +236,20 @@ class gz::sim::systems::PhysicsPrivate
   public: void CreateLinkEntities(const EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
 
-  /// \brief Apply the kinematic state of a link entity: the value of its
-  /// Kinematic component if its SDF set one, otherwise the default of the
-  /// `<kinematic><enabled>` parameter. Links that end up dynamic are left
-  /// alone, which is how the physics engine creates them.
-  /// \param[in] _ecm Constant reference to ECM.
-  /// \param[in] _linkEntity The link entity.
-  public: void SetLinkKinematic(const EntityComponentManager &_ecm,
-                                const Entity &_linkEntity);
+  /// \brief Apply the default kinematic state of the `<kinematic><enabled>`
+  /// parameter to the links of a model, and of its nested models, whose SDF
+  /// does not set `<kinematic>`, so that the physics engine creates them in
+  /// that state. Links whose SDF sets `<kinematic>` keep it.
+  /// \param[in, out] _model Model SDF about to be passed to the physics
+  /// engine.
+  /// \param[in] _prefix Scoped name prefix of the model, for _dynamicLinks.
+  /// \param[out] _dynamicLinks Scoped names of the links that stay dynamic
+  /// because their SDF sets `<kinematic>false</kinematic>` while the default
+  /// is kinematic.
+  public: void ApplyKinematicDefault(sdf::Model &_model,
+                                     const std::string &_prefix,
+                                     std::vector<std::string> &_dynamicLinks)
+                                     const;
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -820,13 +825,6 @@ class gz::sim::systems::PhysicsPrivate
             physics::WorldModelFeature>{};
 
   //////////////////////////////////////////////////
-  // Kinematic Link
-  /// \brief Feature list for setting links to be kinematic.
-  public: struct KinematicLinkFeatureList : physics::FeatureList<
-            MinimumFeatureList,
-            physics::KinematicLink>{};
-
-  //////////////////////////////////////////////////
   // Kinematic contacts
   /// \brief Feature list for enabling or disabling the contacts between
   /// kinematic links and static or kinematic links.
@@ -884,8 +882,7 @@ class gz::sim::systems::PhysicsPrivate
             LinkForceFeatureList,
             MeshFeatureList,
             LinkBoundingBoxFeatureList,
-            GravityEnabledFeatureList,
-            KinematicLinkFeatureList>;
+            GravityEnabledFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -1444,11 +1441,37 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
     model.SetRawPose(_pose->Data());
     model.SetPoseRelativeTo("");
 
+    // Kinematic default: set <kinematic> on the links that do not set it
+    // before the model is constructed, so that the physics engine creates
+    // them kinematic. Static models are left alone.
+    auto staticComp = _ecm.Component<components::Static>(_entity);
+    if (this->kinematicEnabled && !model.Static() &&
+        !(staticComp && staticComp->Data()))
+    {
+      std::vector<std::string> dynamicLinks;
+      this->ApplyKinematicDefault(model, model.Name(), dynamicLinks);
+      // Nested models are also visited from their top-level model, which is
+      // the one the physics engine builds the whole tree from, so report
+      // their links from there only.
+      if (!dynamicLinks.empty() &&
+          this->entityWorldMap.HasEntity(_parent->Data()))
+      {
+        // Models exported from Gazebo classic often carry an explicit
+        // <kinematic>0</kinematic>, so say which links keep it.
+        std::string names;
+        for (const auto &link : dynamicLinks)
+          names += (names.empty() ? "" : ", ") + link;
+        gzmsg << "Links [" << names << "] stay dynamic because their SDF "
+              << "sets <kinematic>false</kinematic>, which overrides the "
+              << "<kinematic><enabled> parameter of the Physics system."
+              << std::endl;
+      }
+    }
+
     sdf::Root root;
     root.SetModel(model);
     root.UpdateGraphs();
 
-    auto staticComp = _ecm.Component<components::Static>(_entity);
     if (staticComp && staticComp->Data())
     {
       model.SetStatic(staticComp->Data());
@@ -1615,7 +1638,6 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
-          this->SetLinkKinematic(_ecm, _entity);
           return true;
         }
 
@@ -1658,13 +1680,10 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetEnableGravity(gravityEnabled->Data());
         }
 
-        // Kinematic component set in SdfEntityCreator::CreateEntities() if
-        // the link SDF sets <kinematic>, otherwise the default of the
-        // <kinematic><enabled> parameter.
-        const components::Kinematic *kinematicComp =
-            _ecm.Component<components::Kinematic>(_entity);
-        link.SetKinematic(nullptr != kinematicComp ?
-            kinematicComp->Data() : this->kinematicEnabled);
+        // A link constructed at runtime has no SDF that could set
+        // <kinematic>, so it takes the default of the <kinematic><enabled>
+        // parameter.
+        link.SetKinematic(this->kinematicEnabled);
 
         auto constructLinkFeature =
           this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
@@ -1688,51 +1707,33 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
 
-        this->SetLinkKinematic(_ecm, _entity);
         return true;
       });
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::SetLinkKinematic(const EntityComponentManager &_ecm,
-    const Entity &_linkEntity)
+void PhysicsPrivate::ApplyKinematicDefault(sdf::Model &_model,
+    const std::string &_prefix, std::vector<std::string> &_dynamicLinks) const
 {
-  const components::Kinematic *kinematicComp =
-      _ecm.Component<components::Kinematic>(_linkEntity);
-  const bool kinematic = nullptr != kinematicComp ?
-      kinematicComp->Data() : this->kinematicEnabled;
-
-  if (this->kinematicEnabled && nullptr != kinematicComp &&
-      !kinematicComp->Data())
+  for (uint64_t i = 0; i < _model.LinkCount(); ++i)
   {
-    gzwarn << "Link [" << scopedName(_linkEntity, _ecm) << "] stays dynamic "
-           << "because its SDF sets <kinematic>false</kinematic>, which "
-           << "overrides the <kinematic><enabled> parameter of the Physics "
-           << "system." << std::endl;
-  }
-
-  // Dynamic is how the physics engine creates links.
-  if (!kinematic)
-    return;
-
-  auto kinematicLink =
-      this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_linkEntity);
-  if (!kinematicLink)
-  {
-    static bool informed{false};
-    if (!informed)
+    sdf::Link *link = _model.LinkByIndex(i);
+    // The <kinematic> element of a link, when present, overrides the default
+    if (link->Element() && link->Element()->HasElement("kinematic"))
     {
-      gzdbg << "Attempting to set link kinematic, but the physics "
-            << "engine doesn't support feature [KinematicLink]."
-            << std::endl;
-      informed = true;
+      if (this->kinematicEnabled && !link->Kinematic())
+        _dynamicLinks.push_back(_prefix + "::" + link->Name());
+      continue;
     }
-    return;
+    link->SetKinematic(this->kinematicEnabled);
   }
-  // The physics engine may have created the link kinematic already from the
-  // <kinematic> element of its SDF.
-  if (!kinematicLink->GetKinematic())
-    kinematicLink->SetKinematic(true);
+
+  for (uint64_t i = 0; i < _model.ModelCount(); ++i)
+  {
+    sdf::Model *nested = _model.ModelByIndex(i);
+    this->ApplyKinematicDefault(*nested, _prefix + "::" + nested->Name(),
+        _dynamicLinks);
+  }
 }
 
 //////////////////////////////////////////////////

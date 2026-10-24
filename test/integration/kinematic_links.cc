@@ -95,7 +95,9 @@ std::string BoxSdf(const std::string &_name, double _x, double _z,
 ///   with a contact sensor, and a sphere with <kinematic>false</kinematic>
 ///   dropped on top of it;
 /// - cwc_sunk: the same box with collide_without_contact and without the
-///   sphere.
+///   sphere;
+/// - nested_high: a model 2 m above the ground whose only link, without
+///   <kinematic>, is in a nested model.
 /// \param[in] _kinematicEnabled Value of <kinematic><enabled>.
 /// \param[in] _contactsEnabled Value of <kinematic><contacts><enabled>.
 std::string WorldSdf(bool _kinematicEnabled, bool _contactsEnabled)
@@ -132,6 +134,10 @@ std::string WorldSdf(bool _kinematicEnabled, bool _contactsEnabled)
       "<kinematic>false</kinematic>"
       "<collision name='collision'><geometry><sphere><radius>0.25</radius>"
       "</sphere></geometry></collision></link></model>"
+      "<model name='nested_high'><pose>15 0 2 0 0 0</pose>"
+      "<model name='inner'><link name='link'>"
+      "<collision name='collision'><geometry><box><size>1 1 1</size></box>"
+      "</geometry></collision></link></model></model>"
       "</world></sdf>";
 }
 
@@ -154,7 +160,7 @@ struct State
           return true;
         });
 
-    for (const std::string &model : {"unset_sunk", "cwc_sunk"})
+    for (const char *model : {"unset_sunk", "cwc_sunk"})
     {
       this->groundContacts[model] = 0;
       this->sphereContacts[model] = 0;
@@ -215,6 +221,9 @@ TEST_F(KinematicLinksTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(KinematicEnabled))
   EXPECT_GT(1.5, state.heights["dynamic_high"]);
   EXPECT_NEAR(0.3, state.heights["unset_sunk"], 1e-3);
   EXPECT_NEAR(1.05, state.heights["sphere"], 2e-2);
+  // The default reaches the links of nested models
+  EXPECT_NEAR(2.0, state.heights["nested_high"], 1e-3);
+  EXPECT_NEAR(2.0, state.heights["inner"], 1e-3);
 
   // Dynamic by default: only the link with <kinematic>true</kinematic> stays.
   state = RunWorld(WorldSdf(false, true), 500);
@@ -223,6 +232,8 @@ TEST_F(KinematicLinksTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(KinematicEnabled))
   EXPECT_GT(1.5, state.heights["dynamic_high"]);
   // The box sunk into the ground is dynamic and pushed out of it
   EXPECT_LT(0.35, state.heights["unset_sunk"]);
+  EXPECT_GT(1.5, state.heights["nested_high"]);
+  EXPECT_GT(1.5, state.heights["inner"]);
 }
 
 /////////////////////////////////////////////////
