@@ -2486,9 +2486,8 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           const Entity parent = _ecm.ParentEntity(_entity);
           if (hasHaltMotion)
           {
-            auto haltMotionComp = _ecm.Component<components::HaltMotion>(
-                parent);
-            haltMotion = haltMotionComp && haltMotionComp->Data();
+            haltMotion = _ecm.ComponentData<components::HaltMotion>(parent)
+                .value_or(false);
           }
           auto offIt = this->entityOffMap.find(parent);
           batteryOff = offIt != this->entityOffMap.end() && offIt->second;
