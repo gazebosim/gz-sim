@@ -26,6 +26,7 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
 
 #include <gz/math/PID.hh>
 
@@ -285,6 +286,9 @@ class gz::sim::systems::JointTrajectoryControllerPrivate
   /// \brief Publisher of the progress for currently followed trajectory
   public: transport::Node::Publisher progressPub;
 
+  /// \brief Resolved topic names
+  public: JointTrajectoryController::TopicNames resolvedTopicNames;
+
   /// \brief Map of actuated joints, where the first entry of pair is the name
   /// of the joint
   public: std::map<std::string, ActuatedJoint> actuatedJoints;
@@ -314,6 +318,9 @@ JointTrajectoryController::JointTrajectoryController()
     : dataPtr(std::make_unique<JointTrajectoryControllerPrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+JointTrajectoryController::~JointTrajectoryController() = default;
 
 //////////////////////////////////////////////////
 void JointTrajectoryController::Configure(
@@ -374,36 +381,44 @@ void JointTrajectoryController::Configure(
     this->dataPtr->useHeaderStartTime = false;
   }
 
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, model.Entity());
+  std::string defaultPrefix = "/model/" + model.Name(_ecm);
+
   // Subscribe to joint trajectory commands
-  auto trajectoryTopic = _sdf->Get<std::string>("topic");
-  if (trajectoryTopic.empty())
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions trajectoryTopicOptions;
+  trajectoryTopicOptions.sdfElementName = "topic";
+  trajectoryTopicOptions.topicNamespace = ns;
+  trajectoryTopicOptions.defaultTopicPrefix = defaultPrefix;
+  trajectoryTopicOptions.defaultTopicSuffix = "joint_trajectory";
+  resolvedTopicNames.trajectoryTopic = resolvedTopicName(
+      _sdf, trajectoryTopicOptions);
+  if (resolvedTopicNames.trajectoryTopic.empty())
   {
-    // If not specified, use the default topic based on model name
-    trajectoryTopic = "/model/" + model.Name(_ecm) + "/joint_trajectory";
-  }
-  // Make sure the topic is valid
-  const auto validTrajectoryTopic = transport::TopicUtils::AsValidTopic(
-      trajectoryTopic);
-  if (validTrajectoryTopic.empty())
-  {
-    gzerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
-           << trajectoryTopic << "].\n";
+    gzerr << "[JointTrajectoryController] Failed to find a valid topic name for "
+          << "joint trajectory commands. Check the <topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
     return;
   }
+
   // Subscribe
   gzmsg << "[JointTrajectoryController] Subscribing to joint trajectory"
-            " commands on topic [" << validTrajectoryTopic << "].\n";
+            " commands on topic [" << resolvedTopicNames.trajectoryTopic
+        << "].\n";
   this->dataPtr->node.Subscribe(
-      validTrajectoryTopic,
+      resolvedTopicNames.trajectoryTopic,
       &JointTrajectoryControllerPrivate::JointTrajectoryCallback,
       this->dataPtr.get());
 
   // Advertise progress
-  const auto progressTopic = validTrajectoryTopic + "_progress";
+  resolvedTopicNames.progressTopic =
+      resolvedTopicNames.trajectoryTopic + "_progress";
   gzmsg << "[JointTrajectoryController] Advertising joint trajectory progress"
-            " on topic [" << progressTopic << "].\n";
+            " on topic [" << resolvedTopicNames.progressTopic << "].\n";
   this->dataPtr->progressPub =
-      this->dataPtr->node.Advertise<gz::msgs::Float>(progressTopic);
+      this->dataPtr->node.Advertise<gz::msgs::Float>(
+          resolvedTopicNames.progressTopic);
 }
 
 //////////////////////////////////////////////////
@@ -518,6 +533,13 @@ void JointTrajectoryController::PreUpdate(
     auto *joint = &actuatedJoint.second;
     joint->Update(_ecm, _info.dt);
   }
+}
+
+//////////////////////////////////////////////////
+JointTrajectoryController::TopicNames
+JointTrajectoryController::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 ////////////////////////////////////////
