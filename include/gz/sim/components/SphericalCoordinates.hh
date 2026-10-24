@@ -43,7 +43,7 @@ namespace components
   using SphericalCoordinates =
       Component<math::SphericalCoordinates, class SphericalCoordinatesTag,
       serializers::SphericalCoordinatesSerializer>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.SphericalCoordinates", SphericalCoordinates)
 }
 }

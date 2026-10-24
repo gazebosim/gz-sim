@@ -81,7 +81,7 @@ namespace components
 /// https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/TagsFilter.msg
 using SemanticTags = Component<std::vector<std::string>, class SemanticTagsTag,
                               serializers::SemanticTagsSerializer>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.SemanticTags", SemanticTags)
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.SemanticTags", SemanticTags)
 }  // namespace components
 }  // namespace GZ_SIM_VERSION_NAMESPACE
 }  // namespace sim
