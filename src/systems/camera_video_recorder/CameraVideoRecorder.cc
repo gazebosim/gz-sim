@@ -29,6 +29,7 @@
 #include <gz/common/VideoEncoder.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
+#include <sdf/Element.hh>
 
 #include <gz/rendering/Camera.hh>
 #include <gz/rendering/RenderEngine.hh>
@@ -86,8 +87,8 @@ class gz::sim::systems::CameraVideoRecorderPrivate
   /// \brief Pointer to the rendering camera
   public: rendering::CameraPtr camera;
 
-  /// \brief Name of service for recording video
-  public: std::string service;
+  /// \brief Resolved topic and service names
+  public: CameraVideoRecorder::TopicNames resolvedTopicNames;
 
   /// \brief Camera entity.
   public: Entity entity;
@@ -112,9 +113,6 @@ class gz::sim::systems::CameraVideoRecorderPrivate
 
   /// \brief True to record a video from the rendering camera
   public: bool recordVideo = false;
-
-  /// \brief Topic that the sensor publishes to
-  public: std::string sensorTopic;
 
   /// \brief Video recording statistics publisher
   public: transport::Node::Publisher recorderStatsPub;
@@ -217,6 +215,9 @@ CameraVideoRecorder::CameraVideoRecorder()
 }
 
 //////////////////////////////////////////////////
+CameraVideoRecorder::~CameraVideoRecorder() = default;
+
+//////////////////////////////////////////////////
 void CameraVideoRecorder::Configure(
     const Entity &_entity, const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm, EventManager &_eventMgr)
@@ -230,34 +231,50 @@ void CameraVideoRecorder::Configure(
   }
 
   this->dataPtr->entity = _entity;
-
-  // video recorder service topic name
-  if (_sdf->HasElement("service"))
-  {
-    this->dataPtr->service = transport::TopicUtils::AsValidTopic(
-        _sdf->Get<std::string>("service"));
-    if (this->dataPtr->service.empty())
-    {
-      gzerr << "Service [" << _sdf->Get<std::string>("service")
-             << "] not valid. Ignoring." << std::endl;
-    }
-  }
   this->dataPtr->eventMgr = &_eventMgr;
 
-  // get sensor topic
-  sdf::Sensor sensorSdf = cameraEntComp->Data();
-  std::string topic  = sensorSdf.Topic();
-  if (topic.empty())
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, _entity);
+  const std::string scoped = scopedName(_entity, _ecm);
+
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+
+  // Resolve the video recorder service name
+  TopicNameOptions serviceOptions;
+  serviceOptions.sdfElementName = "service";
+  serviceOptions.topicNamespace = ns;
+  serviceOptions.defaultTopicPrefix = scoped;
+  serviceOptions.defaultTopicSuffix = "record_video";
+  resolvedTopicNames.service = resolvedTopicName(_sdf, serviceOptions);
+  if (resolvedTopicNames.service.empty())
   {
-    auto scoped = scopedName(_entity, _ecm);
-    topic = transport::TopicUtils::AsValidTopic(scoped + "/image");
-    if (topic.empty())
-    {
-      gzerr << "Failed to generate valid topic for entity [" << scoped
-             << "]" << std::endl;
-    }
+    gzerr << "No valid service for CameraVideoRecorder could be found for ["
+           << scoped << "]" << std::endl;
   }
-  this->dataPtr->sensorTopic = topic;
+
+  // Resolve the camera sensor topic
+  sdf::Sensor sensorSdf = cameraEntComp->Data();
+
+  // ToElement() adds a "__default__" topic placeholder. Remove it when no
+  // topic was specified so resolvedTopicName() uses the default.
+  auto sensorElem = sensorSdf.ToElement();
+  if (sensorSdf.Topic().empty())
+  {
+    sensorElem->RemoveChild(sensorElem->GetElement("topic"));
+  }
+
+  TopicNameOptions topicOptions;
+  topicOptions.sdfElementName = "topic";
+  topicOptions.topicNamespace = ns;
+  topicOptions.defaultTopicPrefix = scoped;
+  topicOptions.defaultTopicSuffix = "image";
+  resolvedTopicNames.sensorTopic =
+      resolvedTopicName(sensorElem, topicOptions);
+  if (resolvedTopicNames.sensorTopic.empty())
+  {
+    gzerr << "Failed to generate valid topic for entity [" << scoped << "]"
+           << std::endl;
+  }
 
   // Get whether sim time should be used for recording.
   this->dataPtr->recordVideoUseSimTime = _sdf->Get<bool>("use_sim_time",
@@ -270,7 +287,8 @@ void CameraVideoRecorder::Configure(
   this->dataPtr->fps = _sdf->Get<unsigned int>("fps", this->dataPtr->fps).first;
 
   // recorder stats topic
-  std::string recorderStatsTopic = this->dataPtr->sensorTopic + "/stats";
+  std::string recorderStatsTopic =
+      this->dataPtr->resolvedTopicNames.sensorTopic + "/stats";
   this->dataPtr->recorderStatsPub =
     this->dataPtr->node.Advertise<msgs::Time>(recorderStatsTopic);
   gzmsg << "Camera Video recorder stats topic advertised on ["
@@ -284,7 +302,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
   if (!this->scene)
   {
     this->scene = rendering::sceneFromFirstRenderEngine();
-    this->markerManager.SetTopic(this->sensorTopic + "/marker");
+    this->markerManager.SetTopic(
+        this->resolvedTopicNames.sensorTopic + "/marker");
     this->markerManager.Init(this->scene);
   }
 
@@ -375,7 +394,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
       // does not actually render.
       // todo(anyone) Make it possible to get a pointer to the sensor object so
       // we can connect to its new image event
-      this->node.Subscribe(this->sensorTopic,
+      this->node.Subscribe(
+          this->resolvedTopicNames.sensorTopic,
           &CameraVideoRecorderPrivate::OnImage, this);
 
       this->videoEncoder.Start(this->recordVideoFormat,
@@ -385,7 +405,8 @@ void CameraVideoRecorderPrivate::OnPostRender()
       this->recordStartTime = std::chrono::steady_clock::time_point(
             std::chrono::duration(std::chrono::seconds(0)));
 
-      gzmsg << "Start video recording on [" << this->service << "]. "
+      gzmsg << "Start video recording on ["
+             << this->resolvedTopicNames.service << "]. "
              << "Encoding to tmp file: ["
              << this->tmpVideoFilename << "]" << std::endl;
     }
@@ -394,12 +415,13 @@ void CameraVideoRecorderPrivate::OnPostRender()
   {
     // unsubscribe to let the sensor become inactive if there are no
     // other connections
-    this->node.Unsubscribe(this->sensorTopic);
+    this->node.Unsubscribe(this->resolvedTopicNames.sensorTopic);
 
     // stop encoding
     this->videoEncoder.Stop();
 
-    gzmsg << "Stop video recording on [" << this->service << "]." << std::endl;
+    gzmsg << "Stop video recording on ["
+           << this->resolvedTopicNames.service << "]." << std::endl;
 
     if (common::exists(this->tmpVideoFilename))
     {
@@ -447,23 +469,23 @@ void CameraVideoRecorder::PostUpdate(const UpdateInfo &_info,
   if (this->dataPtr->cameraName.empty())
     return;
 
-  if (this->dataPtr->service.empty())
+  if (this->dataPtr->resolvedTopicNames.service.empty())
   {
-    auto scoped = scopedName(this->dataPtr->entity, _ecm);
-    this->dataPtr->service = transport::TopicUtils::AsValidTopic(scoped +
-        "/record_video");
-    if (this->dataPtr->service.empty())
-    {
-      gzerr << "Failed to create valid service for [" << scoped << "]"
-             << std::endl;
-    }
+    gzerr << "Failed to create valid service for ["
+           << scopedName(this->dataPtr->entity, _ecm) << "]" << std::endl;
     return;
   }
 
-  this->dataPtr->node.Advertise(this->dataPtr->service,
+  this->dataPtr->node.Advertise(this->dataPtr->resolvedTopicNames.service,
        &CameraVideoRecorderPrivate::OnRecordVideo, this->dataPtr.get());
   gzmsg << "Record video service on ["
-       << this->dataPtr->service << "]" << std::endl;
+       << this->dataPtr->resolvedTopicNames.service << "]" << std::endl;
+}
+
+//////////////////////////////////////////////////
+CameraVideoRecorder::TopicNames CameraVideoRecorder::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(CameraVideoRecorder,
