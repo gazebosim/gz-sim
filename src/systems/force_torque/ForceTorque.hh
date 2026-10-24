@@ -18,6 +18,8 @@
 #define GZ_SIM_SYSTEMS_FORCE_TORQUE_HH_
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
@@ -61,6 +63,9 @@ namespace systems
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
+
+    /// Get the resolved topic names
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ForceTorquePrivate> dataPtr;

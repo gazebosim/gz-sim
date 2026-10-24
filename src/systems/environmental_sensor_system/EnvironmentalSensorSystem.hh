@@ -22,6 +22,8 @@
 #include <gz/transport/Node.hh>
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace gz
 {
@@ -70,7 +72,12 @@ class EnvironmentalSensorSystem:
   public gz::sim::ISystemPreUpdate,
   public gz::sim::ISystemPostUpdate
 {
+  /// Constructor
   public: EnvironmentalSensorSystem();
+
+  /// Destructor
+  public: ~EnvironmentalSensorSystem() override;
+
   /// Documentation inherited
   public: void Configure(
       const gz::sim::Entity &_entity,
@@ -89,6 +96,9 @@ class EnvironmentalSensorSystem:
   // Also remove sensors that have been deleted.
   public: void PostUpdate(const gz::sim::UpdateInfo &_info,
     const gz::sim::EntityComponentManager &_ecm) final;
+
+  /// Get the resolved topic names
+  public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
 
   private: std::unique_ptr<EnvironmentalSensorSystemPrivate> dataPtr;
 };
