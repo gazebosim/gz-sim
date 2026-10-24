@@ -132,16 +132,24 @@ void Breadcrumbs::Configure(const Entity &_entity,
     }
   }
 
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, this->model.Entity());
+
   // Subscribe to commands
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
+  TopicNameOptions topicOptions;
+  topicOptions.sdfElementName = "topic";
+  topicOptions.topicNamespace = ns;
+  topicOptions.defaultTopicPrefix =
+      "/model/" + this->model.Name(_ecm);
+  topicOptions.defaultTopicSuffix =
+      "breadcrumbs/" + this->modelRoot.Model()->Name() + "/deploy";
+  this->topic = resolvedTopicName(_sdf, topicOptions);
+  if (this->topic.empty())
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    gzerr << "Breadcrumbs failed to find a valid deploy topic. Check the "
+          << "<topic> and namespace attribute in the SDF." << std::endl;
+    return;
   }
-  topics.push_back("/model/" +
-      this->model.Name(_ecm) + "/breadcrumbs/" +
-      this->modelRoot.Model()->Name() + "/deploy");
-  this->topic = validTopic(topics);
 
   this->topicStatistics = _sdf->Get<bool>("topic_statistics",
       this->topicStatistics).first;
@@ -158,8 +166,9 @@ void Breadcrumbs::Configure(const Entity &_entity,
   }
 
   this->node.Subscribe(this->topic, &Breadcrumbs::OnDeploy, this);
-  this->remainingPub = this->node.Advertise<msgs::Int32>(
-      this->topic + "/remaining");
+  this->remainingTopic = this->topic + "/remaining";
+  this->remainingPub =
+      this->node.Advertise<msgs::Int32>(this->remainingTopic);
 
   gzmsg << "Breadcrumbs subscribing to deploy messages on ["
     << this->topic << "]" << std::endl;
