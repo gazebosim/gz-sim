@@ -52,6 +52,10 @@ namespace gz::sim
     /// \brief Initialize rendering and transport.
     public: void Initialize();
 
+    /// \brief Callback for the /gui/record_video service.
+    public: bool OnRecordService(const msgs::VideoRecord &_msg,
+                                 msgs::Boolean &_res);
+
     /// \brief Gazebo communication node.
     public: transport::Node node;
 
@@ -71,7 +75,10 @@ namespace gz::sim
     public: bool recordVideo = false;
 
     /// \brief Video encoding format
-    public: std::string format;
+    public: std::string format = "mp4";
+
+    /// \brief True if a target filename was explicitly configured
+    public: bool hasSaveFilename = false;
 
     /// \brief Use sim time as timestamp during video recording
     /// By default (false), video encoding is done using real time.
@@ -118,10 +125,11 @@ using namespace sim;
 void VideoRecorderPrivate::Initialize()
 {
   // Already initialized
-  if (this->scene)
+  if (this->scene && this->camera)
     return;
 
-  this->scene = rendering::sceneFromFirstRenderEngine();
+  if (!this->scene)
+    this->scene = rendering::sceneFromFirstRenderEngine();
   if (!this->scene)
     return;
 
@@ -133,7 +141,7 @@ void VideoRecorderPrivate::Initialize()
         std::get<bool>(cam->UserData("user-camera")))
     {
       this->camera = cam;
-      gzdbg << "Video Recorder plugin is recoding camera ["
+      gzdbg << "Video Recorder plugin is recording camera ["
              << this->camera->Name() << "]" << std::endl;
       break;
     }
@@ -141,29 +149,39 @@ void VideoRecorderPrivate::Initialize()
 
   if (!this->camera)
   {
-    gzerr << "Camera is not available" << std::endl;
     return;
   }
 
   // recorder stats topic
-  this->recorderStatsPub =
-    this->node.Advertise<msgs::Time>(this->recorderStatsTopic);
-  gzmsg << "Video recorder stats topic advertised on ["
-         << this->recorderStatsTopic << "]" << std::endl;
+  if (!this->recorderStatsPub)
+  {
+    this->recorderStatsPub =
+      this->node.Advertise<msgs::Time>(this->recorderStatsTopic);
+    gzmsg << "Video recorder stats topic advertised on ["
+           << this->recorderStatsTopic << "]" << std::endl;
+  }
 }
 
 /////////////////////////////////////////////////
 void VideoRecorderPrivate::OnRender()
 {
   this->Initialize();
+  if (!this->camera)
+    return;
 
   // record video is requested
   {
     GZ_PROFILE("VideoRecorder Record Video");
+    std::unique_lock<std::mutex> lock(this->recordMutex);
     if (this->recordVideo)
     {
+      if (this->useSimTime && this->simTime.count() == 0)
+        return;
+
       unsigned int width = this->camera->ImageWidth();
       unsigned int height = this->camera->ImageHeight();
+      if (width == 0 || height == 0)
+        return;
 
       if (this->cameraImage.Width() != width ||
           this->cameraImage.Height() != height)
@@ -232,12 +250,62 @@ void VideoRecorderPrivate::OnRender()
     }
     else if (this->videoEncoder.IsEncoding())
     {
-      this->videoEncoder.Stop();
+      if (this->hasSaveFilename)
+        this->videoEncoder.SaveToFile(this->filename);
+      else
+        this->videoEncoder.Stop();
     }
   }
   // only has an effect in video recording lockstep mode
   // this notifies ECM to continue updating the scene
   g_renderCv.notify_one();
+}
+
+/////////////////////////////////////////////////
+bool VideoRecorderPrivate::OnRecordService(const msgs::VideoRecord &_msg,
+                                           msgs::Boolean &_res)
+{
+  std::unique_lock<std::mutex> lock(this->recordMutex);
+  if (_msg.start())
+  {
+    if (!_msg.format().empty())
+      this->format = _msg.format();
+    else if (this->format.empty())
+      this->format = "mp4";
+
+    if (!_msg.save_filename().empty())
+    {
+      this->filename = _msg.save_filename();
+      this->hasSaveFilename = true;
+    }
+    else if (this->filename.empty())
+    {
+      this->filename = "gz_recording." + this->format;
+    }
+    this->recordVideo = true;
+    this->recording = true;
+    gzmsg << "Starting GUI video recording to [" << this->filename << "]"
+          << std::endl;
+    _res.set_data(true);
+    return true;
+  }
+  else if (_msg.stop())
+  {
+    this->recordVideo = false;
+    this->recording = false;
+    if (this->videoEncoder.IsEncoding())
+    {
+      this->videoEncoder.SaveToFile(this->filename);
+      gzmsg << "Stopped GUI video recording. Saved to [" << this->filename
+            << "]" << std::endl;
+    }
+    lock.unlock();
+    g_renderCv.notify_all();
+    _res.set_data(true);
+    return true;
+  }
+  _res.set_data(false);
+  return false;
 }
 
 /////////////////////////////////////////////////
@@ -247,18 +315,25 @@ VideoRecorder::VideoRecorder()
 }
 
 /////////////////////////////////////////////////
-VideoRecorder::~VideoRecorder() = default;
+VideoRecorder::~VideoRecorder()
+{
+  this->StopRecording();
+}
 
 //////////////////////////////////////////////////
 void VideoRecorder::Update(const UpdateInfo &_info,
     EntityComponentManager & /*_ecm*/)
 {
-  this->dataPtr->simTime = _info.simTime;
+  bool waitLockstep = false;
+  {
+    std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+    this->dataPtr->simTime = _info.simTime;
+    waitLockstep = this->dataPtr->recording && this->dataPtr->lockstep;
+  }
 
   // check if video recording is enabled and if we need to lock step
   // ECM updates with GUI rendering during video recording
-  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
-  if (this->dataPtr->recording && this->dataPtr->lockstep)
+  if (waitLockstep)
   {
     std::unique_lock<std::mutex> lock2(this->dataPtr->renderMutex);
     g_renderCv.wait(lock2);
@@ -318,8 +393,56 @@ void VideoRecorder::LoadConfig(const tinyxml2::XMLElement * _pluginElem)
                  << std::endl;
         }
       }
+      if (auto formatElem = elem->FirstChildElement("format"))
+      {
+        if (formatElem->GetText())
+          this->dataPtr->format = formatElem->GetText();
+      }
+      if (this->dataPtr->format.empty())
+        this->dataPtr->format = "mp4";
+
+      auto filenameElem = elem->FirstChildElement("save_filename");
+      if (!filenameElem)
+        filenameElem = elem->FirstChildElement("filename");
+      if (filenameElem && filenameElem->GetText())
+      {
+        this->dataPtr->filename = filenameElem->GetText();
+        this->dataPtr->hasSaveFilename = true;
+      }
+      else if (this->dataPtr->filename.empty())
+      {
+        this->dataPtr->filename = "gz_recording." + this->dataPtr->format;
+      }
+
+      auto startElem = elem->FirstChildElement("start_recording");
+      if (!startElem)
+        startElem = elem->FirstChildElement("start");
+      if (!startElem)
+        startElem = elem->FirstChildElement("auto_start");
+      if (startElem)
+      {
+        bool startRecording = false;
+        if (startElem->QueryBoolText(&startRecording) == tinyxml2::XML_SUCCESS &&
+            startRecording)
+        {
+          this->dataPtr->recordVideo = true;
+          this->dataPtr->recording = true;
+          gzmsg << "Video recorder auto-start enabled. Output file: ["
+                << this->dataPtr->filename << "]" << std::endl;
+        }
+      }
     }
   }
+
+  std::string service = "/gui/record_video";
+  this->dataPtr->node.Advertise(service,
+      &VideoRecorderPrivate::OnRecordService, this->dataPtr.get());
+  gzmsg << "Video recorder service advertised on [" << service << "]"
+        << std::endl;
+
+  connect(qApp, &QCoreApplication::aboutToQuit, this, [this]() {
+    this->StopRecording();
+  });
 
   gz::gui::App()->findChild<
       gz::gui::MainWindow *>()->installEventFilter(this);
@@ -337,20 +460,50 @@ bool VideoRecorder::eventFilter(QObject *_obj, QEvent *_event)
 }
 
 /////////////////////////////////////////////////
+void VideoRecorder::StopRecording()
+{
+  std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
+  this->dataPtr->recordVideo = false;
+  this->dataPtr->recording = false;
+  if (this->dataPtr->videoEncoder.IsEncoding())
+  {
+    this->dataPtr->videoEncoder.SaveToFile(this->dataPtr->filename);
+    gzmsg << "Video recording stopped and saved to: "
+          << this->dataPtr->filename << std::endl;
+  }
+  lock.unlock();
+  g_renderCv.notify_all();
+  emit this->RecordingChanged();
+}
+
+/////////////////////////////////////////////////
+bool VideoRecorder::Recording() const
+{
+  return this->dataPtr->recording;
+}
+
+/////////////////////////////////////////////////
+bool VideoRecorder::HasSaveFilename() const
+{
+  return this->dataPtr->hasSaveFilename;
+}
+
+/////////////////////////////////////////////////
 void VideoRecorder::OnStart(const QString &_format)
 {
   std::unique_lock<std::mutex> lock(this->dataPtr->recordMutex);
   this->dataPtr->format = _format.toStdString();
-  this->dataPtr->filename = "gz_recording." + this->dataPtr->format;
+  if (!this->dataPtr->hasSaveFilename)
+    this->dataPtr->filename = "gz_recording." + this->dataPtr->format;
   this->dataPtr->recordVideo = true;
   this->dataPtr->recording = true;
+  emit this->RecordingChanged();
 }
 
 /////////////////////////////////////////////////
 void VideoRecorder::OnStop()
 {
-  this->dataPtr->recordVideo = false;
-  this->dataPtr->recording = false;
+  this->StopRecording();
 }
 
 /////////////////////////////////////////////////
