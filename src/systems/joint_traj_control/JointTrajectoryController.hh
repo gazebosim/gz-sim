@@ -38,7 +38,7 @@ namespace systems
   /// Joint trajectories can be sent to this plugin via Gazebo Transport.
   /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory" that
   /// can be configured with the `<topic>` system parameter. If the model has
-  /// a namespace, the default topic becomes `${namespace}/joint_trajectory`.
+  /// a namespace, the default topic becomes `{namespace}/joint_trajectory`.
   ///
   /// This topic accepts gz::msgs::JointTrajectory messages that represent
   /// a full trajectory, defined as temporal `points` with their fields ordered
