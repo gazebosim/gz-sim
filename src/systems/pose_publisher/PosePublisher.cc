@@ -311,6 +311,11 @@ void PosePublisher::Configure(const Entity &_entity,
 
   gzmsg << "PosePublisher publishing poses on [" << poseTopic << "]"
         << std::endl;
+  if (this->dataPtr->staticPosePublisher)
+  {
+    gzmsg << "PosePublisher publishing static poses on ["
+          << staticPoseTopic << "]" << std::endl;
+  }
 }
 
 //////////////////////////////////////////////////
