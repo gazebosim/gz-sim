@@ -87,5 +87,27 @@
         </sensor>
       </link>
     </model>
+
+    <model name="rgbd_default_topics" namespace="{name}_ns">
+      <pose>10 0 0.5 0 0 0.0 </pose>
+      <static>true</static>
+      <link name="camera_link">
+        <sensor name="rgbd_camera" type="rgbd_camera">
+          <update_rate>50</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
   </world>
 </sdf>

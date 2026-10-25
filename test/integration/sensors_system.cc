@@ -352,12 +352,17 @@ TEST_F(SensorsFixture, SensorNamespace)
       "/camera_info_absolute",
       "/default_topics_ns/image",
       "/default_topics_ns/camera_info",
+      "/rgbd_default_topics_ns/image",
+      "/rgbd_default_topics_ns/depth_image",
+      "/rgbd_default_topics_ns/camera_info",
+      "/rgbd_default_topics_ns/points",
   };
 
   std::vector<std::string> subscribed_topics{
       "/relative_topics_ns/trigger_relative",
       "/trigger_absolute",
       "/default_topics_ns/image/trigger",
+      "/rgbd_default_topics_ns/trigger",
   };
   testTopics(published_topics, true);
   testTopics(subscribed_topics, false);
