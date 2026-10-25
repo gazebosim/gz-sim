@@ -41,7 +41,8 @@ namespace systems
   class ParticleEmitter
       : public System,
         public ISystemConfigure,
-        public ISystemPreUpdate
+        public ISystemPreUpdate,
+        public ISystemPostUpdate
   {
     /// \brief Constructor
     public: ParticleEmitter();
@@ -56,6 +57,10 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    // Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+                    const EntityComponentManager &_ecm) override;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ParticleEmitterPrivate> dataPtr;
