@@ -138,9 +138,19 @@ void CpuLidar::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> CpuLidar::ResolvedTopicNames() const
+std::unordered_map<Entity, std::string> CpuLidar::ResolvedTopicNames(
+    const EntityComponentManager &_ecm) const
 {
-  return this->resolvedTopicNames;
+  std::unordered_map<Entity, std::string> topics;
+  for (const auto &sensor : this->entitySensorMap)
+  {
+    const auto topic = _ecm.Component<components::SensorTopic>(sensor.first);
+    if (topic)
+    {
+      topics.insert(std::make_pair(sensor.first, topic->Data()));
+    }
+  }
+  return topics;
 }
 
 //////////////////////////////////////////////////
@@ -166,7 +176,6 @@ void CpuLidar::AddSensor(
   topicNameOptions.defaultTopicPrefix = defaultPrefix;
   topicNameOptions.defaultTopicSuffix = "lidar";
   auto topic = resolvedTopicName(data.Element(), topicNameOptions);
-  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
   data.SetTopic(topic);
 
   std::unique_ptr<sensors::CpuLidarSensor> sensor =
@@ -286,16 +295,6 @@ void CpuLidar::RemoveSensorEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
-
-        auto topicId = this->resolvedTopicNames.find(_entity);
-        if (topicId == this->resolvedTopicNames.end())
-        {
-          gzerr << "Internal error, missing resolved CpuLidar sensor topic"
-                << " name for entity [" << _entity << "]" << std::endl;
-          return true;
-        }
-
-        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

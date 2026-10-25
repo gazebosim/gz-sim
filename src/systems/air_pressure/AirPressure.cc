@@ -54,9 +54,6 @@ class gz::sim::systems::AirPressurePrivate
   public: std::unordered_map<Entity,
       std::unique_ptr<sensors::AirPressureSensor>> entitySensorMap;
 
-  /// \brief Resolved topic names
-  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
-
   /// \brief gz-sensors sensor factory for creating sensors
   public: sensors::SensorFactory sensorFactory;
 
@@ -174,9 +171,19 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> AirPressure::ResolvedTopicNames() const
+std::unordered_map<Entity, std::string> AirPressure::ResolvedTopicNames(
+    const EntityComponentManager &_ecm) const
 {
-  return this->dataPtr->resolvedTopicNames;
+  std::unordered_map<Entity, std::string> topics;
+  for (const auto &sensor : this->dataPtr->entitySensorMap)
+  {
+    const auto topic = _ecm.Component<components::SensorTopic>(sensor.first);
+    if (topic)
+    {
+      topics.insert(std::make_pair(sensor.first, topic->Data()));
+    }
+  }
+  return topics;
 }
 
 //////////////////////////////////////////////////
@@ -203,7 +210,6 @@ void AirPressurePrivate::AddAirPressure(
   topicNameOptions.defaultTopicPrefix = defaultPrefix;
   topicNameOptions.defaultTopicSuffix = "air_pressure";
   auto topic = resolvedTopicName(data.Element(), topicNameOptions);
-  this->resolvedTopicNames.insert(std::make_pair(_entity, topic));
   data.SetTopic(topic);
 
   std::unique_ptr<sensors::AirPressureSensor> sensor =
@@ -306,16 +312,6 @@ void AirPressurePrivate::RemoveAirPressureEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
-
-        auto topicId = this->resolvedTopicNames.find(_entity);
-        if (topicId == this->resolvedTopicNames.end())
-        {
-          gzerr << "Internal error, missing resolved air pressure sensor topic"
-                << " name for entity [" << _entity << "]" << std::endl;
-          return true;
-        }
-
-        this->resolvedTopicNames.erase(topicId);
 
         return true;
       });

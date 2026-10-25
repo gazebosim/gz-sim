@@ -57,8 +57,9 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
 
-    /// Get the resolved topic names
-    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+    /// Get the resolved topic names from sensor topic components
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames(
+                const EntityComponentManager &_ecm) const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<AirPressurePrivate> dataPtr;

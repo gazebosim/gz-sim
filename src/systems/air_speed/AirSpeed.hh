@@ -65,7 +65,8 @@ namespace systems
                             const EntityComponentManager &_ecm) final;
 
     /// Get the resolved topic names
-    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames(
+                const EntityComponentManager &_ecm) const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<AirSpeedPrivate> dataPtr;
