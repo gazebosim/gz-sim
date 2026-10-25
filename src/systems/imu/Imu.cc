@@ -179,16 +179,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
 std::unordered_map<Entity, std::string> Imu::ResolvedTopicNames(
     const EntityComponentManager &_ecm) const
 {
-  std::unordered_map<Entity, std::string> topics;
-  for (const auto &sensor : this->dataPtr->entitySensorMap)
-  {
-    const auto topic = _ecm.Component<components::SensorTopic>(sensor.first);
-    if (topic)
-    {
-      topics.insert(std::make_pair(sensor.first, topic->Data()));
-    }
-  }
-  return topics;
+  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
 }
 
 //////////////////////////////////////////////////
