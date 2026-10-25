@@ -197,3 +197,88 @@ TEST(DetachableJointTest, TopicNamesWithoutNs)
   expectedTopicNames.outputTopic = "/model/child/detachable_joint/state";
   TestTopicNames(sdfString, expectedTopicNames);
 }
+
+TEST(DetachableJointTest, OnlyTopicName)
+{
+  const std::string sdfString = R"(
+    <sdf version='1.10'>
+      <world name='detachable_joint_test_world'>
+        <model name='detachable_joint' namespace='ns'>
+          <link name='parent_link'/>
+          <model name='child'>
+            <link name='child_link'/>
+          </model>
+          <plugin name='gz::sim::systems::DetachableJoint'
+                  filename='gz-sim-detachable-joint-system'>
+            <parent_link>parent_link</parent_link>
+            <child_model>child</child_model>
+            <child_link>child_link</child_link>
+            <topic>test_detach</topic>
+          </plugin>
+        </model>
+      </world>
+    </sdf>)";
+
+  DetachableJoint::TopicNames expectedTopicNames;
+  expectedTopicNames.detachTopic = "ns/test_detach";
+  expectedTopicNames.attachTopic = "ns/detachable_joint/attach";
+  expectedTopicNames.outputTopic = "ns/detachable_joint/state";
+  TestTopicNames(sdfString, expectedTopicNames);
+}
+
+TEST(DetachableJointTest, OnlyDetachTopicName)
+{
+  const std::string sdfString = R"(
+    <sdf version='1.10'>
+      <world name='detachable_joint_test_world'>
+        <model name='detachable_joint' namespace='ns'>
+          <link name='parent_link'/>
+          <model name='child'>
+            <link name='child_link'/>
+          </model>
+          <plugin name='gz::sim::systems::DetachableJoint'
+                  filename='gz-sim-detachable-joint-system'>
+            <parent_link>parent_link</parent_link>
+            <child_model>child</child_model>
+            <child_link>child_link</child_link>
+            <detach_topic>test_detach</detach_topic>
+          </plugin>
+        </model>
+      </world>
+    </sdf>)";
+
+  DetachableJoint::TopicNames expectedTopicNames;
+  expectedTopicNames.detachTopic = "ns/test_detach";
+  expectedTopicNames.attachTopic = "ns/detachable_joint/attach";
+  expectedTopicNames.outputTopic = "ns/detachable_joint/state";
+  TestTopicNames(sdfString, expectedTopicNames);
+}
+
+TEST(DetachableJointTest, TopicAndDetachTopicName)
+{
+  const std::string sdfString = R"(
+    <sdf version='1.10'>
+      <world name='detachable_joint_test_world'>
+        <model name='detachable_joint' namespace='ns'>
+          <link name='parent_link'/>
+          <model name='child'>
+            <link name='child_link'/>
+          </model>
+          <plugin name='gz::sim::systems::DetachableJoint'
+                  filename='gz-sim-detachable-joint-system'>
+            <parent_link>parent_link</parent_link>
+            <child_model>child</child_model>
+            <child_link>child_link</child_link>
+            <topic>test_topic</topic>
+            <detach_topic>test_detach</detach_topic>
+          </plugin>
+        </model>
+      </world>
+    </sdf>)";
+
+  DetachableJoint::TopicNames expectedTopicNames;
+  expectedTopicNames.detachTopic = "ns/test_detach";
+  expectedTopicNames.attachTopic = "ns/detachable_joint/attach";
+  expectedTopicNames.outputTopic = "ns/detachable_joint/state";
+  TestTopicNames(sdfString, expectedTopicNames);
+}
