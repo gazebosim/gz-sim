@@ -108,10 +108,3 @@ TEST(KineticEnergyMonitorTest, DefaultTopicWithoutNamespace)
 {
   TestTopicName(MakeSdf("", ""), "/model/test_model/kinetic_energy");
 }
-
-/////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

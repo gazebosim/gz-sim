@@ -8,8 +8,6 @@ gz_add_system(kinetic-energy-monitor
 gz_build_tests(TYPE UNIT
   SOURCES
     KineticEnergyMonitor_TEST.cc
-  LIB_DEPS
-    gz-transport::gz-transport
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     GZ_IP=127.0.0.1
