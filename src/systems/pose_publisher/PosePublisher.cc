@@ -308,6 +308,9 @@ void PosePublisher::Configure(const Entity &_entity,
           staticPoseTopic);
     }
   }
+
+  gzmsg << "PosePublisher publishing poses on [" << poseTopic << "]"
+        << std::endl;
 }
 
 //////////////////////////////////////////////////
