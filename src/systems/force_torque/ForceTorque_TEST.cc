@@ -62,11 +62,15 @@ TEST(ForceTorqueTest, AbsoluteTopicName)
   <sdf version="1.10">
     <world name="default">
       <model name="force_torque_model" namespace="ns">
-        <link name="link">
+        <link name="link"/>
+        <link name="child_link"/>
+        <joint name="joint" type="fixed">
+          <parent>link</parent>
+          <child>child_link</child>
           <sensor name="force_torque" type="force_torque">
             <topic>/test_sensor_topic</topic>
           </sensor>
-        </link>
+        </joint>
       </model>
     </world>
   </sdf>)";
@@ -80,11 +84,15 @@ TEST(ForceTorqueTest, RelativeTopicName)
   <sdf version="1.10">
     <world name="default">
       <model name="force_torque_model" namespace="ns">
-        <link name="link">
+        <link name="link"/>
+        <link name="child_link"/>
+        <joint name="joint" type="fixed">
+          <parent>link</parent>
+          <child>child_link</child>
           <sensor name="force_torque" type="force_torque">
             <topic>test_sensor_topic</topic>
           </sensor>
-        </link>
+        </joint>
       </model>
     </world>
   </sdf>)";
@@ -98,10 +106,14 @@ TEST(ForceTorqueTest, DefaultTopicName)
   <sdf version="1.10">
     <world name="default">
       <model name="force_torque_model" namespace="ns">
-        <link name="link">
+        <link name="link"/>
+        <link name="child_link"/>
+        <joint name="joint" type="fixed">
+          <parent>link</parent>
+          <child>child_link</child>
           <sensor name="force_torque" type="force_torque">
           </sensor>
-        </link>
+        </joint>
       </model>
     </world>
   </sdf>)";
@@ -115,11 +127,15 @@ TEST(ForceTorqueTest, TopicNamesWithoutNs)
   <sdf version="1.10">
     <world name="default">
       <model name="force_torque_model">
-        <link name="link">
+        <link name="link"/>
+        <link name="child_link"/>
+        <joint name="joint" type="fixed">
+          <parent>link</parent>
+          <child>child_link</child>
           <sensor name="force_torque" type="force_torque">
             <topic>test_sensor_topic</topic>
           </sensor>
-        </link>
+        </joint>
       </model>
     </world>
   </sdf>)";
@@ -130,14 +146,18 @@ TEST(ForceTorqueTest, TopicNamesWithoutNs)
   <sdf version="1.10">
     <world name="default">
       <model name="force_torque_model">
-        <link name="link">
+        <link name="link"/>
+        <link name="child_link"/>
+        <joint name="joint" type="fixed">
+          <parent>link</parent>
+          <child>child_link</child>
           <sensor name="force_torque" type="force_torque">
           </sensor>
-        </link>
+        </joint>
       </model>
     </world>
   </sdf>)";
 
   TestTopicName(sdfString,
-    "model/force_torque_model/link/link/sensor/force_torque/forcetorque");
+    "model/force_torque_model/joint/joint/sensor/force_torque/forcetorque");
 }

@@ -64,6 +64,7 @@ TEST(LogicalCameraTest, AbsoluteTopicName)
       <model name="logical_camera_model" namespace="ns">
         <link name="link">
           <sensor name="logical_camera" type="logical_camera">
+            <logical_camera/>
             <topic>/test_sensor_topic</topic>
           </sensor>
         </link>
@@ -82,6 +83,7 @@ TEST(LogicalCameraTest, RelativeTopicName)
       <model name="logical_camera_model" namespace="ns">
         <link name="link">
           <sensor name="logical_camera" type="logical_camera">
+            <logical_camera/>
             <topic>test_sensor_topic</topic>
           </sensor>
         </link>
@@ -100,6 +102,7 @@ TEST(LogicalCameraTest, DefaultTopicName)
       <model name="logical_camera_model" namespace="ns">
         <link name="link">
           <sensor name="logical_camera" type="logical_camera">
+            <logical_camera/>
           </sensor>
         </link>
       </model>
@@ -117,6 +120,7 @@ TEST(LogicalCameraTest, TopicNamesWithoutNs)
       <model name="logical_camera_model">
         <link name="link">
           <sensor name="logical_camera" type="logical_camera">
+            <logical_camera/>
             <topic>test_sensor_topic</topic>
           </sensor>
         </link>
@@ -132,6 +136,7 @@ TEST(LogicalCameraTest, TopicNamesWithoutNs)
       <model name="logical_camera_model">
         <link name="link">
           <sensor name="logical_camera" type="logical_camera">
+            <logical_camera/>
           </sensor>
         </link>
       </model>
