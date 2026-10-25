@@ -143,8 +143,9 @@ void Breadcrumbs::Configure(const Entity &_entity,
       "/model/" + this->model.Name(_ecm);
   topicOptions.defaultTopicSuffix =
       "breadcrumbs/" + this->modelRoot.Model()->Name() + "/deploy";
-  this->topic = resolvedTopicName(_sdf, topicOptions);
-  if (this->topic.empty())
+  auto &topicNames = this->resolvedTopicNames;
+  topicNames.deployTopic = resolvedTopicName(_sdf, topicOptions);
+  if (topicNames.deployTopic.empty())
   {
     gzerr << "Breadcrumbs failed to find a valid deploy topic. Check the "
           << "<topic> and namespace attribute in the SDF." << std::endl;
@@ -157,27 +158,33 @@ void Breadcrumbs::Configure(const Entity &_entity,
   // Enable topic statistics when requested.
   if (this->topicStatistics)
   {
-    if (!node.EnableStats(this->topic, true))
+    if (!node.EnableStats(topicNames.deployTopic, true))
     {
       gzerr << "Unable to enable topic statistics on topic["
-        << this->topic << "]." << std::endl;
+        << topicNames.deployTopic << "]." << std::endl;
       this->topicStatistics = false;
     }
   }
 
-  this->node.Subscribe(this->topic, &Breadcrumbs::OnDeploy, this);
-  this->remainingTopic = this->topic + "/remaining";
+  this->node.Subscribe(topicNames.deployTopic, &Breadcrumbs::OnDeploy, this);
+  topicNames.remainingTopic = topicNames.deployTopic + "/remaining";
   this->remainingPub =
-      this->node.Advertise<msgs::Int32>(this->remainingTopic);
+      this->node.Advertise<msgs::Int32>(topicNames.remainingTopic);
 
   gzmsg << "Breadcrumbs subscribing to deploy messages on ["
-    << this->topic << "]" << std::endl;
+    << topicNames.deployTopic << "]" << std::endl;
 
   this->creator = std::make_unique<SdfEntityCreator>(_ecm, _eventMgr);
 
   this->worldEntity = _ecm.EntityByComponents(components::World());
 
   this->initialized = true;
+}
+
+//////////////////////////////////////////////////
+Breadcrumbs::TopicNames Breadcrumbs::ResolvedTopicNames() const
+{
+  return this->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
@@ -449,7 +456,7 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
     gzmsg << "Received breadcrumb deployment for " <<
       this->modelRoot.Model()->Name() << std::endl;
     std::optional<transport::TopicStatistics> stats =
-      this->node.TopicStats(this->topic);
+      this->node.TopicStats(this->resolvedTopicNames.deployTopic);
     if (stats)
     {
       if (stats->DroppedMsgCount() > 0)
@@ -462,7 +469,7 @@ void Breadcrumbs::OnDeploy(const msgs::Empty &)
     else
     {
       gzerr << "Unable to get topic statistics for topic["
-        << this->topic << "]." << std::endl;
+        << this->resolvedTopicNames.deployTopic << "]." << std::endl;
     }
   }
 }

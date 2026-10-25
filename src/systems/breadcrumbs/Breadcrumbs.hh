@@ -93,6 +93,16 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names.
+    public: struct TopicNames
+    {
+      /// \brief Deploy topic name.
+      public: std::string deployTopic;
+
+      /// \brief Remaining deployments topic name.
+      public: std::string remainingTopic;
+    };
+
     /// \brief Constructor
     public: Breadcrumbs() = default;
 
@@ -106,6 +116,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names.
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Callback to deployment topic
     private: void OnDeploy(const msgs::Empty &_msg);
@@ -176,11 +189,8 @@ namespace systems
     /// \brief True when topic statistics are enabled.
     public: bool topicStatistics{false};
 
-    /// \brief Name of the deploy topic.
-    public: std::string topic;
-
-    /// \brief Name of the remaining deployments topic.
-    public: std::string remainingTopic;
+    /// \brief Resolved topic names.
+    private: TopicNames resolvedTopicNames;
   };
   }
 }

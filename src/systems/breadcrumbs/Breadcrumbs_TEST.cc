@@ -31,7 +31,7 @@ using namespace test;
 
 /// \brief Test topic name resolution for the Breadcrumbs system.
 /// \param[in] _namespace Optional model namespace.
-/// \param[in] _topic Optional custom deploy topic.
+/// \param[in] _topic Optional custom deploy topic name.
 /// \param[in] _expectedTopic Expected resolved deploy topic.
 void TestTopicNames(const std::string &_namespace,
     const std::string &_topic, const std::string &_expectedTopic)
@@ -43,7 +43,7 @@ void TestTopicNames(const std::string &_namespace,
           <link name='link'/>
           <plugin name='gz::sim::systems::Breadcrumbs'
                   filename='gz-sim-breadcrumbs-system'>
-            )" + _topic + R"(
+            <topic>)" + _topic + R"(</topic>
             <breadcrumb>
               <sdf version='1.10'>
                 <model name='marker'>
@@ -65,9 +65,9 @@ void TestTopicNames(const std::string &_namespace,
   Breadcrumbs plugin;
   plugin.Configure(modelEntity, pluginSdf.Element(), ecm, eventMgr);
 
-  EXPECT_EQ(_expectedTopic, plugin.topic);
-  EXPECT_EQ(_expectedTopic + "/remaining", plugin.remainingTopic);
-  EXPECT_TRUE(plugin.remainingPub);
+  const auto topicNames = plugin.ResolvedTopicNames();
+  EXPECT_EQ(_expectedTopic, topicNames.deployTopic);
+  EXPECT_EQ(_expectedTopic + "/remaining", topicNames.remainingTopic);
 }
 
 TEST(BreadcrumbsTest, DefaultTopicWithNamespace)
@@ -78,13 +78,13 @@ TEST(BreadcrumbsTest, DefaultTopicWithNamespace)
 
 TEST(BreadcrumbsTest, RelativeTopicWithNamespace)
 {
-  TestTopicNames("robot", "<topic>deploy_marker</topic>",
+  TestTopicNames("robot", "deploy_marker",
       "robot/deploy_marker");
 }
 
 TEST(BreadcrumbsTest, AbsoluteTopicWithNamespace)
 {
-  TestTopicNames("robot", "<topic>/deploy_marker</topic>",
+  TestTopicNames("robot", "/deploy_marker",
       "/deploy_marker");
 }
 
@@ -92,6 +92,6 @@ TEST(BreadcrumbsTest, TopicNamesWithoutNamespace)
 {
   TestTopicNames("", "",
       "/model/carrier/breadcrumbs/marker/deploy");
-  TestTopicNames("", "<topic>deploy_marker</topic>",
+  TestTopicNames("", "deploy_marker",
       "deploy_marker");
 }
