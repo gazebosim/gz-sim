@@ -1742,6 +1742,8 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
   }
   else
   {
+  // RGB-D cameras use the scoped sensor name as the base topic.
+  // gz-sensors adds suffixes like /image and /depth_image to this base topic.
     topicOptions.defaultTopicSuffix = defaultPrefix;
   }
 
