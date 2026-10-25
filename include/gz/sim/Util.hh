@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -32,6 +33,7 @@
 #include <sdf/config.hh>
 
 #include "gz/sim/components/Environment.hh"
+#include "gz/sim/components/Sensor.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
@@ -115,6 +117,30 @@ namespace gz
     std::string GZ_SIM_VISIBLE resolvedTopicName(
         const std::shared_ptr<const sdf::Element> &_sdf,
         const TopicNameOptions &_options);
+
+    /// \brief Get the topic names of sensor entities in a map.
+    /// Entities without a SensorTopic component are omitted.
+    /// \param[in] _ecm Immutable reference to ECM.
+    /// \param[in] _sensors Map keyed by sensor entity.
+    /// \return Sensor entity to topic name map.
+    template <typename T>
+    std::unordered_map<Entity, std::string> sensorTopicNames(
+        const EntityComponentManager &_ecm,
+        const std::unordered_map<Entity, T> &_sensors)
+    {
+      std::unordered_map<Entity, std::string> topics;
+      topics.reserve(_sensors.size());
+      for (const auto &sensor : _sensors)
+      {
+        const auto topic =
+            _ecm.Component<components::SensorTopic>(sensor.first);
+        if (topic)
+        {
+          topics.emplace(sensor.first, topic->Data());
+        }
+      }
+      return topics;
+    }
 
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this
