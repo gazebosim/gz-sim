@@ -11,8 +11,6 @@ gz_build_tests(TYPE UNIT
   SOURCES
     CameraVideoRecorder_TEST.cc
   LIB_DEPS
-    gz-common::gz-common
-    gz-rendering::gz-rendering
     gz-sim-rendering
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}

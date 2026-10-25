@@ -68,14 +68,20 @@ namespace systems
     public ISystemConfigure,
     public ISystemPostUpdate
   {
-    /// \brief Resolved topic and service names
-    public: struct TopicNames
+    /// \brief Resolved interface names
+    public: struct InterfaceNames
     {
       /// \brief Video recorder service
       public: std::string service;
 
       /// \brief Camera sensor topic
       public: std::string sensorTopic;
+
+      /// \brief Recorder stats topic
+      public: std::string statsTopic;
+
+      /// \brief Marker topic
+      public: std::string markerTopic;
     };
 
     /// \brief Constructor
@@ -94,9 +100,9 @@ namespace systems
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
 
-    /// \brief Get the resolved topic and service names
-    /// \return Resolved topic and service names
-    public: TopicNames ResolvedTopicNames() const;
+    /// \brief Get the resolved interface names
+    /// \return Resolved interface names
+    public: InterfaceNames ResolvedInterfaceNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<CameraVideoRecorderPrivate> dataPtr;

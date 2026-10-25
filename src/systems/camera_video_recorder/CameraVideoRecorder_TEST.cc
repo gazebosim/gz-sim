@@ -34,8 +34,6 @@
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
 
-#include "helpers/UnitTestUtil.hh"
-
 using namespace gz;
 using namespace sim;
 using namespace systems;
@@ -129,11 +127,27 @@ void LoadCameraSensorContext(const std::string &_sdfString,
 }
 
 /////////////////////////////////////////////////
+/// \brief Build the expected resolved interface names
+/// \param[in] _service Video recorder service
+/// \param[in] _sensorTopic Camera sensor topic
+/// \return Expected resolved interface names
+CameraVideoRecorder::InterfaceNames ExpectedNames(
+    const std::string &_service, const std::string &_sensorTopic)
+{
+  CameraVideoRecorder::InterfaceNames names;
+  names.service = _service;
+  names.sensorTopic = _sensorTopic;
+  names.statsTopic = _sensorTopic + "/stats";
+  names.markerTopic = _sensorTopic + "/marker";
+  return names;
+}
+
+/////////////////////////////////////////////////
 /// \brief Configure a CameraVideoRecorder system and check resolved names
 /// \param[in] _sdfString SDF world string
-/// \param[in] _expected Expected resolved topic and service names
-void TestTopicNames(const std::string &_sdfString,
-    const CameraVideoRecorder::TopicNames &_expected)
+/// \param[in] _expected Expected resolved interface names
+void TestInterfaceNames(const std::string &_sdfString,
+    const CameraVideoRecorder::InterfaceNames &_expected)
 {
   EntityComponentManager ecm;
   EventManager eventMgr;
@@ -145,66 +159,56 @@ void TestTopicNames(const std::string &_sdfString,
   CameraVideoRecorder system;
   system.Configure(entity, pluginSdf.Element(), ecm, eventMgr);
 
-  const auto names = system.ResolvedTopicNames();
+  const auto names = system.ResolvedInterfaceNames();
   EXPECT_EQ(_expected.service, names.service);
   EXPECT_EQ(_expected.sensorTopic, names.sensorTopic);
+  EXPECT_EQ(_expected.statsTopic, names.statsTopic);
+  EXPECT_EQ(_expected.markerTopic, names.markerTopic);
 }
 
 /////////////////////////////////////////////////
 TEST(CameraVideoRecorderTest, AbsoluteTopicsWithNamespace)
 {
-  CameraVideoRecorder::TopicNames expected;
-  expected.service = "/absolute/record_video";
-  expected.sensorTopic = "/absolute/image";
+  const auto expected = ExpectedNames("/absolute/record_video",
+      "/absolute/image");
 
-  TestTopicNames(MakeSdf("ns", "/absolute/image", "/absolute/record_video"),
-      expected);
+  TestInterfaceNames(
+      MakeSdf("ns", "/absolute/image", "/absolute/record_video"), expected);
 }
 
 /////////////////////////////////////////////////
 TEST(CameraVideoRecorderTest, RelativeTopicsWithNamespace)
 {
-  CameraVideoRecorder::TopicNames expected;
-  expected.service = "ns/test_record_video";
-  expected.sensorTopic = "ns/test_image";
+  const auto expected = ExpectedNames("ns/test_record_video",
+      "ns/test_image");
 
-  TestTopicNames(MakeSdf("ns", "test_image", "test_record_video"), expected);
+  TestInterfaceNames(MakeSdf("ns", "test_image", "test_record_video"),
+      expected);
 }
 
 /////////////////////////////////////////////////
 TEST(CameraVideoRecorderTest, DefaultTopicsWithNamespace)
 {
-  CameraVideoRecorder::TopicNames expected;
-  expected.service = "ns/record_video";
-  expected.sensorTopic = "ns/image";
+  const auto expected = ExpectedNames("ns/record_video", "ns/image");
 
-  TestTopicNames(MakeSdf("ns", "", ""), expected);
+  TestInterfaceNames(MakeSdf("ns", "", ""), expected);
 }
 
 /////////////////////////////////////////////////
 TEST(CameraVideoRecorderTest, RelativeTopicsWithoutNamespace)
 {
-  CameraVideoRecorder::TopicNames expected;
-  expected.service = "test_record_video";
-  expected.sensorTopic = "test_image";
+  const auto expected = ExpectedNames("test_record_video", "test_image");
 
-  TestTopicNames(MakeSdf("", "test_image", "test_record_video"), expected);
+  TestInterfaceNames(MakeSdf("", "test_image", "test_record_video"),
+      expected);
 }
 
 /////////////////////////////////////////////////
 TEST(CameraVideoRecorderTest, DefaultTopicsWithoutNamespace)
 {
-  CameraVideoRecorder::TopicNames expected;
-  expected.service =
-      "model/test_model/link/test_link/sensor/camera/record_video";
-  expected.sensorTopic = "model/test_model/link/test_link/sensor/camera/image";
+  const auto expected = ExpectedNames(
+      "model/test_model/link/test_link/sensor/camera/record_video",
+      "model/test_model/link/test_link/sensor/camera/image");
 
-  TestTopicNames(MakeSdf("", "", ""), expected);
-}
-
-/////////////////////////////////////////////////
-int main(int argc, char **argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  TestInterfaceNames(MakeSdf("", "", ""), expected);
 }
