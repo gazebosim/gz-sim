@@ -49,8 +49,9 @@ void TestTopicName(const std::string &_sdfString,
   info.paused = true;
   plugin.PreUpdate(info, ecm);
   plugin.Update(info, ecm);
+  plugin.PreUpdate(info, ecm);
 
-  const auto topics = plugin.ResolvedTopicNames();
+  const auto topics = plugin.ResolvedTopicNames(ecm);
   ASSERT_EQ(1u, topics.size());
   EXPECT_EQ(topics.begin()->second, _expectedTopicName);
 }

@@ -98,7 +98,8 @@ class EnvironmentalSensorSystem:
     const gz::sim::EntityComponentManager &_ecm) final;
 
   /// Get the resolved topic names
-  public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
+  public: std::unordered_map<Entity, std::string> ResolvedTopicNames(
+      const EntityComponentManager &_ecm) const;
 
   private: std::unique_ptr<EnvironmentalSensorSystemPrivate> dataPtr;
 };

@@ -365,8 +365,6 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
   public: std::unordered_map<Entity, std::shared_ptr<EnvironmentalSensor>>
     entitySensorMap;
 
-  public: std::unordered_map<Entity, std::string> resolvedTopicNames;
-
   public: std::unordered_set<std::string> fields;
 
   public: void RemoveSensorEntities(
@@ -380,12 +378,6 @@ class gz::sim::EnvironmentalSensorSystemPrivate {
           {
             gzerr << "Internal error, missing environment sensor for entity ["
                           << _entity << "]" << std::endl;
-          }
-          if (this->resolvedTopicNames.erase(_entity) == 0)
-          {
-            gzerr << "Internal error, missing resolved environment sensor "
-                          << "topic name for entity [" << _entity << "]"
-                          << std::endl;
           }
           return true;
         });
@@ -449,8 +441,6 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
         topicNameOptions.defaultTopicPrefix = defaultPrefix;
         topicNameOptions.defaultTopicSuffix = type;
         auto topic = resolvedTopicName(data.Element(), topicNameOptions);
-        this->dataPtr->resolvedTopicNames.insert(
-          std::make_pair(_entity, topic));
         data.SetTopic(topic);
 
         gz::sensors::SensorFactory sensorFactory;
@@ -517,9 +507,19 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
 
 //////////////////////////////////////////////////
 std::unordered_map<Entity, std::string>
-  EnvironmentalSensorSystem::ResolvedTopicNames() const
+  EnvironmentalSensorSystem::ResolvedTopicNames(
+      const EntityComponentManager &_ecm) const
 {
-  return this->dataPtr->resolvedTopicNames;
+  std::unordered_map<Entity, std::string> topics;
+  for (const auto &sensor : this->dataPtr->entitySensorMap)
+  {
+    const auto topic = _ecm.Component<components::SensorTopic>(sensor.first);
+    if (topic)
+    {
+      topics.insert(std::make_pair(sensor.first, topic->Data()));
+    }
+  }
+  return topics;
 }
 
 GZ_ADD_PLUGIN(
