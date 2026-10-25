@@ -733,16 +733,15 @@ std::unordered_map<Entity, std::string>
   DopplerVelocityLogSystem::ResolvedTopicNames(
       const EntityComponentManager &_ecm) const
 {
-  std::unordered_map<Entity, std::string> topics;
+  std::unordered_map<Entity, std::monostate> sensors;
+  sensors.reserve(this->dataPtr->knownSensorEntities.size());
+  // Convert the tracked sensor entities to the map
+  // expected by sensorTopicNames.
   for (const auto entity : this->dataPtr->knownSensorEntities)
   {
-    const auto topic = _ecm.Component<components::SensorTopic>(entity);
-    if (topic)
-    {
-      topics.insert(std::make_pair(entity, topic->Data()));
-    }
+    sensors.emplace(entity, std::monostate{});
   }
-  return topics;
+  return sensorTopicNames(_ecm, sensors);
 }
 
 GZ_ADD_PLUGIN(DopplerVelocityLogSystem,
