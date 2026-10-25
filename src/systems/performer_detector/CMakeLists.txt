@@ -8,8 +8,6 @@ gz_add_system(performer-detector
 gz_build_tests(TYPE UNIT
   SOURCES
     PerformerDetector_TEST.cc
-  LIB_DEPS
-    gz-common::gz-common
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     GZ_IP=127.0.0.1
