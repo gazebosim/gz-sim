@@ -352,6 +352,8 @@ void FreeSpaceExplorer::Configure(
   {
     this->dataPtr->node.Subscribe(resolvedTopicNames.lidarTopic,
       &FreeSpaceExplorer::Implementation::OnLaserScanMsg, this->dataPtr.get());
+    gzmsg << "Loaded lidar exploration plugin listening on ["
+      << resolvedTopicNames.lidarTopic << "] for lidar messages\n";
   }
 
   // Resolve the start topic
@@ -370,6 +372,8 @@ void FreeSpaceExplorer::Configure(
   {
     this->dataPtr->node.Subscribe(resolvedTopicNames.startTopic,
       &FreeSpaceExplorer::Implementation::OnStartMsg, this->dataPtr.get());
+    gzmsg << "FreeSpaceExplorer listening on ["
+      << resolvedTopicNames.startTopic << "] for start messages\n";
   }
 
   // Resolve the occupancy map image topic
@@ -389,10 +393,9 @@ void FreeSpaceExplorer::Configure(
     this->dataPtr->imagePub =
       this->dataPtr->node.Advertise<gz::msgs::Image>(
           resolvedTopicNames.imageTopic);
+    gzmsg << "FreeSpaceExplorer publishing the occupancy map on ["
+      << resolvedTopicNames.imageTopic << "]\n";
   }
-
-  gzmsg << "Loaded lidar exploration plugin listening on ["
-    << resolvedTopicNames.lidarTopic << "] for lidar messages\n";
 }
 
 /////////////////////////////////////////////////

@@ -13,7 +13,6 @@ gz_build_tests(TYPE UNIT
   LIB_DEPS
     gz-common::gz-common
     gz-math::gz-math
-    gz-plugin::core
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
     GZ_IP=127.0.0.1
