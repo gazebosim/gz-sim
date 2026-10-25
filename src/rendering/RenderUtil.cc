@@ -1745,13 +1745,7 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
     topicOptions.defaultTopicSuffix = defaultPrefix;
   }
 
-  // ToElement() adds the "__default__" topic placeholder. Remove it when no
-  // topic was specified so resolvedTopicName() uses the configured default.
-  auto sdfElement = _sdfData.ToElement();
-  if (_sdfData.Topic().empty())
-  {
-    sdfElement->RemoveChild(sdfElement->GetElement("topic"));
-  }
+  auto sdfElement = _sdfData.Element();
   sdfDataCopy.SetTopic(resolvedTopicName(sdfElement, topicOptions));
 
   if (auto *camera = sdfDataCopy.CameraSensor())
@@ -1762,7 +1756,7 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
       cameraInfoTopicOptions.sdfElementName = "camera_info_topic";
       cameraInfoTopicOptions.topicNamespace = ns;
       camera->SetCameraInfoTopic(resolvedTopicName(
-          camera->ToElement(), cameraInfoTopicOptions));
+          camera->Element(), cameraInfoTopicOptions));
     }
 
     if (camera->Triggered() && !camera->TriggerTopic().empty())
@@ -1771,7 +1765,7 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
       triggerTopicOptions.sdfElementName = "trigger_topic";
       triggerTopicOptions.topicNamespace = ns;
       camera->SetTriggerTopic(resolvedTopicName(
-          camera->ToElement(), triggerTopicOptions));
+          camera->Element(), triggerTopicOptions));
     }
   }
 
