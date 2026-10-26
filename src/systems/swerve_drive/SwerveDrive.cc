@@ -188,6 +188,9 @@ class gz::sim::systems::SwerveDrivePrivate
   /// \brief Model interfaces
   public: Model model{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: SwerveDrive::TopicNames resolvedTopicNames;
+
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
 
@@ -239,6 +242,9 @@ SwerveDrive::SwerveDrive()
   : dataPtr(std::make_unique<SwerveDrivePrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+SwerveDrive::~SwerveDrive() = default;
 
 //////////////////////////////////////////////////
 void SwerveDrive::Configure(const Entity &_entity,
@@ -424,40 +430,59 @@ void SwerveDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelbase,
       this->dataPtr->wheelRadius);
 
-  // Subscribe to commands
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
+  const std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  const std::string defaultPrefix =
+      "/model/" + this->dataPtr->model.Name(_ecm);
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "topic";
+  cmdVelTopicOptions.topicNamespace = ns;
+  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+  resolvedTopicNames.cmdVelTopic = resolvedTopicName(_sdf,
+      cmdVelTopicOptions);
+  if (resolvedTopicNames.cmdVelTopic.empty())
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    gzerr << "SwerveDrive failed to find a valid topic name for twist "
+          << "messages. Check the <topic> and namespace attribute in the SDF."
+          << std::endl;
+    return;
   }
-  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
-  auto topic = validTopic(topics);
+  this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
+      &SwerveDrivePrivate::OnCmdVel, this->dataPtr.get());
 
-  this->dataPtr->node.Subscribe(topic, &SwerveDrivePrivate::OnCmdVel,
-      this->dataPtr.get());
-
-  std::vector<std::string> odomTopics;
-  if (_sdf->HasElement("odom_topic"))
+  TopicNameOptions odomTopicOptions;
+  odomTopicOptions.sdfElementName = "odom_topic";
+  odomTopicOptions.topicNamespace = ns;
+  odomTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomTopicOptions.defaultTopicSuffix = "odometry";
+  resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
+  if (resolvedTopicNames.odomTopic.empty())
   {
-    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+    gzerr << "SwerveDrive failed to find a valid topic name for odometry "
+          << "messages. Check the <odom_topic> and namespace attribute in "
+          << "the SDF." << std::endl;
+    return;
   }
-  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/odometry");
-  auto odomTopic = validTopic(odomTopics);
-
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic);
+      resolvedTopicNames.odomTopic);
 
-  std::vector<std::string> tfTopics;
-  if (_sdf->HasElement("tf_topic"))
+  TopicNameOptions tfTopicOptions;
+  tfTopicOptions.sdfElementName = "tf_topic";
+  tfTopicOptions.topicNamespace = ns;
+  tfTopicOptions.defaultTopicPrefix = defaultPrefix;
+  tfTopicOptions.defaultTopicSuffix = "tf";
+  resolvedTopicNames.tfTopic = resolvedTopicName(_sdf, tfTopicOptions);
+  if (resolvedTopicNames.tfTopic.empty())
   {
-    tfTopics.push_back(_sdf->Get<std::string>("tf_topic"));
+    gzerr << "SwerveDrive failed to find a valid topic name for tf messages. "
+          << "Check the <tf_topic> and namespace attribute in the SDF."
+          << std::endl;
+    return;
   }
-  tfTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/tf");
-  auto tfTopic = validTopic(tfTopics);
-
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-      tfTopic);
+      resolvedTopicNames.tfTopic);
 
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
@@ -465,14 +490,23 @@ void SwerveDrive::Configure(const Entity &_entity,
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
 
-  gzmsg << "SwerveDrive publishing odom messages on [" << odomTopic << "]"
+  gzmsg << "SwerveDrive publishing odom messages on ["
+        << resolvedTopicNames.odomTopic << "]"
          << std::endl;
 
-  gzmsg << "SwerveDrive publishing tf messages on [" << tfTopic << "]"
+  gzmsg << "SwerveDrive publishing tf messages on ["
+        << resolvedTopicNames.tfTopic << "]"
          << std::endl;
 
-  gzmsg << "SwerveDrive subscribing to twist messages on [" << topic << "]"
+  gzmsg << "SwerveDrive subscribing to twist messages on ["
+        << resolvedTopicNames.cmdVelTopic << "]"
          << std::endl;
+}
+
+//////////////////////////////////////////////////
+SwerveDrive::TopicNames SwerveDrive::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
