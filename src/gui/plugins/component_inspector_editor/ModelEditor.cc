@@ -17,10 +17,12 @@
 
 #include <iostream>
 #include <list>
+#include <mutex>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <gz/common/Console.hh>
@@ -63,7 +65,7 @@ namespace gz::sim
     public: std::string entityType;
 
     /// \brief Parent entity to add the entity to
-    public: Entity parentEntity;
+    public: Entity parentEntity{kNullEntity};
 
     /// \brief Additional entity-specific data needed
     public: std::unordered_map<std::string, std::string> data;
@@ -112,19 +114,11 @@ namespace gz::sim
     /// \brief Entity Creator API.
     public: std::unique_ptr<SdfEntityCreator> entityCreator{nullptr};
 
-    /// \brief A record of the ids in the editor
-    /// for easy deletion of visuals later
-    public: std::vector<Entity> entityIds;
-
-    /// \brief Mutex to protect the entity sdf list
+    /// \brief Mutex to protect the entitiesToAdd
     public: std::mutex mutex;
 
-    /// \brief A map of links to add to the ECM and the parent entity names
-    // public: std::vector<std::pair<sdf::Link, std::string>> linksToAdd;
+    /// \brief Entities to add to the ECM
     public: std::vector<EntityToAdd> entitiesToAdd;
-
-    /// \brief Sensors to add to the ECM
-    public: std::vector<sdf::Sensor> sensorsToAdd;
 
     /// \brief Event Manager
     public: EventManager eventMgr;
@@ -171,8 +165,9 @@ void ModelEditor::Update(const UpdateInfo &,
   {
     if (eta.parentEntity == kNullEntity)
     {
-      gzerr << "Parent entity not defined." << std::endl;
-       continue;
+      gzerr << "Parent entity not defined for "
+            << eta.entityType << ": " << eta.geomOrLightType << std::endl;
+      continue;
     }
 
     if (eta.entityType == "link")
@@ -217,6 +212,10 @@ void ModelEditor::Update(const UpdateInfo &,
         _ecm.CreateComponent(eta.parentEntity, components::Recreate());
         entities.push_back(entity);
       }
+    }
+    else
+    {
+      gzerr << "Unknown entity type to create: " << eta.entityType << std::endl;
     }
   }
 
@@ -424,7 +423,7 @@ std::optional<sdf::Link> ModelEditorPrivate::CreateLink(
   int64_t counter = 0;
   while (linkEnt)
   {
-    linkName = std::string("link") + "_" + std::to_string(++counter);
+    linkName = std::string("link_") + std::to_string(++counter);
     linkEnt = _ecm.EntityByComponents(
         components::ParentEntity(_eta.parentEntity),
         components::Name(linkName));
@@ -525,7 +524,7 @@ std::optional<sdf::Joint> ModelEditorPrivate::CreateJoint(
   int64_t counter = 0;
   while (jointEnt)
   {
-    jointName = std::string("joint") + "_" + std::to_string(++counter);
+    jointName = std::string("joint_") + std::to_string(++counter);
     jointEnt = _ecm.EntityByComponents(
         components::ParentEntity(_eta.parentEntity),
         components::Name(jointName));
@@ -541,15 +540,12 @@ void ModelEditorPrivate::HandleAddEntity(const std::string &_geomOrLightType,
   const std::string &_type, Entity _parentEntity,
   const std::unordered_map<std::string, std::string> &_data)
 {
-  std::lock_guard<std::mutex> lock(this->mutex);
-  std::string entType = common::lowercase(_type);
-  std::string geomLightType = common::lowercase(_geomOrLightType);
-
   EntityToAdd eta;
-  eta.entityType = entType;
-  eta.geomOrLightType = geomLightType;
+  eta.entityType = common::lowercase(_type);
+  eta.geomOrLightType = common::lowercase(_geomOrLightType);
   eta.parentEntity = _parentEntity;
   eta.data = _data;
 
-  this->entitiesToAdd.push_back(eta);
+  std::lock_guard<std::mutex> lock(this->mutex);
+  this->entitiesToAdd.push_back(std::move(eta));
 }

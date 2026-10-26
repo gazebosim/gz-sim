@@ -494,6 +494,7 @@ gz_sim_system_libraries(
             "src/systems/breadcrumbs/**/*.cc",
             "src/systems/breadcrumbs/**/*.hh",
         ],
+        exclude = ["src/systems/breadcrumbs/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-breadcrumbs-system.so",
     static_lib_name = "gz-sim-breadcrumbs-system-static",
@@ -508,6 +509,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+breadcrumbs_test_sources = glob([
+    "src/systems/breadcrumbs/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-breadcrumbs-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in breadcrumbs_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -637,6 +657,7 @@ gz_sim_system_libraries(
             "src/systems/detachable_joint/**/*.cc",
             "src/systems/detachable_joint/**/*.hh",
         ],
+        exclude = ["src/systems/detachable_joint/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-detachable-joint-system.so",
     static_lib_name = "gz-sim-detachable-joint-system-static",
@@ -650,6 +671,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+detachable_joint_test_sources = glob([
+    "src/systems/detachable_joint/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-detachable-joint-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in detachable_joint_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -884,6 +924,7 @@ gz_sim_system_libraries(
             "src/systems/free_space_explorer/**/*.cc",
             "src/systems/free_space_explorer/**/*.hh",
         ],
+        exclude = ["src/systems/free_space_explorer/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-free-space_explorer--system.so",
     static_lib_name = "gz-sim-free-space-explorer-system-static",
@@ -899,6 +940,25 @@ gz_sim_system_libraries(
         "@gz-utils//:ImplPtr",
     ],
 )
+
+free_space_explorer_test_sources = glob([
+    "src/systems/free_space_explorer/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-free-space-explorer-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in free_space_explorer_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
