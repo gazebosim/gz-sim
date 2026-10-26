@@ -415,7 +415,7 @@ void AckermannSteering::Configure(const Entity &_entity,
     std::string subTopic = _sdf->Get<std::string>("sub_topic");
     subTopic.erase(0, subTopic.find_first_not_of('/'));
     cmdVelTopicOptions.defaultTopicSuffix = subTopic;
-    gzwarn << "The <sub_topic> element is deprecated. Use <topic> together"
+    gzwarn << "The <sub_topic> element is deprecated. Use <topic> together "
       "with the model namespace to configure the desired topic name instead."
       << std::endl;
   }
@@ -513,7 +513,7 @@ void AckermannSteering::Configure(const Entity &_entity,
     if (resolvedTopicNames.tfTopic.empty())
     {
       gzerr << "AckermannSteering failed to find a valid topic name for "
-            << "tf messages. Check the <tf_topic> and the namespace attribute"
+            << "tf messages. Check the <tf_topic> and the namespace attribute "
             << "in the SDF." << std::endl;
       return;
     }

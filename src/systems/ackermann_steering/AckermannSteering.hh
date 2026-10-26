@@ -117,7 +117,7 @@ namespace systems
   /// The sub_topic is instead prefixed with the namespace if one is set.
   ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
+  /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`. The custom topic is
   /// then prefixed with the namespace if it does not start with `/`, or
   /// remains unchanged if it starts with `/`.
@@ -162,9 +162,6 @@ namespace systems
     {
       /// \brief Command topic name
       public: std::string cmdTopic;
-
-      /// \brief Enable/disable topic name
-      public: std::string enableTopic;
 
       /// \brief Odometry topic name
       public: std::string odomTopic;
