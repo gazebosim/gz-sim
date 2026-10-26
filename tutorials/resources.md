@@ -80,10 +80,11 @@ uses a plugin architecture and its render engines are
 built as plugins that are loaded at run time using
 [Gazebo Plugin](https://gazebosim.org/libs/plugin).
 
-At the moment, Gazebo Rendering will only look for render engine plugin
-shared libraries installed within its `<install_prefix>/lib` directory.
-Likewise, the resources used by these engines are located in Gazebo
-Rendering's `<install_prefix>/share` directory.
+Gazebo Rendering looks for render engine plugin shared libraries installed
+within its `<install_prefix>/lib` directory. Gazebo Sim also looks for custom
+render engine plugins in directories listed in the
+`GZ_SIM_RENDER_ENGINE_PATH` environment variable. The resources used by these
+engines are located in Gazebo Rendering's `<install_prefix>/share` directory.
 
 ### Sensors
 
