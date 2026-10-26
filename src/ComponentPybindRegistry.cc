@@ -47,6 +47,11 @@ class ComponentPybindRegistry::Implementation
     ComponentPybindRegistry::SetterFn setter;
     ComponentPybindRegistry::CreatorFn creator;
     ComponentPybindRegistry::DefaultCreatorFn defaultCreator;
+    ComponentPybindRegistry::RawGetterFn rawGetter;
+    /// \brief Owned copy of the component name. The `const char *` passed to
+    /// Register points into the registering DSO and dangles once that DSO
+    /// unloads, while the registry outlives individual loaders.
+    std::string name;
   };
 
   public: mutable std::shared_mutex mutex;
@@ -87,12 +92,15 @@ std::string ComponentPybindRegistry::CleanName(const std::string &_name)
 void ComponentPybindRegistry::Register(ComponentTypeId _typeId, uintptr_t _id,
                                        GetterFn _getter, SetterFn _setter,
                                        CreatorFn _creator,
-                                       DefaultCreatorFn _defaultCreator)
+                                       DefaultCreatorFn _defaultCreator,
+                                       RawGetterFn _rawGetter,
+                                       const char *_name)
 {
   std::unique_lock<std::shared_mutex> lock(this->dataPtr->mutex);
   this->dataPtr->ops[_typeId].push_front(
       {_id, std::move(_getter), std::move(_setter), std::move(_creator),
-       std::move(_defaultCreator)});
+       std::move(_defaultCreator), _rawGetter,
+       _name ? std::string(_name) : std::string()});
 }
 
 /////////////////////////////////////////////////
@@ -157,6 +165,28 @@ ComponentPybindRegistry::DefaultCreator(ComponentTypeId _typeId) const
   if (it == this->dataPtr->ops.end() || it->second.empty())
     return nullptr;
   return it->second.front().defaultCreator;
+}
+
+/////////////////////////////////////////////////
+ComponentPybindRegistry::RawGetterFn ComponentPybindRegistry::RawGetter(
+    ComponentTypeId _typeId) const
+{
+  std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it == this->dataPtr->ops.end() || it->second.empty())
+    return nullptr;
+  return it->second.front().rawGetter;
+}
+
+/////////////////////////////////////////////////
+std::string ComponentPybindRegistry::ComponentName(
+    ComponentTypeId _typeId) const
+{
+  std::shared_lock<std::shared_mutex> lock(this->dataPtr->mutex);
+  auto it = this->dataPtr->ops.find(_typeId);
+  if (it == this->dataPtr->ops.end() || it->second.empty())
+    return std::string();
+  return it->second.front().name;
 }
 
 /////////////////////////////////////////////////
