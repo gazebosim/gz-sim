@@ -97,6 +97,9 @@ class gz::sim::systems::PosePublisherPrivate
   /// \brief publisher for pose data
   public: transport::Node::Publisher poseStaticPub;
 
+  /// \brief Resolved topic names
+  public: PosePublisher::TopicNames resolvedTopicNames;
+
   /// \brief Model interface
   public: Model model{kNullEntity};
 
@@ -182,6 +185,9 @@ PosePublisher::PosePublisher()
 }
 
 //////////////////////////////////////////////////
+PosePublisher::~PosePublisher() = default;
+
+//////////////////////////////////////////////////
 void PosePublisher::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -256,30 +262,28 @@ void PosePublisher::Configure(const Entity &_entity,
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
-  std::string poseTopic;
-  if (_sdf->HasElement("topic"))
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions poseTopicOptions;
+  poseTopicOptions.sdfElementName = "topic";
+  poseTopicOptions.topicNamespace = ns;
+  poseTopicOptions.defaultTopicPrefix =
+    topicFromScopedName(_entity, _ecm, true);
+  poseTopicOptions.defaultTopicSuffix = "pose";
+  resolvedTopicNames.poseTopic = resolvedTopicName(_sdf, poseTopicOptions);
+  if (resolvedTopicNames.poseTopic.empty())
   {
-    if (transport::TopicUtils::IsValidTopic(_sdf->Get<std::string>("topic")))
-    {
-      poseTopic = _sdf->Get<std::string>("topic");
-    }
-    else
-    {
-      gzerr << "Provided topic: " << _sdf->Get<std::string>("topic")
-            << " is not a valid topic." << std::endl;
-    }
-  }
-  if (poseTopic.empty())
-  {
-    poseTopic = topicFromScopedName(_entity, _ecm, true) + "/pose";
-  }
-  if (poseTopic.empty())
-  {
-    poseTopic = "/pose";
+    resolvedTopicNames.poseTopic = "/pose";
     gzerr << "Empty pose topic generated for pose_publisher system. "
-             "Setting to " << poseTopic << std::endl;
+             "Setting to " << resolvedTopicNames.poseTopic << std::endl;
   }
-  std::string staticPoseTopic = poseTopic + "_static";
+  resolvedTopicNames.staticPoseTopic =
+    resolvedTopicNames.poseTopic + "_static";
+
+  const std::string &poseTopic = resolvedTopicNames.poseTopic;
+  const std::string &staticPoseTopic = resolvedTopicNames.staticPoseTopic;
 
   if (this->dataPtr->usePoseV)
   {
@@ -303,6 +307,14 @@ void PosePublisher::Configure(const Entity &_entity,
           this->dataPtr->node.Advertise<msgs::Pose>(
           staticPoseTopic);
     }
+  }
+
+  gzmsg << "PosePublisher publishing poses on [" << poseTopic << "]"
+        << std::endl;
+  if (this->dataPtr->staticPosePublisher)
+  {
+    gzmsg << "PosePublisher publishing static poses on ["
+          << staticPoseTopic << "]" << std::endl;
   }
 }
 
@@ -385,6 +397,12 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
         convert<msgs::Time>(_info.simTime), this->dataPtr->posePub);
     this->dataPtr->lastPosePubTime = _info.simTime;
   }
+}
+
+//////////////////////////////////////////////////
+PosePublisher::TopicNames PosePublisher::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
