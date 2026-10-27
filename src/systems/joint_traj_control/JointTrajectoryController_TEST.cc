@@ -169,8 +169,8 @@ TEST(JointTrajectoryControllerTest, TopicNamesWithoutNs)
   expectedTopicNames.progressTopic = "test_cmd_traj_progress";
   TestTopicNames(sdfString, expectedTopicNames);
 
-  // Verify that the default topic names fall back to /model/{model_name}/joint_trajectory
-  // when no namespace is specified.
+  // Verify that the default topic names fall back to
+  // /model/{model_name}/joint_trajectory when no namespace is specified.
   sdfString = R"(
     <sdf version='1.10'>
       <world name='joint_traj_test_world'>
@@ -191,7 +191,9 @@ TEST(JointTrajectoryControllerTest, TopicNamesWithoutNs)
       </world>
     </sdf>)";
 
-  expectedTopicNames.trajectoryTopic = "/model/joint_traj_model/joint_trajectory";
-  expectedTopicNames.progressTopic = "/model/joint_traj_model/joint_trajectory_progress";
+  expectedTopicNames.trajectoryTopic =
+      "/model/joint_traj_model/joint_trajectory";
+  expectedTopicNames.progressTopic =
+      "/model/joint_traj_model/joint_trajectory_progress";
   TestTopicNames(sdfString, expectedTopicNames);
 }

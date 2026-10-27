@@ -18,8 +18,10 @@
 #ifndef GZ_SIM_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 #define GZ_SIM_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 
-#include <gz/sim/System.hh>
 #include <memory>
+#include <string>
+
+#include <gz/sim/System.hh>
 
 namespace gz
 {
@@ -59,10 +61,10 @@ namespace systems
   /// might already be implemented in the motion planning framework of your
   /// choice).
   ///
-  /// The progress of the current trajectory can be tracked on a topic whose name
-  /// is derived as `<resolved_trajectory_topic>_progress`. This progress is
-  /// indicated in the range of (0.0, 1.0] and is currently based purely on
-  /// `time_from_start` contained in the trajectory points.
+  /// The progress of the current trajectory can be tracked on a topic whose
+  /// name is derived as `<resolved_trajectory_topic>_progress`. This
+  /// progress is indicated in the range of (0.0, 1.0] and is currently based
+  /// purely on `time_from_start` contained in the trajectory points.
   ///
   /// ## System Parameters
   ///

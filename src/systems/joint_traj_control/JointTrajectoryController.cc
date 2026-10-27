@@ -396,9 +396,9 @@ void JointTrajectoryController::Configure(
       _sdf, trajectoryTopicOptions);
   if (resolvedTopicNames.trajectoryTopic.empty())
   {
-    gzerr << "[JointTrajectoryController] Failed to find a valid topic name for "
-          << "joint trajectory commands. Check the <topic> and the namespace "
-          << "attribute in the SDF." << std::endl;
+    gzerr << "[JointTrajectoryController] Failed to find a valid topic name "
+          << "for joint trajectory commands. Check the <topic> and the "
+          << "namespace attribute in the SDF." << std::endl;
     return;
   }
 
