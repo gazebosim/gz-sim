@@ -222,6 +222,9 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
   // Process each command
   for (const auto & cmd : this->dataPtr->userCmd)
   {
+      if (!_ecm.HasEntity(cmd.first))
+        continue;
+
     // Create component.
     auto emitterComp = _ecm.Component<components::ParticleEmitterCmd>(
         cmd.first);
@@ -248,10 +251,59 @@ void ParticleEmitter::PreUpdate(const gz::sim::UpdateInfo &_info,
   this->dataPtr->userCmd.clear();
 }
 
+//////////////////////////////////////////////////
+void ParticleEmitter::PostUpdate(const gz::sim::UpdateInfo &/*_info*/,
+    const gz::sim::EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("ParticleEmitter::PostUpdate");
+
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  std::lock_guard<std::mutex> serviceLock(this->dataPtr->serviceMutex);
+
+  // Clean up state of removed particle emitters.
+  _ecm.EachRemoved<components::ParticleEmitter>(
+    [&](const Entity &_entity,
+        const components::ParticleEmitter *_emitter)->bool
+      {
+        for (auto it = this->dataPtr->emitterTopicMap.begin();
+             it != this->dataPtr->emitterTopicMap.end();)
+        {
+          if (it->second == _entity)
+          {
+            this->dataPtr->node.Unsubscribe(it->first);
+            it = this->dataPtr->emitterTopicMap.erase(it);
+          }
+          else
+          {
+            ++it;
+          }
+        }
+
+        this->dataPtr->userCmd.erase(_entity);
+
+        auto *emitters =
+          this->dataPtr->serviceMsg.mutable_particle_emitter();
+        for (auto emitterIt = emitters->begin();
+             emitterIt != emitters->end(); ++emitterIt)
+        {
+          if (emitterIt->id() == _entity ||
+              (emitterIt->id() == _emitter->Data().id() &&
+               emitterIt->name() == _emitter->Data().name()))
+          {
+            emitters->erase(emitterIt);
+            break;
+          }
+        }
+
+        return true;
+      });
+}
+
 GZ_ADD_PLUGIN(ParticleEmitter,
                     gz::sim::System,
                     ParticleEmitter::ISystemConfigure,
-                    ParticleEmitter::ISystemPreUpdate)
+                    ParticleEmitter::ISystemPreUpdate,
+                    ParticleEmitter::ISystemPostUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(ParticleEmitter,
                           "gz::sim::systems::ParticleEmitter")
