@@ -99,6 +99,20 @@ namespace traits
     public: static constexpr bool value =  // NOLINT
                 decltype(Test<Stream, DataType>(0))::value;
   };
+
+  /// \brief Helper trait to check if `Derived` is a complete type that
+  /// derives from `Base`.
+  template <typename Base, typename Derived, typename = void>
+  struct HasTrait : std::false_type
+  {
+  };
+
+  /// \brief Helper trait specialization for complete `Derived` types.
+  template <typename Base, typename Derived>
+  struct HasTrait<Base, Derived, std::void_t<decltype(sizeof(Derived))>>
+    : std::is_base_of<Base, Derived>
+  {
+  };
 }
 
 namespace serializers
@@ -234,6 +248,33 @@ namespace components
   /// I.e. they act as tags and their presence is enough to infer something
   /// about the entity.
   using NoData = std::add_lvalue_reference<void>;
+
+  /// \brief Trait tag for components that opt out of serialization and
+  /// change tracking.
+  struct NoSerialize
+  {
+  };
+
+  /// \brief Trait tag for components that opt out of cloning and copying.
+  struct NoClone
+  {
+  };
+
+  /// \brief Trait tag for components that are private to a system or
+  /// translation unit. Private components are not registered with the
+  /// global Factory, not serialized, and not cloned.
+  struct PrivateTag : NoSerialize, NoClone
+  {
+  };
+
+  /// \brief Helper struct to attach trait tags (such as NoSerialize,
+  /// NoClone, or PrivateTag) to a component's unique identifier tag.
+  /// \tparam UniqueTag Unique identifier tag (may be an incomplete type).
+  /// \tparam Traits Trait tags inherited by this tag.
+  template <typename UniqueTag, typename... Traits>
+  struct Tag : Traits...
+  {
+  };
 }
 
 namespace serializers
@@ -388,6 +429,16 @@ namespace components
     // Documentation inherited
     public: void Deserialize(std::istream &_in) override;
 
+    /// \brief Check whether this component type has a given trait.
+    /// \tparam Trait Trait type to check (e.g. NoSerialize, NoClone,
+    /// PrivateTag).
+    /// \return True if Identifier is complete and derives from Trait.
+    public: template <typename Trait>
+    static constexpr bool HasTrait()
+    {
+      return traits::HasTrait<Trait, Identifier>::value;
+    }
+
     /// \brief Get the mutable component data. This function will be
     /// deprecated in Gazebo 3, replaced by const DataType &Data() const.
     /// Use void SetData(const DataType &) to modify data.
@@ -475,6 +526,16 @@ namespace components
     // Documentation inherited
     public: void Deserialize(std::istream &_in) override;
 
+    /// \brief Check whether this component type has a given trait.
+    /// \tparam Trait Trait type to check (e.g. NoSerialize, NoClone,
+    /// PrivateTag).
+    /// \return True if Identifier is complete and derives from Trait.
+    public: template <typename Trait>
+    static constexpr bool HasTrait()
+    {
+      return traits::HasTrait<Trait, Identifier>::value;
+    }
+
     /// \brief Unique ID for this component type. This is set through the
     /// Factory registration.
     // This call triggers Argument Dependent Lookup (ADL) to find the
@@ -556,7 +617,8 @@ namespace components
   void Component<DataType, Identifier, Serializer>::Serialize(
       std::ostream &_out) const
   {
-    Serializer::Serialize(_out, this->Data());
+    if constexpr (!HasTrait<NoSerialize>())
+      Serializer::Serialize(_out, this->Data());
   }
 
   //////////////////////////////////////////////////
@@ -564,7 +626,8 @@ namespace components
   void Component<DataType, Identifier, Serializer>::Deserialize(
       std::istream &_in)
   {
-    Serializer::Deserialize(_in, this->Data());
+    if constexpr (!HasTrait<NoSerialize>())
+      Serializer::Deserialize(_in, this->Data());
   }
 
   //////////////////////////////////////////////////
@@ -572,6 +635,8 @@ namespace components
   std::unique_ptr<BaseComponent>
   Component<DataType, Identifier, Serializer>::Clone() const
   {
+    if constexpr (HasTrait<NoClone>())
+      return nullptr;
     Component<DataType, Identifier, Serializer> clonedComp(this->Data());
     return std::make_unique<Component<DataType, Identifier, Serializer>>(
         clonedComp);
@@ -605,6 +670,8 @@ namespace components
   std::unique_ptr<BaseComponent>
   Component<NoData, Identifier, Serializer>::Clone() const
   {
+    if constexpr (HasTrait<NoClone>())
+      return nullptr;
     return std::make_unique<Component<NoData, Identifier, Serializer>>();
   }
 
@@ -620,7 +687,8 @@ namespace components
   void Component<NoData, Identifier, Serializer>::Serialize(
       std::ostream &_out) const
   {
-    Serializer::Serialize(_out);
+    if constexpr (!HasTrait<NoSerialize>())
+      Serializer::Serialize(_out);
   }
 
   //////////////////////////////////////////////////
@@ -628,7 +696,8 @@ namespace components
   void Component<NoData, Identifier, Serializer>::Deserialize(
       std::istream &_in)
   {
-    Serializer::Deserialize(_in);
+    if constexpr (!HasTrait<NoSerialize>())
+      Serializer::Deserialize(_in);
   }
 }
 }

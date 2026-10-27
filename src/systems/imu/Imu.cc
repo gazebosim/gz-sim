@@ -54,8 +54,9 @@ namespace gz::sim::systems::imu
 /// \brief Private component that holds the gz-sensors IMU instance for an
 /// entity.
 using ImuSensor = components::Component<
-    std::shared_ptr<sensors::ImuSensor>, class ImuSensorTag>;
-GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_systems_imu.ImuSensor", ImuSensor)
+    std::shared_ptr<sensors::ImuSensor>,
+    components::Tag<class ImuSensorTag, components::PrivateTag>>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_systems_imu.ImuSensor", ImuSensor)
 }  // namespace gz::sim::systems::imu
 
 using ImuSensor = gz::sim::systems::imu::ImuSensor;

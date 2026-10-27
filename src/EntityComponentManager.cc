@@ -507,9 +507,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
-    auto clonedComp = originalComp->Clone();
-
-    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    if (auto clonedComp = originalComp->Clone())
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -934,8 +933,7 @@ bool EntityComponentManager::SetParentEntity(const Entity _child,
 components::BaseComponent *
 EntityComponentManager::CreateComponentImplementation(
     const Entity _entity, const ComponentTypeId _componentTypeId,
-    const components::BaseComponent *_data,
-    entt::basic_sparse_set<Entity> *_storage)
+    const components::BaseComponent *_data)
 {
   // make sure the entity exists
   if (!this->HasEntity(_entity))
@@ -946,8 +944,7 @@ EntityComponentManager::CreateComponentImplementation(
     return nullptr;
   }
 
-  auto* storage = _storage ? _storage :
-      this->Registry().storage(_componentTypeId);
+  auto* storage = this->Registry().storage(_componentTypeId);
 
   // if this is the first time this component type is being created, make sure
   // the component type to be created is valid

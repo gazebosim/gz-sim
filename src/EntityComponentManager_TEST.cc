@@ -99,13 +99,25 @@ using CustomComponent = Component<Custom, class CustomTag>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomComponent",
     CustomComponent)
 
-using PrivateIntComponent = Component<int, class PrivateIntComponentTag>;
-GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_components.PrivateIntComponent",
+using PrivateIntComponent =
+    Component<int, Tag<class PrivateIntComponentTag, PrivateTag>>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PrivateIntComponent",
     PrivateIntComponent)
 
-using PrivateTagComponent = Component<NoData, class PrivateTagComponentTag>;
-GZ_SIM_REGISTER_PRIVATE_COMPONENT("gz_sim_components.PrivateTagComponent",
+using PrivateTagComponent =
+    Component<NoData, Tag<class PrivateTagComponentTag, PrivateTag>>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.PrivateTagComponent",
     PrivateTagComponent)
+
+using NoSerializeIntComponent =
+    Component<int, Tag<class NoSerializeIntComponentTag, NoSerialize>>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.NoSerializeIntComponent",
+    NoSerializeIntComponent)
+
+using NoCloneIntComponent =
+    Component<int, Tag<class NoCloneIntComponentTag, NoClone>>;
+GZ_SIM_REGISTER_COMPONENT("gz_sim_components.NoCloneIntComponent",
+    NoCloneIntComponent)
 }
 }
 }
@@ -4150,6 +4162,42 @@ TEST_P(EntityComponentManagerFixture, PrivateComponent)
   EXPECT_EQ(2, removedCount<PrivateIntComponent>(manager));
   manager.ProcessEntityRemovals();
   EXPECT_FALSE(manager.HasComponentType(PrivateIntComponent::typeId));
+}
+
+/////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ComponentTraits))
+{
+  EntityCompMgrTest manager;
+  Entity e1 = manager.CreateEntity();
+
+  manager.CreateComponent(e1, IntComponent(100));
+  manager.CreateComponent(e1, NoSerializeIntComponent(200));
+  manager.CreateComponent(e1, NoCloneIntComponent(300));
+
+  // Both NoSerialize and NoClone components are registered in Factory, so they
+  // appear in ComponentTypes()
+  auto types = manager.ComponentTypes(e1);
+  EXPECT_EQ(1u, types.count(IntComponent::typeId));
+  EXPECT_EQ(1u, types.count(NoSerializeIntComponent::typeId));
+  EXPECT_EQ(1u, types.count(NoCloneIntComponent::typeId));
+
+  // State() serializes NoSerializeIntComponent as empty, so SetState() skips it
+  auto stateMsg = manager.State();
+  EntityCompMgrTest stateTargetMgr;
+  stateTargetMgr.SetState(stateMsg);
+  EXPECT_NE(nullptr, stateTargetMgr.Component<IntComponent>(e1));
+  EXPECT_EQ(nullptr, stateTargetMgr.Component<NoSerializeIntComponent>(e1));
+  EXPECT_NE(nullptr, stateTargetMgr.Component<NoCloneIntComponent>(e1));
+
+  // Clone must clone IntComponent and NoSerializeIntComponent, but skip
+  // NoCloneIntComponent
+  Entity cloned = manager.Clone(e1, kNullEntity, "e1_clone", true);
+  ASSERT_NE(kNullEntity, cloned);
+  EXPECT_NE(nullptr, manager.Component<IntComponent>(cloned));
+  EXPECT_NE(nullptr, manager.Component<NoSerializeIntComponent>(cloned));
+  EXPECT_EQ(200, manager.Component<NoSerializeIntComponent>(cloned)->Data());
+  EXPECT_EQ(nullptr, manager.Component<NoCloneIntComponent>(cloned));
 }
 
 /////////////////////////////////////////////////
