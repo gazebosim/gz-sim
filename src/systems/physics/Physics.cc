@@ -1244,6 +1244,14 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
         sdf::World world;
         world.SetName(_name->Data());
         world.SetGravity(_gravity->Data());
+        // Pass the <physics> element of the world too, so that an engine
+        // plugin can read its own settings from it.
+        auto worldPhysics = _ecm.Component<components::Physics>(_entity);
+        if (worldPhysics)
+        {
+          world.ClearPhysics();
+          world.AddPhysics(worldPhysics->Data());
+        }
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
 

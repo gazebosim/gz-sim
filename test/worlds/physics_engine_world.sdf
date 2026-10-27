@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<!--
+  A world with a <physics> element that carries engine specific settings, for
+  a physics engine plugin that records what it is given (MockPhysicsEngine).
+-->
+<sdf version="1.8">
+  <world name="physics_engine_world">
+    <physics name="mock_physics" type="mock">
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>0</real_time_factor>
+      <gz:mock_engine>engine_setting</gz:mock_engine>
+    </physics>
+    <gravity>0 0 -3.5</gravity>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+      <engine>
+        <filename>MockPhysicsEngine</filename>
+      </engine>
+    </plugin>
+  </world>
+</sdf>

@@ -72,6 +72,7 @@ set(tests
   particle_emitter.cc
   perfect_comms.cc
   performer_detector.cc
+  physics_engine_world.cc
   physics_system.cc
   play_pause.cc
   pose_publisher_system.cc
@@ -204,6 +205,19 @@ if (DART_FOUND AND TARGET INTEGRATION_physics_system)
   target_link_libraries(INTEGRATION_physics_system
     gz-math::eigen3
   )
+endif()
+
+# The test reads the worlds that the MockPhysicsEngine plugin received, from
+# the library that holds the record.
+if (TARGET INTEGRATION_physics_engine_world)
+  target_link_libraries(INTEGRATION_physics_engine_world
+    MockPhysicsEngineRecorder
+    gz-math::gz-math
+  )
+  # Loaded at run time, not linked.
+  add_dependencies(INTEGRATION_physics_engine_world
+    gz-sim-physics-system
+    MockPhysicsEngine)
 endif()
 
 if (TARGET INTEGRATION_tracked_vehicle_system)
