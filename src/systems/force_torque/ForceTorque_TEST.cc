@@ -21,6 +21,8 @@
 
 #include <sdf/Plugin.hh>
 
+#include "gz/sim/components/ForceTorque.hh"
+#include "gz/sim/components/Sensor.hh"
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
@@ -51,9 +53,17 @@ void TestTopicName(const std::string &_sdfString,
   plugin.Update(info, ecm);
   plugin.PreUpdate(info, ecm);
 
-  const auto topics = plugin.ResolvedTopicNames(ecm);
-  ASSERT_EQ(1u, topics.size());
-  EXPECT_EQ(topics.begin()->second, _expectedTopicName);
+  unsigned int count = 0;
+  ecm.Each<components::ForceTorque, components::SensorTopic>(
+      [&](const Entity &,
+          const components::ForceTorque *,
+          const components::SensorTopic *_topic)
+      {
+        EXPECT_EQ(_expectedTopicName, _topic->Data());
+        ++count;
+        return true;
+      });
+  EXPECT_EQ(1u, count);
 }
 
 TEST(ForceTorqueTest, AbsoluteTopicName)

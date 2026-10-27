@@ -505,14 +505,6 @@ void EnvironmentalSensorSystem::PostUpdate(const gz::sim::UpdateInfo &_info,
   this->dataPtr->RemoveSensorEntities(_ecm);
 }
 
-//////////////////////////////////////////////////
-std::unordered_map<Entity, std::string>
-  EnvironmentalSensorSystem::ResolvedTopicNames(
-      const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
-}
-
 GZ_ADD_PLUGIN(
   EnvironmentalSensorSystem, System,
   EnvironmentalSensorSystem::ISystemConfigure,

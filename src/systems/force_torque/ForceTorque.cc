@@ -226,13 +226,6 @@ void ForceTorque::Update(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> ForceTorque::ResolvedTopicNames(
-    const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
-}
-
-//////////////////////////////////////////////////
 Entity ForceTorquePrivate::GetLinkFromScopedName(
     const EntityComponentManager &_ecm, const std::string &_name,
     Entity _parentModel) const

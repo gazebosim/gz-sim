@@ -21,6 +21,11 @@
 
 #include <sdf/Plugin.hh>
 
+#include <gz/common/StringUtils.hh>
+#include <gz/sensors/Util.hh>
+
+#include "gz/sim/components/CustomSensor.hh"
+#include "gz/sim/components/Sensor.hh"
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
@@ -50,9 +55,23 @@ void TestTopicName(const std::string &_sdfString,
   plugin.PreUpdate(info, ecm);
   plugin.PostUpdate(info, ecm);
 
-  const auto topics = plugin.ResolvedTopicNames(ecm);
-  ASSERT_EQ(1u, topics.size());
-  EXPECT_EQ(topics.begin()->second, _expectedTopicName);
+  unsigned int count = 0;
+  ecm.Each<components::CustomSensor, components::SensorTopic>(
+      [&](const Entity &,
+          const components::CustomSensor *_sensor,
+          const components::SensorTopic *_topic)
+      {
+        const auto type = gz::sensors::customType(_sensor->Data());
+
+        if (common::StartsWith(type, "environmental_sensor/"))
+        {
+          EXPECT_EQ(_expectedTopicName, _topic->Data());
+          ++count;
+        }
+
+        return true;
+      });
+  EXPECT_EQ(1u, count);
 }
 
 TEST(EnvironmentalSensorSystemTest, AbsoluteTopicName)

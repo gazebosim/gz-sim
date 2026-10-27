@@ -175,14 +175,6 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string>
-  LogicalCamera::ResolvedTopicNames(
-    const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
-}
-
-//////////////////////////////////////////////////
 void LogicalCameraPrivate::AddLogicalCamera(
   const EntityComponentManager &_ecm,
   const Entity _entity,

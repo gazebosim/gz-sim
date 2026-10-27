@@ -343,14 +343,6 @@ void Magnetometer::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string>
-  Magnetometer::ResolvedTopicNames(
-    const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
-}
-
-//////////////////////////////////////////////////
 void MagnetometerPrivate::AddMagnetometer(
   const EntityComponentManager &_ecm,
   const Entity _entity,
