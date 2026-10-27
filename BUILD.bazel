@@ -1640,6 +1640,7 @@ gz_sim_system_libraries(
             "src/systems/pose_publisher/**/*.cc",
             "src/systems/pose_publisher/**/*.hh",
         ],
+        exclude = ["src/systems/pose_publisher/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-pose-publisher-system.so",
     static_lib_name = "gz-sim-pose-publisher-system-static",
@@ -1655,6 +1656,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+pose_publisher_test_sources = glob([
+    "src/systems/pose_publisher/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-pose-publisher-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in pose_publisher_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
