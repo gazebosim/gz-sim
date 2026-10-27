@@ -171,13 +171,6 @@ void AirPressure::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> AirPressure::ResolvedTopicNames(
-    const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
-}
-
-//////////////////////////////////////////////////
 void AirPressurePrivate::AddAirPressure(
   const EntityComponentManager &_ecm,
   const Entity _entity,

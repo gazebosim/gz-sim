@@ -138,13 +138,6 @@ void CpuLidar::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> CpuLidar::ResolvedTopicNames(
-    const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->entitySensorMap);
-}
-
-//////////////////////////////////////////////////
 void CpuLidar::AddSensor(
   const EntityComponentManager &_ecm,
   const Entity _entity,

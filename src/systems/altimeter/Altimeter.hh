@@ -18,8 +18,6 @@
 #define GZ_SIM_SYSTEMS_ALTIMETER_HH_
 
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
@@ -56,10 +54,6 @@ namespace systems
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
-
-    /// Get the resolved topic names
-    public: std::unordered_map<Entity, std::string> ResolvedTopicNames(
-                const EntityComponentManager &_ecm) const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<AltimeterPrivate> dataPtr;

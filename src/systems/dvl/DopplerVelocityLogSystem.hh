@@ -19,8 +19,6 @@
 #define GZ_SIM_SYSTEMS_DOPPLERVELOCITYLOGSYSTEM_HH_
 
 #include <memory>
-#include <string>
-#include <unordered_map>
 
 #include <gz/utils/ImplPtr.hh>
 #include "gz/sim/System.hh"
@@ -64,10 +62,6 @@ class DopplerVelocityLogSystem :
   public: void PostUpdate(
       const UpdateInfo &_info,
       const EntityComponentManager &_ecm) override;
-
-  /// Get the resolved topic names
-  public: std::unordered_map<Entity, std::string> ResolvedTopicNames(
-      const EntityComponentManager &_ecm) const;
 
   /// \brief Pointer to private data
   GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)

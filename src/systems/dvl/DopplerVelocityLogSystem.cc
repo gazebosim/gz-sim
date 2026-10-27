@@ -728,22 +728,6 @@ void DopplerVelocityLogSystem::PostUpdate(
   this->dataPtr->DoPostUpdate(_info, _ecm);
 }
 
-//////////////////////////////////////////////////
-std::unordered_map<Entity, std::string>
-  DopplerVelocityLogSystem::ResolvedTopicNames(
-      const EntityComponentManager &_ecm) const
-{
-  std::unordered_map<Entity, std::monostate> sensors;
-  sensors.reserve(this->dataPtr->knownSensorEntities.size());
-  // Convert the tracked sensor entities to the map
-  // expected by sensorTopicNames.
-  for (const auto entity : this->dataPtr->knownSensorEntities)
-  {
-    sensors.emplace(entity, std::monostate{});
-  }
-  return sensorTopicNames(_ecm, sensors);
-}
-
 GZ_ADD_PLUGIN(DopplerVelocityLogSystem,
   System,
   DopplerVelocityLogSystem::ISystemConfigure,

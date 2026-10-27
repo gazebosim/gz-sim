@@ -18,7 +18,6 @@
 #include <string>
 #include <cstdlib>
 #include <ctime>
-#include <unordered_map>
 
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
@@ -391,34 +390,6 @@ TEST_F(UtilTest, ResolvedTopicName)
   EXPECT_EQ("/default_prefix/default_missing_topic",
     resolvedTopicName(sdf,
       {"missing_topic", "", "/default_prefix/", "default_missing_topic"}));
-}
-
-/////////////////////////////////////////////////
-TEST_F(UtilTest, SensorTopicNames)
-{
-  EntityComponentManager ecm;
-  std::unordered_map<Entity, int> sensors;
-  EXPECT_TRUE(sensorTopicNames(ecm, sensors).empty());
-
-  const auto first = ecm.CreateEntity();
-  const auto second = ecm.CreateEntity();
-  const auto missingTopic = ecm.CreateEntity();
-  const auto other = ecm.CreateEntity();
-
-  ecm.CreateComponent(first, components::SensorTopic("/first"));
-  ecm.CreateComponent(second, components::SensorTopic("/second"));
-  ecm.CreateComponent(other, components::SensorTopic("/other"));
-
-  sensors.emplace(first, 1);
-  sensors.emplace(second, 2);
-  sensors.emplace(missingTopic, 3);
-
-  const auto topics = sensorTopicNames(ecm, sensors);
-  ASSERT_EQ(2u, topics.size());
-  EXPECT_EQ("/first", topics.at(first));
-  EXPECT_EQ("/second", topics.at(second));
-  EXPECT_EQ(0u, topics.count(missingTopic));
-  EXPECT_EQ(0u, topics.count(other));
 }
 
 /////////////////////////////////////////////////

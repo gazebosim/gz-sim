@@ -197,13 +197,6 @@ void AirSpeedPrivate::Load(
 }
 
 //////////////////////////////////////////////////
-std::unordered_map<Entity, std::string> AirSpeed::ResolvedTopicNames(
-    const EntityComponentManager &_ecm) const
-{
-  return sensorTopicNames(_ecm, this->dataPtr->entitySensorMap);
-}
-
-//////////////////////////////////////////////////
 void AirSpeedPrivate::AddAirSpeed(
   const EntityComponentManager &_ecm,
   const Entity _entity,
