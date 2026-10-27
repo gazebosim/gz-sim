@@ -19,7 +19,12 @@
 
 #include <gz/msgs/contacts.pb.h>
 
+#include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <map>
+#include <string>
+#include <vector>
 #include <thread>
 
 #include <gz/common/Console.hh>
@@ -517,4 +522,155 @@ TEST_F(ContactSystemTest,
     std::lock_guard<std::mutex> lock(contactMutex);
     EXPECT_EQ(0u, contactMsgs.size());
   }
+}
+
+/////////////////////////////////////////////////
+/// \brief Contact messages of the sensors of contact_update_rate.sdf, by topic
+class UpdateRateMessages
+{
+  /// \brief Subscribe to the topics of the three sensors
+  public: UpdateRateMessages()
+  {
+    for (const auto &it : this->periodsMs)
+    {
+      const std::string topic = it.first;
+      this->msgs[topic];
+      auto cb = std::function<void(const msgs::Contacts &)>(
+          [this, topic](const msgs::Contacts &_msg)
+          {
+            std::lock_guard<std::mutex> lock(this->mutex);
+            this->msgs[topic].push_back(_msg);
+          });
+      this->node.Subscribe(topic, cb);
+    }
+  }
+
+  /// \brief Simulation time of a message, in ms
+  public: static int64_t StampMs(const msgs::Contacts &_msg)
+  {
+    return _msg.header().stamp().sec() * 1000 +
+        _msg.header().stamp().nsec() / 1000000;
+  }
+
+  /// \brief Wait until every topic has its last message up to _ms, the one
+  /// stamped within a period of _ms. Messages arrive asynchronously, in
+  /// order for each topic.
+  public: void WaitFor(int64_t _ms)
+  {
+    for (int i = 0; i < 100; ++i)
+    {
+      {
+        std::lock_guard<std::mutex> lock(this->mutex);
+        if (std::all_of(this->msgs.begin(), this->msgs.end(),
+            [&](const auto &_it)
+            {
+              return !_it.second.empty() &&
+                  StampMs(_it.second.back()) >
+                      _ms - this->periodsMs.at(_it.first);
+            }))
+        {
+          return;
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+  }
+
+  /// \brief Number of messages of a topic stamped in (_fromMs, _toMs],
+  /// counting only those after the last jump back in time (a reset)
+  public: int64_t CountBetween(const std::string &_topic, int64_t _fromMs,
+                               int64_t _toMs)
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    const auto &topicMsgs = this->msgs[_topic];
+    auto start = topicMsgs.begin();
+    for (auto it = topicMsgs.begin(); it != topicMsgs.end(); ++it)
+    {
+      if (it != topicMsgs.begin() && StampMs(*it) < StampMs(*(it - 1)))
+        start = it;
+    }
+    return std::count_if(start, topicMsgs.end(),
+        [&](const msgs::Contacts &_msg)
+        {
+          return StampMs(_msg) > _fromMs && StampMs(_msg) <= _toMs;
+        });
+  }
+
+  /// \brief Number of contacts in the last message of a topic
+  public: int LastContactSize(const std::string &_topic)
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    const auto &topicMsgs = this->msgs[_topic];
+    return topicMsgs.empty() ? 0 : topicMsgs.back().contact_size();
+  }
+
+  /// \brief Topics, with their publication period in ms rounded up to a
+  /// whole physics step (1 ms)
+  private: const std::map<std::string, int64_t> periodsMs{
+      {"/contacts/every_iteration", 1}, {"/contacts/hundred_hz", 10},
+      {"/contacts/thirty_hz", 34}};
+
+  /// \brief Protects msgs
+  private: std::mutex mutex;
+
+  /// \brief Messages received, by topic
+  private: std::map<std::string, std::vector<msgs::Contacts>> msgs;
+
+  /// \brief Transport node of the subscriptions
+  private: transport::Node node;
+};
+
+/////////////////////////////////////////////////
+// This test verifies that a contact sensor with an update rate publishes at
+// that rate on average, with the contacts gathered since its last
+// publication, also when the period is not a multiple of the physics step.
+TEST_F(ContactSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UpdateRate))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact_update_rate.sdf");
+  Server server(serverConfig);
+  UpdateRateMessages messages;
+
+  // Let the sphere settle on the ground (0.1 s), then count over 1 s
+  server.Run(true, 1100, false);
+  messages.WaitFor(1100);
+
+  EXPECT_EQ(1000,
+      messages.CountBetween("/contacts/every_iteration", 100, 1100));
+  EXPECT_EQ(100, messages.CountBetween("/contacts/hundred_hz", 100, 1100));
+  EXPECT_EQ(30, messages.CountBetween("/contacts/thirty_hz", 100, 1100));
+
+  // All sensors watch the same collision: a 100 Hz message carries the
+  // contacts of the 10 iterations since the last one
+  const int perIteration =
+      messages.LastContactSize("/contacts/every_iteration");
+  EXPECT_GT(perIteration, 0);
+  EXPECT_EQ(10 * perIteration,
+      messages.LastContactSize("/contacts/hundred_hz"));
+}
+
+/////////////////////////////////////////////////
+// This test verifies that the update rates still hold after a world reset,
+// which takes the simulation time back to zero and restarts the schedules.
+TEST_F(ContactSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(UpdateRateReset))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/contact_update_rate.sdf");
+  Server server(serverConfig);
+  UpdateRateMessages messages;
+
+  server.Run(true, 600, false);
+  messages.WaitFor(600);
+
+  // Count over 0.9 s after the reset: a few iterations go to the reset itself
+  server.ResetAll();
+  server.Run(true, 1100, false);
+  messages.WaitFor(1000);
+
+  EXPECT_EQ(900,
+      messages.CountBetween("/contacts/every_iteration", 100, 1000));
+  EXPECT_EQ(90, messages.CountBetween("/contacts/hundred_hz", 100, 1000));
+  EXPECT_EQ(27, messages.CountBetween("/contacts/thirty_hz", 100, 1000));
 }

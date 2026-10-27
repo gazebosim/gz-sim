@@ -42,6 +42,7 @@ set(tests
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
   joint_trajectory_controller_system.cc
+  kinematic_links.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
@@ -88,6 +89,7 @@ set(tests
   spherical_coordinates.cc
   swerve_drive_system.cc
   thruster.cc
+  timeline_publisher.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
