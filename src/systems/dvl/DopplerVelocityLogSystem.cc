@@ -318,7 +318,7 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
       std::string ns = scopedNamespace(_ecm, _entity);
       std::string defaultPrefix = scopedName(_entity, _ecm);
 
-      // check topic
+      // Check topic
       TopicNameOptions topicNameOptions;
       topicNameOptions.sdfElementName = "topic";
       topicNameOptions.topicNamespace = ns;
