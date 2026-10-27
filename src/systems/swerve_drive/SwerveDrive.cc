@@ -430,11 +430,13 @@ void SwerveDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelbase,
       this->dataPtr->wheelRadius);
 
+  // Generate namespace
   const std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
   const std::string defaultPrefix =
       "/model/" + this->dataPtr->model.Name(_ecm);
   auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
 
+  // Subscribe to commands
   TopicNameOptions cmdVelTopicOptions;
   cmdVelTopicOptions.sdfElementName = "topic";
   cmdVelTopicOptions.topicNamespace = ns;
@@ -452,6 +454,7 @@ void SwerveDrive::Configure(const Entity &_entity,
   this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
       &SwerveDrivePrivate::OnCmdVel, this->dataPtr.get());
 
+  // Publish odometry
   TopicNameOptions odomTopicOptions;
   odomTopicOptions.sdfElementName = "odom_topic";
   odomTopicOptions.topicNamespace = ns;
@@ -468,6 +471,7 @@ void SwerveDrive::Configure(const Entity &_entity,
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
       resolvedTopicNames.odomTopic);
 
+  // Publish tf
   TopicNameOptions tfTopicOptions;
   tfTopicOptions.sdfElementName = "tf_topic";
   tfTopicOptions.topicNamespace = ns;
