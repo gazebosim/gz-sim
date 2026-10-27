@@ -99,15 +99,12 @@ void DetachableJoint::Configure(const Entity &_entity,
   const bool initialAttach = _sdf->Get<bool>("initial_attach", true).first;
   this->attachRequested = initialAttach;
 
-  // Setup detach topic
-  std::vector<std::string> detachTopics;
-  if (_sdf->HasElement("detach_topic"))
-  {
-    detachTopics.push_back(_sdf->Get<std::string>("detach_topic"));
-  }
-  detachTopics.push_back("/model/" + this->model.Name(_ecm) +
-      "/detachable_joint/detach");
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, _entity);
+  const std::string defaultTopicPrefix = "/model/" + this->model.Name(_ecm);
 
+  // Setup detach topic
+  std::string detachTopicElement{"detach_topic"};
   if (_sdf->HasElement("topic"))
   {
     if (_sdf->HasElement("detach_topic"))
@@ -127,41 +124,47 @@ void DetachableJoint::Configure(const Entity &_entity,
     }
     else
     {
-      detachTopics.insert(detachTopics.begin(),
-                          _sdf->Get<std::string>("topic"));
+      detachTopicElement = "topic";
     }
   }
 
-  this->detachTopic = validTopic(detachTopics);
-  if (this->detachTopic.empty())
+  TopicNameOptions detachTopicOptions;
+  detachTopicOptions.sdfElementName = detachTopicElement;
+  detachTopicOptions.topicNamespace = ns;
+  detachTopicOptions.defaultTopicPrefix = defaultTopicPrefix;
+  detachTopicOptions.defaultTopicSuffix = "detachable_joint/detach";
+  this->resolvedTopicNames.detachTopic =
+      resolvedTopicName(_sdf, detachTopicOptions);
+  if (this->resolvedTopicNames.detachTopic.empty())
   {
     gzerr << "No valid detach topics for DetachableJoint could be found.\n";
     return;
   }
-  gzdbg << "Detach topic is: " << this->detachTopic << std::endl;
+  gzdbg << "Detach topic is: " << this->resolvedTopicNames.detachTopic
+        << std::endl;
 
   // Setup subscriber for detach topic
-  this->node.Subscribe(
-      this->detachTopic, &DetachableJoint::OnDetachRequest, this);
+  this->node.Subscribe(this->resolvedTopicNames.detachTopic,
+      &DetachableJoint::OnDetachRequest, this);
 
   gzdbg << "DetachableJoint subscribing to messages on "
-         << "[" << this->detachTopic << "]" << std::endl;
+         << "[" << this->resolvedTopicNames.detachTopic << "]" << std::endl;
 
   // Setup attach topic
-  std::vector<std::string> attachTopics;
-  if (_sdf->HasElement("attach_topic"))
-  {
-    attachTopics.push_back(_sdf->Get<std::string>("attach_topic"));
-  }
-  attachTopics.push_back("/model/" + this->model.Name(_ecm) +
-      "/detachable_joint/attach");
-  this->attachTopic = validTopic(attachTopics);
-  if (this->attachTopic.empty())
+  TopicNameOptions attachTopicOptions;
+  attachTopicOptions.sdfElementName = "attach_topic";
+  attachTopicOptions.topicNamespace = ns;
+  attachTopicOptions.defaultTopicPrefix = defaultTopicPrefix;
+  attachTopicOptions.defaultTopicSuffix = "detachable_joint/attach";
+  this->resolvedTopicNames.attachTopic =
+      resolvedTopicName(_sdf, attachTopicOptions);
+  if (this->resolvedTopicNames.attachTopic.empty())
   {
     gzerr << "No valid attach topics for DetachableJoint could be found.\n";
     return;
   }
-  gzdbg << "Attach topic is: " << this->attachTopic << std::endl;
+  gzdbg << "Attach topic is: " << this->resolvedTopicNames.attachTopic
+        << std::endl;
 
   // Setup subscriber for attach topic
   auto msgCb = std::function<void(const transport::ProtoMsg &)>(
@@ -174,37 +177,35 @@ void DetachableJoint::Configure(const Entity &_entity,
         this->attachRequested = true;
       });
 
-  if (!this->node.Subscribe(this->attachTopic, msgCb))
+  if (!this->node.Subscribe(this->resolvedTopicNames.attachTopic, msgCb))
   {
     gzerr << "Subscriber could not be created for [attach] topic.\n";
     return;
   }
 
   // Setup output topic
-  std::vector<std::string> outputTopics;
-  if (_sdf->HasElement("output_topic"))
-  {
-    outputTopics.push_back(_sdf->Get<std::string>("output_topic"));
-  }
-
-  outputTopics.push_back("/model/" + this->childModelName +
-      "/detachable_joint/state");
-
-  this->outputTopic = validTopic(outputTopics);
-  if (this->outputTopic.empty())
+  TopicNameOptions outputTopicOptions;
+  outputTopicOptions.sdfElementName = "output_topic";
+  outputTopicOptions.topicNamespace = ns;
+  outputTopicOptions.defaultTopicPrefix = "/model/" + this->childModelName;
+  outputTopicOptions.defaultTopicSuffix = "detachable_joint/state";
+  this->resolvedTopicNames.outputTopic =
+      resolvedTopicName(_sdf, outputTopicOptions);
+  if (this->resolvedTopicNames.outputTopic.empty())
   {
     gzerr << "No valid output topics for DetachableJoint could be found.\n";
     return;
   }
-  gzdbg << "Output topic is: " << this->outputTopic << std::endl;
+  gzdbg << "Output topic is: " << this->resolvedTopicNames.outputTopic
+        << std::endl;
 
   // Setup publisher for output topic
   this->outputPub = this->node.Advertise<gz::msgs::StringMsg>(
-      this->outputTopic);
+      this->resolvedTopicNames.outputTopic);
   if (!this->outputPub)
   {
-    gzerr << "Error advertising topic [" << this->outputTopic << "]"
-              << std::endl;
+    gzerr << "Error advertising topic [" << this->resolvedTopicNames.outputTopic
+          << "]" << std::endl;
     return;
   }
 
@@ -386,6 +387,12 @@ void DetachableJoint::PreUpdate(
       this->PublishJointState(this->isAttached);
     }
   }
+}
+
+//////////////////////////////////////////////////
+DetachableJoint::TopicNames DetachableJoint::ResolvedTopicNames() const
+{
+  return this->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////

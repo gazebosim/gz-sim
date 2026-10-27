@@ -56,20 +56,33 @@ namespace systems
   /// backward compatibility.
   ///
   /// - `<topic>` (optional): Topic name to be used for detaching connections.
-  /// Using `<detach_topic>` is preferred.
+  /// Using `<detach_topic>` is preferred. The default is
+  /// `/model/{model_name}/detachable_joint/detach`, or
+  /// `{namespace}/detachable_joint/detach` when the model has a namespace.
+  /// Relative topic names are prefixed with the namespace. Absolute topic
+  /// names remain unchanged.
   ///
   /// - `<detach_topic>` (optional): Topic name to be used for detaching
   /// connections. If multiple detachable plugin is used in one model,
-  /// `detach_topic` is REQUIRED to detach child models individually.
+  /// `detach_topic` is REQUIRED to detach child models individually. The
+  /// namespace rules are the same as for `<topic>`.
   ///
   /// - `<attach_topic>` (optional): Topic name to be used for attaching
   /// connections. If multiple detachable plugin is used in one model,
-  /// `attach_topic` is REQUIRED to attach child models individually.
+  /// `attach_topic` is REQUIRED to attach child models individually. The
+  /// default is `/model/{model_name}/detachable_joint/attach`, or
+  /// `{namespace}/detachable_joint/attach` when the model has a namespace.
+  /// Relative topic names are prefixed with the namespace. Absolute topic
+  /// names remain unchanged.
   ///
   /// - `<output_topic>` (optional): Topic name to be used for publishing
   /// the state of the detachment. If multiple detachable plugin is used in
   /// one model, `output_topic` is REQUIRED to publish child models state
-  /// individually.
+  /// individually. The default is
+  /// `/model/{child_model_name}/detachable_joint/state`, or
+  /// `{namespace}/detachable_joint/state` when the model has a namespace.
+  /// Relative topic names are prefixed with the namespace. Absolute topic
+  /// names remain unchanged.
   ///
   /// - `<suppress_child_warning>` (optional): If true, the system
   /// will not print a warning message if a child model does not exist yet.
@@ -81,6 +94,19 @@ namespace systems
         public ISystemReset,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Topic used to detach connections
+      public: std::string detachTopic;
+
+      /// \brief Topic used to re-attach connections
+      public: std::string attachTopic;
+
+      /// \brief Topic used to publish the detachment state
+      public: std::string outputTopic;
+    };
+
     /// Documentation inherited
     public: DetachableJoint() = default;
 
@@ -98,6 +124,10 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) final;
+
+    /// \brief Get the resolved topic names
+    /// \return Resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Gazebo communication node.
     private: transport::Node node;
@@ -124,14 +154,8 @@ namespace systems
     /// \brief Name of attachment link in the child model
     private: std::string childLinkName;
 
-    /// \brief Topic to be used for detaching connections
-    private: std::string detachTopic;
-
-    /// \brief Topic to be used for re-attaching connections
-    private: std::string attachTopic;
-
-    /// \brief Topic to be used for publishing detached state
-    private: std::string outputTopic;
+    /// \brief Resolved topic names
+    private: TopicNames resolvedTopicNames;
 
     /// \brief Whether to suppress warning about missing child model.
     private: bool suppressChildWarning{false};
