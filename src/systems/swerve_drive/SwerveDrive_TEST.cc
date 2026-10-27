@@ -52,6 +52,7 @@ void TestTopicNames(const std::string &_sdfString,
 
 TEST(SwerveDriveTest, AbsoluteTopicNames)
 {
+  // Incomplete SDF, only used to test topic resolution behavior.
   const std::string sdfString = R"(
     <sdf version='1.10'>
       <world name='swerve_drive_test_world'>
@@ -75,6 +76,7 @@ TEST(SwerveDriveTest, AbsoluteTopicNames)
 
 TEST(SwerveDriveTest, RelativeTopicNames)
 {
+  // Incomplete SDF, only used to test topic resolution behavior.
   const std::string sdfString = R"(
     <sdf version='1.10'>
       <world name='swerve_drive_test_world'>
@@ -98,6 +100,7 @@ TEST(SwerveDriveTest, RelativeTopicNames)
 
 TEST(SwerveDriveTest, DefaultTopicNames)
 {
+  // Incomplete SDF, only used to test topic resolution behavior.
   const std::string sdfString = R"(
     <sdf version='1.10'>
       <world name='swerve_drive_test_world'>
@@ -118,6 +121,7 @@ TEST(SwerveDriveTest, DefaultTopicNames)
 
 TEST(SwerveDriveTest, TopicNamesWithoutNamespace)
 {
+  // Incomplete SDF, only used to test topic resolution behavior.
   std::string sdfString = R"(
     <sdf version='1.10'>
       <world name='swerve_drive_test_world'>
@@ -135,6 +139,7 @@ TEST(SwerveDriveTest, TopicNamesWithoutNamespace)
   expectedTopicNames.tfTopic = "/model/swerve_drive/tf";
   TestTopicNames(sdfString, expectedTopicNames);
 
+  // Incomplete SDF, only used to test topic resolution behavior.
   sdfString = R"(
     <sdf version='1.10'>
       <world name='swerve_drive_test_world'>

@@ -188,11 +188,11 @@ class gz::sim::systems::SwerveDrivePrivate
   /// \brief Model interfaces
   public: Model model{kNullEntity};
 
-  /// \brief Resolved topic names
-  public: SwerveDrive::TopicNames resolvedTopicNames;
-
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
+
+  /// \brief Resolved topic names
+  public: SwerveDrive::TopicNames resolvedTopicNames;
 
   /// \brief Update period calculated from <odom__publish_frequency>.
   public: std::chrono::steady_clock::duration odomPubPeriod{0};
