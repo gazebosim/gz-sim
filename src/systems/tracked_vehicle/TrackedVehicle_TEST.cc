@@ -177,9 +177,11 @@ TEST(TrackedVehicleTest, DefaultTopicNames)
   expectedTopicNames.tfTopic = "ns/tf";
   expectedTopicNames.seTopic = "ns/steering_efficiency";
   expectedTopicNames.trackVelTopics["left_track"] = "ns/track_cmd_vel";
-  expectedTopicNames.trackCorTopics["left_track"] = "ns/track_cmd_center_of_rotation";
+  expectedTopicNames.trackCorTopics["left_track"]
+    = "ns/track_cmd_center_of_rotation";
   expectedTopicNames.trackVelTopics["right_track"] = "ns/track_cmd_vel";
-  expectedTopicNames.trackCorTopics["right_track"] = "ns/track_cmd_center_of_rotation";
+  expectedTopicNames.trackCorTopics["right_track"]
+    = "ns/track_cmd_center_of_rotation";
   TestTopicNames(sdfString, expectedTopicNames);
 }
 
