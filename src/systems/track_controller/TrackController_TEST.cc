@@ -21,8 +21,8 @@
 
 #include <sdf/Plugin.hh>
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/EventManager.hh"
-#include "gz/sim/SdfEntityCreator.hh"
 
 #include "helpers/UnitTestUtil.hh"
 

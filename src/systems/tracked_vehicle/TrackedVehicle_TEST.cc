@@ -21,8 +21,8 @@
 
 #include <sdf/Plugin.hh>
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/EventManager.hh"
-#include "gz/sim/SdfEntityCreator.hh"
 
 #include "helpers/UnitTestUtil.hh"
 
@@ -92,7 +92,6 @@ TEST(TrackedVehicleTest, AbsoluteTopicNames)
             </right_track>
             <topic>/test_cmd_vel</topic>
             <odom_topic>/test_odom</odom_topic>
-            <enable_topic>/test_enable</enable_topic>
             <tf_topic>/test_tf</tf_topic>
             <steering_efficiency_topic>/test_se</steering_efficiency_topic>
           </plugin>
@@ -133,7 +132,6 @@ TEST(TrackedVehicleTest, RelativeTopicNames)
             </right_track>
             <topic>test_cmd_vel</topic>
             <odom_topic>test_odom</odom_topic>
-            <enable_topic>test_enable</enable_topic>
             <tf_topic>test_tf</tf_topic>
             <steering_efficiency_topic>test_se</steering_efficiency_topic>
           </plugin>
@@ -208,7 +206,6 @@ TEST(TrackedVehicleTest, TopicNamesWithoutNs)
             </right_track>
             <topic>test_cmd_vel</topic>
             <odom_topic>test_odom</odom_topic>
-            <enable_topic>test_enable</enable_topic>
             <tf_topic>test_tf</tf_topic>
             <steering_efficiency_topic>test_se</steering_efficiency_topic>
           </plugin>

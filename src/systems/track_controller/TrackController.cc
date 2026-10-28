@@ -272,7 +272,7 @@ void TrackController::Configure(const Entity &_entity,
            << "in the SDF." << std::endl;
     return;
   }
-  if (!this->dataPtr->node.Subscribe( resolvedTopicNames.cmdVelTopic,
+  if (!this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
     &TrackControllerPrivate::OnCmdVel, this->dataPtr.get()))
   {
     gzerr << "Error subscribing to topic ["
@@ -322,7 +322,7 @@ void TrackController::Configure(const Entity &_entity,
   resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
   if (resolvedTopicNames.odomTopic.empty())
   {
-    gzerr << "DiffDrive failed to find a valid topic name for "
+    gzerr << "TrackController failed to find a valid topic name for "
           << "odometry messages. Check the <odom_topic> and the namespace "
           << "attribute in the SDF." << std::endl;
     return;

@@ -453,7 +453,7 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (resolvedTopicNames.tfTopic.empty())
   {
     gzerr << "TrackedVehicle failed to find a valid topic name for "
-           << "tf messages. Check the <tf_topic> and the namespace attribute"
+           << "tf messages. Check the <tf_topic> and the namespace attribute "
            << "in the SDF." << std::endl;
     return;
   }
