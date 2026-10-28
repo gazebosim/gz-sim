@@ -255,7 +255,7 @@ void TrackController::Configure(const Entity &_entity,
   std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
   std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm) +
     "/link/" + this->dataPtr->linkName;
-  
+
   // Subscribe to commands
   auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
   TopicNameOptions cmdVelTopicOptions;
@@ -283,7 +283,7 @@ void TrackController::Configure(const Entity &_entity,
   gzmsg << "TrackController subscribing to track velocity commands for link ["
          << this->dataPtr->linkName << "] on ["
          << resolvedTopicNames.cmdVelTopic << "]" << std::endl;
-  
+
   // Subscribe to center of rotation commands
   TopicNameOptions cmdCorTopicOptions;
   cmdCorTopicOptions.sdfElementName = "center_of_rotation_topic";
