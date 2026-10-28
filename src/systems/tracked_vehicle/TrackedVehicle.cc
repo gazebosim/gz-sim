@@ -279,11 +279,14 @@ void TrackedVehicle::Configure(const Entity &_entity,
     if (resolvedTopicNames.trackVelTopics[linkName].empty())
     {
       gzerr << "TrackedVehicle failed to find a valid topic name for "
-            << "track velocity messages on link [" << linkName << "]. "
-            << "Check the <velocity_topic> and the namespace attribute "
-            << "in the SDF." << std::endl;
+             << "track velocity messages on link [" << linkName << "]. "
+             << "Check the <velocity_topic> and the namespace attribute "
+             << "in the SDF." << std::endl;
       return;
     }
+    gzmsg << "TrackedVehicle publishing track velocity messages for link ["
+           << linkName << "] on ["
+           << resolvedTopicNames.trackVelTopics[linkName] << "]" << std::endl;
     this->dataPtr->velPublishers[linkName] =
       this->dataPtr->node.Advertise<msgs::Double>(
         resolvedTopicNames.trackVelTopics[linkName]);
@@ -299,11 +302,14 @@ void TrackedVehicle::Configure(const Entity &_entity,
     if (resolvedTopicNames.trackCorTopics[linkName].empty())
     {
       gzerr << "TrackedVehicle failed to find a valid topic name for "
-            << "track center of rotation messages on link [" << linkName
-            << "]. Check the <center_of_rotation_topic> and the namespace "
-            << "attribute in the SDF." << std::endl;
+             << "track center of rotation messages on link [" << linkName
+             << "]. Check the <center_of_rotation_topic> and the namespace "
+             << "attribute in the SDF." << std::endl;
       return;
     }
+    gzmsg << "TrackedVehicle publishing track center of rotation messages "
+           << "for link [" << linkName << "] on ["
+           << resolvedTopicNames.trackCorTopics[linkName] << "]" << std::endl;
     this->dataPtr->corPublishers[linkName] =
       this->dataPtr->node.Advertise<msgs::Vector3d>(
         resolvedTopicNames.trackCorTopics[linkName]);
@@ -413,8 +419,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (resolvedTopicNames.cmdVelTopic.empty())
   {
     gzerr << "TrackedVehicle failed to find a valid topic name for "
-          << "twist messages. Check the <topic> and the namespace attribute "
-          << "in the SDF." << std::endl;
+           << "twist messages. Check the <topic> and the namespace attribute "
+           << "in the SDF." << std::endl;
     return;
   }
   this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
@@ -430,8 +436,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (resolvedTopicNames.odomTopic.empty())
   {
     gzerr << "TrackedVehicle failed to find a valid topic name for "
-          << "odometry messages. Check the <odom_topic> and the namespace "
-          << "attribute in the SDF." << std::endl;
+           << "odometry messages. Check the <odom_topic> and the namespace "
+           << "attribute in the SDF." << std::endl;
     return;
   }
   this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
@@ -447,8 +453,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (resolvedTopicNames.tfTopic.empty())
   {
     gzerr << "TrackedVehicle failed to find a valid topic name for "
-          << "tf messages. Check the <tf_topic> and the namespace attribute"
-          << "in the SDF." << std::endl;
+           << "tf messages. Check the <tf_topic> and the namespace attribute"
+           << "in the SDF." << std::endl;
     return;
   }
   this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
@@ -465,8 +471,8 @@ void TrackedVehicle::Configure(const Entity &_entity,
   if (resolvedTopicNames.seTopic.empty())
   {
     gzerr << "TrackedVehicle failed to find a valid topic name for steering "
-          << "efficiency messages. Check the <steering_efficiency_topic> "
-          << "and the namespace attribute in the SDF." << std::endl;
+           << "efficiency messages. Check the <steering_efficiency_topic> "
+           << "and the namespace attribute in the SDF." << std::endl;
     return;
   }
   this->dataPtr->node.Subscribe(resolvedTopicNames.seTopic,
