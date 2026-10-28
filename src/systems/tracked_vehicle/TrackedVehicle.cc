@@ -282,7 +282,6 @@ void TrackedVehicle::Configure(const Entity &_entity,
              << "track velocity messages on link [" << linkName << "]. "
              << "Check the <velocity_topic> and the namespace attribute "
              << "in the SDF." << std::endl;
-      return;
     }
     gzmsg << "TrackedVehicle publishing track velocity messages for link ["
            << linkName << "] on ["
@@ -305,7 +304,6 @@ void TrackedVehicle::Configure(const Entity &_entity,
              << "track center of rotation messages on link [" << linkName
              << "]. Check the <center_of_rotation_topic> and the namespace "
              << "attribute in the SDF." << std::endl;
-      return;
     }
     gzmsg << "TrackedVehicle publishing track center of rotation messages "
            << "for link [" << linkName << "] on ["
