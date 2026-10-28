@@ -13,6 +13,10 @@ current pose/configuration. To achieve reattachment at a specific pose, the
 child model can be positioned accordingly through a set_pose service call prior
 to reattaching the joint.
 
+Use `DetachableJoint` when the child model and link are known in the SDF. Use
+\ref dynamicdetachablejoints "DynamicDetachableJoint" when the child model and
+link are chosen at runtime through a service request.
+
 For example, [detachable_joint.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
 demonstrates a four wheel vehicle that holds three objects that are later
 detached from the vehicle. As seen in this example, the parent model is the
@@ -54,7 +58,7 @@ used as the parent link in the detachable joint.
 * `<child_model>`: The name of the model containing the child link in the detachable
 joint.
 
-* `<child_model_link>`:  Name of the link in the `<child_model>` that will be used
+* `<child_link>`:  Name of the link in the `<child_model>` that will be used
 as the child link in the detachable joint.
 
 * `topic` (optional): Topic name to be used for detaching connections. Using
