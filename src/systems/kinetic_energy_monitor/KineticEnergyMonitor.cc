@@ -73,6 +73,9 @@ class gz::sim::systems::KineticEnergyMonitorPrivate
 
   /// \brief The model this plugin is attached to.
   public: Model model;
+
+  /// \brief Resolved topic names
+  public: KineticEnergyMonitor::TopicNames resolvedTopicNames;
 };
 
 //////////////////////////////////////////////////
@@ -128,15 +131,32 @@ void KineticEnergyMonitor::Configure(const Entity &_entity,
   this->dataPtr->keThreshold = sdfClone->Get<double>(
       "kinetic_energy_threshold", 7.0).first;
 
-  std::string defaultTopic{"/model/" + this->dataPtr->modelName +
-    "/kinetic_energy"};
-  std::string topic = sdfClone->Get<std::string>("topic", defaultTopic).first;
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, _entity);
+
+  // Resolve the kinetic energy topic
+  TopicNameOptions topicOptions;
+  topicOptions.sdfElementName = "topic";
+  topicOptions.topicNamespace = ns;
+  topicOptions.defaultTopicPrefix = "/model/" + this->dataPtr->modelName;
+  topicOptions.defaultTopicSuffix = "kinetic_energy";
+  this->dataPtr->resolvedTopicNames.energyTopic =
+      resolvedTopicName(_sdf, topicOptions);
+  if (this->dataPtr->resolvedTopicNames.energyTopic.empty())
+  {
+    gzerr << "KineticEnergyMonitor failed to find a valid topic. "
+           << "Check the <topic> and the namespace attribute in the SDF."
+           << std::endl;
+    return;
+  }
 
   gzmsg << "KineticEnergyMonitor publishing messages on "
-    << "[" << topic << "]" << std::endl;
+    << "[" << this->dataPtr->resolvedTopicNames.energyTopic << "]"
+    << std::endl;
 
   transport::Node node;
-  this->dataPtr->pub = node.Advertise<msgs::Double>(topic);
+  this->dataPtr->pub = node.Advertise<msgs::Double>(
+      this->dataPtr->resolvedTopicNames.energyTopic);
 
   Link link(this->dataPtr->linkEntity);
   link.EnableVelocityChecks(_ecm, true);
@@ -176,6 +196,13 @@ void KineticEnergyMonitor::PostUpdate(const UpdateInfo &_info,
       }
     }
   }
+}
+
+//////////////////////////////////////////////////
+KineticEnergyMonitor::TopicNames
+KineticEnergyMonitor::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(KineticEnergyMonitor,
