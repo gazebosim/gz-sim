@@ -379,7 +379,8 @@ void JointPositionController::Configure(const Entity &_entity,
   else
   {
     cmdTopicOptions.defaultTopicPrefix +=
-      "/joint/" + this->dataPtr->jointNames[0];
+      "/joint/" + this->dataPtr->jointNames[0] + "/" +
+      std::to_string(this->dataPtr->jointIndex);
     cmdTopicOptions.defaultTopicSuffix = "cmd_pos";
   }
   resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdTopicOptions);

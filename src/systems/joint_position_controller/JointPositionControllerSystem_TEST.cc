@@ -177,7 +177,7 @@ TEST(JointPositionControllerTest, DefaultTopicNamesWithoutNs)
 
   JointPositionController::TopicNames expectedTopicNames;
   expectedTopicNames.cmdTopic =
-    "/model/joint_position_controller/joint/test_joint/cmd_pos";
+    "/model/joint_position_controller/joint/test_joint/0/cmd_pos";
   TestTopicNames(sdfString, expectedTopicNames);
 
   // Incomplete sdf, only used to test topic resolution behavior

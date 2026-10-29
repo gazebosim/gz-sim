@@ -39,7 +39,8 @@ namespace systems
   ///
   /// A new Gazebo Transport topic is created to send target joint positions.
   /// The default topic name is
-  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  /// `/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos` without
+  /// a namespace, or `<namespace>/cmd_pos` with a namespace.
   ///
   /// This topic accepts gz::msgs::Double values representing the target
   /// position. If you wish to change the topic on which this plugin listens
@@ -56,7 +57,9 @@ namespace systems
   ///
   /// - `<use_actuator_msg>` True to enable the use of actuator message
   /// for position command. Relies on `<actuator_number>` for the
-  /// index of the position actuator and defaults to topic "/actuators".
+  /// index of the position actuator. When neither `<topic>` nor `<sub_topic>`
+  /// is specified, the default topic is `/actuators` without a namespace, or
+  /// `<namespace>/actuators` with a namespace.
   ///
   /// - `<actuator_number>` used with `<use_actuator_msg>` to set
   /// the index of the position actuator.
@@ -89,12 +92,16 @@ namespace systems
   /// position. The maximum speed on the joint can be set using the `<cmd_max>`
   /// tag.
   ///
-  /// - `<topic>` If you wish to listen on a non-default topic you may specify
-  /// it here, otherwise the controller defaults to listening on
-  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  /// - `<topic>` Topic to receive commands in. Defaults to
+  /// `/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos` without
+  /// a namespace, or `<namespace>/cmd_pos` with a namespace.
+  /// Relative topic names are prefixed with the model namespace, while
+  /// absolute topic names remain unchanged.
   ///
-  /// - `<sub_topic>` If you wish to listen on a sub_topic you may specify it
-  /// here "/model/<model_name>/<sub_topic>".
+  /// - `<sub_topic>` Deprecated. Use `<topic>` instead.
+  /// When specified, the topic is resolved as
+  /// `/model/<model_name>/<sub_topic>` without a namespace, or
+  /// `<namespace>/<sub_topic>` with a namespace.
   ///
   /// - `<initial_position>` Initial position of a joint. Optional parameter.
   /// The default value is 0.
