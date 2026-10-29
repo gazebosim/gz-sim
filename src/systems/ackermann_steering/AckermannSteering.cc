@@ -408,7 +408,8 @@ void AckermannSteering::Configure(const Entity &_entity,
   cmdTopicOptions.topicNamespace = ns;
   cmdTopicOptions.defaultTopicPrefix = defaultPrefix;
 
-  if (_sdf->HasElement("sub_topic"))
+  if (_sdf->HasElement("sub_topic") &&
+      !_sdf->Get<std::string>("sub_topic").empty())
   {
     // Preserve the legacy behavior of prefixing <sub_topic> with the default
     // path. Remove leading slashes to ensure the resolver adds the prefix.
