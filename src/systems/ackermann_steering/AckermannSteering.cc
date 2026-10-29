@@ -403,10 +403,10 @@ void AckermannSteering::Configure(const Entity &_entity,
 
   // Subscribe to commands
   auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
-  TopicNameOptions cmdVelTopicOptions;
-  cmdVelTopicOptions.sdfElementName = "topic";
-  cmdVelTopicOptions.topicNamespace = ns;
-  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  TopicNameOptions cmdTopicOptions;
+  cmdTopicOptions.sdfElementName = "topic";
+  cmdTopicOptions.topicNamespace = ns;
+  cmdTopicOptions.defaultTopicPrefix = defaultPrefix;
 
   if (_sdf->HasElement("sub_topic"))
   {
@@ -414,7 +414,7 @@ void AckermannSteering::Configure(const Entity &_entity,
     // path. Remove leading slashes to ensure the resolver adds the prefix.
     std::string subTopic = _sdf->Get<std::string>("sub_topic");
     subTopic.erase(0, subTopic.find_first_not_of('/'));
-    cmdVelTopicOptions.defaultTopicSuffix = subTopic;
+    cmdTopicOptions.defaultTopicSuffix = subTopic;
     gzwarn << "The <sub_topic> element is deprecated. Use <topic> together "
       "with the model namespace to configure the desired topic name instead."
       << std::endl;
@@ -425,26 +425,26 @@ void AckermannSteering::Configure(const Entity &_entity,
     {
       if (this->dataPtr->useActuatorMsg)
       {
-        cmdVelTopicOptions.defaultTopicSuffix = "actuators";
+        cmdTopicOptions.defaultTopicSuffix = "actuators";
         // Preserve the legacy global /actuators topic when no namespace is
         // set. The leading '/' prevents the resolver from adding a prefix.
         if (ns.empty())
         {
-          cmdVelTopicOptions.defaultTopicSuffix = "/" +
-            cmdVelTopicOptions.defaultTopicSuffix;
+          cmdTopicOptions.defaultTopicSuffix = "/" +
+            cmdTopicOptions.defaultTopicSuffix;
         }
       }
       else
       {
-        cmdVelTopicOptions.defaultTopicSuffix = "steer_angle";
+        cmdTopicOptions.defaultTopicSuffix = "steer_angle";
       }
     }
     else
     {
-      cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+      cmdTopicOptions.defaultTopicSuffix = "cmd_vel";
     }
   }
-  resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
+  resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdTopicOptions);
   if (resolvedTopicNames.cmdTopic.empty())
   {
     gzerr << "AckermannSteering failed to find a valid topic name for "
