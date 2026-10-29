@@ -19,6 +19,8 @@
 #define GZ_SIM_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
 #include <memory>
+#include <string>
+
 #include <gz/sim/System.hh>
 
 namespace gz
@@ -102,11 +104,18 @@ namespace systems
         public ISystemConfigureParameters,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+    };
+
     /// \brief Constructor
     public: JointPositionController();
 
     /// \brief Destructor
-    public: ~JointPositionController() override = default;
+    public: ~JointPositionController() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -123,6 +132,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointPositionControllerPrivate> dataPtr;
