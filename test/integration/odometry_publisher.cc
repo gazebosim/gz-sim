@@ -22,6 +22,11 @@
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/twist.pb.h>
 
+#include <functional>
+#include <mutex>
+#include <string>
+#include <vector>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
@@ -675,6 +680,79 @@ class OdometryPublisherTest
       }
     }
   }
+
+  /// \brief A model that starts at rest away from the world origin must
+  /// publish zero twist from the first message on.
+  /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _odomTopic Odometry topic.
+  protected: void TestInitialPose(const std::string &_sdfFile,
+                                  const std::string &_odomTopic)
+  {
+    // Start server
+    ServerConfig serverConfig;
+    serverConfig.SetSdfFile(_sdfFile);
+
+    Server server(serverConfig);
+    EXPECT_FALSE(server.Running());
+    EXPECT_FALSE(*server.Running(0));
+
+    std::mutex mutex;
+    std::vector<math::Pose3d> odomPoses;
+    std::vector<math::Vector3d> odomLinVels;
+    std::vector<math::Vector3d> odomAngVels;
+    // Create function to store data from odometry messages
+    std::function<void(const msgs::Odometry &)> odomCb =
+      [&](const msgs::Odometry &_msg)
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        odomPoses.push_back(msgs::Convert(_msg.pose()));
+        odomLinVels.push_back(msgs::Convert(_msg.twist().linear()));
+        odomAngVels.push_back(msgs::Convert(_msg.twist().angular()));
+      };
+    transport::Node node;
+    node.Subscribe(_odomTopic, odomCb);
+
+    // The odometry is published at every step. The velocity is the mean of the
+    // last 10 samples, so the first messages show an error of the first one.
+    server.Run(true, 100, false);
+
+    int sleep = 0;
+    int maxSleep = 30;
+    for (; sleep < maxSleep; ++sleep)
+    {
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (odomPoses.size() >= 20)
+          break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    ASSERT_NE(maxSleep, sleep);
+
+    std::lock_guard<std::mutex> lock(mutex);
+
+    // The model is not at the origin and it does not move.
+    EXPECT_NE(math::Pose3d::Zero, odomPoses.front());
+    for (const auto &pose : odomPoses)
+    {
+      EXPECT_NEAR(odomPoses.front().Pos().X(), pose.Pos().X(), 1e-6);
+      EXPECT_NEAR(odomPoses.front().Pos().Y(), pose.Pos().Y(), 1e-6);
+      EXPECT_NEAR(odomPoses.front().Pos().Z(), pose.Pos().Z(), 1e-6);
+    }
+
+    // The model is at rest, so every twist is zero, including the first one.
+    // Without the initial pose, the first twist is the distance from the
+    // origin divided by the time step.
+    for (size_t i = 0; i < odomLinVels.size(); ++i)
+    {
+      EXPECT_NEAR(odomLinVels[i].X(), 0.0, 1e-3) << i;
+      EXPECT_NEAR(odomLinVels[i].Y(), 0.0, 1e-3) << i;
+      EXPECT_NEAR(odomLinVels[i].Z(), 0.0, 1e-3) << i;
+      EXPECT_NEAR(odomAngVels[i].X(), 0.0, 1e-3) << i;
+      EXPECT_NEAR(odomAngVels[i].Y(), 0.0, 1e-3) << i;
+      EXPECT_NEAR(odomAngVels[i].Z(), 0.0, 1e-3) << i;
+    }
+  }
 };
 
 /////////////////////////////////////////////////
@@ -755,6 +833,46 @@ TEST_P(OdometryPublisherTest,
       std::string(PROJECT_SOURCE_PATH) +
       "/test/worlds/odometry_noise.sdf",
       "/model/vehicle/odometry_with_covariance");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialPose2d))
+{
+  TestInitialPose(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_publisher_initial_pose.sdf",
+      "/model/vehicle_2d/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialPose3d))
+{
+  TestInitialPose(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_publisher_initial_pose.sdf",
+      "/model/vehicle_3d/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialPoseWithOffsets))
+{
+  TestInitialPose(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_publisher_initial_pose.sdf",
+      "/model/vehicle_offset/odometry");
+}
+
+/////////////////////////////////////////////////
+TEST_P(OdometryPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(InitialPoseWithGlobalOffset))
+{
+  TestInitialPose(
+      std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/odometry_publisher_initial_pose.sdf",
+      "/model/vehicle_global_offset/odometry");
 }
 
 // Run multiple times
