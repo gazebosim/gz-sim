@@ -146,7 +146,7 @@ endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics VERSION 9
+gz_find_package(gz-physics VERSION 9.6
   COMPONENTS
     heightmap
     mesh
