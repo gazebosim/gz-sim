@@ -74,6 +74,9 @@ class gz::sim::systems::JointControllerPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: JointController::TopicNames resolvedTopicNames;
+
   /// \brief True if using Actuator msg to control joint velocity.
   public: bool useActuatorMsg{false};
 
@@ -93,6 +96,9 @@ JointController::JointController()
   : dataPtr(std::make_unique<JointControllerPrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+JointController::~JointController() = default;
 
 //////////////////////////////////////////////////
 void JointController::Configure(const Entity &_entity,
@@ -191,81 +197,70 @@ void JointController::Configure(const Entity &_entity,
     }
   }
 
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+
   // Subscribe to commands
-  std::string topic;
-  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
-    && (!this->dataPtr->useActuatorMsg))
-  {
-    topic = transport::TopicUtils::AsValidTopic("/model/" +
-        this->dataPtr->model.Name(_ecm) + "/joint/" +
-        this->dataPtr->jointNames[0] + "/cmd_vel");
-    if (topic.empty())
-    {
-      gzerr << "Failed to create topic for joint ["
-            << this->dataPtr->jointNames[0]
-            << "]" << std::endl;
-      return;
-    }
-  }
-  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
-    && (this->dataPtr->useActuatorMsg))
-  {
-    topic = transport::TopicUtils::AsValidTopic("/actuators");
-    if (topic.empty())
-    {
-      gzerr << "Failed to create Actuator topic for joint ["
-            << this->dataPtr->jointNames[0]
-            << "]" << std::endl;
-      return;
-    }
-  }
-  if (_sdf->HasElement("sub_topic"))
-  {
-    topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/" +
-        _sdf->Get<std::string>("sub_topic"));
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdTopicOptions;
+  cmdTopicOptions.sdfElementName = "topic";
+  cmdTopicOptions.topicNamespace = ns;
+  cmdTopicOptions.defaultTopicPrefix = defaultPrefix;
 
-    if (topic.empty())
+  if (_sdf->HasElement("sub_topic") &&
+      !_sdf->Get<std::string>("sub_topic").empty())
+  {
+    std::string subTopic = _sdf->Get<std::string>("sub_topic");
+    subTopic.erase(0, subTopic.find_first_not_of('/'));
+    cmdTopicOptions.defaultTopicSuffix = subTopic;
+    gzwarn << "The <sub_topic> element is deprecated. Use <topic> together "
+      "with the model namespace to configure the desired topic name instead."
+      << std::endl;
+  }
+  else if (this->dataPtr->useActuatorMsg)
+  {
+    cmdTopicOptions.defaultTopicSuffix = "actuators";
+    // Preserve the legacy global /actuators topic when no namespace is
+    // set. The leading '/' prevents the resolver from adding a prefix.
+    if (ns.empty())
     {
-      gzerr << "Failed to create topic from sub_topic [/model/"
-             << this->dataPtr->model.Name(_ecm) << "/"
-             << _sdf->Get<std::string>("sub_topic")
-             << "]" << " for joint [" << this->dataPtr->jointNames[0]
-             << "]" << std::endl;
-      return;
+      cmdTopicOptions.defaultTopicSuffix = "/" +
+        cmdTopicOptions.defaultTopicSuffix;
     }
   }
-  if (_sdf->HasElement("topic"))
+  else
   {
-    topic = transport::TopicUtils::AsValidTopic(
-        _sdf->Get<std::string>("topic"));
-
-    if (topic.empty())
-    {
-      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
-             << "]" << " for joint [" << this->dataPtr->jointNames[0]
-             << "]" << std::endl;
-      return;
-    }
+    cmdTopicOptions.defaultTopicPrefix +=
+      "/joint/" + this->dataPtr->jointNames[0];
+    cmdTopicOptions.defaultTopicSuffix = "cmd_vel";
+  }
+  resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdTopicOptions);
+  if (resolvedTopicNames.cmdTopic.empty())
+  {
+    gzerr << "Failed to create command topic for joint ["
+          << this->dataPtr->jointNames[0]
+          << "]" << std::endl;
+    return;
   }
 
   if (this->dataPtr->useActuatorMsg)
   {
-    this->dataPtr->node.Subscribe(topic,
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdTopic,
       &JointControllerPrivate::OnActuatorVel,
       this->dataPtr.get());
 
-    gzmsg << "JointController subscribing to Actuator messages on [" << topic
-         << "]" << std::endl;
+    gzmsg << "JointController subscribing to Actuator messages on [" 
+         << resolvedTopicNames.cmdTopic << "]" << std::endl;
   }
   else
   {
-    this->dataPtr->node.Subscribe(topic,
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdTopic,
       &JointControllerPrivate::OnCmdVel,
       this->dataPtr.get());
 
-    gzmsg << "JointController subscribing to Double messages on [" << topic
-         << "]" << std::endl;
+    gzmsg << "JointController subscribing to Double messages on [" 
+         << resolvedTopicNames.cmdTopic << "]" << std::endl;
   }
 }
 
@@ -400,6 +395,12 @@ void JointController::PreUpdate(const UpdateInfo &_info,
       _ecm.SetComponentData<components::JointVelocityCmd>(joint, {targetVel});
     }
   }
+}
+
+//////////////////////////////////////////////////
+JointController::TopicNames JointController::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
