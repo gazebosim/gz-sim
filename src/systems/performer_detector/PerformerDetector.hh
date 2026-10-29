@@ -67,8 +67,10 @@ namespace systems
   ///
   /// - `<topic>`: Custom topic to be used for publishing when a performer is
   /// detected. If not set, the default topic with the following pattern would
-  /// be used "/model/<model_name>/performer_detector/status". The topic type
-  /// is gz.msgs.Pose
+  /// be used "/model/<model_name>/performer_detector/status", or
+  /// "<namespace>/performer_detector/status" when the model has a namespace.
+  /// Relative topic names are prefixed with the namespace. Absolute topic
+  /// names remain unchanged. The topic type is gz.msgs.Pose
   ///
   /// - `<geometry>`: Detection region. Currently, only the `<box>` geometry is
   /// supported. The position of the geometry is derived from the pose of the
@@ -89,6 +91,13 @@ namespace systems
         public ISystemConfigure,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Performer detection status topic
+      public: std::string statusTopic;
+    };
+
     /// Documentation inherited
     public: PerformerDetector() = default;
 
@@ -102,6 +111,10 @@ namespace systems
     public: void PostUpdate(
                 const gz::sim::UpdateInfo &_info,
                 const gz::sim::EntityComponentManager &_ecm) final;
+
+    /// \brief Get the resolved topic names
+    /// \return Resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Check if the entity has already been detected
     /// \param [in] _entity The entity to test
@@ -150,6 +163,9 @@ namespace systems
 
     /// \brief Optional extra header data.
     private: std::map<std::string, std::string> extraHeaderData;
+
+    /// \brief Resolved topic names
+    private: TopicNames resolvedTopicNames;
   };
 
   }

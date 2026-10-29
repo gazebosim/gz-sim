@@ -1104,6 +1104,7 @@ gz_sim_system_libraries(
             "src/systems/kinetic_energy_monitor/**/*.cc",
             "src/systems/kinetic_energy_monitor/**/*.hh",
         ],
+        exclude = ["src/systems/kinetic_energy_monitor/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-kinetic-energy-monitor-system.so",
     static_lib_name = "gz-sim-kinetic-energy-monitor-system-static",
@@ -1117,6 +1118,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+kinetic_energy_monitor_test_sources = glob([
+    "src/systems/kinetic_energy_monitor/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-kinetic-energy-monitor-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in kinetic_energy_monitor_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1548,6 +1568,7 @@ gz_sim_system_libraries(
             "src/systems/performer_detector/**/*.cc",
             "src/systems/performer_detector/**/*.hh",
         ],
+        exclude = ["src/systems/performer_detector/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-performer-detector-system.so",
     static_lib_name = "gz-sim-performer-detector-system-static",
@@ -1562,6 +1583,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+performer_detector_test_sources = glob([
+    "src/systems/performer_detector/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-performer-detector-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in performer_detector_test_sources]
 
 # Targets including this under `deps` (for static linking) or under `data` (for
 # external library) should also include data deps on the physics engine
@@ -1640,6 +1680,7 @@ gz_sim_system_libraries(
             "src/systems/pose_publisher/**/*.cc",
             "src/systems/pose_publisher/**/*.hh",
         ],
+        exclude = ["src/systems/pose_publisher/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-pose-publisher-system.so",
     static_lib_name = "gz-sim-pose-publisher-system-static",
@@ -1655,6 +1696,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+pose_publisher_test_sources = glob([
+    "src/systems/pose_publisher/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-pose-publisher-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in pose_publisher_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1771,6 +1831,46 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/swerve_drive/**/*.cc",
+            "src/systems/swerve_drive/**/*.hh",
+        ],
+        exclude = ["src/systems/swerve_drive/*_TEST.cc"],
+    ),
+    so_lib_name = "gz-sim-swerve-drive-system.so",
+    static_lib_name = "gz-sim-swerve-drive-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+swerve_drive_test_sources = glob([
+    "src/systems/swerve_drive/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-swerve-drive-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in swerve_drive_test_sources]
 
 gz_sim_system_libraries(
     srcs = [

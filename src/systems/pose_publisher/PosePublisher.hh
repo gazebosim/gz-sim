@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_POSEPUBLISHER_HH_
 
 #include <memory>
+#include <string>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
@@ -58,17 +59,33 @@ namespace systems
   /// - `<static_update_frequency>`: Frequency of static pose publications in
   ///   Hz. A negative frequency publishes as fast as possible (i.e, at the
   ///   rate of the simulation step).
-  /// - `<topic>`: Set a custom topic instead of default value
+  /// - `<topic>`: Custom topic on which this system will publish poses. This
+  ///   element is optional, and the default value is
+  ///   `<scoped_entity_name>/pose`. If the model has a namespace, the default
+  ///   topic becomes `{namespace}/pose`. The custom topic is then prefixed
+  ///   with the namespace if it does not start with `/`, or remains unchanged
+  ///   if it starts with `/`. Static poses are published on the same topic
+  ///   with a `_static` suffix.
   class PosePublisher
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Pose topic name
+      public: std::string poseTopic;
+
+      /// \brief Static pose topic name
+      public: std::string staticPoseTopic;
+    };
+
     /// \brief Constructor
     public: PosePublisher();
 
     /// \brief Destructor
-    public: ~PosePublisher() override = default;
+    public: ~PosePublisher();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -80,6 +97,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<PosePublisherPrivate> dataPtr;
