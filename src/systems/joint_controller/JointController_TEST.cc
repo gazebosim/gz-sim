@@ -176,7 +176,8 @@ TEST(JointControllerTest, DefaultTopicNamesWithoutNs)
     </sdf>)";
 
   JointController::TopicNames expectedTopicNames;
-  expectedTopicNames.cmdTopic = "/model/joint_controller/joint/test_joint/cmd_vel";
+  expectedTopicNames.cmdTopic =
+    "/model/joint_controller/joint/test_joint/cmd_vel";
   TestTopicNames(sdfString, expectedTopicNames);
 
   // Incomplete sdf, only used to test topic resolution behavior

@@ -250,7 +250,7 @@ void JointController::Configure(const Entity &_entity,
       &JointControllerPrivate::OnActuatorVel,
       this->dataPtr.get());
 
-    gzmsg << "JointController subscribing to Actuator messages on [" 
+    gzmsg << "JointController subscribing to Actuator messages on ["
          << resolvedTopicNames.cmdTopic << "]" << std::endl;
   }
   else
@@ -259,7 +259,7 @@ void JointController::Configure(const Entity &_entity,
       &JointControllerPrivate::OnCmdVel,
       this->dataPtr.get());
 
-    gzmsg << "JointController subscribing to Double messages on [" 
+    gzmsg << "JointController subscribing to Double messages on ["
          << resolvedTopicNames.cmdTopic << "]" << std::endl;
   }
 }
