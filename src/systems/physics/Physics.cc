@@ -1403,95 +1403,8 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         if (_ecm.EntityHasComponentType(_entity, components::Recreate::typeId))
           return true;
 
-<<<<<<< HEAD
         // Check if model already exists
         if (this->entityModelMap.HasEntity(_entity))
-=======
-  for (const auto &[_entity, components] : modelEntities)
-  {
-    const auto [_name, _pose, _parent] = components;
-
-    // Check if model already exists
-    if (this->entityModelMap.HasEntity(_entity))
-    {
-      if (_warnIfEntityExists)
-      {
-        gzwarn << "Model entity [" << _entity
-                << "] marked as new, but it's already on the map."
-                << std::endl;
-      }
-      continue;
-    }
-    // TODO(anyone) Don't load models unless they have collisions
-
-    // Check if parent world / model exists
-    sdf::Model model;
-    if (const auto *modelSdfComp =
-        _ecm.Component<components::ModelSdf>(_entity))
-    {
-      model = modelSdfComp->Data();
-    }
-
-    // Component values should override whatever values were put into the
-    // ModelSdf component.
-    model.SetName(_name->Data());
-    model.SetRawPose(_pose->Data());
-    model.SetPoseRelativeTo("");
-
-    // Kinematic default: set <kinematic> on the links that do not set it
-    // before the model is constructed, so that the physics engine creates
-    // them kinematic. Static models are left alone.
-    auto staticComp = _ecm.Component<components::Static>(_entity);
-    if (this->kinematicEnabled && !model.Static() &&
-        !(staticComp && staticComp->Data()))
-    {
-      std::vector<std::string> dynamicLinks;
-      this->ApplyKinematicDefault(model, model.Name(), dynamicLinks);
-      // Nested models are also visited from their top-level model, which is
-      // the one the physics engine builds the whole tree from, so report
-      // their links from there only.
-      if (!dynamicLinks.empty() &&
-          this->entityWorldMap.HasEntity(_parent->Data()))
-      {
-        // Models exported from Gazebo classic often carry an explicit
-        // <kinematic>0</kinematic>, so say which links keep it.
-        std::string names;
-        for (const auto &link : dynamicLinks)
-          names += (names.empty() ? "" : ", ") + link;
-        gzmsg << "Links [" << names << "] stay dynamic because their SDF "
-              << "sets <kinematic>false</kinematic>, which overrides the "
-              << "<kinematic><enabled> parameter of the Physics system."
-              << std::endl;
-      }
-    }
-
-    sdf::Root root;
-    root.SetModel(model);
-    root.UpdateGraphs();
-
-    if (staticComp && staticComp->Data())
-    {
-      model.SetStatic(staticComp->Data());
-      this->staticEntities.insert(_entity);
-    }
-    auto selfCollideComp = _ecm.Component<components::SelfCollide>(_entity);
-    if (selfCollideComp && selfCollideComp ->Data())
-    {
-      model.SetSelfCollide(selfCollideComp->Data());
-    }
-
-    // check if parent is a world
-    if (auto worldPtrPhys =
-            this->entityWorldMap.Get(_parent->Data()))
-    {
-      // Use the ConstructNestedModel feature for nested models
-      if (model.ModelCount() > 0)
-      {
-        auto nestedModelFeature =
-            this->entityWorldMap.EntityCast<NestedModelFeatureList>(
-                _parent->Data());
-        if (!nestedModelFeature)
->>>>>>> 3a2c0ec (Extend Physics system's kinematic mode to support disabling / enabling contacts (#4101))
         {
           if (_warnIfEntityExists)
           {
@@ -1517,11 +1430,37 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
         model.SetRawPose(_pose->Data());
         model.SetPoseRelativeTo("");
 
+        // Kinematic default: set <kinematic> on the links that do not set it
+        // before the model is constructed, so that the physics engine creates
+        // them kinematic. Static models are left alone.
+        auto staticComp = _ecm.Component<components::Static>(_entity);
+        if (this->kinematicEnabled && !model.Static() &&
+            !(staticComp && staticComp->Data()))
+        {
+          std::vector<std::string> dynamicLinks;
+          this->ApplyKinematicDefault(model, model.Name(), dynamicLinks);
+          // Nested models are also visited from their top-level model, which
+          // is the one the physics engine builds the whole tree from, so
+          // report their links from there only.
+          if (!dynamicLinks.empty() &&
+              this->entityWorldMap.HasEntity(_parent->Data()))
+          {
+            // Models exported from Gazebo classic often carry an explicit
+            // <kinematic>0</kinematic>, so say which links keep it.
+            std::string names;
+            for (const auto &link : dynamicLinks)
+              names += (names.empty() ? "" : ", ") + link;
+            gzmsg << "Links [" << names << "] stay dynamic because their SDF "
+                  << "sets <kinematic>false</kinematic>, which overrides the "
+                  << "<kinematic><enabled> parameter of the Physics system."
+                  << std::endl;
+          }
+        }
+
         sdf::Root root;
         root.SetModel(model);
         root.UpdateGraphs();
 
-        auto staticComp = _ecm.Component<components::Static>(_entity);
         if (staticComp && staticComp->Data())
         {
           model.SetStatic(staticComp->Data());
