@@ -44,6 +44,7 @@
 #include <gz/sensors/WideAngleCameraSensor.hh>
 #include <gz/sensors/Manager.hh>
 
+#include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/Atmosphere.hh"
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/BoundingBoxCamera.hh"
@@ -345,7 +346,7 @@ void SensorsPrivate::WaitForInit()
 
     if (this->doInit)
     {
-      // Only initialize if there are rendering sensors
+      // Only initialize if there are rendering sensors or actors
       gzdbg << "Initializing render context" << std::endl;
       if (this->backgroundColor)
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
@@ -910,7 +911,8 @@ void Sensors::Update(const UpdateInfo &_info,
 #ifdef __APPLE__
   // On macOS the render engine must be initialised on the main thread.
   if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
+      (_ecm.HasComponentType(components::Actor::typeId) ||
+       _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
        _ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
        _ecm.HasComponentType(components::GpuLidar::typeId) ||
@@ -940,6 +942,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   {
     if (!this->dataPtr->initialized &&
         (this->dataPtr->forceUpdate ||
+         _ecm.HasComponentType(components::Actor::typeId) ||
          _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
          _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
@@ -1001,8 +1004,11 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     std::unordered_set<sensors::SensorId> sensorsWithPendingTriggers =
         this->dataPtr->SensorsWithPendingTrigger();
 
+    bool hasActors = _ecm.HasComponentType(components::Actor::typeId);
+
     // notify the render thread if updates are available
     if (hasRenderConnections ||
+        hasActors ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
         this->dataPtr->forceUpdate ||
