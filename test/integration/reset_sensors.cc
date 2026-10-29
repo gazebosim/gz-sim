@@ -20,21 +20,31 @@
 #include <gz/msgs/image.pb.h>
 #include <gz/msgs/fluid_pressure.pb.h>
 
+#include <atomic>
 #include <chrono>
+#include <cmath>
 #include <string>
 #include <vector>
 
 #include <sdf/Element.hh>
 #include <sdf/Root.hh>
+#include <sdf/World.hh>
 #include <gz/common/Image.hh>
+#include <gz/rendering/RenderingIface.hh>
+#include <gz/rendering/Scene.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Server.hh"
+#include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/SystemPluginPtr.hh"
 
+#include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/Pose.hh>
+#include <gz/sim/components/World.hh>
+
+#include "gz/sim/rendering/Events.hh"
 
 #include "plugins/MockSystem.hh"
 #include "helpers/EnvTestFixture.hh"
@@ -73,6 +83,10 @@ class ResetFixture: public InternalFixture<InternalFixture<::testing::Test>>
   public: gz::sim::SystemPluginPtr systemPtr;
   public: sim::MockSystem *mockSystem;
 
+  /// \brief Check repeated resets with a spawned or deleted model.
+  /// \param[in] _spawn True to spawn a new model; false to delete an original.
+  public: void CheckResetRenderingEntities(bool _spawn);
+
   private: sim::SystemLoader sm;
 };
 
@@ -87,6 +101,166 @@ common::Image toImage(const msgs::Image &_msg)
           reinterpret_cast<const unsigned char *>(_msg.data().c_str()),
           _msg.width(), _msg.height(), pixelFormat);
   return image;
+}
+
+/////////////////////////////////////////////////
+void ResetFixture::CheckResetRenderingEntities(bool _spawn)
+{
+  sdf::Root root;
+  ASSERT_TRUE(root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "reset_sensors.sdf")).empty());
+  ASSERT_NE(nullptr, root.WorldByIndex(0));
+  root.WorldByIndex(0)->SetGravity(math::Vector3d::Zero);
+
+  // A spawned red box obscures the original green box in the camera image.
+  sdf::Root spawnedRoot;
+  ASSERT_TRUE(spawnedRoot.LoadSdfString(R"(
+    <sdf version='1.10'>
+      <model name='spawned_box'>
+        <static>true</static>
+        <pose>5 0 100 0 0 0</pose>
+        <link name='link'>
+          <visual name='visual'>
+            <geometry><box><size>2 2 2</size></box></geometry>
+            <material>
+              <ambient>1 0 0 1</ambient>
+              <diffuse>1 0 0 1</diffuse>
+            </material>
+          </visual>
+        </link>
+      </model>
+    </sdf>)").empty());
+  ASSERT_NE(nullptr, spawnedRoot.Model());
+
+  EntityComponentManager *ecm = nullptr;
+  Entity changedEntity = kNullEntity;
+  Entity cameraEntity = kNullEntity;
+  bool changeModel = false;
+  bool removeCamera = false;
+  std::atomic<unsigned int> cameraCount{0};
+  std::atomic<bool> duplicateCameras{false};
+  common::ConnectionPtr postRender;
+  transport::Node node;
+  Subscription<msgs::Image> images;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfRoot(root);
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ms);
+
+  this->mockSystem->configureCallback =
+      [&](const Entity &, const std::shared_ptr<const sdf::Element> &,
+          EntityComponentManager &_ecm, EventManager &_events)
+      {
+        ecm = &_ecm;
+        // Inspect rendering objects only from the rendering thread. This
+        // connection also lets removals finish when no camera remains.
+        postRender = _events.Connect<events::PostRender>([&]()
+        {
+          auto scene = rendering::sceneFromFirstRenderEngine();
+          if (scene)
+          {
+            cameraCount = scene->SensorCount();
+            if (cameraCount > 1u)
+              duplicateCameras = true;
+          }
+        });
+      };
+  this->mockSystem->preUpdateCallback =
+      [&](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        EventManager events;
+        SdfEntityCreator creator(_ecm, events);
+        if (changeModel)
+        {
+          if (_spawn)
+          {
+            changedEntity = creator.CreateEntities(spawnedRoot.Model());
+            creator.SetParent(changedEntity,
+                _ecm.EntityByComponents(components::World()));
+          }
+          else
+          {
+            changedEntity = _ecm.EntityByComponents(components::Name("box"));
+            creator.RequestRemoveEntity(changedEntity, true);
+          }
+          changeModel = false;
+        }
+        if (removeCamera)
+        {
+          creator.RequestRemoveEntity(cameraEntity, true);
+          removeCamera = false;
+        }
+      };
+  server.AddSystem(this->systemPtr);
+  ASSERT_NE(nullptr, ecm);
+  cameraEntity = ecm->EntityByComponents(components::Name("camera"));
+  ASSERT_NE(kNullEntity, cameraEntity);
+
+  images.Subscribe(node, "camera", 1u);
+  enum class View { Green, Red, Background };
+  const auto sees = [&](View _view)
+  {
+    if (images.Count() == 0u)
+      return false;
+    auto image = toImage(images.Last());
+    auto pixel = image.Pixel(image.Width() / 2, image.Height() / 2);
+    if (_view == View::Green)
+      return pixel.G() > 0.3 && pixel.R() < 0.05;
+    if (_view == View::Red)
+      return pixel.R() > 0.3 && pixel.G() < 0.05;
+    return std::abs(pixel.R() - pixel.G()) < 0.01 &&
+        std::abs(pixel.R() - pixel.B()) < 0.01;
+  };
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&] { return cameraCount == 1u && sees(View::Green); }));
+
+  for (unsigned int i = 0; i < 3; ++i)
+  {
+    SCOPED_TRACE(i);
+    images.Clear();
+    changeModel = true;
+    ASSERT_TRUE(test::StepUntil(server, 3000, [&]()
+    {
+      return sees(_spawn ? View::Red : View::Background);
+    }));
+    ASSERT_NE(kNullEntity, changedEntity);
+    EXPECT_EQ(_spawn, ecm->HasEntity(changedEntity));
+
+    reset::RequestAndApplyWorldReset(server, "default");
+    EXPECT_EQ(!_spawn, ecm->HasEntity(changedEntity));
+    images.Clear();
+    ASSERT_TRUE(test::StepUntil(server, 3000,
+        [&] { return cameraCount == 1u && sees(View::Green); }));
+    EXPECT_EQ(1u, cameraCount.load());
+    EXPECT_FALSE(duplicateCameras.load());
+  }
+
+  // A deleted original camera must also be recreated, while a surviving
+  // camera must have been reused throughout the preceding reset cycles.
+  removeCamera = true;
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&] { return cameraCount == 0u; }));
+  EXPECT_FALSE(ecm->HasEntity(cameraEntity));
+  images.Clear();
+  reset::RequestAndApplyWorldReset(server, "default");
+  EXPECT_TRUE(ecm->HasEntity(cameraEntity));
+  ASSERT_TRUE(test::StepUntil(server, 3000,
+      [&] { return cameraCount == 1u && sees(View::Green); }));
+  EXPECT_EQ(1u, cameraCount.load());
+  EXPECT_FALSE(duplicateCameras.load());
+}
+
+/////////////////////////////////////////////////
+TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(RemoveSpawnedVisuals))
+{
+  this->CheckResetRenderingEntities(true);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(RestoreRemovedVisuals))
+{
+  this->CheckResetRenderingEntities(false);
 }
 
 /////////////////////////////////////////////////
