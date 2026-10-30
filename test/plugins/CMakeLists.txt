@@ -54,3 +54,34 @@ target_link_libraries(TestStaticModelSystem PRIVATE
     gz-plugin::register
     gz-transport::gz-transport
     gz-sim)
+
+# A physics engine plugin that records the worlds it is asked to construct, and
+# the library with the record, for tests to link. The plugin must not be linked
+# by tests: a test that links a plugin library cannot load the system plugins.
+if(BUILD_TESTING)
+  add_library(MockPhysicsEngineRecorder SHARED MockPhysicsEngineRecorder.cc)
+  # The test calls the functions of this library. Without export macros, make
+  # the symbols visible, as the project builds with hidden visibility.
+  set_target_properties(MockPhysicsEngineRecorder PROPERTIES
+    CXX_VISIBILITY_PRESET default
+    WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  target_link_libraries(MockPhysicsEngineRecorder
+    PRIVATE
+      gz-math::gz-math
+  )
+
+  add_library(MockPhysicsEngine MODULE MockPhysicsEngine.cc)
+  target_link_libraries(MockPhysicsEngine
+    PRIVATE
+      MockPhysicsEngineRecorder
+      gz-plugin::register
+      gz-physics::gz-physics
+      gz-math::gz-math
+      sdformat::sdformat
+  )
+
+  if (MSVC)
+    set_source_files_properties(MockPhysicsEngine.cc
+      MockPhysicsEngineRecorder.cc COMPILE_FLAGS "/wd4251 /wd4146")
+  endif()
+endif()
