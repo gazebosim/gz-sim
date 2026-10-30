@@ -1,6 +1,7 @@
 #################################################
 # gz_add_system(<system>
 #              SOURCES <sources>
+#              [TEST_SOURCES <test_sources...>]
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>]
 #              [PRIVATE_COMPILE_DEFS <definitions...>])
@@ -10,6 +11,8 @@
 # <system> Required. Name of the system.
 #
 # SOURCES: Required. Specify the source files for the system.
+#
+# [TEST_SOURCES]: Specify unit tests that reuse the compiled system sources.
 #
 # [PUBLIC_LINK_LIBS]: Specify a list of libraries to be publicly linked.
 #
@@ -21,7 +24,7 @@ function(gz_add_system system_name)
 
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs SOURCES PUBLIC_LINK_LIBS PRIVATE_INCLUDE_DIRS PRIVATE_LINK_LIBS PRIVATE_COMPILE_DEFS)
+  set(multiValueArgs SOURCES TEST_SOURCES PUBLIC_LINK_LIBS PRIVATE_INCLUDE_DIRS PRIVATE_LINK_LIBS PRIVATE_COMPILE_DEFS)
 
   cmake_parse_arguments(gz_add_system "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -44,35 +47,59 @@ function(gz_add_system system_name)
   endif()
 
 
+  set(build_targets)
+  if(BUILD_TESTING AND gz_add_system_TEST_SOURCES)
+    set(object_target ${PROJECT_LIBRARY_TARGET_NAME}-${system_name}-objects)
+    add_library(${object_target} OBJECT ${sources})
+    set_target_properties(${object_target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    set(sources $<TARGET_OBJECTS:${object_target}>)
+    list(APPEND build_targets ${object_target})
+  endif()
+
   gz_add_component(${system_name}
     SOURCES ${sources}
     GET_TARGET_NAME system_target)
 
-  target_link_libraries(${system_target}
-    PUBLIC
-      ${gz_add_system_PUBLIC_LINK_LIBS}
-      ${PROJECT_LIBRARY_TARGET_NAME}
-    PRIVATE
-      ${gz_add_system_PRIVATE_LINK_LIBS}
-      gz-plugin::register
-  )
+  list(APPEND build_targets ${system_target})
 
-  if(gz_add_system_PRIVATE_INCLUDE_DIRS)
-    target_include_directories(${system_target}
+  foreach(build_target IN LISTS build_targets)
+    target_link_libraries(${build_target}
+      PUBLIC
+        ${gz_add_system_PUBLIC_LINK_LIBS}
+        ${PROJECT_LIBRARY_TARGET_NAME}
       PRIVATE
-        ${gz_add_system_PRIVATE_INCLUDE_DIRS}
+        ${gz_add_system_PRIVATE_LINK_LIBS}
+        gz-plugin::register
     )
-  endif()
 
-  if(gz_add_system_PRIVATE_COMPILE_DEFS)
-    target_compile_definitions(${system_target}
-      PRIVATE
-        ${gz_add_system_PRIVATE_COMPILE_DEFS}
-    )
-  endif()
+    if(gz_add_system_PRIVATE_INCLUDE_DIRS)
+      target_include_directories(${build_target}
+        PRIVATE
+          ${gz_add_system_PRIVATE_INCLUDE_DIRS}
+      )
+    endif()
+
+    if(gz_add_system_PRIVATE_COMPILE_DEFS)
+      target_compile_definitions(${build_target}
+        PRIVATE
+          ${gz_add_system_PRIVATE_COMPILE_DEFS}
+      )
+    endif()
+  endforeach()
 
   # Note that plugins are currently being installed in 2 places. /lib and the plugin dir
   install(TARGETS ${system_target} DESTINATION ${GZ_SIM_PLUGIN_RELATIVE_INSTALL_DIR})
+
+  if(BUILD_TESTING AND gz_add_system_TEST_SOURCES)
+    gz_build_tests(TYPE UNIT
+      SOURCES ${gz_add_system_TEST_SOURCES}
+      LIB_DEPS ${object_target}
+      INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/test
+      ENVIRONMENT
+        GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+        GZ_IP=127.0.0.1
+    )
+  endif()
 endfunction()
 
 add_subdirectory(ackermann_steering)
