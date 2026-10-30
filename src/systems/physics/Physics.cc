@@ -905,9 +905,18 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
           return true;
         }
 
+        auto physicsComp = _ecm.Component<components::Physics>(_entity);
+
         sdf::World world;
         world.SetName(_name->Data());
         world.SetGravity(_gravity->Data());
+        if (physicsComp)
+        {
+          if (auto* physics = world.PhysicsByIndex(0))
+          {
+            *physics = physicsComp->Data();
+          }
+        }
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
 
@@ -962,6 +971,67 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm)
             solverFeature->SetSolver(solverComp->Data());
           }
         }
+<<<<<<< HEAD
+=======
+        auto solverItersComp =
+            _ecm.Component<components::PhysicsSolverIterations>(_entity);
+        if (solverItersComp)
+        {
+          auto solverFeature =
+              this->entityWorldMap.EntityCast<SolverFeatureList>(
+              _entity);
+          if (!solverFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "physics engine doesn't support feature "
+                     << "[SolverFeature]. Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            solverFeature->SetSolverIterations(solverItersComp->Data());
+          }
+        }
+
+        if (physicsComp)
+        {
+          auto maxContactsFeature =
+              this->entityWorldMap.EntityCast<
+              CollisionPairMaxContactsFeatureList>(_entity);
+          if (!maxContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to set physics options, but the "
+                     << "physics engine doesn't support feature "
+                     << "[CollisionPairMaxContacts]. "
+                     << "Options will be ignored."
+                     << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            maxContactsFeature->SetCollisionPairMaxContacts(
+              physicsComp->Data().MaxContacts());
+          }
+        }
+
+        // World Model proxy (used for joints directly under <world> in SDF)
+        auto worldModelFeature =
+            this->entityWorldMap.EntityCast<WorldModelFeatureList>(_entity);
+        if (worldModelFeature)
+        {
+          auto modelPtrPhys = worldModelFeature->GetWorldModel();
+          this->entityModelMap.AddEntity(_entity, modelPtrPhys);
+        }
+>>>>>>> dad15e2 (Make sure to pass physics SDF to gz-physics (#4091))
 
         return true;
       });
