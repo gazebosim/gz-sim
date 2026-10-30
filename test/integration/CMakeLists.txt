@@ -324,3 +324,104 @@ if (TARGET INTEGRATION_load_system_static_registry)
       $<$<CXX_COMPILER_ID:GNU>:-Wl,--no-whole-archive>)
   endif()
 endif()
+
+# Physics engines each test file is known to pass with, declared in the file
+# with GZ_SIM_TEST_PHYSICS_ENGINES, see test/helpers/PhysicsEngines.hh. Files
+# without it only run with the default engine, which must match the default of
+# the Physics system.
+set(default_physics_engine dartsim)
+
+# Engines that GZ_SIM_TEST_PHYSICS_ENGINES accepts, one per gz-physics engine
+# plugin. Declaring any other name is an error, to catch typos.
+set(known_physics_engines dartsim tpe bullet bullet-featherstone mujoco)
+
+# Settings of the plain test that the runs with other engines keep
+set(copied_test_properties ENVIRONMENT ENVIRONMENT_MODIFICATION TIMEOUT)
+
+# Run each test with the physics engines it declares, reusing the same
+# executable. The default engine uses the plain test, which is disabled when the
+# file doesn't declare that engine.
+foreach(test_source ${tests})
+  get_filename_component(test_name ${test_source} NAME_WE)
+  set(base_test INTEGRATION_${test_name})
+  set(test_path ${CMAKE_CURRENT_SOURCE_DIR}/${test_source})
+  if (NOT TEST ${base_test} OR NOT EXISTS ${test_path})
+    continue()
+  endif()
+
+  # Configure again when the file changes, so that edits to the declaration
+  # take effect on the next build
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${test_path})
+
+  file(STRINGS ${test_path} declaration
+    REGEX "^[ \t]*GZ_SIM_TEST_PHYSICS_ENGINES\\(.*\\)")
+  if (NOT declaration)
+    continue()
+  endif()
+  list(GET declaration 0 declaration)
+  string(REGEX REPLACE "^[ \t]*GZ_SIM_TEST_PHYSICS_ENGINES\\((.*)\\).*" "\\1"
+    engines "${declaration}")
+  string(REGEX REPLACE "[\" \t]" "" engines "${engines}")
+  string(REPLACE "," ";" ${test_name}_physics_engines "${engines}")
+  foreach(engine ${${test_name}_physics_engines})
+    if (NOT engine IN_LIST known_physics_engines)
+      list(JOIN known_physics_engines ", " known_engines)
+      message(FATAL_ERROR "${test_source} declares the unknown physics engine "
+        "[${engine}]. Known engines: ${known_engines}")
+    endif()
+  endforeach()
+
+  if (NOT default_physics_engine IN_LIST ${test_name}_physics_engines)
+    set_tests_properties(${base_test} PROPERTIES DISABLED TRUE)
+    if (TEST check_${base_test})
+      set_tests_properties(check_${base_test} PROPERTIES DISABLED TRUE)
+    endif()
+  endif()
+
+  # Read the settings before any engine is set on the plain test
+  foreach(property ${copied_test_properties})
+    get_test_property(${base_test} ${property} base_${property})
+  endforeach()
+
+  foreach(engine ${${test_name}_physics_engines})
+    # Look for each engine plugin only once
+    if (NOT DEFINED ${engine}_plugin_found)
+      find_package(gz-physics QUIET COMPONENTS ${engine}-plugin)
+      if (TARGET gz-physics::${engine}-plugin)
+        set(${engine}_plugin_found TRUE)
+      else()
+        set(${engine}_plugin_found FALSE)
+        message(STATUS "Skipping INTEGRATION tests with the [${engine}] "
+          "physics engine because its plugin was not found")
+      endif()
+    endif()
+    if (NOT ${engine}_plugin_found)
+      continue()
+    endif()
+
+    if (engine STREQUAL default_physics_engine)
+      set(engine_test ${base_test})
+    else()
+      set(engine_test ${base_test}_${engine})
+      add_test(NAME ${engine_test} COMMAND ${base_test}
+        --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
+
+      foreach(property ${copied_test_properties})
+        if (base_${property})
+          set_property(TEST ${engine_test} PROPERTY ${property}
+            "${base_${property}}")
+        endif()
+      endforeach()
+
+      if (Python3_Interpreter_FOUND)
+        add_test(check_${engine_test} ${Python3_EXECUTABLE}
+          ${GZ_CMAKE_TOOLS_DIR}/check_test_ran.py
+          ${CMAKE_BINARY_DIR}/test_results/${engine_test}.xml)
+      endif()
+    endif()
+
+    set_property(TEST ${engine_test} APPEND PROPERTY
+      ENVIRONMENT "GZ_SIM_PHYSICS_ENGINE=gz-physics-${engine}-plugin")
+    set_property(TEST ${engine_test} APPEND PROPERTY LABELS ${engine})
+  endforeach()
+endforeach()
