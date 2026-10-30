@@ -209,12 +209,20 @@ void AirSpeedPrivate::AddAirSpeed(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _airSpeed->Data();
   data.SetName(sensorScopedName);
+
+  // generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/air_speed";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = ns;
+  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.defaultTopicSuffix = "air_speed";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::AirSpeedSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::AirSpeedSensor>(data);

@@ -148,11 +148,20 @@ void CpuLidar::AddSensor(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _cpuLidar->Data();
   data.SetName(sensorScopedName);
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/lidar";
-    data.SetTopic(topic);
-  }
+
+  // generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
+  // check topic
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = ns;
+  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.defaultTopicSuffix = "lidar";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::CpuLidarSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::CpuLidarSensor>(data);

@@ -30,6 +30,7 @@
 #include <gz/sim/components/LinearVelocity.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
+#include <gz/sim/components/Sensor.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/sim/components/SphericalCoordinates.hh>
 #include <gz/sim/Conversions.hh>
@@ -313,11 +314,19 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
 
       sdf.SetName(sensorScopedName);
 
-      if (sdf.Topic().empty())
-      {
-        // Default to scoped name as topic
-        sdf.SetTopic(scopedName(_entity, _ecm) + "/dvl/velocity");
-      }
+      // Generate namespace
+      std::string ns = scopedNamespace(_ecm, _entity);
+      std::string defaultPrefix = scopedName(_entity, _ecm);
+
+      // Check topic
+      TopicNameOptions topicNameOptions;
+      topicNameOptions.sdfElementName = "topic";
+      topicNameOptions.topicNamespace = ns;
+      topicNameOptions.defaultTopicPrefix = defaultPrefix;
+      topicNameOptions.defaultTopicSuffix = "dvl/velocity";
+      auto topic = resolvedTopicName(sdf.Element(), topicNameOptions);
+      sdf.SetTopic(topic);
+      _ecm.CreateComponent(_entity, components::SensorTopic(topic));
 
       auto parentName =
           _ecm.Component<components::Name>(_parent->Data());
