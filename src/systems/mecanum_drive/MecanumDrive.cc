@@ -135,6 +135,9 @@ class gz::sim::systems::MecanumDrivePrivate
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: MecanumDrive::TopicNames resolvedTopicNames;
+
   /// \brief Update period calculated from <odom__publish_frequency>.
   public: std::chrono::steady_clock::duration odomPubPeriod{0};
 
@@ -179,6 +182,9 @@ class gz::sim::systems::MecanumDrivePrivate
 MecanumDrive::MecanumDrive() : dataPtr(std::make_unique<MecanumDrivePrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+MecanumDrive::~MecanumDrive() = default;
 
 //////////////////////////////////////////////////
 void MecanumDrive::Configure(const Entity &_entity,
@@ -363,48 +369,82 @@ void MecanumDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius,
       this->dataPtr->wheelRadius);
 
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+
   // Subscribe to commands
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "topic";
+  cmdVelTopicOptions.topicNamespace = ns;
+  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+  resolvedTopicNames.cmdVelTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
+  if (resolvedTopicNames.cmdVelTopic.empty())
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    gzerr << "MecanumDrive failed to find a valid topic name for "
+          << "twist messages. Check the <topic> and the namespace attribute "
+          << "in the SDF." << std::endl;
+    return;
   }
-  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
-  auto topic = validTopic(topics);
-
-  this->dataPtr->node.Subscribe(topic, &MecanumDrivePrivate::OnCmdVel,
-      this->dataPtr.get());
-
-  std::vector<std::string> odomTopics;
-  if (_sdf->HasElement("odom_topic"))
+  else
   {
-    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+    gzmsg << "MecanumDrive subscribing to twist messages on ["
+          << resolvedTopicNames.cmdVelTopic << "]" << std::endl;
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
+      &MecanumDrivePrivate::OnCmdVel, this->dataPtr.get());
   }
-  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/odometry");
-  auto odomTopic = validTopic(odomTopics);
 
-  this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic);
+  // Publish odometry
+  TopicNameOptions odomTopicOptions;
+  odomTopicOptions.sdfElementName = "odom_topic";
+  odomTopicOptions.topicNamespace = ns;
+  odomTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomTopicOptions.defaultTopicSuffix = "odometry";
+  resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
+  if (resolvedTopicNames.odomTopic.empty())
+  {
+    gzerr << "MecanumDrive failed to find a valid topic name for "
+          << "odometry messages. Check the <odom_topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
+    return;
+  }
+  else
+  {
+    gzmsg << "MecanumDrive publishing odometry messages on ["
+          << resolvedTopicNames.odomTopic << "]" << std::endl;
+    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+      resolvedTopicNames.odomTopic);
+  }
 
-  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/tf"};
-  if (_sdf->HasElement("tf_topic"))
-    tfTopic = _sdf->Get<std::string>("tf_topic");
-  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-      tfTopic);
+  // Publish tf
+  TopicNameOptions tfTopicOptions;
+  tfTopicOptions.sdfElementName = "tf_topic";
+  tfTopicOptions.topicNamespace = ns;
+  tfTopicOptions.defaultTopicPrefix = defaultPrefix;
+  tfTopicOptions.defaultTopicSuffix = "tf";
+  resolvedTopicNames.tfTopic = resolvedTopicName(_sdf, tfTopicOptions);
+  if (resolvedTopicNames.tfTopic.empty())
+  {
+    gzerr << "MecanumDrive failed to find a valid topic name for "
+          << "tf messages. Check the <tf_topic> and the namespace attribute"
+          << "in the SDF." << std::endl;
+    return;
+  }
+  else
+  {
+    gzmsg << "MecanumDrive publishing tf messages on ["
+          << resolvedTopicNames.tfTopic << "]" << std::endl;
+    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+      resolvedTopicNames.tfTopic);
+  }
 
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
 
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
-
-  gzmsg << "MecanumDrive publishing odom messages on [" << odomTopic << "]"
-         << std::endl;
-
-  gzmsg << "MecanumDrive subscribing to twist messages on [" << topic << "]"
-         << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -581,6 +621,12 @@ void MecanumDrive::PostUpdate(const UpdateInfo &_info,
 
   this->dataPtr->UpdateVelocity(_info, _ecm);
   this->dataPtr->UpdateOdometry(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
+MecanumDrive::TopicNames MecanumDrive::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
