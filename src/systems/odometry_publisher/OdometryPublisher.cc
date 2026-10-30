@@ -364,10 +364,13 @@ void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::UpdateOdometry");
-  // Record start time.
+  // Record start time and pose. The first velocity is computed from this pose,
+  // so it has to be the pose the odometry reports, with the offsets applied.
   if (!this->initialized)
   {
     this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
+    this->lastUpdatePose = this->globalOffset.Inverse() *
+      worldPose(this->model.Entity(), _ecm) * this->offset;
     this->initialized = true;
     return;
   }
