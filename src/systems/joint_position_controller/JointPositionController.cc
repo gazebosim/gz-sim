@@ -180,6 +180,9 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: JointPositionController::TopicNames resolvedTopicNames;
+
   /// \brief True if using Actuator msg to control joint position.
   public: bool useActuatorMsg{false};
 
@@ -221,6 +224,9 @@ JointPositionController::JointPositionController()
   : dataPtr(std::make_unique<JointPositionControllerPrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+JointPositionController::~JointPositionController() = default;
 
 //////////////////////////////////////////////////
 void JointPositionController::Configure(const Entity &_entity,
@@ -338,82 +344,71 @@ void JointPositionController::Configure(const Entity &_entity,
         "to use Actuator position message control." << std::endl;
     }
   }
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
 
   // Subscribe to commands
-  std::string topic;
-  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
-    && (!this->dataPtr->useActuatorMsg))
-  {
-    topic = transport::TopicUtils::AsValidTopic("/model/" +
-        this->dataPtr->model.Name(_ecm) + "/joint/" +
-        this->dataPtr->jointNames[0] + "/" +
-        std::to_string(this->dataPtr->jointIndex) + "/cmd_pos");
-    if (topic.empty())
-    {
-      gzerr << "Failed to create topic for joint ["
-            << this->dataPtr->jointNames[0]
-            << "]" << std::endl;
-      return;
-    }
-  }
-  if ((!_sdf->HasElement("sub_topic")) && (!_sdf->HasElement("topic"))
-    && (this->dataPtr->useActuatorMsg))
-  {
-    topic = transport::TopicUtils::AsValidTopic("/actuators");
-    if (topic.empty())
-    {
-      gzerr << "Failed to create Actuator topic for joint ["
-            << this->dataPtr->jointNames[0]
-            << "]" << std::endl;
-      return;
-    }
-  }
-  if (_sdf->HasElement("sub_topic"))
-  {
-    topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/" +
-        _sdf->Get<std::string>("sub_topic"));
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdTopicOptions;
+  cmdTopicOptions.sdfElementName = "topic";
+  cmdTopicOptions.topicNamespace = ns;
+  cmdTopicOptions.defaultTopicPrefix = defaultPrefix;
 
-    if (topic.empty())
-    {
-      gzerr << "Failed to create topic from sub_topic [/model/"
-             << this->dataPtr->model.Name(_ecm) << "/"
-             << _sdf->Get<std::string>("sub_topic")
-             << "]" << " for joint [" << this->dataPtr->jointNames[0]
-             << "]" << std::endl;
-      return;
-    }
-  }
-  if (_sdf->HasElement("topic"))
+  if (_sdf->HasElement("sub_topic") &&
+      !_sdf->Get<std::string>("sub_topic").empty())
   {
-    topic = transport::TopicUtils::AsValidTopic(
-        _sdf->Get<std::string>("topic"));
-
-    if (topic.empty())
+    std::string subTopic = _sdf->Get<std::string>("sub_topic");
+    subTopic.erase(0, subTopic.find_first_not_of('/'));
+    cmdTopicOptions.defaultTopicSuffix = subTopic;
+    gzwarn << "The <sub_topic> element is deprecated. Use <topic> together "
+      "with the model namespace to configure the desired topic name instead."
+      << std::endl;
+  }
+  else if (this->dataPtr->useActuatorMsg)
+  {
+    cmdTopicOptions.defaultTopicSuffix = "actuators";
+    // Preserve the legacy global /actuators topic when no namespace is
+    // set. The leading '/' prevents the resolver from adding a prefix.
+    if (ns.empty())
     {
-      gzerr << "Failed to create topic [" << _sdf->Get<std::string>("topic")
-             << "]" << " for joint [" << this->dataPtr->jointNames[0]
-             << "]" << std::endl;
-      return;
+      cmdTopicOptions.defaultTopicSuffix = "/" +
+        cmdTopicOptions.defaultTopicSuffix;
     }
   }
+  else
+  {
+    cmdTopicOptions.defaultTopicPrefix +=
+      "/joint/" + this->dataPtr->jointNames[0] + "/" +
+      std::to_string(this->dataPtr->jointIndex);
+    cmdTopicOptions.defaultTopicSuffix = "cmd_pos";
+  }
+  resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdTopicOptions);
+  if (resolvedTopicNames.cmdTopic.empty())
+  {
+    gzerr << "Failed to create command topic for joint ["
+          << this->dataPtr->jointNames[0]
+          << "]" << std::endl;
+    return;
+  }
+
   if (this->dataPtr->useActuatorMsg)
   {
-    this->dataPtr->node.Subscribe(topic,
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdTopic,
       &JointPositionControllerPrivate::OnActuatorPos,
       this->dataPtr.get());
 
     gzmsg << "JointPositionController subscribing to Actuator messages on ["
-      << topic << "]" << std::endl;
+      << resolvedTopicNames.cmdTopic << "]" << std::endl;
   }
   else
   {
-    this->dataPtr->node.Subscribe(topic,
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdTopic,
       &JointPositionControllerPrivate::OnCmdPos,
       this->dataPtr.get());
 
     gzmsg << "JointPositionController subscribing to Double messages on ["
-      << topic << "]" << std::endl;
+      << resolvedTopicNames.cmdTopic << "]" << std::endl;
   }
 
   gzdbg << "[JointPositionController] system parameters:" << std::endl;
@@ -425,7 +420,7 @@ void JointPositionController::Configure(const Entity &_entity,
   gzdbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
   gzdbg << "cmd_min: ["    << cmdMin    << "]"            << std::endl;
   gzdbg << "cmd_offset: [" << cmdOffset << "]"            << std::endl;
-  gzdbg << "Topic: ["      << topic     << "]"            << std::endl;
+  gzdbg << "Topic: ["      << resolvedTopicNames.cmdTopic << "]" << std::endl;
   gzdbg << "initial_position: [" << this->dataPtr->jointPosCmd << "]"
          << std::endl;
 }
@@ -651,6 +646,13 @@ void JointPositionController::PreUpdate(
       *forceComp = components::JointForceCmd({force});
     }
   }
+}
+
+//////////////////////////////////////////////////
+JointPositionController::TopicNames
+  JointPositionController::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
