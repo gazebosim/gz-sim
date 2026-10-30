@@ -11,8 +11,9 @@ them. Levels may overlap in their volumes and may be far from each other.
 
 Each level has a buffer zone, which is an inflation of the
 level's volume outside its boundaries used to detect when a performer
-is about to come into the level, or has left and is far enough away to
-exclude the entity from the level.
+has left the level and is far enough away to unload the level. The buffer
+zone isn't used when a performer is coming into the level: the level is only
+loaded once the performer enters the level's volume.
 
 All simulation entities which may change levels during the
 simulation, such as robots, actors and dynamic models are called Performers.
@@ -71,8 +72,8 @@ level.
 that level.
 * Systems that keep internal state will need to react appropriately to entities
 being added and removed.
-* A level is loaded when the performer enters its buffer zone.
-* A level is unloaded when the performer exits its buffer zone.
+* A level is loaded when the performer enters the level.
+* A loaded level is unloaded when the performer exits its buffer zone.
 
 Take a look at the 2D example below. This example focuses on a single performer,
 but the same logic can be extended to multiple performers.
@@ -117,18 +118,15 @@ Let's take a look at how levels are loaded / unloaded as the performer moves:
 
     <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/02.png"/>
 
-2. The performer moves south towards `L3` and enters its buffer zone, triggering
-    a load of that level's models, `M4` and `M5`. Note that at this moment, both
-    `L1` and `L3` are loaded.
-
-    <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/03.png"/>
-
-3. The performer moves further south, exiting `L1` and entering `L3`. However,
-  `L1` is still loaded, since `R1` is still within its buffer zone.
+2. The performer moves south, exiting `L1` and entering `L3`, which triggers a
+    load of that level's models, `M4` and `M5`. Passing through `L3`'s buffer
+    zone on the way didn't load `L3`. However, `L1` is still loaded, since `R1`
+    is still within `L1`'s buffer zone. Note that at this moment, both `L1` and
+    `L3` are loaded.
 
     <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/04.png"/>
 
-4. Eventually `R1` moves beyond `L1`'s buffer, triggering an unload of `L1`. The
+3. Eventually `R1` moves beyond `L1`'s buffer, triggering an unload of `L1`. The
   main effect is unloading `M1`.
 
     <img src="https://raw.githubusercontent.com/gazebosim/gz-sim/d62080da95edbb172c47eac883ec4b707b59bb38/doc/architecture_design/05.png"/>
