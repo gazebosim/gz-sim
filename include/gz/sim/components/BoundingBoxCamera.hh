@@ -36,7 +36,7 @@ namespace components
   /// sdf::Camera, information.
   using BoundingBoxCamera = Component<sdf::Sensor, class BoundingBoxCameraTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BoundingBoxCamera",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.BoundingBoxCamera",
       BoundingBoxCamera)
 }
 }

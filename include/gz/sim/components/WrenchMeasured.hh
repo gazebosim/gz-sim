@@ -47,7 +47,7 @@ namespace components
 using WrenchMeasured =
     Component<msgs::Wrench, class WrenchMeasuredTag,
               serializers::MsgSerializer>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WrenchMeasured",
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.WrenchMeasured",
                           WrenchMeasured)
 }  // namespace components
 }

@@ -33,13 +33,13 @@ namespace components
   /// \brief A component that contains a uint16_t command to change the collide
   /// bitmask of an entity.
   using CollideBitmaskCmd = Component<uint16_t, class CollideBitmaskCmdTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.CollideBitmaskCmd", CollideBitmaskCmd)
 
   /// \brief A component that contains a uint16_t command to change the category
   /// bitmask of an entity.
   using CategoryBitmaskCmd = Component<uint16_t, class CategoryBitmaskCmdTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.CategoryBitmaskCmd", CategoryBitmaskCmd)
 }
 }
