@@ -6,3 +6,18 @@ gz_add_system(navsat
   PRIVATE_LINK_LIBS
     gz-sensors::navsat
 )
+
+gz_build_tests(TYPE UNIT
+  SOURCES
+    NavSat_TEST.cc
+  LIB_DEPS
+    gz-sensors::navsat
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
+)
+
+if (TARGET UNIT_NavSat_TEST)
+  target_sources(UNIT_NavSat_TEST PRIVATE NavSat.cc)
+  target_include_directories(UNIT_NavSat_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
+endif()

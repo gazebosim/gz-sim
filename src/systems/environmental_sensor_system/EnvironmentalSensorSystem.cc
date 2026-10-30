@@ -397,6 +397,9 @@ EnvironmentalSensorSystem::EnvironmentalSensorSystem () :
 }
 
 ////////////////////////////////////////////////////////////////
+EnvironmentalSensorSystem::~EnvironmentalSensorSystem() = default;
+
+////////////////////////////////////////////////////////////////
 void EnvironmentalSensorSystem::Configure(
   const gz::sim::Entity &_entity,
   const std::shared_ptr<const sdf::Element> &/*_sdf*/,
@@ -427,12 +430,18 @@ void EnvironmentalSensorSystem::PreUpdate(const gz::sim::UpdateInfo &_info,
           return true;
         }
 
-        // Default to scoped name as topic
-        if (data.Topic().empty())
-        {
-          std::string topic = scopedName(_entity, _ecm) + "/" + type;
-          data.SetTopic(topic);
-        }
+        // Generate namespace
+        std::string ns = scopedNamespace(_ecm, _entity);
+        std::string defaultPrefix = scopedName(_entity, _ecm);
+
+        // check topic
+        TopicNameOptions topicNameOptions;
+        topicNameOptions.sdfElementName = "topic";
+        topicNameOptions.topicNamespace = ns;
+        topicNameOptions.defaultTopicPrefix = defaultPrefix;
+        topicNameOptions.defaultTopicSuffix = type;
+        auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+        data.SetTopic(topic);
 
         gz::sensors::SensorFactory sensorFactory;
         auto sensor = sensorFactory.CreateSensor<EnvironmentalSensor>(data);

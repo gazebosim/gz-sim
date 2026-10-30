@@ -355,12 +355,20 @@ void MagnetometerPrivate::AddMagnetometer(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _magnetometer->Data();
   data.SetName(sensorScopedName);
+
+  // generate namespace
+  std::string ns = scopedNamespace(_ecm, _entity);
+  std::string defaultPrefix = scopedName(_entity, _ecm);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/magnetometer";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = ns;
+  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.defaultTopicSuffix = "magnetometer";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::MagnetometerSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::MagnetometerSensor>(data);
