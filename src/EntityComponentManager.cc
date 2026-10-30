@@ -507,9 +507,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
-    auto clonedComp = originalComp->Clone();
-
-    this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
+    if (auto clonedComp = originalComp->Clone())
+      this->CreateComponentImplementation(clonedEntity, type, clonedComp.get());
   }
 
   // keep track of canonical link information (for clones of models, the cloned
@@ -736,6 +735,9 @@ bool EntityComponentManager::RemoveComponent(
     return false;
 
   storage->remove(_entity);
+
+  if (!components::Factory::Instance()->HasType(_typeId))
+    return true;
 
   auto* oneTimeChangeComp =
     this->Registry().try_get<OneTimeChangedComponents>(_entity);
@@ -1765,6 +1767,9 @@ void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
     sim::ComponentState _c)
 {
+  if (!components::Factory::Instance()->HasType(_type))
+    return;
+
   // make sure the entity has a component of type _type
   const auto* storage = this->Registry().storage(_type);
   if (storage == nullptr || !storage->contains(_entity))
