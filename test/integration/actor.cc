@@ -116,11 +116,23 @@ TEST_F(ActorIntegrationTest, WorldPose)
   // No pose
   EXPECT_EQ(std::nullopt, actor.WorldPose(ecm));
 
-  // Add world pose
-  math::Pose3d pose(0, 3, 9, 0.0, 1.2, -3.0);
+  // Trajectory pose without world pose or base pose
+  math::Pose3d trajPose(1, 2, 3, 0.0, 0.0, 1.0);
+  ecm.CreateComponent<components::TrajectoryPose>(id,
+      components::TrajectoryPose(trajPose));
+  EXPECT_EQ(trajPose, actor.WorldPose(ecm));
+
+  // Add base pose; WorldPose combines base pose and trajectory pose
+  math::Pose3d basePose(10, 20, 30, 0.0, 1.0, 0.0);
+  ecm.CreateComponent<components::Pose>(id,
+      components::Pose(basePose));
+  EXPECT_EQ(basePose * trajPose, actor.WorldPose(ecm));
+
+  // Explicit WorldPose component takes precedence if present
+  math::Pose3d worldPose(0, 3, 9, 0.0, 1.2, -3.0);
   ecm.CreateComponent<components::WorldPose>(id,
-      components::WorldPose(pose));
-  EXPECT_EQ(pose, actor.WorldPose(ecm));
+      components::WorldPose(worldPose));
+  EXPECT_EQ(worldPose, actor.WorldPose(ecm));
 }
 
 //////////////////////////////////////////////////
@@ -166,12 +178,21 @@ TEST_F(ActorIntegrationTest, SetTrajectoryPose)
   EXPECT_NE(nullptr, ecm.Component<components::TrajectoryPose>(eActor));
   EXPECT_EQ(pose,
     ecm.Component<components::TrajectoryPose>(eActor)->Data());
+  EXPECT_EQ(pose, actor.WorldPose(ecm));
 
-  // Make sure the trajectory pose is updated
+  // Make sure the trajectory pose and world pose are updated
   math::Pose3d pose2(1.0, 3.2, 7.4, 1.0, 0, 0.0);
   actor.SetTrajectoryPose(ecm, pose2);
   EXPECT_EQ(pose2,
     ecm.Component<components::TrajectoryPose>(eActor)->Data());
+  EXPECT_EQ(pose2, actor.WorldPose(ecm));
+
+  // Update base pose and verify SetTrajectoryPose keeps WorldPose in sync
+  math::Pose3d basePose(5.0, 0.0, 0.0, 0, 0, 0);
+  ecm.CreateComponent(eActor, components::Pose(basePose));
+  math::Pose3d pose3(0.0, 2.0, 0.0, 0, 0, 0);
+  actor.SetTrajectoryPose(ecm, pose3);
+  EXPECT_EQ(basePose * pose3, actor.WorldPose(ecm));
 }
 
 //////////////////////////////////////////////////
