@@ -491,6 +491,22 @@ Entity SdfEntityCreator::CreateEntitiesWithoutLoadingPlugins(
 }
 
 //////////////////////////////////////////////////
+Entity SdfEntityCreator::Clone(Entity _entity, Entity _parent,
+  const std::string &_name, bool _allowRename)
+{
+  auto clonedEntity = this->dataPtr->ecm->Clone(_entity, _parent, _name,
+      _allowRename);
+
+  if (clonedEntity != kNullEntity)
+  {
+    this->CollectPluginsFromEntity(clonedEntity);
+    this->LoadModelPlugins();
+  }
+
+  return clonedEntity;
+}
+
+//////////////////////////////////////////////////
 void SdfEntityCreator::LoadModelPlugins()
 {
   for (const auto &[entity, plugins] : this->dataPtr->newModels)
@@ -512,6 +528,44 @@ void SdfEntityCreator::LoadModelPlugins()
     this->dataPtr->eventManager->Emit<events::LoadSdfPlugins>(entity, plugins);
   }
   this->dataPtr->newVisuals.clear();
+}
+
+//////////////////////////////////////////////////
+void SdfEntityCreator::CollectPluginsFromEntity(Entity _entity)
+{
+  auto pluginInfo =
+    this->dataPtr->ecm->Component<components::SystemPluginInfo>(_entity);
+
+  if (pluginInfo)
+  {
+    auto plugins = convert<sdf::Plugins>(pluginInfo->Data());
+
+    if (!plugins.empty())
+    {
+      if (this->dataPtr->ecm->Component<components::Model>(_entity))
+      {
+        this->dataPtr->newModels[_entity] = plugins;
+      }
+      else if (this->dataPtr->ecm->Component<components::Sensor>(_entity))
+      {
+        this->dataPtr->newSensors[_entity] = plugins;
+      }
+      else if (this->dataPtr->ecm->Component<components::Visual>(_entity))
+      {
+        this->dataPtr->newVisuals[_entity] = plugins;
+      }
+
+      // Prevent the copied plugin info from being processed again.
+      this->dataPtr->ecm->RemoveComponent<components::SystemPluginInfo>(
+          _entity);
+    }
+  }
+
+  for (const auto child : this->dataPtr->ecm->ChildrenByComponents(
+           _entity, components::ParentEntity(_entity)))
+  {
+    this->CollectPluginsFromEntity(child);
+  }
 }
 
 //////////////////////////////////////////////////
