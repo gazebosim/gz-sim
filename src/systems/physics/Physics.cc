@@ -1115,9 +1115,18 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           return true;
         }
 
+        auto physicsComp = _ecm.Component<components::Physics>(_entity);
+
         sdf::World world;
         world.SetName(_name->Data());
         world.SetGravity(_gravity->Data());
+        if (physicsComp)
+        {
+          if (auto* physics = world.PhysicsByIndex(0))
+          {
+            *physics = physicsComp->Data();
+          }
+        }
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
 
@@ -1173,8 +1182,6 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           }
         }
 
-        auto physicsComp =
-            _ecm.Component<components::Physics>(_entity);
         if (physicsComp)
         {
           auto maxContactsFeature =
