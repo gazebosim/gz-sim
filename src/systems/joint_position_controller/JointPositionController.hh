@@ -48,6 +48,7 @@ namespace systems
   ///
   /// - `<joint_name>` The name of the joint to control. Required parameter.
   /// Can also include multiple `<joint_name>` for identical joints.
+  /// The first joint provides the position and velocity feedback.
   ///
   /// - `<joint_index>` Axis of the joint to control. Optional parameter.
   /// The default value is 0.
@@ -66,7 +67,16 @@ namespace systems
   /// The default value is 0.1.
   ///
   /// - `<d_gain>` The derivative gain of the PID. Optional parameter.
-  /// The default value is 0.01
+  /// By default, this acts on the rate of change of position error, including
+  /// changes to the target position. The default value is 0.01.
+  ///
+  /// - `<derivative_on_measurement>` Use measured joint velocity for the PID
+  /// derivative term, avoiding derivative kicks when the target changes.
+  /// Optional parameter. The default value is false. When true, the derivative
+  /// contribution is `-d_gain * joint_velocity`. The total PID command remains
+  /// limited by `<cmd_min>` and `<cmd_max>`. The derivative term is applied as
+  /// an explicit force; this option does not enable implicit joint damping.
+  /// Ignored when `<use_velocity_commands>` is true.
   ///
   /// - `<i_max>` The integral upper limit of the PID. Optional parameter.
   /// The default value is 1.
