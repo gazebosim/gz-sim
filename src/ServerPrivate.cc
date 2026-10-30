@@ -19,6 +19,7 @@
 
 #include <tinyxml2.h>
 
+#include <algorithm>
 #include <string>
 #include <utility>
 
@@ -152,6 +153,40 @@ void ServerPrivate::Stop()
 }
 
 /////////////////////////////////////////////////
+bool ServerPrivate::HandleRunnerErrors()
+{
+  const auto failedRunner = std::find_if(
+      this->simRunners.begin(), this->simRunners.end(),
+      [](const std::unique_ptr<SimulationRunner> &_runner)
+      {
+        return _runner->ExitedWithErrors() !=
+            SimulationRunner::ExitReason::NONE;
+      });
+
+  if (failedRunner == this->simRunners.end())
+  {
+    return false;
+  }
+
+  // Runners that didn't fail themselves are given the same reason as the
+  // runner that failed.
+  const SimulationRunner::ExitReason reason =
+      (*failedRunner)->ExitedWithErrors();
+
+  this->exitedWithErrors = true;
+  for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
+  {
+    // Ensure that future calls to runner->Run() will be ignored.
+    if (runner->ExitedWithErrors() == SimulationRunner::ExitReason::NONE)
+    {
+      runner->SetExitedWithErrors(reason);
+    }
+    runner->Stop();
+  }
+  return true;
+}
+
+/////////////////////////////////////////////////
 bool ServerPrivate::Run(const uint64_t _iterations,
     std::optional<std::condition_variable *> _cond)
 {
@@ -213,14 +248,24 @@ bool ServerPrivate::Run(const uint64_t _iterations,
     }
     for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
     {
-      this->workerPool->AddWork([&runner, &_iterations] ()
+      this->workerPool->AddWork([this, &runner, &_iterations] ()
         {
           runner->Run(_iterations);
+
+          // Stop the other runners if this one exited with errors.
+          this->HandleRunnerErrors();
         });
     }
 
     // Wait for the runner to complete.
     result = this->workerPool->WaitForResults();
+  }
+
+  // A runner may have exited with errors while running, for example if a
+  // system plugin failed to load when its entities were created.
+  if (this->HandleRunnerErrors())
+  {
+    result = false;
   }
 
   // See comments ServerPrivate::Stop() for why we lock this mutex here.
@@ -800,7 +845,8 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
         for (auto &runner : this->simRunners)
         {
           // Ensure that future calls to runner->Run() will be ignored.
-          runner->SetExitedWithErrors();
+          runner->SetExitedWithErrors(
+              SimulationRunner::ExitReason::SDF_ERROR);
           runner->Stop();
         }
         if (_config.WaitForAssets())
@@ -854,6 +900,10 @@ void ServerPrivate::DownloadAssets(const ServerConfig &_config)
     this->downloadAssetCv.wait(assetLock);
     for (auto &runner : this->simRunners)
       runner->CreateEntities();
+
+    // Creating entities may fail, for example if a system plugin fails to
+    // load and the server is configured to exit on plugin errors.
+    this->HandleRunnerErrors();
   }
 }
 
