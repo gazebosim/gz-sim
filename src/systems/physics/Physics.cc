@@ -2578,7 +2578,26 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::CategoryBitmaskCmd>(entity);
   }
 
-  // Handle joint state
+  // Handle joint state. This runs for every joint on every step, so look up
+  // only the command components that some entity has, and cast to the
+  // optional command features only when a command needs them.
+  const bool hasHaltMotion =
+      _ecm.HasComponentType(components::HaltMotion::typeId);
+  const bool hasPosLimitsCmd =
+      _ecm.HasComponentType(components::JointPositionLimitsCmd::typeId);
+  const bool hasVelLimitsCmd =
+      _ecm.HasComponentType(components::JointVelocityLimitsCmd::typeId);
+  const bool hasEffLimitsCmd =
+      _ecm.HasComponentType(components::JointEffortLimitsCmd::typeId);
+  const bool hasPosReset =
+      _ecm.HasComponentType(components::JointPositionReset::typeId);
+  const bool hasVelReset =
+      _ecm.HasComponentType(components::JointVelocityReset::typeId);
+  const bool hasForceCmd =
+      _ecm.HasComponentType(components::JointForceCmd::typeId);
+  const bool hasVelCmd =
+      _ecm.HasComponentType(components::JointVelocityCmd::typeId);
+
   _ecm.Each<components::Joint, components::Name>(
       [&](const Entity &_entity, const components::Joint *,
           const components::Name *_name)
@@ -2587,34 +2606,36 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         if (nullptr == jointPhys)
           return true;
 
-        auto jointVelFeature =
-          this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
-              _entity);
-
-        auto jointPosLimitsFeature =
-          this->entityJointMap.EntityCast<JointPositionLimitsCommandFeatureList>
-              (_entity);
-
-        auto jointVelLimitsFeature =
-          this->entityJointMap.EntityCast<JointVelocityLimitsCommandFeatureList>
-              (_entity);
-
-        auto jointEffLimitsFeature =
-          this->entityJointMap.EntityCast<JointEffortLimitsCommandFeatureList>(
-              _entity);
-
-        auto haltMotionComp = _ecm.Component<components::HaltMotion>(
-            _ecm.ParentEntity(_entity));
-        bool haltMotion = false;
-        if (haltMotionComp)
+        // Degrees of freedom of the joint, queried at most once
+        std::optional<std::size_t> dofs;
+        auto jointDofs = [&]()
         {
-          haltMotion = haltMotionComp->Data();
+          if (!dofs)
+            dofs = jointPhys->GetDegreesOfFreedom();
+          return *dofs;
+        };
+
+        bool haltMotion = false;
+        bool batteryOff = false;
+        if (hasHaltMotion || !this->entityOffMap.empty())
+        {
+          const Entity parent = _ecm.ParentEntity(_entity);
+          if (hasHaltMotion)
+          {
+            haltMotion = _ecm.ComponentData<components::HaltMotion>(parent)
+                .value_or(false);
+          }
+          auto offIt = this->entityOffMap.find(parent);
+          batteryOff = offIt != this->entityOffMap.end() && offIt->second;
         }
 
         // Model is out of battery or halt motion has been triggered.
-        if (this->entityOffMap[_ecm.ParentEntity(_entity)] || haltMotion)
+        if (batteryOff || haltMotion)
         {
-          std::size_t nDofs = jointPhys->GetDegreesOfFreedom();
+          auto jointVelFeature =
+            this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
+                _entity);
+          std::size_t nDofs = jointDofs();
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointPhys->SetForce(i, 0);
@@ -2628,28 +2649,31 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           return true;
         }
 
-        auto posLimits = _ecm.Component<components::JointPositionLimitsCmd>(
-            _entity);
+        auto posLimits = hasPosLimitsCmd ?
+            _ecm.Component<components::JointPositionLimitsCmd>(_entity) :
+            nullptr;
         if (posLimits && !posLimits->Data().empty())
         {
           const auto& limits = posLimits->Data();
 
-          if (limits.size() != jointPhys->GetDegreesOfFreedom())
+          if (limits.size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom "
             << "between Joint [" << _name->Data() << "(Entity="
             << _entity << ")] and its JointPositionLimitsCmd "
             << "component. The joint has "
-            << jointPhys->GetDegreesOfFreedom()
+            << jointDofs()
             << " while the component has "
             << limits.size() << ".\n";
           }
 
+          auto jointPosLimitsFeature = this->entityJointMap
+              .EntityCast<JointPositionLimitsCommandFeatureList>(_entity);
           if (jointPosLimitsFeature)
           {
             std::size_t nDofs = std::min(
               limits.size(),
-              jointPhys->GetDegreesOfFreedom());
+              jointDofs());
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
@@ -2659,28 +2683,31 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
         }
 
-        auto velLimits = _ecm.Component<components::JointVelocityLimitsCmd>(
-            _entity);
+        auto velLimits = hasVelLimitsCmd ?
+            _ecm.Component<components::JointVelocityLimitsCmd>(_entity) :
+            nullptr;
         if (velLimits && !velLimits->Data().empty())
         {
           const auto& limits = velLimits->Data();
 
-          if (limits.size() != jointPhys->GetDegreesOfFreedom())
+          if (limits.size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom "
             << "between Joint [" << _name->Data() << "(Entity="
             << _entity << ")] and its JointVelocityLimitsCmd "
             << "component. The joint has "
-            << jointPhys->GetDegreesOfFreedom()
+            << jointDofs()
             << " while the component has "
             << limits.size() << ".\n";
           }
 
+          auto jointVelLimitsFeature = this->entityJointMap
+              .EntityCast<JointVelocityLimitsCommandFeatureList>(_entity);
           if (jointVelLimitsFeature)
           {
             std::size_t nDofs = std::min(
               limits.size(),
-              jointPhys->GetDegreesOfFreedom());
+              jointDofs());
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
@@ -2690,28 +2717,31 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
         }
 
-        auto effLimits = _ecm.Component<components::JointEffortLimitsCmd>(
-            _entity);
+        auto effLimits = hasEffLimitsCmd ?
+            _ecm.Component<components::JointEffortLimitsCmd>(_entity) :
+            nullptr;
         if (effLimits && !effLimits->Data().empty())
         {
           const auto& limits = effLimits->Data();
 
-          if (limits.size() != jointPhys->GetDegreesOfFreedom())
+          if (limits.size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom "
             << "between Joint [" << _name->Data() << "(Entity="
             << _entity << ")] and its JointEffortLimitsCmd "
             << "component. The joint has "
-            << jointPhys->GetDegreesOfFreedom()
+            << jointDofs()
             << " while the component has "
             << limits.size() << ".\n";
           }
 
+          auto jointEffLimitsFeature = this->entityJointMap
+              .EntityCast<JointEffortLimitsCommandFeatureList>(_entity);
           if (jointEffLimitsFeature)
           {
             std::size_t nDofs = std::min(
               limits.size(),
-              jointPhys->GetDegreesOfFreedom());
+              jointDofs());
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
@@ -2721,29 +2751,31 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           }
         }
 
-        auto posReset = _ecm.Component<components::JointPositionReset>(
-            _entity);
-        auto velReset = _ecm.Component<components::JointVelocityReset>(
-            _entity);
+        auto posReset = hasPosReset ?
+            _ecm.Component<components::JointPositionReset>(_entity) :
+            nullptr;
+        auto velReset = hasVelReset ?
+            _ecm.Component<components::JointVelocityReset>(_entity) :
+            nullptr;
 
         // Reset the velocity
         if (velReset)
         {
           auto& jointVelocity = velReset->Data();
 
-          if (jointVelocity.size() != jointPhys->GetDegreesOfFreedom())
+          if (jointVelocity.size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom "
                     << "between Joint [" << _name->Data() << "(Entity="
                     << _entity << ")] and its JointVelocityReset "
                     << "component. The joint has "
-                    << jointPhys->GetDegreesOfFreedom()
+                    << jointDofs()
                     << " while the component has "
                     << jointVelocity.size() << ".\n";
             }
 
             std::size_t nDofs = std::min(
-                jointVelocity.size(), jointPhys->GetDegreesOfFreedom());
+                jointVelocity.size(), jointDofs());
 
             for (std::size_t i = 0; i < nDofs; ++i)
             {
@@ -2756,39 +2788,43 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         {
           auto &jointPosition = posReset->Data();
 
-          if (jointPosition.size() != jointPhys->GetDegreesOfFreedom())
+          if (jointPosition.size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom "
                     << "between Joint [" << _name->Data() << "(Entity="
                     << _entity << ")] and its JointPositionyReset "
                     << "component. The joint has "
-                    << jointPhys->GetDegreesOfFreedom()
+                    << jointDofs()
                     << " while the component has "
                     << jointPosition.size() << ".\n";
             }
             std::size_t nDofs = std::min(
-                jointPosition.size(), jointPhys->GetDegreesOfFreedom());
+                jointPosition.size(), jointDofs());
             for (std::size_t i = 0; i < nDofs; ++i)
             {
               jointPhys->SetPosition(i, jointPosition[i]);
             }
         }
 
-        auto force = _ecm.Component<components::JointForceCmd>(_entity);
-        auto velCmd = _ecm.Component<components::JointVelocityCmd>(_entity);
+        auto force = hasForceCmd ?
+            _ecm.Component<components::JointForceCmd>(_entity) :
+            nullptr;
+        auto velCmd = hasVelCmd ?
+            _ecm.Component<components::JointVelocityCmd>(_entity) :
+            nullptr;
 
         if (force)
         {
-          if (force->Data().size() != jointPhys->GetDegreesOfFreedom())
+          if (force->Data().size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom between "
                     << "Joint [" << _name->Data() << "(Entity=" << _entity
                     << ")] and its JointForceCmd component. The joint has "
-                    << jointPhys->GetDegreesOfFreedom() << " while the "
+                    << jointDofs() << " while the "
                     << " component has " << force->Data().size() << ".\n";
           }
           std::size_t nDofs = std::min(force->Data().size(),
-                                       jointPhys->GetDegreesOfFreedom());
+                                       jointDofs());
           for (std::size_t i = 0; i < nDofs; ++i)
           {
             jointPhys->SetForce(i, force->Data()[i]);
@@ -2810,17 +2846,20 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
             return true;
           }
 
-          if (velocityCmd.size() != jointPhys->GetDegreesOfFreedom())
+          if (velocityCmd.size() != jointDofs())
           {
             gzwarn << "There is a mismatch in the degrees of freedom"
                     << " between Joint [" << _name->Data()
                     << "(Entity=" << _entity<< ")] and its "
                     << "JointVelocityCmd component. The joint has "
-                    << jointPhys->GetDegreesOfFreedom()
+                    << jointDofs()
                     << " while the component has "
                     << velocityCmd.size() << ".\n";
           }
 
+          auto jointVelFeature =
+            this->entityJointMap.EntityCast<JointVelocityCommandFeatureList>(
+                _entity);
           if (!jointVelFeature)
           {
             return true;
@@ -2828,7 +2867,7 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
 
           std::size_t nDofs = std::min(
             velocityCmd.size(),
-            jointPhys->GetDegreesOfFreedom());
+            jointDofs());
 
           for (std::size_t i = 0; i < nDofs; ++i)
           {
@@ -4632,8 +4671,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       {
         if (auto jointPhys = this->entityJointMap.Get(_entity))
         {
-          _jointPos->Data().resize(jointPhys->GetDegreesOfFreedom());
-          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom(); ++i)
+          const std::size_t nDofs = jointPhys->GetDegreesOfFreedom();
+          _jointPos->Data().resize(nDofs);
+          for (std::size_t i = 0; i < nDofs; ++i)
           {
             _jointPos->Data()[i] = jointPhys->GetPosition(i);
           }
@@ -4650,9 +4690,9 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
       {
         if (auto jointPhys = this->entityJointMap.Get(_entity))
         {
-          _jointVel->Data().resize(jointPhys->GetDegreesOfFreedom());
-          for (std::size_t i = 0; i < jointPhys->GetDegreesOfFreedom();
-               ++i)
+          const std::size_t nDofs = jointPhys->GetDegreesOfFreedom();
+          _jointVel->Data().resize(nDofs);
+          for (std::size_t i = 0; i < nDofs; ++i)
           {
             _jointVel->Data()[i] = jointPhys->GetVelocity(i);
           }
