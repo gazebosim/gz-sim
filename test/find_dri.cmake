@@ -17,7 +17,32 @@ set(VALID_DISPLAY FALSE)
 set(VALID_DRI_DISPLAY FALSE)
 set(CHECKER_ERROR "(no glxinfo or pyopengl)")
 
-if((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
+if(APPLE)
+  execute_process(
+    COMMAND pgrep -x WindowServer
+    RESULT_VARIABLE DISPLAY_FAIL_RESULT
+    ERROR_QUIET OUTPUT_QUIET
+  )
+
+  if(NOT DISPLAY_FAIL_RESULT)
+    message(STATUS " + found a display available (WindowServer is running)")
+    set(VALID_DISPLAY TRUE)
+
+    execute_process(
+      COMMAND system_profiler SPDisplaysDataType
+      COMMAND grep -i "Metal"
+      ERROR_QUIET
+      OUTPUT_VARIABLE METAL_SUPPORT
+    )
+
+    if(METAL_SUPPORT)
+      message(STATUS " + found a valid dri display (Metal)")
+      set(VALID_DRI_DISPLAY TRUE)
+    else()
+      set(CHECKER_ERROR "(no Metal support reported by system_profiler)")
+    endif()
+  endif()
+elseif((DEFINED ENV{DISPLAY}) AND NOT ("$ENV{DISPLAY}" STREQUAL ""))
   find_program(XWININFO xwininfo)
   if (XWININFO)
     execute_process(
