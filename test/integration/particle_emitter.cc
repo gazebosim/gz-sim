@@ -22,6 +22,8 @@
 #include <gz/common/Util.hh>
 #include <gz/math/Color.hh>
 #include <gz/msgs/Utility.hh>
+#include <gz/msgs/particle_emitter_v.pb.h>
+#include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Entity.hh"
@@ -157,4 +159,63 @@ TEST_F(ParticleEmitterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 
   EXPECT_TRUE(updateCustomChecked);
   EXPECT_TRUE(updateDefaultChecked);
+}
+
+/////////////////////////////////////////////////////////////////
+// Verify that removing a particle emitter cleans up its subscriptions
+// and service cache.
+TEST_F(ParticleEmitterTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveEmitterCleanup))
+{
+  this->LoadWorld("test/worlds/particle_emitter.sdf");
+
+  bool removeRequested{false};
+  bool emitterRemoved{false};
+  test::Relay testSystem;
+
+  testSystem.OnPreUpdate(
+      [&](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
+      {
+        if (!removeRequested)
+          return;
+        _ecm.Each<components::ParticleEmitter, components::Name>(
+            [&](const sim::Entity &_entity,
+                const components::ParticleEmitter *,
+                const components::Name *_name) -> bool
+            {
+              if (_name->Data() == "smoke_emitter")
+              {
+                _ecm.RequestRemoveEntity(_entity);
+                emitterRemoved = true;
+              }
+              return true;
+            });
+        removeRequested = false;
+      });
+
+  // Count the emitters the system reports through its service.
+  const std::string service{"/world/particle_emitters/particle_emitters"};
+  gz::transport::Node node;
+  auto countEmitters = [&]() -> int
+  {
+    gz::msgs::ParticleEmitter_V rep;
+    bool result{false};
+    bool executed = node.Request(service, 5000, rep, result);
+    EXPECT_TRUE(executed);
+    EXPECT_TRUE(result);
+    return rep.particle_emitter_size();
+  };
+
+  this->server->AddSystem(testSystem.systemPtr);
+
+  // Let the system create the emitters and fill its service cache.
+  this->server->Run(true, 2, false);
+  const int countBefore = countEmitters();
+  ASSERT_GT(countBefore, 0);
+
+  // Remove smoke_emitter and let the system process the removal.
+  removeRequested = true;
+  this->server->Run(true, 5, false);
+  EXPECT_TRUE(emitterRemoved);
+  EXPECT_EQ(countBefore - 1, countEmitters());
 }
