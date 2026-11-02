@@ -370,8 +370,8 @@ void MecanumDrive::Configure(const Entity &_entity,
       this->dataPtr->wheelRadius);
 
   // Generate namespace
-  std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
-  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+  const std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  const std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
 
   // Subscribe to commands
   auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;

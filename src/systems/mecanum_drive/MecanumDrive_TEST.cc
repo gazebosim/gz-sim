@@ -65,7 +65,6 @@ TEST(MecanumDriveTest, AbsoluteTopicNames)
                   filename='gz-sim-mecanum-drive-system'>
             <topic>/test_cmd_vel</topic>
             <odom_topic>/test_odom</odom_topic>
-            <enable_topic>/test_enable</enable_topic>
             <tf_topic>/test_tf</tf_topic>
           </plugin>
         </model>
@@ -90,7 +89,6 @@ TEST(MecanumDriveTest, RelativeTopicNames)
                   filename='gz-sim-mecanum-drive-system'>
             <topic>test_cmd_vel</topic>
             <odom_topic>test_odom</odom_topic>
-            <enable_topic>test_enable</enable_topic>
             <tf_topic>test_tf</tf_topic>
           </plugin>
         </model>
@@ -138,7 +136,6 @@ TEST(MecanumDriveTest, TopicNamesWithoutNs)
                   filename='gz-sim-mecanum-drive-system'>
             <topic>test_cmd_vel</topic>
             <odom_topic>test_odom</odom_topic>
-            <enable_topic>test_enable</enable_topic>
             <tf_topic>test_tf</tf_topic>
           </plugin>
         </model>
