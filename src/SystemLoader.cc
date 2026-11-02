@@ -58,6 +58,15 @@ class gz::sim::SystemLoaderPrivate
     systemPaths.AddPluginPaths(common::joinPaths(
         homePath, ".gz", "sim", "plugins"));
     systemPaths.AddPluginPaths(gz::sim::getPluginInstallDir());
+    // Plugins installed with CMake's install(TARGETS) go to
+    // <prefix>/bin on Windows and <prefix>/lib elsewhere.
+#ifdef _WIN32
+    const std::string libDir = "bin";
+#else
+    const std::string libDir = "lib";
+#endif
+    systemPaths.AddPluginPaths(common::joinPaths(
+        gz::sim::getInstallPrefix(), libDir));
 
     return systemPaths.PluginPaths();
   }
