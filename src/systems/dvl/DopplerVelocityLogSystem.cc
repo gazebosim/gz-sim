@@ -314,15 +314,11 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
 
       sdf.SetName(sensorScopedName);
 
-      // Generate namespace
-      std::string ns = scopedNamespace(_ecm, _entity);
-      std::string defaultPrefix = scopedName(_entity, _ecm);
-
       // Check topic
       TopicNameOptions topicNameOptions;
       topicNameOptions.sdfElementName = "topic";
-      topicNameOptions.topicNamespace = ns;
-      topicNameOptions.defaultTopicPrefix = defaultPrefix;
+      topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+      topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
       topicNameOptions.defaultTopicSuffix = "dvl/velocity";
       auto topic = resolvedTopicName(sdf.Element(), topicNameOptions);
       sdf.SetTopic(topic);
