@@ -571,6 +571,9 @@ TEST_F(JointTrajectoryControllerTestFixture,
     // Keep track of how many iterations have already passed
     previousIterFromStart = iterFromStart;
   }
+
+  // Verify that trajectory progress feedback was received
+  EXPECT_GT(count, 0u);
 }
 
 // Issue #4105 test that the default topic is resolved correctly when a namespace is provided
