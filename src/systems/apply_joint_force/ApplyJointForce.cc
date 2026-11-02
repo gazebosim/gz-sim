@@ -47,6 +47,9 @@ class gz::sim::systems::ApplyJointForcePrivate
   public: Entity jointEntity;
   //! [jointEntityDeclaration]
 
+  /// \brief Resolved topic names
+  public: ApplyJointForce::TopicNames resolvedTopicNames;
+
   /// \brief Joint name
   public: std::string jointName;
 
@@ -69,6 +72,9 @@ ApplyJointForce::ApplyJointForce()
   : dataPtr(std::make_unique<ApplyJointForcePrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+ApplyJointForce::~ApplyJointForce() = default;
 
 //////////////////////////////////////////////////
 //! [Configure]
@@ -104,24 +110,29 @@ void ApplyJointForce::Configure(const Entity &_entity,
   }
 
   // Subscribe to commands
-  //! [cmdTopic]
-  auto topic = transport::TopicUtils::AsValidTopic("/model/" +
-      this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName +
-      "/cmd_force");
-  //! [cmdTopic]
-  if (topic.empty())
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "topic";
+  cmdVelTopicOptions.topicNamespace =
+    scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  cmdVelTopicOptions.defaultTopicPrefix = "/model/" + this->dataPtr->model.Name(_ecm) +
+    "/joint/" + this->dataPtr->jointName;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_force";
+  resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
+  if (resolvedTopicNames.cmdTopic.empty())
   {
     gzerr << "Failed to create valid topic for [" << this->dataPtr->jointName
            << "]" << std::endl;
     return;
   }
   //! [cmdSub]
-  this->dataPtr->node.Subscribe(topic, &ApplyJointForcePrivate::OnCmdForce,
+  this->dataPtr->node.Subscribe(resolvedTopicNames.cmdTopic,
+                                &ApplyJointForcePrivate::OnCmdForce,
                                 this->dataPtr.get());
   //! [cmdSub]
 
-  gzmsg << "ApplyJointForce subscribing to Double messages on [" << topic
-         << "]" << std::endl;
+  gzmsg << "ApplyJointForce subscribing to Double messages on ["
+         << resolvedTopicNames.cmdTopic << "]" << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -165,6 +176,12 @@ void ApplyJointForce::PreUpdate(const UpdateInfo &_info,
   //! [modifyComponent]
   force->Data()[0] += this->dataPtr->jointForceCmd;
   //! [modifyComponent]
+}
+
+//////////////////////////////////////////////////
+ApplyJointForce::TopicNames ApplyJointForce::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
