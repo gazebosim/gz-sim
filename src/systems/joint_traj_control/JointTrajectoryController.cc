@@ -381,27 +381,7 @@ void JointTrajectoryController::Configure(
   trajectoryTopicOptions.sdfElementName = "topic";
   trajectoryTopicOptions.topicNamespace = scopedNamespace(_ecm, _entity);
   trajectoryTopicOptions.defaultTopicPrefix = "/model/" + model.Name(_ecm);
-  trajectoryTopicOptions.defaultTopicSuffix = "/joint_trajectory";
-
-  /* OBSOLETE: This code is going to be obsolet with Issue #4105
-  // Subscribe to joint trajectory commands
-  auto trajectoryTopic = _sdf->Get<std::string>("topic");
-  if (trajectoryTopic.empty())
-  {
-    // If not specified, use the default topic based on model name
-    trajectoryTopic = "/model/" + model.Name(_ecm) + "/joint_trajectory";
-  }
-  
-  // Make sure the topic is valid
-  const auto validTrajectoryTopic = transport::TopicUtils::AsValidTopic(
-      trajectoryTopic);
-  if (validTrajectoryTopic.empty())
-  {
-    gzerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
-           << trajectoryTopic << "].\n";
-    return;
-  }
-  */
+  trajectoryTopicOptions.defaultTopicSuffix = "joint_trajectory";
 
   // Make sure topic is valid
   const auto validTrajectoryTopic = resolvedTopicName(_sdf, trajectoryTopicOptions);
