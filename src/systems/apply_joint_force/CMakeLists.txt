@@ -18,4 +18,3 @@ if (TARGET UNIT_ApplyJointForce_TEST)
   target_sources(UNIT_ApplyJointForce_TEST PRIVATE ApplyJointForce.cc)
   target_include_directories(UNIT_ApplyJointForce_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
 endif()
-
