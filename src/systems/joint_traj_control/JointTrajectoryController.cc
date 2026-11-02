@@ -26,6 +26,7 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
 
 #include <gz/math/PID.hh>
 
@@ -33,14 +34,13 @@
 #include <gz/msgs/joint_trajectory.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>
-#include <gz/transport/TopicUtils.hh>
 
 #include <map>
 #include <string>
 #include <vector>
 
 #include "JointTrajectoryController.hh"
-#include "gz/sim/Util.hh"
+
 
 using namespace gz;
 using namespace sim;
@@ -389,7 +389,7 @@ void JointTrajectoryController::Configure(
   if (validTrajectoryTopic.empty())
   {
     gzerr <<  "[JointTrajectoryController] Cannot resolve a valid joint trajectory topic."
-              "Check <topic> element and namespace configuration.\n";
+              " Check <topic> element and namespace configuration.\n";
     return;
   }
 
