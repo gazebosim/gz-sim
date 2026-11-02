@@ -505,10 +505,10 @@ class GzSimComponents##_classname \
     if constexpr (!_classname::template HasTrait< \
         ::gz::sim::components::PrivateTag>()) \
     { \
-      using Desc = ::gz::sim::components::ComponentDescriptor<_classname>; \
-      ::gz::sim::components::Factory::Instance()->Register<_classname>(\
-        _compType, new Desc(), \
-        ::gz::sim::components::RegistrationObjectId(this));\
+      ::gz::sim::components::Factory::Instance()->Register<_classname>( \
+        _compType, \
+        new ::gz::sim::components::ComponentDescriptor<_classname>(), \
+        ::gz::sim::components::RegistrationObjectId(this)); \
     } \
   } \
   public: GzSimComponents##_classname( \

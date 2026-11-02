@@ -4168,7 +4168,6 @@ TEST_P(EntityComponentManagerFixture, PrivateComponent)
 TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ComponentTraits))
 {
-  EntityCompMgrTest manager;
   Entity e1 = manager.CreateEntity();
 
   manager.CreateComponent(e1, IntComponent(100));
@@ -4204,7 +4203,6 @@ TEST_P(EntityComponentManagerFixture,
 TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(Exclude))
 {
-  EntityCompMgrTest manager;
   const EntityComponentManager &constManager = manager;
 
   Entity e1 = manager.CreateEntity();
