@@ -358,15 +358,11 @@ void ForceTorquePrivate::AddSensor(
   sdf::Sensor data = _forceTorque->Data();
   data.SetName(sensorScopedName);
 
-  // generate namespace
-  std::string ns = scopedNamespace(_ecm, _entity);
-  std::string defaultPrefix = scopedName(_entity, _ecm);
-
   // check topic
   TopicNameOptions topicNameOptions;
   topicNameOptions.sdfElementName = "topic";
-  topicNameOptions.topicNamespace = ns;
-  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
   topicNameOptions.defaultTopicSuffix = "forcetorque";
   auto topic = resolvedTopicName(data.Element(), topicNameOptions);
   data.SetTopic(topic);

@@ -187,15 +187,11 @@ void LogicalCameraPrivate::AddLogicalCamera(
   auto data = _logicalCamera->Data()->Clone();
   data->GetAttribute("name")->Set(sensorScopedName);
 
-  // generate namespace
-  std::string ns = scopedNamespace(_ecm, _entity);
-  std::string defaultPrefix = scopedName(_entity, _ecm);
-
   // check topic
   TopicNameOptions topicNameOptions;
   topicNameOptions.sdfElementName = "topic";
-  topicNameOptions.topicNamespace = ns;
-  topicNameOptions.defaultTopicPrefix = defaultPrefix;
+  topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
   topicNameOptions.defaultTopicSuffix = "logical_camera";
   auto topic = resolvedTopicName(data, topicNameOptions);
   data->GetElement("topic")->Set(topic);
