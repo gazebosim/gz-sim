@@ -31,6 +31,7 @@
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/Util.hh"
 
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -38,6 +39,8 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+
+#include <sdf/Element.hh>
 
 #define TOL 1e-4
 
@@ -395,4 +398,21 @@ TEST_F(JointTrajectoryControllerTestFixture,
     // Keep track of how many iterations have already passed
     previousIterFromStart = iterFromStart;
   }
+}
+
+// Issue #4105 test that the default topic is resolved correctly when a namespace is provided
+TEST(JointTrajectoryTopicResolution, DefaultTopicWithNamespace)
+{
+  TopicNameOptions options;
+  options.sdfElementName = "topic";
+  options.topicNamespace = "/robot1";
+  options.defaultTopicPrefix = "/model/RR_position_control";
+  options.defaultTopicSuffix = "joint_trajectory";
+
+  auto sdf = std::make_shared<sdf::Element>();
+  sdf->SetName("plugin");
+
+  const auto topic = resolvedTopicName(sdf, options);
+
+  EXPECT_EQ("/robot1/joint_trajectory", topic);
 }
