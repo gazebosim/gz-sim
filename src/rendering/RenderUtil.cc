@@ -1728,8 +1728,8 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
   sdfDataCopy.SetName(sensorScopedName);
 
   // Generate namespace
-  std::string ns = scopedNamespace(_ecm, _entity);
-  std::string defaultPrefix = scopedName(_entity, _ecm);
+  const std::string ns = scopedNamespace(_ecm, _entity);
+  const std::string defaultPrefix = scopedName(_entity, _ecm);
 
   // check topic
   TopicNameOptions topicOptions;
