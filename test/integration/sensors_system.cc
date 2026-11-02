@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -174,22 +175,29 @@ void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
   }
   ASSERT_LT(sleep, maxSleep);
 
+  std::vector<transport::TopicInfo> topicInfo;
+  node.AllTopicInfo(topicInfo);
   for (const std::string &topic : _topics)
   {
-    publishers.clear();
-    subscribers.clear();
+    auto info = std::find_if(topicInfo.begin(), topicInfo.end(),
+        [&topic](const transport::TopicInfo &_info)
+        {
+          return _info.topicName == topic;
+        });
 
-    bool result = node.TopicInfo(topic, publishers, subscribers);
-
-    EXPECT_TRUE(result) << "Could not get topic info for " << topic;
+    if (info == topicInfo.end())
+    {
+      ADD_FAILURE() << "Could not find topic info for " << topic;
+      continue;
+    }
 
     if (_checkPublished)
     {
-      EXPECT_EQ(1u, publishers.size());
+      EXPECT_EQ(1u, info->publishers.size());
     }
     else
     {
-      EXPECT_EQ(1u, subscribers.size());
+      EXPECT_EQ(1u, info->subscribers.size());
     }
   }
 }
@@ -274,7 +282,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
              + "segmentation/trigger",
       prefix + "link/wide_angle_camera_link/sensor/wide_angle_camera/image/"
              + "trigger",
-      "test_trigger"
+      "/test_trigger"
   };
 
   testTopics(published_topics, true);
