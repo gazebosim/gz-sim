@@ -115,8 +115,8 @@ void ApplyJointForce::Configure(const Entity &_entity,
   cmdVelTopicOptions.sdfElementName = "topic";
   cmdVelTopicOptions.topicNamespace =
     scopedNamespace(_ecm, this->dataPtr->model.Entity());
-  cmdVelTopicOptions.defaultTopicPrefix = "/model/" + this->dataPtr->model.Name(_ecm) +
-    "/joint/" + this->dataPtr->jointName;
+  cmdVelTopicOptions.defaultTopicPrefix = "/model/" +
+    this->dataPtr->model.Name(_ecm) + "/joint/" + this->dataPtr->jointName;
   cmdVelTopicOptions.defaultTopicSuffix = "cmd_force";
   resolvedTopicNames.cmdTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
   if (resolvedTopicNames.cmdTopic.empty())
