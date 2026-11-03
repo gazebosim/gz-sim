@@ -42,6 +42,7 @@ set(tests
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
   joint_trajectory_controller_system.cc
+  kinematic_links.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
