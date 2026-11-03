@@ -32,12 +32,16 @@ namespace components
 {
   /// \brief This component holds an entity's parent entity.
   ///
-  /// Note that the EntityComponentManager also keeps the parent-child
-  /// relationship stored in a graph, and that information should be
-  /// kept in sync with the parent entity components. Therefore,
-  /// it is recommended that the `ParentEntity` component is never
-  /// edited by hand, and instead, entities should be created using
-  /// the `sim::SdfEntityCreator` class.
+  /// Note that the EntityComponentManager also keeps track of each entity's
+  /// children, and that information is kept in sync when `ParentEntity`
+  /// components are created, removed or set through the
+  /// EntityComponentManager (i.e. `CreateComponent`, `RemoveComponent`,
+  /// `SetComponentData`, `SetParentEntity` and `SetState`).
+  /// Modifying the data of an existing `ParentEntity` component directly,
+  /// e.g. through `Component<ParentEntity>(entity)->Data()` or
+  /// `Component<ParentEntity>(entity)->SetData()`, bypasses this and will
+  /// leave the hierarchy out of sync. Use
+  /// `EntityComponentManager::SetParentEntity` instead.
   using ParentEntity = Component<Entity, class ParentEntityTag>;
   GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.ParentEntity", ParentEntity)
