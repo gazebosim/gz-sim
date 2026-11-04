@@ -213,6 +213,13 @@ namespace sim
       NOTIFY NestedModelChanged
     )
 
+    /// \brief Contains Plane Collision
+    Q_PROPERTY(
+      bool modelContainsPlane
+      READ ModelContainsPlane
+      NOTIFY ModelContainsPlaneChanged
+    )
+
     /// \brief System display name list
     Q_PROPERTY(
       QStringList systemNameList
@@ -329,6 +336,13 @@ namespace sim
 
     /// \brief Notify that is nested model property has changed
     signals: void NestedModelChanged();
+
+    /// \brief Get whether the model contains plane collision geometry
+    /// \return True if any collision in the model uses plane geometry
+    public: Q_INVOKABLE bool ModelContainsPlane() const;
+
+    /// \brief Notify that modelContainsPlane property has changed
+    signals: void ModelContainsPlaneChanged();
 
     // Documentation inherited
     protected: bool eventFilter(QObject *_obj, QEvent *_event) override;

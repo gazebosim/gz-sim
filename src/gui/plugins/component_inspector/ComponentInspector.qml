@@ -50,6 +50,12 @@ Rectangle {
   property bool nestedModel : _ComponentInspector.nestedModel
 
   /**
+   * True if the model contains plane collision geometry,
+   * which makes SetPose unsupported.
+   */
+  property bool modelContainsPlane : _ComponentInspector.modelContainsPlane
+
+  /**
    * Light grey according to theme
    */
   property color lightGrey: (Material.theme == Material.Light) ?

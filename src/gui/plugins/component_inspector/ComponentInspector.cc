@@ -48,6 +48,7 @@
 #include "gz/sim/components/CenterOfVolume.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Joint.hh"
@@ -88,6 +89,8 @@
 #include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/gui/GuiEvents.hh"
+#include "gz/sim/Model.hh"
+#include "gz/sim/Link.hh"
 
 #include "Inertial.hh"
 #include "Pose3d.hh"
@@ -117,6 +120,9 @@ namespace gz::sim
 
     /// \brief Nested model or not
     public: bool nestedModel = false;
+
+    /// \brief Whether the model contains a plane collision geometry
+    public: bool modelContainsPlane = false;
 
     /// \brief Whether currently locked on a given entity
     public: bool locked{false};
@@ -536,6 +542,28 @@ void ComponentInspector::Update(const UpdateInfo &,
         this->dataPtr->nestedModel = (modelComp);
       }
       this->NestedModelChanged();
+
+      // Check if any collision in this model has plane geometry.
+      bool containsPlane = false;
+      sim::Model model(this->dataPtr->entity);
+      for (const auto &linkEntity : model.Links(_ecm))
+      {
+        sim::Link link(linkEntity);
+        for (const auto &collisionEntity : link.Collisions(_ecm))
+        {
+          auto geomComp = _ecm.Component<components::Geometry>(collisionEntity);
+          if (geomComp && geomComp->Data().Type() == sdf::GeometryType::PLANE) {
+            containsPlane = true;
+            break;
+          }
+        }
+        if (containsPlane)
+        {
+            break;
+        }
+      }
+      this->dataPtr->modelContainsPlane = containsPlane;
+      this->ModelContainsPlaneChanged();
 
       continue;
     }
@@ -1249,6 +1277,12 @@ void ComponentInspector::OnSphericalCoordinates(QString _surface,
 bool ComponentInspector::NestedModel() const
 {
   return this->dataPtr->nestedModel;
+}
+
+/////////////////////////////////////////////////
+bool ComponentInspector::ModelContainsPlane() const
+{
+  return this->dataPtr->modelContainsPlane;
 }
 
 /////////////////////////////////////////////////
