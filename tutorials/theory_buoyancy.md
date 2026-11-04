@@ -32,7 +32,7 @@ to match your expected center of buoyancy.
 The buoyancy force is proportional to the volume of air in the vehicle according
 to this equation:
 
-$$volume\\_neutral = \frac{mass}{waterDensity}$$
+\f[volume\_neutral = \frac{mass}{waterDensity}\f]
 
 Pure water's density is `1000 kgm^-3` and seawater's density is `1025 kgm^-3`
 approximately. The mass of your vehicle is something that you'll decide or know
@@ -94,5 +94,6 @@ fluid density of `1 kgm^-3`.
 
 # Known limitations
 
-When the buoyancy plugin is configured in `graded buoyancy mode`, only `<box>`
-and `<sphere>` collision geometries are supported.
+The graded buoyancy mode supports `<box>`, `<sphere>`, `<cylinder>`,
+`<capsule>`, `<ellipsoid>`, and `<cone>` collision geometries.
+`<mesh>` and `<plane>` geometries are not supported in graded mode.

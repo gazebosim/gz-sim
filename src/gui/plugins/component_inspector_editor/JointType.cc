@@ -78,7 +78,7 @@ JointType::JointType(ComponentInspectorEditor *_inspector)
 Q_INVOKABLE void JointType::OnJointType(QString _jointType)
 {
   gz::sim::UpdateCallback cb =
-      [=](EntityComponentManager &_ecm)
+      [this, _jointType](EntityComponentManager &_ecm)
   {
     components::JointType *comp =
       _ecm.Component<components::JointType>(this->inspector->GetEntity());

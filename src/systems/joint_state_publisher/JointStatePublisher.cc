@@ -19,9 +19,11 @@
 
 #include <gz/msgs/model.pb.h>
 
+#include <chrono>
 #include <string>
 #include <vector>
 
+#include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 
 #include "gz/sim/components/ChildLinkName.hh"
@@ -100,6 +102,27 @@ void JointStatePublisher::Configure(
     this->topic = _sdf->Get<std::string>("topic");
   }
 
+  const double updateRate = _sdf->Get<double>("update_rate", 0.0).first;
+  if (updateRate < 0)
+  {
+    gzwarn << "JointStatePublisher: <update_rate> must be >= 0, got ["
+           << updateRate << "]. Publishing every simulation iteration.\n";
+  }
+  else if (updateRate > 0)
+  {
+    const std::chrono::duration<double> period{1.0 / updateRate};
+    this->updatePeriod =
+      std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
+  }
+
+  this->jointStateMsg.set_name(this->model.Name(_ecm));
+  this->jointStateMsg.set_id(this->model.Entity());
+  for (const Entity &joint : this->joints)
+  {
+    msgs::Joint *jointMsg = this->jointStateMsg.add_joint();
+    jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
+    jointMsg->set_id(joint);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -139,6 +162,14 @@ void JointStatePublisher::CreateComponents(EntityComponentManager &_ecm,
 void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
                                 const EntityComponentManager &_ecm)
 {
+  GZ_PROFILE("JointStatePublisher::PostUpdate");
+  const auto diff = _info.simTime - this->lastUpdateTime;
+  if ((diff > std::chrono::steady_clock::duration::zero()) &&
+      (diff < this->updatePeriod))
+  {
+    return;
+  }
+
   // Create the model state publisher. This can't be done in ::Configure
   // because the World is not guaranteed to be accessible.
   if (!this->modelPub)
@@ -182,14 +213,11 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   if (!this->modelPub)
     return;
 
-  // Create the message
-  msgs::Model msg;
+  this->lastUpdateTime = _info.simTime;
+
+  msgs::Model &msg = this->jointStateMsg;
   msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
-
-  // Set the name and ID.
-  msg.set_name(this->model.Name(_ecm));
-  msg.set_id(this->model.Entity());
 
   // Set the model pose
   const auto *pose = _ecm.Component<components::Pose>(
@@ -200,12 +228,10 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   static bool hasWarned {false};
 
   // Process each joint
-  for (const Entity &joint : this->joints)
+  for (int jointIndex = 0; jointIndex < msg.joint_size(); ++jointIndex)
   {
-    // Add a joint message.
-    msgs::Joint *jointMsg = msg.add_joint();
-    jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
-    jointMsg->set_id(joint);
+    msgs::Joint *jointMsg = msg.mutable_joint(jointIndex);
+    const Entity joint = jointMsg->id();
 
     // Set the joint pose
     pose = _ecm.Component<components::Pose>(joint);

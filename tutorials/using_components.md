@@ -30,7 +30,7 @@ understanding:
 - [Terminology](./terminology.html)
 - [Create system plugins](./createsystemplugins.html)
 
-## Resources
+## Related Resources
 
 Quick access to resources mentioned in this tutorial:
 - List of \ref gz::sim::components in the API

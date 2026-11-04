@@ -49,31 +49,31 @@ namespace systems
   /// This system can be configured with the following SDF parameters:
   ///
   /// * Optional parameters:
-  ///    * <max_range>: Hard limit on range (meters). No communication will
+  ///    * `<max_range>`: Hard limit on range (meters). No communication will
   ///                   happen beyond this range. Default is 1000.
-  ///    * <speed_of_sound>: Speed of sound in the medium (meters/sec).
+  ///    * `<speed_of_sound>`: Speed of sound in the medium (meters/sec).
   ///                         Default is 343.0
-  ///    * <collision_time_per_byte> : If a subscriber receives a message
+  ///    * `<collision_time_per_byte>` : If a subscriber receives a message
   ///                         'b' bytes long at time 't0', it won't receive
   ///                         and other message till time :
   ///                         't0 + b * collision_time_per_byte'.
   ///                         Defaults to zero.
-  ///    * <collision_time_packet_drop> : If a packet is dropped at time
+  ///    * `<collision_time_packet_drop>` : If a packet is dropped at time
   ///                         `t0`, the next packet won't be received until
   ///                         time `t0 + collision_time_packet_drop`.
   ///                         Defaults to zero.
-  ///    * <propagation_model> : Enables the use of propagation model.
+  ///    * `<propagation_model>` : Enables the use of propagation model.
   ///                            Disabled by default.
-  ///       * <source_power> : Source power at the transmitter in Watts.
+  ///       * `<source_power>` : Source power at the transmitter in Watts.
   ///                          Defaults to 2 kW.
-  ///       * <noise_level> : Ratio of the noise intensity at the
+  ///       * `<noise_level>` : Ratio of the noise intensity at the
   ///                         receiver to the same reference intensity used
   ///                         for source level. Defaults to 1.
-  ///       * <spectral_efficiency> : Information rate that can be transmitted
+  ///       * `<spectral_efficiency>` : Information rate that can be transmitted
   ///                                 over a given bandwidth in a specific
   ///                                 communication system, in (bits/sec)/Hz.
   ///                                 Defaults to 7 bits/sec/Hz.
-  ///       * <seed> : Seed value to be used for random sampling.
+  ///       * `<seed>` : Seed value to be used for random sampling.
   ///
   /// Here's an example:
   /// ```

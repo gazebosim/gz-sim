@@ -32,7 +32,10 @@ namespace python
 {
 void defineSimActor(py::object module)
 {
-  py::class_<gz::sim::Actor>(module, "Actor")
+  py::class_<gz::sim::Actor>(module, "Actor",
+    "A convenience wrapper around an actor entity. Actors are animated models "
+    "that can follow trajectories and play animations. This class provides easy "
+    "access to actor properties such as pose, trajectory, and animation state.")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Actor>())
   .def("entity", &gz::sim::Actor::Entity,

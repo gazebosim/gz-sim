@@ -130,7 +130,10 @@ void NetworkManagerSecondary::OnStep(
     {
       auto parent =
           this->dataPtr->ecm->Component<components::ParentEntity>(entityId);
-      this->dataPtr->ecm->RequestRemoveEntity(parent->Data());
+      if (parent != nullptr)
+      {
+        this->dataPtr->ecm->RequestRemoveEntity(parent->Data());
+      }
 
       if (this->performers.find(entityId) != this->performers.end())
       {

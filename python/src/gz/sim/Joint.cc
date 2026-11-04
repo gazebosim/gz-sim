@@ -32,7 +32,10 @@ namespace python
 {
 void defineSimJoint(py::object module)
 {
-  py::class_<gz::sim::Joint>(module, "Joint")
+  py::class_<gz::sim::Joint>(module, "Joint",
+    "A convenience wrapper around a joint entity. This class provides easy "
+    "access to joint properties such as pose, axis, type, position, velocity, "
+    "and forces.")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::Joint>())
   .def("entity", &gz::sim::Joint::Entity,
@@ -90,6 +93,15 @@ void defineSimJoint(py::object module)
       py::arg("ecm"),
       py::arg("limits"),
       "Set the velocity limits on a joint axis.")
+  .def("max_velocity_limits", &gz::sim::Joint::MaxVelocityLimits,
+      py::arg("ecm"),
+      "Get the maximum velocity limit for each joint axis.")
+  .def("effort_limits", &gz::sim::Joint::EffortLimits,
+      py::arg("ecm"),
+      "Get the maximum effort limit for each joint axis.")
+  .def("position_limits", &gz::sim::Joint::PositionLimits,
+      py::arg("ecm"),
+      "Get the position limits for each joint axis.")
   .def("set_effort_limits", &gz::sim::Joint::SetEffortLimits,
       py::arg("ecm"),
       py::arg("limits"),

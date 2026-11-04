@@ -39,7 +39,8 @@ namespace systems
   class Contact final:
     public System,
     public ISystemPreUpdate,
-    public ISystemPostUpdate
+    public ISystemPostUpdate,
+    public ISystemReset
   {
     /// \brief Constructor
     public: Contact();
@@ -54,6 +55,10 @@ namespace systems
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                       EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ContactPrivate> dataPtr;

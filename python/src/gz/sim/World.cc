@@ -30,7 +30,10 @@ namespace python
 {
 void defineSimWorld(py::object module)
 {
-  py::class_<gz::sim::World>(module, "World")
+  py::class_<gz::sim::World>(module, "World",
+  "A convenience wrapper around a world entity. This class provides easy "
+  "access to world properties (gravity, atmosphere, coordinates) and child "
+  "entities (models, actors, lights).")
   .def(py::init<gz::sim::Entity>())
   .def(py::init<gz::sim::World>())
   .def("entity", &gz::sim::World::Entity,

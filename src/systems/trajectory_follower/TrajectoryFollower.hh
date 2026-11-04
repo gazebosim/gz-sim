@@ -41,9 +41,9 @@ namespace systems
   /// in sequence. The movement is generated applying force and torque to one of
   /// of the model links. It's also possible to loop through the waypoints for
   /// generating a never ending trajectory.
-  /// Waypoints may be inserted manually via the <waypoints> element, or
-  /// generated relative to the model's initial position via the <line> or
-  /// <circle> elements.  Only one of these options should be used.
+  /// Waypoints may be inserted manually via the `<waypoints>` element, or
+  /// generated relative to the model's initial position via the `<line>` or
+  /// `<circle>` elements.  Only one of these options should be used.
   ///
   /// ## System Parameters
   ///

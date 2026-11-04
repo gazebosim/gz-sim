@@ -75,7 +75,8 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate,
         public ISystemUpdate,
-        public ISystemPostUpdate
+        public ISystemPostUpdate,
+        public ISystemReset
   {
     /// \brief Constructor
     public: LinearBatteryPlugin();
@@ -102,6 +103,10 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// Documentation inherited
+    public: void Reset(const UpdateInfo &_info,
+                EntityComponentManager &_ecm) override;
 
     /// \brief Callback for Battery Update events.
     /// \param[in] _battery Pointer to the battery that is to be updated.

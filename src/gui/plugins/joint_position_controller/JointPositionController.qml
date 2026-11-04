@@ -94,7 +94,7 @@ Rectangle {
 
       Popup {
         id: helpPopup
-        parent: Overlay.overlay
+        parent: ApplicationWindow.overlay
         // From Qt 5.12 use
         // anchors.centerIn: parent
         x: 10

@@ -52,7 +52,7 @@ class JointMonitor
 
   /// \brief Starts monitoring of the position and velocity of the given joint
   /// \param[in] _joint Joint to monitor
-  /// \param[in] _jointTarget Last joint target (command)
+  /// \param[in] _target Last joint target (command)
   /// \param[in] _posEps Position tolerance
   /// \param[in] _velEps Velocity tolerance
   /// \param[in] _jointTargetReachedCallback Function to call when the joint

@@ -32,7 +32,10 @@ namespace python
 void
 defineSimTestFixture(pybind11::object module)
 {
-  pybind11::class_<TestFixture, std::shared_ptr<TestFixture>> testFixture(module, "TestFixture");
+  pybind11::class_<TestFixture, std::shared_ptr<TestFixture>> testFixture(module, "TestFixture",
+    "A test fixture for setting up simulation tests. This class allows you to "
+    "configure callbacks (pre-update, update, post-update, reset) and interact "
+    "with a simulation server for testing purposes. ");
 
   // Since this class starts with "Test", pytest thinks it's a test and emits a
   // warning when it can't "collect" it.

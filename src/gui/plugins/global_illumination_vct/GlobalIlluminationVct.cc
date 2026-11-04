@@ -499,9 +499,21 @@ bool GlobalIlluminationVct::eventFilter(QObject *_obj, QEvent *_event)
       }
       else if (this->dataPtr->debugVisualizationDirty)
       {
-        this->dataPtr->gi->SetDebugVisualization(
+        if (this->dataPtr->enabled && this->dataPtr->gi->Enabled())
+        {
+          this->dataPtr->gi->SetDebugVisualization(
           static_cast<rendering::GlobalIlluminationVct::DebugVisualizationMode>(
-            this->dataPtr->debugVisMode));
+          this->dataPtr->debugVisMode));
+        }
+        else
+        {
+          gzerr << "Trying to set debug visualization mode while GI is "
+                << "disabled. Please enable GI first."
+                << std::endl;
+          // Always set to none when disabled to avoid crash
+          this->dataPtr->gi->SetDebugVisualization(
+            rendering::GlobalIlluminationVct::DVM_None);
+        }
         this->dataPtr->debugVisualizationDirty = false;
       }
     }
@@ -549,9 +561,23 @@ void GlobalIlluminationVct::UpdateOctantCount(int _axis, uint32_t _count)
 //////////////////////////////////////////////////
 void GlobalIlluminationVct::SetEnabled(const bool _enabled)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
-  this->dataPtr->enabled = _enabled;
-  this->dataPtr->visualDirty = true;
+  bool needEmitDebugVisChanged = false;
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+    if (this->dataPtr->enabled && !_enabled)
+    {
+      // When disabling GI, force debugVisMode to None for safety
+      this->dataPtr->debugVisMode = rendering::GlobalIlluminationVct::DVM_None;
+      this->dataPtr->debugVisualizationDirty = true;
+      needEmitDebugVisChanged = true;
+    }
+    this->dataPtr->enabled = _enabled;
+    this->dataPtr->visualDirty = true;
+  }
+  if (needEmitDebugVisChanged)
+  {
+    this->DebugVisualizationModeChanged();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -673,6 +699,10 @@ bool GlobalIlluminationVct::HighQuality() const
 void GlobalIlluminationVct::SetAnisotropic(const bool _anisotropic)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->serviceMutex);
+  if (!this->dataPtr->gi || !this->dataPtr->enabled)
+  {
+    return;
+  }
   this->dataPtr->anisotropic = _anisotropic;
   this->dataPtr->lightingDirty = true;
 }

@@ -379,50 +379,62 @@ TEST_F(UtilTest, EntityTypeStr)
   EntityComponentManager ecm;
 
   auto entity = ecm.CreateEntity();
+  EXPECT_TRUE(entityTypeStrView(entity, ecm).empty());
   EXPECT_TRUE(entityTypeStr(entity, ecm).empty());
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::World());
+  EXPECT_EQ("world", entityTypeStrView(entity, ecm));
   EXPECT_EQ("world", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Model());
+  EXPECT_EQ("model", entityTypeStrView(entity, ecm));
   EXPECT_EQ("model", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Light());
+  EXPECT_EQ("light", entityTypeStrView(entity, ecm));
   EXPECT_EQ("light", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Link());
+  EXPECT_EQ("link", entityTypeStrView(entity, ecm));
   EXPECT_EQ("link", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Visual());
+  EXPECT_EQ("visual", entityTypeStrView(entity, ecm));
   EXPECT_EQ("visual", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Collision());
+  EXPECT_EQ("collision", entityTypeStrView(entity, ecm));
   EXPECT_EQ("collision", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Joint());
+  EXPECT_EQ("joint", entityTypeStrView(entity, ecm));
   EXPECT_EQ("joint", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Sensor());
+  EXPECT_EQ("sensor", entityTypeStrView(entity, ecm));
   EXPECT_EQ("sensor", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Actor());
+  EXPECT_EQ("actor", entityTypeStrView(entity, ecm));
   EXPECT_EQ("actor", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::ParticleEmitter());
+  EXPECT_EQ("particle_emitter", entityTypeStrView(entity, ecm));
   EXPECT_EQ("particle_emitter", entityTypeStr(entity, ecm));
 
   entity = ecm.CreateEntity();
   ecm.CreateComponent(entity, components::Projector());
+  EXPECT_EQ("projector", entityTypeStrView(entity, ecm));
   EXPECT_EQ("projector", entityTypeStr(entity, ecm));
 }
 
@@ -1146,4 +1158,24 @@ TEST_F(UtilTest, StaticPlugin)
   EXPECT_FALSE(isStaticPlugin("my_plugin"));
   EXPECT_FALSE(isStaticPlugin(""));
   EXPECT_TRUE(isStaticPlugin(staticPluginPrefixStr() + "my_plugin"));
+}
+
+/////////////////////////////////////////////////
+TEST_F(UtilTest, NormalizePluginIdentifiers)
+{
+  EXPECT_EQ("gz::sim::systems::Physics",
+    normalizePluginName("ignition::gazebo::systems::Physics"));
+  EXPECT_EQ("ignition::gazebo::ignition::gazebo::systems::Physics",
+    normalizePluginName("ignition::gazebo::"
+                        "ignition::gazebo::systems::Physics"));
+  EXPECT_EQ("gz::sim::systems::SceneBroadcaster",
+    normalizePluginName("gz::sim::systems::SceneBroadcaster"));
+
+  EXPECT_EQ("gz-sim-physics-system",
+    normalizePluginFilename("ignition-gazebo-physics-system"));
+  EXPECT_EQ("ignition-gazebo-ignition-gazebo-physics-system",
+    normalizePluginFilename("ignition-gazebo-"
+                            "ignition-gazebo-physics-system"));
+  EXPECT_EQ("gz-sim-user-commands-system",
+    normalizePluginFilename("gz-sim-user-commands-system"));
 }

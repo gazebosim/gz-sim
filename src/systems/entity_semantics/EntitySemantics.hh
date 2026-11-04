@@ -47,7 +47,7 @@ class EntitySemanticsPrivate;
 /// ## Entity Parameters
 ///
 /// - `<gz:semantics>`: Root element to be specified inside entities, e.g.
-/// <model>. It has the following child parameters:
+/// `<model>`. It has the following child parameters:
 ///
 ///   - `<category>`: string representation of the value as defined in
 ///   https://github.com/ros-simulation/simulation_interfaces/blob/1.0.0/msg/EntityCategory.msg.

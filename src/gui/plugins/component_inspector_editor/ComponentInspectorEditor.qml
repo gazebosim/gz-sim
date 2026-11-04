@@ -337,7 +337,7 @@ Rectangle {
           title: "Load mesh"
           fileMode: FileDialog.OpenFile
           currentFolder: StandardPaths.writableLocation(StandardPaths.HomeLocation)
-          nameFilters: [ "Collada files (*.dae)", "(*.stl)", "(*.obj)" ]
+          nameFilters: [ "Supported mesh files (*.dae *.fbx *.glb *.gltf *.obj *.stl *.stla *.stlb)" ]
           onAccepted: {
             _ComponentInspectorEditor.OnLoadMesh("mesh", "link", selectedFile)
           }
