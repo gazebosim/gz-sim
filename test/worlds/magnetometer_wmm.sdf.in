@@ -1,0 +1,56 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="magnetometer_wmm_sensor">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-magnetometer-system"
+      name="gz::sim::systems::Magnetometer">
+      <use_world_magnetic_model>true</use_world_magnetic_model>
+      <wmm_coefficient_file>@PROJECT_SOURCE_DIR@/src/systems/magnetometer/wmm/WMMHR.COF</wmm_coefficient_file>
+      <wmm_date>2025.5</wmm_date>
+      <wmm_recalculation_distance>1000</wmm_recalculation_distance>
+      <use_units_gauss>false</use_units_gauss>
+      <use_earth_frame_ned>false</use_earth_frame_ned>
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <!-- Sydney, Australia -->
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <world_frame_orientation>ENU</world_frame_orientation>
+      <latitude_deg>-33.8688</latitude_deg>
+      <longitude_deg>151.2093</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+
+    <model name="magnetometer_model">
+      <static>true</static>
+      <link name="link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <sensor name="magnetometer_sensor" type="magnetometer">
+          <always_on>1</always_on>
+          <update_rate>100</update_rate>
+        </sensor>
+      </link>
+    </model>
+
+  </world>
+</sdf>
