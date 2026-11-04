@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.22.1 FATAL_ERROR)
 #============================================================================
 # Initialize the project
 #============================================================================
-project(gz-sim VERSION 10.5.0)
+project(gz-sim VERSION 10.6.0)
 set (GZ_DISTRIBUTION "Jetty")
 
 #============================================================================
@@ -146,7 +146,7 @@ endif()
 
 #--------------------------------------
 # Find gz-physics
-gz_find_package(gz-physics VERSION 9
+gz_find_package(gz-physics VERSION 9.6
   COMPONENTS
     heightmap
     mesh
@@ -163,6 +163,7 @@ gz_find_package(gz-sensors VERSION 10 REQUIRED
     air_pressure
     air_speed
     altimeter
+    cpu_lidar
     imu
     force_torque
     logical_camera

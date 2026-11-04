@@ -602,6 +602,27 @@ gz_sim_system_libraries(
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/cpu_lidar/**/*.cc",
+            "src/systems/cpu_lidar/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-cpu-lidar-system.so",
+    static_lib_name = "gz-sim-cpu-lidar-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-physics",
+        "@gz-plugin//:register",
+        "@gz-sensors",
+        "@gz-sensors//:cpu_lidar",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/detachable_joint/**/*.cc",
             "src/systems/detachable_joint/**/*.hh",
         ],
@@ -1705,6 +1726,28 @@ gz_sim_system_libraries(
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/timeline_publisher/**/*.cc",
+            "src/systems/timeline_publisher/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-timeline-publisher-system.so",
+    static_lib_name = "gz-sim-timeline-publisher-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@com_google_protobuf//:protobuf",
+        "@gz-common",
+        "@gz-common//profiler",
+        "@gz-msgs",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
     ],
 )
 

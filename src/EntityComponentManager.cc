@@ -326,6 +326,13 @@ void EntityComponentManagerPrivate::CopyFrom(
   this->removedComponents = _from.removedComponents;
   this->componentsMarkedAsRemoved = _from.componentsMarkedAsRemoved;
 
+  // Rebuild component storage by cloning every component from `_from`.
+  // \warning This destroys the existing component objects and replaces them
+  // with freshly allocated clones at new addresses. Any raw component pointer
+  // handed out earlier (Component(), ComponentImplementation(), ...) is left
+  // dangling by this loop and must be re-fetched by callers afterwards.
+  // Holding such a pointer across CopyFrom()/ResetTo() and dereferencing it is
+  // undefined behavior (see gazebosim/gz-sim#3635).
   for (const auto &[entity, comps] : _from.componentStorage)
   {
     this->componentStorage[entity].clear();
@@ -1257,7 +1264,11 @@ bool EntityComponentManager::CreateComponentImplementation(
       return updateData;
     }
     const auto *parent = static_cast<const components::ParentEntity *>(_data);
-    this->dataPtr->SetParentEntityGraph(_entity, parent->Data());
+    if (!this->dataPtr->SetParentEntityGraph(_entity, parent->Data()))
+    {
+      gzerr << "Failed setting parent for entity " << _entity << " to "
+            << parent->Data() << std::endl;
+    }
   }
 
   return updateData;
@@ -1887,8 +1898,20 @@ void EntityComponentManager::SetState(
     {
       this->dataPtr->CreateEntityImplementation(entity);
     }
+  }
 
-    // Create / remove / update components
+  // Create / remove / update components
+  for (int e = 0; e < _stateMsg.entities_size(); ++e)
+  {
+    const auto &entityMsg = _stateMsg.entities(e);
+
+    Entity entity{entityMsg.id()};
+
+    if (entityMsg.remove())
+    {
+      continue;
+    }
+
     for (int c = 0; c < entityMsg.components_size(); ++c)
     {
       const auto &compMsg = entityMsg.components(c);
@@ -1985,8 +2008,20 @@ void EntityComponentManager::SetState(
     {
       this->dataPtr->CreateEntityImplementation(entity);
     }
+  }
 
-    // Create / remove / update components
+  // Create / remove / update components
+  for (const auto &iter : _stateMsg.entities())
+  {
+    const auto &entityMsg = iter.second;
+
+    Entity entity{entityMsg.id()};
+
+    if (entityMsg.remove())
+    {
+      continue;
+    }
+
     for (const auto &compIter : iter.second.components())
     {
       const auto &compMsg = compIter.second;
@@ -2381,6 +2416,9 @@ void EntityComponentManager::ApplyEntityDiff(
 /////////////////////////////////////////////////
 void EntityComponentManager::ResetTo(const EntityComponentManager &_other)
 {
+  // \warning The final CopyFrom() below rebuilds the component storage, so any
+  // raw component pointer obtained before this call is invalidated. Callers
+  // must re-fetch components after a reset (see gazebosim/gz-sim#3635).
   auto ecmDiff = this->ComputeEntityDiff(_other);
   EntityComponentManager tmpCopy;
   tmpCopy.CopyFrom(_other);

@@ -17,6 +17,7 @@ set(tests
   collada_world_exporter.cc
   components.cc
   contact_system.cc
+  cpu_lidar_system.cc
   detachable_joint.cc
   diff_drive_system.cc
   drive_to_pose_controller_system.cc
@@ -41,6 +42,7 @@ set(tests
   joint_position_controller_system.cc
   joint_state_publisher_system.cc
   joint_trajectory_controller_system.cc
+  kinematic_links.cc
   kinetic_energy_monitor_system.cc
   lift_drag_system.cc
   level_manager.cc
@@ -86,6 +88,7 @@ set(tests
   sensor.cc
   spherical_coordinates.cc
   thruster.cc
+  timeline_publisher.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc

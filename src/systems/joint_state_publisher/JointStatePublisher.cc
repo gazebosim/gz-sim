@@ -17,8 +17,6 @@
 
 #include "JointStatePublisher.hh"
 
-#include <google/protobuf/arena.h>
-
 #include <gz/msgs/model.pb.h>
 
 #include <chrono>
@@ -117,6 +115,14 @@ void JointStatePublisher::Configure(
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
   }
 
+  this->jointStateMsg.set_name(this->model.Name(_ecm));
+  this->jointStateMsg.set_id(this->model.Entity());
+  for (const Entity &joint : this->joints)
+  {
+    msgs::Joint *jointMsg = this->jointStateMsg.add_joint();
+    jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
+    jointMsg->set_id(joint);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -209,35 +215,23 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
 
   this->lastUpdateTime = _info.simTime;
 
-  // Create the message on an arena so all sub-messages (joints, axes,
-  // poses) are allocated from a single block instead of individual mallocs.
-#if GOOGLE_PROTOBUF_VERSION >= 4022000
-  auto *msg = google::protobuf::Arena::Create<msgs::Model>(&this->arena);
-#else
-  auto *msg = google::protobuf::Arena::CreateMessage<msgs::Model>(&this->arena);
-#endif
-  msg->mutable_header()->mutable_stamp()->CopyFrom(
+  msgs::Model &msg = this->jointStateMsg;
+  msg.mutable_header()->mutable_stamp()->CopyFrom(
       convert<msgs::Time>(_info.simTime));
-
-  // Set the name and ID.
-  msg->set_name(this->model.Name(_ecm));
-  msg->set_id(this->model.Entity());
 
   // Set the model pose
   const auto *pose = _ecm.Component<components::Pose>(
       this->model.Entity());
   if (pose)
-    msgs::Set(msg->mutable_pose(), pose->Data());
+    msgs::Set(msg.mutable_pose(), pose->Data());
 
   static bool hasWarned {false};
 
   // Process each joint
-  for (const Entity &joint : this->joints)
+  for (int jointIndex = 0; jointIndex < msg.joint_size(); ++jointIndex)
   {
-    // Add a joint message.
-    msgs::Joint *jointMsg = msg->add_joint();
-    jointMsg->set_name(_ecm.Component<components::Name>(joint)->Data());
-    jointMsg->set_id(joint);
+    msgs::Joint *jointMsg = msg.mutable_joint(jointIndex);
+    const Entity joint = jointMsg->id();
 
     // Set the joint pose
     pose = _ecm.Component<components::Pose>(joint);
@@ -340,12 +334,7 @@ void JointStatePublisher::PostUpdate(const UpdateInfo &_info,
   }
 
   // Publish the message.
-  this->modelPub->Publish(*msg);
-
-  // Reset() drops the message but keeps the arena's initial block mapped,
-  // so subsequent allocations bump-allocate without going through the
-  // system allocator.
-  this->arena.Reset();
+  this->modelPub->Publish(msg);
 }
 
 GZ_ADD_PLUGIN(JointStatePublisher,
