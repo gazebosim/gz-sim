@@ -337,13 +337,13 @@ TEST_F(KinematicLinksTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(KinematicCmd))
   // dynamic for one step before the command, so it keeps the small velocity
   // it had gained by then.
   server.Run(true, 500, false);
-  State state;
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    state.Record(*ecm);
-    EXPECT_GT(1.5, state.heights["kinematic_high"]);
-    EXPECT_NEAR(2.0, state.heights["unset_high"], 2e-2);
+    ASSERT_TRUE(kinematicLink.WorldPose(*ecm).has_value());
+    EXPECT_GT(1.5, kinematicLink.WorldPose(*ecm)->Pos().Z());
+    ASSERT_TRUE(dynamicLink.WorldPose(*ecm).has_value());
+    EXPECT_NEAR(2.0, dynamicLink.WorldPose(*ecm)->Pos().Z(), 2e-2);
 
     // Make the box dynamic again: it falls
     dynamicLink.SetKinematic(*ecm, false);
@@ -353,8 +353,8 @@ TEST_F(KinematicLinksTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(KinematicCmd))
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    state.Record(*ecm);
-    EXPECT_GT(1.5, state.heights["unset_high"]);
+    ASSERT_TRUE(dynamicLink.WorldPose(*ecm).has_value());
+    EXPECT_GT(1.5, dynamicLink.WorldPose(*ecm)->Pos().Z());
     ASSERT_TRUE(dynamicLink.Kinematic(*ecm).has_value());
     EXPECT_FALSE(dynamicLink.Kinematic(*ecm).value());
   }
