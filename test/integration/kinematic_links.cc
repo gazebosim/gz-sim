@@ -272,75 +272,87 @@ TEST_F(KinematicLinksTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(KinematicCmd))
   serverConfig.SetSdfString(WorldSdf(false, true));
   Server server(serverConfig);
 
-  EntityComponentManager *ecm{nullptr};
-  State state;
-  test::Relay relay;
-  relay.OnPreUpdate([&ecm](const UpdateInfo &, EntityComponentManager &_ecm)
-      {
-        ecm = &_ecm;
-      });
-  relay.OnPostUpdate(
-      [&state](const UpdateInfo &, const EntityComponentManager &_ecm)
-      {
-        state.Record(_ecm);
-      });
-  server.AddSystem(relay.systemPtr);
-
   // Run one iteration so that the physics entities are created
   server.Run(true, 1, false);
-  ASSERT_NE(nullptr, ecm);
 
-  auto linkOf = [&ecm](const std::string &_model)
+  Link dynamicLink;
+  Link kinematicLink;
   {
-    return Link(ecm->EntityByComponents(components::Name("link"),
-        components::ParentEntity(ecm->EntityByComponents(
-            components::Model(), components::Name(_model)))));
-  };
-  Link dynamicLink = linkOf("unset_high");
-  Link kinematicLink = linkOf("kinematic_high");
-  ASSERT_TRUE(dynamicLink.Valid(*ecm));
-  ASSERT_TRUE(kinematicLink.Valid(*ecm));
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
 
-  // The Kinematic component is only created for links that set <kinematic>
-  EXPECT_FALSE(dynamicLink.Kinematic(*ecm).has_value());
-  ASSERT_TRUE(kinematicLink.Kinematic(*ecm).has_value());
-  EXPECT_TRUE(kinematicLink.Kinematic(*ecm).value());
+    auto linkOf = [&ecm](const std::string &_model)
+    {
+      return Link(ecm->EntityByComponents(components::Name("link"),
+          components::ParentEntity(ecm->EntityByComponents(
+              components::Model(), components::Name(_model)))));
+    };
+    dynamicLink = linkOf("unset_high");
+    kinematicLink = linkOf("kinematic_high");
+    ASSERT_TRUE(dynamicLink.Valid(*ecm));
+    ASSERT_TRUE(kinematicLink.Valid(*ecm));
 
-  // Swap the states: the dynamic box becomes kinematic and the kinematic box
-  // becomes dynamic.
-  dynamicLink.SetKinematic(*ecm, true);
-  kinematicLink.SetKinematic(*ecm, false);
-  EXPECT_NE(nullptr, ecm->Component<components::KinematicCmd>(
-      dynamicLink.Entity()));
-  EXPECT_NE(nullptr, ecm->Component<components::KinematicCmd>(
-      kinematicLink.Entity()));
+    // The Kinematic component is only created for links that set <kinematic>
+    EXPECT_FALSE(dynamicLink.Kinematic(*ecm).has_value());
+    ASSERT_TRUE(kinematicLink.Kinematic(*ecm).has_value());
+    EXPECT_TRUE(kinematicLink.Kinematic(*ecm).value());
+
+    // Swap the states: the dynamic box becomes kinematic and the kinematic box
+    // becomes dynamic.
+    dynamicLink.SetKinematic(*ecm, true);
+    kinematicLink.SetKinematic(*ecm, false);
+    EXPECT_NE(nullptr, ecm->Component<components::KinematicCmd>(
+        dynamicLink.Entity()));
+    EXPECT_NE(nullptr, ecm->Component<components::KinematicCmd>(
+        kinematicLink.Entity()));
+  }
 
   server.Run(true, 1, false);
 
   // The Kinematic components reflect the new states
-  ASSERT_TRUE(dynamicLink.Kinematic(*ecm).has_value());
-  EXPECT_TRUE(dynamicLink.Kinematic(*ecm).value());
-  ASSERT_TRUE(kinematicLink.Kinematic(*ecm).has_value());
-  EXPECT_FALSE(kinematicLink.Kinematic(*ecm).value());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    ASSERT_TRUE(dynamicLink.Kinematic(*ecm).has_value());
+    EXPECT_TRUE(dynamicLink.Kinematic(*ecm).value());
+    ASSERT_TRUE(kinematicLink.Kinematic(*ecm).has_value());
+    EXPECT_FALSE(kinematicLink.Kinematic(*ecm).value());
+  }
 
   // The commands are removed after one more iteration
   server.Run(true, 1, false);
-  EXPECT_EQ(nullptr, ecm->Component<components::KinematicCmd>(
-      dynamicLink.Entity()));
-  EXPECT_EQ(nullptr, ecm->Component<components::KinematicCmd>(
-      kinematicLink.Entity()));
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(nullptr, ecm->Component<components::KinematicCmd>(
+        dynamicLink.Entity()));
+    EXPECT_EQ(nullptr, ecm->Component<components::KinematicCmd>(
+        kinematicLink.Entity()));
+  }
 
   // The box made dynamic falls, the box made kinematic stays. The latter was
   // dynamic for one step before the command, so it keeps the small velocity
   // it had gained by then.
   server.Run(true, 500, false);
-  EXPECT_GT(1.5, state.heights["kinematic_high"]);
-  EXPECT_NEAR(2.0, state.heights["unset_high"], 2e-2);
+  State state;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    state.Record(*ecm);
+    EXPECT_GT(1.5, state.heights["kinematic_high"]);
+    EXPECT_NEAR(2.0, state.heights["unset_high"], 2e-2);
 
-  // Make the box dynamic again: it falls
-  dynamicLink.SetKinematic(*ecm, false);
+    // Make the box dynamic again: it falls
+    dynamicLink.SetKinematic(*ecm, false);
+  }
+
   server.Run(true, 500, false);
-  EXPECT_GT(1.5, state.heights["unset_high"]);
-  ASSERT_TRUE(dynamicLink.Kinematic(*ecm).has_value());
-  EXPECT_FALSE(dynamicLink.Kinematic(*ecm).value());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    state.Record(*ecm);
+    EXPECT_GT(1.5, state.heights["unset_high"]);
+    ASSERT_TRUE(dynamicLink.Kinematic(*ecm).has_value());
+    EXPECT_FALSE(dynamicLink.Kinematic(*ecm).value());
+  }
 }
