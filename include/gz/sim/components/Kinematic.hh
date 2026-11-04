@@ -34,13 +34,13 @@ namespace components
   /// dynamic links; it only moves as commanded by pose or velocity commands
   /// set on the link or on the joint that connects it.
   using Kinematic = Component<bool, class KinematicTag>;
-  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Kinematic", Kinematic)
+  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Kinematic", Kinematic)
 
   /// \brief A component that contains a bool command to change the kinematic
   /// state of a link. Requires a physics engine that supports the
   /// KinematicLink feature, e.g. bullet-featherstone.
   using KinematicCmd = Component<bool, class KinematicCmdTag>;
-  GZ_SIM_DECLARE_COMPONENT(
+  GZ_SIM_REGISTER_COMPONENT(
       "gz_sim_components.KinematicCmd", KinematicCmd)
 }
 }
