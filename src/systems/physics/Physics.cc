@@ -211,10 +211,11 @@ class gz::sim::systems::PhysicsPrivate
             physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
-  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM. Link entities get a Kinematic
+  /// component holding their resolved kinematic state.
   /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
   /// already exists in the physics system
-  public: void CreatePhysicsEntities(const EntityComponentManager &_ecm,
+  public: void CreatePhysicsEntities(EntityComponentManager &_ecm,
                                      bool _warnIfEntityExists = true);
 
   /// \brief Create world entities
@@ -231,11 +232,21 @@ class gz::sim::systems::PhysicsPrivate
                                    bool _warnIfEntityExists = true);
 
   /// \brief Create link entities
-  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM. Links without a Kinematic
+  /// component get one holding their resolved kinematic state.
   /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
   /// already exists in the physics system
-  public: void CreateLinkEntities(const EntityComponentManager &_ecm,
+  public: void CreateLinkEntities(EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
+
+  /// \brief Create a Kinematic component holding the resolved kinematic state
+  /// of a link that was just added to entityLinkMap, unless the link already
+  /// has one. Other systems can then query the state, e.g. to restore it
+  /// after temporarily changing it with a KinematicCmd.
+  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _linkEntity Link entity present in entityLinkMap.
+  public: void RecordKinematicState(EntityComponentManager &_ecm,
+                                    const Entity &_linkEntity);
 
   /// \brief Apply the default kinematic state of the `<kinematic><enabled>`
   /// parameter to the links of a model, and of its nested models, whose SDF
@@ -1215,7 +1226,7 @@ void Physics::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm,
+void PhysicsPrivate::CreatePhysicsEntities(EntityComponentManager &_ecm,
                                            bool _warnIfEntityExists)
 {
   // Clear the set of links that were added to a model.
@@ -1604,7 +1615,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
+void PhysicsPrivate::CreateLinkEntities(EntityComponentManager &_ecm,
                                         bool _warnIfEntityExists)
 {
   _ecm.EachNew<components::Link, components::Name, components::Pose,
@@ -1658,6 +1669,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          this->RecordKinematicState(_ecm, _entity);
           return true;
         }
 
@@ -1729,9 +1741,36 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->entityLinkMap.AddEntity(_entity, linkPtrPhys);
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
+        this->RecordKinematicState(_ecm, _entity);
 
         return true;
       });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::RecordKinematicState(EntityComponentManager &_ecm,
+    const Entity &_linkEntity)
+{
+  if (nullptr != _ecm.Component<components::Kinematic>(_linkEntity))
+    return;
+
+  // Links of static models are never kinematic; otherwise the default of
+  // the <kinematic><enabled> parameter applies to links whose SDF does not
+  // set <kinematic> (those that do already have the component).
+  bool kinematic = this->kinematicEnabled;
+  if (const auto *parent = _ecm.Component<components::ParentEntity>(
+        _linkEntity); nullptr != parent &&
+      this->staticEntities.find(parent->Data()) != this->staticEntities.end())
+  {
+    kinematic = false;
+  }
+  // Prefer the state the physics engine actually created the link with.
+  if (auto kinematicLink =
+      this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_linkEntity))
+  {
+    kinematic = kinematicLink->GetKinematic();
+  }
+  _ecm.CreateComponent(_linkEntity, components::Kinematic(kinematic));
 }
 
 //////////////////////////////////////////////////

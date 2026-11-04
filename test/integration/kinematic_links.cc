@@ -292,8 +292,11 @@ TEST_F(KinematicLinksTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(KinematicCmd))
     ASSERT_TRUE(dynamicLink.Valid(*ecm));
     ASSERT_TRUE(kinematicLink.Valid(*ecm));
 
-    // The Kinematic component is only created for links that set <kinematic>
-    EXPECT_FALSE(dynamicLink.Kinematic(*ecm).has_value());
+    // SdfEntityCreator creates the Kinematic component only for links that set
+    // <kinematic>; the Physics system then records the resolved state of every
+    // link it creates, so both links have the component after one iteration.
+    ASSERT_TRUE(dynamicLink.Kinematic(*ecm).has_value());
+    EXPECT_FALSE(dynamicLink.Kinematic(*ecm).value());
     ASSERT_TRUE(kinematicLink.Kinematic(*ecm).has_value());
     EXPECT_TRUE(kinematicLink.Kinematic(*ecm).value());
 
