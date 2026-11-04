@@ -171,7 +171,7 @@ void ForceTorque::Update(const UpdateInfo &_info,
 {
   GZ_PROFILE("ForceTorque::Update");
 
-  // \TODO(anyone) Support rewind
+  // \todo(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["

@@ -303,7 +303,7 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
 {
   GZ_PROFILE("OdometryPublisher::PreUpdate");
 
-  // \TODO(anyone) This is a temporary fix for
+  // \todo(anyone) This is a temporary fix for
   // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
   if (kNullEntity == this->dataPtr->model.Entity())
   {
@@ -318,7 +318,7 @@ void OdometryPublisher::PreUpdate(const gz::sim::UpdateInfo &_info,
     return;
   }
 
-  // \TODO(anyone) Support rewind
+  // \todo(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
@@ -333,7 +333,7 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
 {
   GZ_PROFILE("OdometryPublisher::PostUpdate");
 
-  // \TODO(anyone) This is a temporary fix for
+  // \todo(anyone) This is a temporary fix for
   // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
   if (kNullEntity == this->dataPtr->model.Entity())
   {
