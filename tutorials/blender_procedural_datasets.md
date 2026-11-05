@@ -64,8 +64,8 @@ following features are supported:
 ### Dependencies
 
 Blender is required to open `.blend` projects and run the script that employs
-the Python API of Blender (`bpy`). Versions `[>=3.0, <3.3]` were tested with the
-script, but newer versions are also expected to work.
+the Python API of Blender (`bpy`). Versions `[>=3.0, <3.3]`, `4.0`, and `4.2`
+were tested with the script, but newer versions are also expected to work.
 
 - [Blender `[>=3.0]`](https://blender.org/download)
 
