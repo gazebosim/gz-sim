@@ -53,6 +53,7 @@
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/LaserRetro.hh"
 #include "gz/sim/components/Level.hh"
 #include "gz/sim/components/LevelEntityNames.hh"
@@ -719,6 +720,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     // If disable gravity, create a GravityEnabled component to the entity
     this->dataPtr->ecm->CreateComponent(
         linkEntity, components::GravityEnabled(false));
+  }
+
+  // The kinematic state of a link that does not set <kinematic> depends on
+  // the <kinematic><enabled> parameter of the Physics system, so only create
+  // the component when the SDF sets it explicitly.
+  if (_link->Element() && _link->Element()->HasElement("kinematic"))
+  {
+    this->dataPtr->ecm->CreateComponent(
+        linkEntity, components::Kinematic(_link->Kinematic()));
   }
 
   // Visuals
