@@ -9,6 +9,21 @@ gz_add_system(dvl
     gz-sensors::rendering
 )
 
+gz_build_tests(TYPE UNIT
+  SOURCES
+    DopplerVelocityLogSystem_TEST.cc
+  LIB_DEPS
+    gz-sensors::dvl
+  ENVIRONMENT
+    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
+)
+
+if (TARGET UNIT_DopplerVelocityLogSystem_TEST)
+  target_sources(UNIT_DopplerVelocityLogSystem_TEST PRIVATE DopplerVelocityLogSystem.cc)
+  target_include_directories(UNIT_DopplerVelocityLogSystem_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
+endif()
+
 # Suppress maybe-uninitialized from gcc due to issue 3627
 # https://github.com/gazebosim/gz-sim/issues/3627
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
