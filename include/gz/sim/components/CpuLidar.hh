@@ -35,7 +35,7 @@ namespace components
   /// sdf::Sensor, information.
   using CpuLidar = Component<sdf::Sensor, class CpuLidarTag,
       serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CpuLidar", CpuLidar)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.CpuLidar", CpuLidar)
 }
 }
 }

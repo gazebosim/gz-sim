@@ -46,7 +46,7 @@ namespace components
   /// element](http://sdformat.org/spec?ver=1.6&elem=light).
   using Light =
       Component<sdf::Light, class LightTag, serializers::LightSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Light", Light)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Light", Light)
 }
 }
 }
