@@ -171,6 +171,10 @@ class gz::sim::systems::PosePublisherPrivate
   /// msgs.
   public: bool usePoseV = false;
 
+  /// \brief User-defined topic from SDF. Empty if not specified, in which
+  /// case the topic is derived from the model's scoped name.
+  public: std::string sdfPoseTopic;
+
   /// \brief Whether cache variables have been initialized
   public: bool initialized{false};
 };
@@ -252,56 +256,19 @@ void PosePublisher::Configure(const Entity &_entity,
     }
   }
 
-  // create publishers
   this->dataPtr->usePoseV =
     _sdf->Get<bool>("use_pose_vector_msg", this->dataPtr->usePoseV).first;
 
-  std::string poseTopic;
   if (_sdf->HasElement("topic"))
   {
     if (transport::TopicUtils::IsValidTopic(_sdf->Get<std::string>("topic")))
     {
-      poseTopic = _sdf->Get<std::string>("topic");
+      this->dataPtr->sdfPoseTopic = _sdf->Get<std::string>("topic");
     }
     else
     {
       gzerr << "Provided topic: " << _sdf->Get<std::string>("topic")
             << " is not a valid topic." << std::endl;
-    }
-  }
-  if (poseTopic.empty())
-  {
-    poseTopic = topicFromScopedName(_entity, _ecm, false) + "/pose";
-  }
-  if (poseTopic.empty())
-  {
-    poseTopic = "/pose";
-    gzerr << "Empty pose topic generated for pose_publisher system. "
-             "Setting to " << poseTopic << std::endl;
-  }
-  std::string staticPoseTopic = poseTopic + "_static";
-
-  if (this->dataPtr->usePoseV)
-  {
-    this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<msgs::Pose_V>(poseTopic);
-
-    if (this->dataPtr->staticPosePublisher)
-    {
-      this->dataPtr->poseStaticPub =
-          this->dataPtr->node.Advertise<msgs::Pose_V>(
-          staticPoseTopic);
-    }
-  }
-  else
-  {
-    this->dataPtr->posePub =
-      this->dataPtr->node.Advertise<msgs::Pose>(poseTopic);
-    if (this->dataPtr->staticPosePublisher)
-    {
-      this->dataPtr->poseStaticPub =
-          this->dataPtr->node.Advertise<msgs::Pose>(
-          staticPoseTopic);
     }
   }
 }
@@ -311,6 +278,50 @@ void PosePublisher::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("PosePublisher::PostUpdate");
+
+  // Create pose publishers. This can't be done in ::Configure
+  // because the World is not guaranteed to be accessible.
+  if (!this->dataPtr->posePub)
+  {
+    std::string poseTopic = this->dataPtr->sdfPoseTopic;
+    if (poseTopic.empty())
+    {
+      poseTopic =
+          topicFromScopedName(this->dataPtr->model.Entity(), _ecm, true) +
+          "/pose";
+    }
+    if (poseTopic.empty())
+    {
+      poseTopic = "/pose";
+      gzerr << "Empty pose topic generated for pose_publisher system. "
+            << "Setting to " << poseTopic << std::endl;
+    }
+    std::string staticPoseTopic = poseTopic + "_static";
+
+    if (this->dataPtr->usePoseV)
+    {
+      this->dataPtr->posePub =
+        this->dataPtr->node.Advertise<msgs::Pose_V>(poseTopic);
+
+      if (this->dataPtr->staticPosePublisher)
+      {
+        this->dataPtr->poseStaticPub =
+            this->dataPtr->node.Advertise<msgs::Pose_V>(
+            staticPoseTopic);
+      }
+    }
+    else
+    {
+      this->dataPtr->posePub =
+        this->dataPtr->node.Advertise<msgs::Pose>(poseTopic);
+      if (this->dataPtr->staticPosePublisher)
+      {
+        this->dataPtr->poseStaticPub =
+            this->dataPtr->node.Advertise<msgs::Pose>(
+            staticPoseTopic);
+      }
+    }
+  }
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
