@@ -4,7 +4,8 @@
 #              [TEST_SOURCES <test_sources...>]
 #              [PUBLIC_LINK_LIBS <libraries...>]
 #              [PRIVATE_LINK_LIBS <libraries...>]
-#              [PRIVATE_COMPILE_DEFS <definitions...>])
+#              [PRIVATE_COMPILE_DEFS <definitions...>]
+#              [PRIVATE_COMPILE_OPTIONS <options...>])
 #
 # Add a system component to Gazebo.
 #
@@ -20,11 +21,14 @@
 #
 # [PRIVATE_COMPILE_DEFS]: Specify a list of private compile definitions to add to target.
 #
+# [PRIVATE_COMPILE_OPTIONS]: Specify a list of private compile options to add to
+# the target that compiles the system sources.
+#
 function(gz_add_system system_name)
 
   set(options)
   set(oneValueArgs)
-  set(multiValueArgs SOURCES TEST_SOURCES PUBLIC_LINK_LIBS PRIVATE_INCLUDE_DIRS PRIVATE_LINK_LIBS PRIVATE_COMPILE_DEFS)
+  set(multiValueArgs SOURCES TEST_SOURCES PUBLIC_LINK_LIBS PRIVATE_INCLUDE_DIRS PRIVATE_LINK_LIBS PRIVATE_COMPILE_DEFS PRIVATE_COMPILE_OPTIONS)
 
   cmake_parse_arguments(gz_add_system "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -83,6 +87,13 @@ function(gz_add_system system_name)
       target_compile_definitions(${build_target}
         PRIVATE
           ${gz_add_system_PRIVATE_COMPILE_DEFS}
+      )
+    endif()
+
+    if(gz_add_system_PRIVATE_COMPILE_OPTIONS)
+      target_compile_options(${build_target}
+        PRIVATE
+          ${gz_add_system_PRIVATE_COMPILE_OPTIONS}
       )
     endif()
   endforeach()
