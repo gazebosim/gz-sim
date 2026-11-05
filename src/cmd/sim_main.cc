@@ -483,11 +483,8 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    bool blocking = true;
-
     #ifdef WITH_GUI
     opt->waitGui = 1;
-    blocking = false;
 
     // Launch the GUI in a separate thread
     std::thread guiThread(
@@ -525,20 +522,27 @@ int main(int argc, char** argv)
       return -1;
     }
 
-    // Run the server in a separate thread
     sim::Server server(serverConfig);
-    server.Run(blocking, opt->iterations, opt->runOnStart == 0);
 
     #ifdef WITH_GUI
-    // Join the GUI thread to wait for a possible window close
-    if (guiThread.joinable())
-      guiThread.join();
+    // Watch for the GUI to close, and stop the server if it does.
+    std::thread watcherThread([&]{
+      // Wait for the GUI thread to finish, indicating the GUI has closed
+      if (guiThread.joinable())
+        guiThread.join();
 
-    // Shutdown server if the GUI has been closed from the screen
-    if(server.Running())
-    {
-      server.Stop();
-    }
+      if(server.Running())
+      {
+        server.Stop();
+      }
+    });
+    #endif
+
+    // Run the server on the main thread. This is a blocking call.
+    server.Run(true, opt->iterations, opt->runOnStart == 0);
+
+    #ifdef WITH_GUI
+    watcherThread.join();
     #endif
 
     gzdbg << "Shutting down gz-sim-server" << std::endl;

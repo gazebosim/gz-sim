@@ -158,7 +158,7 @@ Rectangle {
               width: 220
               height: 150
               smooth: true
-              source: fileURL
+              source: fileUrl
               border.color: getColor(fileName.split('.')[1])
             }
           }

@@ -355,8 +355,14 @@ math::Vector3d OdometryPublisherPrivate::CalculateAngularVelocity(
 {
   // Compute the first order finite difference between current and previous
   // rotation as quaternion.
+  math::Quaterniond currentRot = _currentPose.Rot();
+  if (currentRot.Dot(_lastPose.Rot()) < 0)
+  {
+    currentRot = -currentRot;
+  }
+
   const math::Quaterniond rotationDiff =
-    _currentPose.Rot() * _lastPose.Rot().Inverse();
+    currentRot * _lastPose.Rot().Inverse();
 
   math::Vector3d rotationAxis;
   double rotationAngle;
@@ -374,10 +380,13 @@ void OdometryPublisherPrivate::UpdateOdometry(
     const gz::sim::EntityComponentManager &_ecm)
 {
   GZ_PROFILE("OdometryPublisher::UpdateOdometry");
-  // Record start time.
+  // Record start time and pose. The first velocity is computed from this pose,
+  // so it has to be the pose the odometry reports, with the offsets applied.
   if (!this->initialized)
   {
     this->lastUpdateTime = std::chrono::steady_clock::time_point(_info.simTime);
+    this->lastUpdatePose = this->globalOffset.Inverse() *
+      worldPose(this->model.Entity(), _ecm) * this->offset;
     this->initialized = true;
     return;
   }

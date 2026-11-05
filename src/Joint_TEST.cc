@@ -22,6 +22,7 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Joint.hh"
 #include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Sensor.hh"
@@ -135,4 +136,199 @@ TEST(JointTest, Sensors)
 
   gz::sim::Joint jointC(jointCEntity);
   EXPECT_EQ(0u, jointC.Sensors(ecm).size());
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, MaxVelocityLimitsMultiAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis1;
+  axis1.Data().SetMaxVelocity(5.0);
+  ecm.CreateComponent(jointEntity, axis1);
+
+  gz::sim::components::JointAxis2 axis2;
+  axis2.Data().SetMaxVelocity(2.0);
+  ecm.CreateComponent(jointEntity, axis2);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.MaxVelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 2u);
+
+  EXPECT_DOUBLE_EQ((*limits)[0], 5.0);
+  EXPECT_DOUBLE_EQ((*limits)[1], 2.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, MaxVelocityLimitsSingleAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis;
+  axis.Data().SetMaxVelocity(3.0);
+  ecm.CreateComponent(jointEntity, axis);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.MaxVelocityLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 1u);
+  EXPECT_DOUBLE_EQ((*limits)[0],  3.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, MaxVelocityLimitsNoAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.MaxVelocityLimits(ecm);
+
+  EXPECT_FALSE(limits.has_value());
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, EffortLimitsMultiAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis1;
+  axis1.Data().SetEffort(5.0);
+  ecm.CreateComponent(jointEntity, axis1);
+
+  gz::sim::components::JointAxis2 axis2;
+  axis2.Data().SetEffort(2.0);
+  ecm.CreateComponent(jointEntity, axis2);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.EffortLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 2u);
+
+  EXPECT_DOUBLE_EQ((*limits)[0], 5.0);
+  EXPECT_DOUBLE_EQ((*limits)[1], 2.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, EffortLimitsSingleAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis;
+  axis.Data().SetEffort(3.0);
+  ecm.CreateComponent(jointEntity, axis);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.EffortLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 1u);
+  EXPECT_DOUBLE_EQ((*limits)[0], 3.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, EffortLimitsNoAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.EffortLimits(ecm);
+
+  EXPECT_FALSE(limits.has_value());
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, PositionLimitsMultiAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis1;
+  axis1.Data().SetLower(-1.0);
+  axis1.Data().SetUpper(2.0);
+  ecm.CreateComponent(jointEntity, axis1);
+
+  gz::sim::components::JointAxis2 axis2;
+  axis2.Data().SetLower(-3.0);
+  axis2.Data().SetUpper(4.0);
+  ecm.CreateComponent(jointEntity, axis2);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.PositionLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 2u);
+
+  EXPECT_DOUBLE_EQ((*limits)[0].X(), -1.0);
+  EXPECT_DOUBLE_EQ((*limits)[0].Y(), 2.0);
+  EXPECT_DOUBLE_EQ((*limits)[1].X(), -3.0);
+  EXPECT_DOUBLE_EQ((*limits)[1].Y(), 4.0);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, PositionLimitsSingleAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::components::JointAxis axis;
+  axis.Data().SetLower(-0.5);
+  axis.Data().SetUpper(0.7);
+  ecm.CreateComponent(jointEntity, axis);
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.PositionLimits(ecm);
+
+  ASSERT_TRUE(limits.has_value());
+  ASSERT_EQ(limits->size(), 1u);
+  EXPECT_DOUBLE_EQ((*limits)[0].X(), -0.5);
+  EXPECT_DOUBLE_EQ((*limits)[0].Y(), 0.7);
+}
+
+/////////////////////////////////////////////////
+TEST(JointTest, PositionLimitsNoAxis)
+{
+  gz::sim::EntityComponentManager ecm;
+
+  auto jointEntity = ecm.CreateEntity();
+  ecm.CreateComponent(jointEntity, gz::sim::components::Joint());
+
+  gz::sim::Joint joint(jointEntity);
+
+  auto limits = joint.PositionLimits(ecm);
+
+  EXPECT_FALSE(limits.has_value());
 }

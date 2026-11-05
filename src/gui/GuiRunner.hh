@@ -67,7 +67,10 @@ class GZ_SIM_GUI_VISIBLE GuiRunner : public QObject
 
   /// \brief Called by the Qt thread to update the ECM with new state
   /// \param[in] _msg New state message.
-  private: Q_INVOKABLE void OnStateQt(const gz::msgs::SerializedStepMap &_msg);
+  /// \param[in] _fullState True if this is a full state update,
+  ///                       false if incremental.
+  private: Q_INVOKABLE void OnStateQt(const gz::msgs::SerializedStepMap &_msg,
+                                      bool _fullState);
 
   /// \brief Update the plugins.
   private: Q_INVOKABLE void UpdatePlugins();

@@ -738,7 +738,7 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
     Cem = this->Cem0 + this->Cema * this->alpha;
   }
   // Add sideslip effect, if any
-  Cem = this->Cemb * this->beta;
+  Cem += this->Cemb * this->beta;
 
   Cem += Cem_ctrl_tot;
 

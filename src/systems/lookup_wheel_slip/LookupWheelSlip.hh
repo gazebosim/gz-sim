@@ -57,18 +57,31 @@ namespace systems
   ///       below.
   ///   To visualize the lookup map, set the model's visual diffuse texture to
   ///   this file, e.g. set this texture to a plane or heightmap.
-  /// * `<size_x>`: (Required) x size of lookup slip map in meters.
-  /// * `<size_y>`: (Required) y size of lookup slip map in meters.
-  /// * `<wheel_link_name>`: (Required) The wheel link name from the
-  ///   WheelSlip system. Specify one `<wheel_link_name>` per wheel link.
-  /// * `<slip_compliance_lateral_delta>`: (Optional) The increase / decrease
-  ///   step to be applied to the lateral slip. Default is 0.05
-  /// * `<slip_compliance_longitudinal_delta>`: (Optional) The
-  ///   increase / decrease step to be applied to the longitudinal
-  ///   slip. Default is 0.005
-  /// * `<friction_delta>`: (Optional) The increase/decrease step to be applied
-  ///   to the friction coefficients in the primary and secondary directions.
-  ///   Default is 0.5
+  ///
+  ///   Parameters (SDF):
+  ///   \code{.xml}
+  ///   <size_x>
+  ///   <size_y>
+  ///   <wheel_link_name>
+  ///   <slip_compliance_lateral_delta>
+  ///   <slip_compliance_longitudinal_delta>
+  ///   <friction_delta>
+  ///   \endcode
+  ///
+  ///   Where:
+  ///   - size_x: (Required) x size of lookup slip map in meters.
+  ///   - size_y: (Required) y size of lookup slip map in meters.
+  ///   - wheel_link_name: (Required) The wheel link name from the
+  ///     WheelSlip system. Specify one per wheel link.
+  ///   - slip_compliance_lateral_delta: (Optional)
+  ///     The increase/decrease step applied to the lateral slip.
+  ///     Default is 0.05.
+  ///   - slip_compliance_longitudinal_delta: (Optional)
+  ///     The increase/decrease step applied to the longitudinal slip.
+  ///     Default is 0.005.
+  ///   - friction_delta: (Optional)
+  ///     The increase/decrease step applied to the friction coefficients
+  ///     in the primary and secondary directions. Default is 0.5.
   class LookupWheelSlip
       : public System,
         public ISystemConfigure,

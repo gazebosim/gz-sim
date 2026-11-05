@@ -24,6 +24,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -32,6 +33,7 @@
 #include <mutex>
 #include <set>
 #include <string>
+#include <system_error>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -47,10 +49,14 @@
 #include <gz/msgs/stringmsg_v.pb.h>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Image.hh>
 #include <gz/common/Util.hh>
+#include <gz/common/SystemPaths.hh>
 #include <gz/msgs/Factory.hh>
 #include <gz/plugin/Register.hh>
+#include <gz/sim/Util.hh>
+#include <gz/fuel_tools/ClientConfig.hh>
 #include <gz/transport/Publisher.hh>
 #include <gz/transport/TopicUtils.hh>
 
@@ -1125,8 +1131,38 @@ void WebsocketServer::OnAsset(int _socketId,
   }
 
   std::string assetUri = _frameParts[1];
-
   std::string resolvedPath;
+
+  // Queue an ASSET error response (e.g. "asset_not_found") for this request.
+  auto sendAssetError = [this, _socketId, &assetUri](const std::string &_code)
+  {
+    gz::msgs::StringMsg msg;
+    msg.set_data(_code);
+    std::string data = BUILD_MSG(this->operations[ASSET], assetUri,
+        msg.GetTypeName(), msg.SerializeAsString());
+
+    this->QueueMessage(this->connections[_socketId].get(),
+        data.c_str(), data.length());
+  };
+
+  // Helper function to extract paths from an environment
+  auto extractPathsFromEnv = [](const std::string &_envVar)
+    -> std::vector<std::string>
+  {
+    std::vector<std::string> paths;
+    const char *envVal = std::getenv(_envVar.c_str());
+    if (envVal)
+    {
+      std::string envStr(envVal);
+      std::stringstream ss(envStr);
+      std::string path;
+      while (std::getline(ss, path, common::SystemPaths::Delimiter()))
+      {
+        paths.push_back(path);
+      }
+    }
+    return paths;
+  };
 
   // Short circuit the case where the assetURI is already a valid path.
   if (common::exists(assetUri))
@@ -1147,37 +1183,139 @@ void WebsocketServer::OnAsset(int _socketId,
       resolvedPath = rep.data();
   }
 
-  if (!resolvedPath.empty())
+  if (resolvedPath.empty())
   {
-    // Read the file
-    std::ifstream infile(resolvedPath, std::ios_base::binary);
-    std::string fileBuffer = std::string(
-        std::istreambuf_iterator<char>(infile),
-        std::istreambuf_iterator<char>());
-
-    // Store the file in a protobuf message
-    gz::msgs::Bytes bytes;
-    bytes.set_data(fileBuffer);
-
-    // Construct the response message
-    std::string data = BUILD_MSG(this->operations[ASSET], assetUri,
-        bytes.GetTypeName(), bytes.SerializeAsString());
-
-    // Queue the message for delivery.
-    this->QueueMessage(this->connections[_socketId].get(),
-        data.c_str(), data.length());
+    sendAssetError("asset_not_found");
+    gzwarn << "Resolved Path is empty" << "\n";
+    return;
   }
-  else
+
+  // This logic protects against arbitrary read access.
+  bool allowed = false;
+  std::string canonicalResolved;
+  try
   {
-    gz::msgs::StringMsg msg;
-    msg.set_data("asset_not_found");
-    std::string data = BUILD_MSG(this->operations[ASSET], assetUri,
-        msg.GetTypeName(), msg.SerializeAsString());
+    std::error_code ec;
+    canonicalResolved =
+        std::filesystem::weakly_canonical(resolvedPath, ec).string();
 
-    // Queue the message for delivery.
-    this->QueueMessage(this->connections[_socketId].get(),
-        data.c_str(), data.length());
+    if (!ec)
+    {
+      std::vector<std::string> allowedPaths = sim::resourcePaths();
+      fuel_tools::ClientConfig fuelConfig;
+      std::string fuelCachePath = fuelConfig.CacheLocation();
+
+      auto extraSdfPaths = extractPathsFromEnv(kSdfPathEnv);
+      allowedPaths.reserve(allowedPaths.size() + extraSdfPaths.size());
+      allowedPaths.insert(allowedPaths.end(), extraSdfPaths.begin(),
+          extraSdfPaths.end());
+
+      common::SystemPaths systemPaths;
+      auto extraFilePaths = systemPaths.FilePaths();
+      allowedPaths.reserve(allowedPaths.size() + extraFilePaths.size());
+      allowedPaths.insert(allowedPaths.end(), extraFilePaths.begin(),
+          extraFilePaths.end());
+
+      if (!fuelCachePath.empty())
+      {
+        allowedPaths.push_back(fuelCachePath);
+      }
+
+      for (const std::string &resPath : allowedPaths)
+      {
+        std::error_code pathEc;
+        std::string canonicalRes = "";
+        try
+        {
+          canonicalRes =
+              std::filesystem::weakly_canonical(resPath, pathEc).string();
+          if (pathEc || canonicalRes.empty())
+          {
+            gzwarn << "Failed to resolve canonical path for resource path["
+                  << resPath << "]: " << pathEc.message() << "\n";
+            continue;
+          }
+        }
+        catch (std::exception &e)
+        {
+          gzwarn << "Failed to resolve canonical path for resource path["
+                << resPath << "]: " << e.what() << "\n";
+          continue;
+        }
+        std::string canonicalResNoSep = canonicalRes;
+
+        // Ensure trailing separator
+        if (canonicalRes.back() != '/' && canonicalRes.back() != '\\')
+        {
+          canonicalRes = common::separator(canonicalRes);
+        }
+
+        if (canonicalResolved == canonicalResNoSep ||
+            canonicalResolved.rfind(canonicalRes, 0) == 0)
+        {
+          allowed = true;
+          break;
+        }
+      }
+    }
+    else
+    {
+      gzerr << "Failed to resolve canonical path for [" << resolvedPath
+            << "]: " << ec.message() << "\n";
+    }
   }
+  catch (const std::exception &_e)
+  {
+    gzerr << "Exception thrown while resolving canonical path for ["
+          << resolvedPath << "]: " << _e.what() << "\n";
+    allowed = false;
+  }
+
+  if (!allowed)
+  {
+    gzerr << "Asset path [" << resolvedPath
+      << "] is not within the allowed resource paths. Access denied.\n";
+    sendAssetError("asset_access_denied");
+    return;
+  }
+
+  // Read the file
+  std::ifstream infile(canonicalResolved, std::ios_base::binary);
+
+  // weakly_canonical does not require the file to exist, so a path can pass
+  // the access check above and still fail to open here.
+  if (!infile.is_open())
+  {
+    gzerr << "Failed to open asset file [" << canonicalResolved
+          << "].\n";
+    sendAssetError("asset_not_found");
+    return;
+  }
+
+  std::string fileBuffer = std::string(
+      std::istreambuf_iterator<char>(infile),
+      std::istreambuf_iterator<char>());
+
+  // Do not send a partial/corrupt asset if an I/O error occurred mid-read.
+  if (infile.bad())
+  {
+    gzerr << "I/O error while reading asset file [" << canonicalResolved
+          << "].\n";
+    sendAssetError("asset_not_found");
+    return;
+  }
+
+  // Store the file in a protobuf message
+  gz::msgs::Bytes bytes;
+  bytes.set_data(fileBuffer);
+
+  // Construct the response message
+  std::string data = BUILD_MSG(this->operations[ASSET], assetUri,
+      bytes.GetTypeName(), bytes.SerializeAsString());
+
+  // Queue the message for delivery.
+  this->QueueMessage(this->connections[_socketId].get(),
+      data.c_str(), data.length());
 }
 
 //////////////////////////////////////////////////
