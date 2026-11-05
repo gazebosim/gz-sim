@@ -40,6 +40,7 @@
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"
@@ -186,6 +187,9 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \brief Position PID controller.
   public: math::PID posPid;
 
+  /// \brief Use joint velocity instead of the error derivative for the D term.
+  public: bool derivativeOnMeasurement{false};
+
   /// \brief Joint index to be used.
   public: unsigned int jointIndex = 0u;
 
@@ -284,6 +288,8 @@ void JointPositionController::Configure(const Entity &_entity,
   {
     d = _sdf->Get<double>("d_gain");
   }
+  this->dataPtr->derivativeOnMeasurement =
+      _sdf->Get<bool>("derivative_on_measurement", false).first;
   if (_sdf->HasElement("i_max"))
   {
     iMax = _sdf->Get<double>("i_max");
@@ -420,6 +426,8 @@ void JointPositionController::Configure(const Entity &_entity,
   gzdbg << "p_gain: ["     << p         << "]"            << std::endl;
   gzdbg << "i_gain: ["     << i         << "]"            << std::endl;
   gzdbg << "d_gain: ["     << d         << "]"            << std::endl;
+  gzdbg << "derivative_on_measurement: ["
+        << this->dataPtr->derivativeOnMeasurement << "]" << std::endl;
   gzdbg << "i_max: ["      << iMax      << "]"            << std::endl;
   gzdbg << "i_min: ["      << iMin      << "]"            << std::endl;
   gzdbg << "cmd_max: ["    << cmdMax    << "]"            << std::endl;
@@ -634,10 +642,33 @@ void JointPositionController::PreUpdate(
     return;
   }
 
+  // Like position feedback, velocity feedback comes from the first joint.
+  double jointVelocity = 0.0;
+  if (this->dataPtr->derivativeOnMeasurement)
+  {
+    auto jointVelComp = _ecm.Component<components::JointVelocity>(
+        this->dataPtr->jointEntities[0]);
+    if (!jointVelComp)
+    {
+      _ecm.CreateComponent(this->dataPtr->jointEntities[0],
+          components::JointVelocity());
+    }
+
+    // Give physics time to populate the requested velocity axis.
+    if (!jointVelComp ||
+        this->dataPtr->jointIndex >= jointVelComp->Data().size())
+      return;
+
+    jointVelocity = jointVelComp->Data().at(this->dataPtr->jointIndex);
+  }
+
   for (Entity joint : this->dataPtr->jointEntities)
   {
     // Update force command.
-    double force = this->dataPtr->posPid.Update(error, _info.dt);
+    // error = position - target, so the measured error rate is +velocity.
+    double force = this->dataPtr->derivativeOnMeasurement ?
+        this->dataPtr->posPid.Update(error, jointVelocity, _info.dt) :
+        this->dataPtr->posPid.Update(error, _info.dt);
 
     auto forceComp =
         _ecm.Component<components::JointForceCmd>(joint);
