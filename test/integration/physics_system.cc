@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -196,6 +197,67 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
   const double zStopped =
       sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
+}
+
+/////////////////////////////////////////////////
+// Mesh collisions asserted to be convex with //mesh/@assert_convex are
+// created from the convex hull of the mesh. With "error", a mesh that is
+// not convex has no collision.
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeshAssertConvex))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "mesh_assert_convex.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1us);
+
+  // Create a system that records the last pose of each model
+  std::map<std::string, math::Pose3d> poses;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+    [&poses](const UpdateInfo &, const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const Entity &, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          poses[_name->Data()] = _pose->Data();
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+  server.Run(true, 3000, false);
+
+  // The box mesh is convex, so it rests on the ground plane with all the
+  // assertion modes. Its vertices span z = [1, 5] in the link frame, so the
+  // link rests at z = -1.
+  const std::vector<std::string> boxNames{
+      "box_nocheck", "box_warn", "box_error"};
+  for (const std::string &name : boxNames)
+  {
+    ASSERT_NE(poses.end(), poses.find(name)) << name;
+    EXPECT_NEAR(-1.0, poses[name].Pos().Z(), 5e-2) << name;
+  }
+
+  // The duck mesh is not convex. With nocheck and warn its convex hull is
+  // used and the duck rests on the ground plane. With error its collision is
+  // not created and the duck falls through the ground plane. With convex
+  // decomposition the assertion is ignored and the duck rests on the ground
+  // plane.
+  const std::vector<std::string> duckNames{
+      "duck_nocheck", "duck_warn", "duck_error_decomposed"};
+  for (const std::string &name : duckNames)
+  {
+    ASSERT_NE(poses.end(), poses.find(name)) << name;
+    EXPECT_LT(-1.0, poses[name].Pos().Z()) << name;
+    EXPECT_GT(2.0, poses[name].Pos().Z()) << name;
+  }
+  ASSERT_NE(poses.end(), poses.find("duck_error"));
+  EXPECT_GT(-10.0, poses["duck_error"].Pos().Z());
 }
 
 /////////////////////////////////////////////////

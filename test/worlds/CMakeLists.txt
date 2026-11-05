@@ -1,6 +1,7 @@
 configure_file (buoyancy.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/buoyancy.sdf)
 configure_file (buoyancy_mesh_centroid.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/buoyancy_mesh_centroid.sdf)
 configure_file (mesh.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/mesh.sdf)
+configure_file (mesh_assert_convex.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/mesh_assert_convex.sdf)
 configure_file (thermal.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/thermal.sdf)
 configure_file (heightmap.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/heightmap.sdf)
 configure_file (environmental_data.sdf.in ${PROJECT_BINARY_DIR}/test/worlds/environmental_data.sdf)

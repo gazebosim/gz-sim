@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<!--
+  Mesh collisions asserted to be convex with //mesh/@assert_convex.
+  box_offset.obj is a convex box and duck_collider.dae is not convex.
+-->
+<sdf version="1.12">
+  <world name="mesh_assert_convex">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="box_nocheck">
+      <pose>0 0 2 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <!-- Center of the box mesh -->
+          <pose>1 2 3 0 0 0</pose>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="nocheck">
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/box_offset.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="box_warn">
+      <pose>5 0 2 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <!-- Center of the box mesh -->
+          <pose>1 2 3 0 0 0</pose>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="warn">
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/box_offset.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="box_error">
+      <pose>10 0 2 0 0 0</pose>
+      <link name="link">
+        <inertial>
+          <!-- Center of the box mesh -->
+          <pose>1 2 3 0 0 0</pose>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="error" optimization="convex_hull">
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/box_offset.obj</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="duck_nocheck">
+      <pose>0 10 2 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="nocheck">
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="duck_warn">
+      <pose>5 10 2 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="warn">
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="duck_error">
+      <pose>10 10 2 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="error">
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+
+    <model name="duck_error_decomposed">
+      <pose>15 10 2 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <mesh assert_convex="error" optimization="convex_decomposition">
+              <convex_decomposition>
+                <max_convex_hulls>4</max_convex_hulls>
+                <voxel_resolution>10000</voxel_resolution>
+              </convex_decomposition>
+              <uri>file://@CMAKE_SOURCE_DIR@/test/media/duck_collider.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>

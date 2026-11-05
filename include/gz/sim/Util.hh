@@ -400,15 +400,21 @@ namespace gz
       const math::Vector3d& _worldPosition,
       const std::shared_ptr<components::EnvironmentalData>& _gridField);
 
-    /// \brief Load a mesh from a Mesh SDF DOM
+    /// \brief Load a mesh from a Mesh SDF DOM. The mesh is optimized if
+    /// requested by the Mesh SDF DOM, see \ref optimizeMesh.
     /// \param[in] _meshSdf Mesh SDF DOM
-    /// \return The loaded mesh or null if the mesh can not be loaded.
+    /// \return The loaded mesh or null if the mesh can not be loaded, or if
+    /// it is asserted to be convex with an error on failure and it is not.
     GZ_SIM_VISIBLE const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf);
 
-    /// \brief Optimize input mesh.
+    /// \brief Optimize input mesh according to the optimization and
+    /// convex assertion of the Mesh SDF DOM. The optimized mesh is cached by
+    /// the common::MeshManager.
     /// \param[in] _meshSdf Mesh SDF DOM with mesh optimization parameters
     /// \param[in] _mesh Input mesh to optimize.
-    /// \return The optimized mesh or null if the mesh can not be optimized.
+    /// \return The optimized mesh or null if the mesh does not need to be
+    /// optimized, if it can not be optimized, or if it is asserted to be
+    /// convex with an error on failure and it is not.
     GZ_SIM_VISIBLE const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
         const common::Mesh &_mesh);
 
