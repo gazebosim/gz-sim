@@ -40,8 +40,8 @@ to developers touching the source code.
 
 * **Buffer zone**: Each level has a buffer zone, which is an inflation of the
     level's volume outside its boundaries used to detect when a performer
-    is about to come into the level, or has left and is far enough away to
-    exclude the entity from the level.
+    has left the level and is far enough away to unload the level. It isn't
+    used when a performer is coming into the level.
 
 * **Performer**: All simulation entities which may change levels during the
     simulation, such as robots, actors and dynamic models. A performer only
