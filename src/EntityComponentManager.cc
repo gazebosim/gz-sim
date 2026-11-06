@@ -503,7 +503,8 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
     // already handled above
     if ((type == components::Name::typeId) ||
         (type == components::ParentEntity::typeId) ||
-        (type == components::Namespace::typeId))
+        (type == components::Namespace::typeId) ||
+        components::Factory::Instance()->HasTrait<components::NoClone>(type))
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
@@ -736,8 +737,12 @@ bool EntityComponentManager::RemoveComponent(
 
   storage->remove(_entity);
 
-  if (!components::Factory::Instance()->HasType(_typeId))
+  if (!components::Factory::Instance()->HasType(_typeId) ||
+      components::Factory::Instance()->HasTrait<components::NoSerialize>(
+          _typeId))
+  {
     return true;
+  }
 
   auto* oneTimeChangeComp =
     this->Registry().try_get<OneTimeChangedComponents>(_entity);
@@ -1287,7 +1292,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedState &_msg,
   }
 
   for (const auto& type : this->ComponentTypes(_entity)) {
-    if (!_types.empty() && _types.find(type) == _types.end())
+    if ((!_types.empty() && _types.find(type) == _types.end()) ||
+        components::Factory::Instance()->HasTrait<components::NoSerialize>(
+            type))
     {
       continue;
     }
@@ -1340,7 +1347,9 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
   // Insert all of the entity's components if the passed in types
   // set is empty
   for (const auto& type : this->ComponentTypes(_entity)) {
-    if (!_types.empty() && _types.find(type) == _types.end())
+    if ((!_types.empty() && _types.find(type) == _types.end()) ||
+        components::Factory::Instance()->HasTrait<components::NoSerialize>(
+            type))
     {
       continue;
     }
@@ -1767,8 +1776,11 @@ void EntityComponentManager::SetChanged(
     const Entity _entity, const ComponentTypeId _type,
     sim::ComponentState _c)
 {
-  if (!components::Factory::Instance()->HasType(_type))
+  if (!components::Factory::Instance()->HasType(_type) ||
+      components::Factory::Instance()->HasTrait<components::NoSerialize>(_type))
+  {
     return;
+  }
 
   // make sure the entity has a component of type _type
   const auto* storage = this->Registry().storage(_type);
@@ -1913,6 +1925,9 @@ void EntityComponentManagerPrivate::CopyComponents(const Entity &_entity,
       _fromRegistry, _entity);
   for (const auto [typeId, fromStorage] : fromHandle.storage())
   {
+    if (components::Factory::Instance()->HasTrait<components::NoClone>(typeId))
+      continue;
+
     auto* toStorage = this->registry.storage(typeId);
     if (!toStorage)
     {

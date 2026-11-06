@@ -24,6 +24,9 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <typeindex>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -292,6 +295,14 @@ namespace components
       this->compsById[ComponentTypeT::typeId].Add(_regObjId, _compDesc);
       namesById[ComponentTypeT::typeId] = ComponentTypeT::typeName;
       runtimeNamesById[ComponentTypeT::typeId] = runtimeName;
+
+      auto &traits = this->traitsById[ComponentTypeT::typeId];
+      if constexpr (ComponentTypeT::template HasTrait<NoSerialize>())
+        traits.insert(typeid(NoSerialize));
+      if constexpr (ComponentTypeT::template HasTrait<NoClone>())
+        traits.insert(typeid(NoClone));
+      if constexpr (ComponentTypeT::template HasTrait<PrivateTag>())
+        traits.insert(typeid(PrivateTag));
     }
 
     /// \brief Initialize the storage for all components or a specific type.
@@ -343,6 +354,7 @@ namespace components
         if (it->second.Empty())
         {
           this->compsById.erase(it);
+          this->traitsById.erase(_typeId);
         }
       }
     }
@@ -428,6 +440,19 @@ namespace components
       return this->compsById.find(_typeId) != this->compsById.end();
     }
 
+    /// \brief Check if a registered component type has a specific trait.
+    /// \tparam Trait Trait type to check (e.g., NoSerialize, NoClone,
+    /// PrivateTag).
+    /// \param[in] _typeId Component type ID to check.
+    /// \return True if registered and the component has the trait.
+    public: template <typename Trait>
+    bool HasTrait(ComponentTypeId _typeId) const
+    {
+      auto it = this->traitsById.find(_typeId);
+      return it != this->traitsById.end() &&
+             it->second.count(typeid(Trait)) > 0;
+    }
+
     /// \brief Get a component's type name given its type ID.
     /// return Unique component name.
     public: std::string Name(ComponentTypeId _typeId) const
@@ -452,6 +477,10 @@ namespace components
     /// they try to register different types with the same typeName.
     public: std::map<ComponentTypeId, std::string>
         runtimeNamesById;
+
+    /// \brief Traits associated with each registered component ID.
+    private: std::unordered_map<
+        ComponentTypeId, std::unordered_set<std::type_index>> traitsById;
   };
 }
 }
@@ -502,14 +531,10 @@ class GzSimComponents##_classname \
 { \
   public: GzSimComponents##_classname() \
   { \
-    if constexpr (!_classname::template HasTrait< \
-        ::gz::sim::components::PrivateTag>()) \
-    { \
-      ::gz::sim::components::Factory::Instance()->Register<_classname>( \
-        _compType, \
-        new ::gz::sim::components::ComponentDescriptor<_classname>(), \
-        ::gz::sim::components::RegistrationObjectId(this)); \
-    } \
+    using Desc = ::gz::sim::components::ComponentDescriptor<_classname>; \
+    ::gz::sim::components::Factory::Instance()->Register<_classname>(\
+      _compType, new Desc(), \
+      ::gz::sim::components::RegistrationObjectId(this));\
   } \
   public: GzSimComponents##_classname( \
               const GzSimComponents##_classname&) = delete; \
@@ -517,12 +542,8 @@ class GzSimComponents##_classname \
               GzSimComponents##_classname&) = delete; \
   public: ~GzSimComponents##_classname() \
   { \
-    if constexpr (!_classname::template HasTrait< \
-        ::gz::sim::components::PrivateTag>()) \
-    { \
-      ::gz::sim::components::Factory::Instance()->Unregister<_classname>( \
-          ::gz::sim::components::RegistrationObjectId(this)); \
-    } \
+    ::gz::sim::components::Factory::Instance()->Unregister<_classname>( \
+        ::gz::sim::components::RegistrationObjectId(this)); \
   } \
 }; \
 [[maybe_unused]] static GzSimComponents##_classname\

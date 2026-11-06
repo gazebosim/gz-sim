@@ -261,8 +261,7 @@ namespace components
   };
 
   /// \brief Trait tag for components that are private to a system or
-  /// translation unit. Private components are not registered with the
-  /// global Factory, not serialized, and not cloned.
+  /// translation unit, combining NoSerialize and NoClone.
   struct PrivateTag : NoSerialize, NoClone
   {
   };

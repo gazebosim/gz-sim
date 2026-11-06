@@ -80,10 +80,6 @@ template<typename ComponentTypeT>
 ComponentTypeT *EntityComponentManager::CreateComponent(const Entity _entity,
             const ComponentTypeT &_data)
 {
-  if constexpr (ComponentTypeT::template HasTrait<components::PrivateTag>())
-  {
-    std::ignore = this->Registry().template storage<ComponentTypeT>();
-  }
   return static_cast<ComponentTypeT *>(this->CreateComponentImplementation(
       _entity, ComponentTypeT::typeId, &_data));
 }

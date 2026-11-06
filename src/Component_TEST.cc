@@ -143,9 +143,15 @@ TEST_F(ComponentTest, ComponentTraits)
   EXPECT_FALSE(CustomString::HasTrait<components::NoClone>());
   EXPECT_FALSE(CustomString::HasTrait<components::PrivateTag>());
   EXPECT_TRUE(components::Factory::Instance()->HasType(CustomString::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::NoSerialize>(CustomString::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::NoClone>(CustomString::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::PrivateTag>(CustomString::typeId));
 
   // PrivateTag component has PrivateTag, NoSerialize, and NoClone traits, and
-  // is not registered in the Factory.
+  // is registered in the Factory with those traits.
   EXPECT_TRUE(PrivateComp::HasTrait<components::PrivateTag>());
   EXPECT_TRUE(PrivateComp::HasTrait<components::NoSerialize>());
   EXPECT_TRUE(PrivateComp::HasTrait<components::NoClone>());
@@ -154,7 +160,13 @@ TEST_F(ComponentTest, ComponentTraits)
   EXPECT_EQ(PrivateComp::typeId, entt::type_hash<PrivateComp>::value());
   ASSERT_NE(nullptr, PrivateComp::typeName);
   EXPECT_STREQ("gz_sim_components.PrivateComp", PrivateComp::typeName);
-  EXPECT_FALSE(components::Factory::Instance()->HasType(PrivateComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasType(PrivateComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::PrivateTag>(PrivateComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::NoSerialize>(PrivateComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::NoClone>(PrivateComp::typeId));
 
   PrivateComp privComp(42);
   EXPECT_EQ(nullptr, privComp.Clone());
@@ -169,6 +181,12 @@ TEST_F(ComponentTest, ComponentTraits)
   EXPECT_TRUE(PrivateNoDataComp::HasTrait<components::PrivateTag>());
   EXPECT_TRUE(PrivateNoDataComp::HasTrait<components::NoSerialize>());
   EXPECT_TRUE(PrivateNoDataComp::HasTrait<components::NoClone>());
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::PrivateTag>(PrivateNoDataComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::NoSerialize>(PrivateNoDataComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::NoClone>(PrivateNoDataComp::typeId));
   PrivateNoDataComp privNoData;
   EXPECT_EQ(nullptr, privNoData.Clone());
 
@@ -178,6 +196,12 @@ TEST_F(ComponentTest, ComponentTraits)
   EXPECT_FALSE(NoSerializeTraitComp::HasTrait<components::NoClone>());
   EXPECT_TRUE(components::Factory::Instance()->HasType(
       NoSerializeTraitComp::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::PrivateTag>(NoSerializeTraitComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::NoSerialize>(NoSerializeTraitComp::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::NoClone>(NoSerializeTraitComp::typeId));
 
   NoSerializeTraitComp noSerComp(10);
   EXPECT_NE(nullptr, noSerComp.Clone());
@@ -194,6 +218,12 @@ TEST_F(ComponentTest, ComponentTraits)
   EXPECT_TRUE(NoCloneTraitComp::HasTrait<components::NoClone>());
   EXPECT_TRUE(components::Factory::Instance()->HasType(
       NoCloneTraitComp::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::PrivateTag>(NoCloneTraitComp::typeId));
+  EXPECT_FALSE(components::Factory::Instance()->HasTrait<
+      components::NoSerialize>(NoCloneTraitComp::typeId));
+  EXPECT_TRUE(components::Factory::Instance()->HasTrait<
+      components::NoClone>(NoCloneTraitComp::typeId));
 
   NoCloneTraitComp noCloneComp(77);
   EXPECT_EQ(nullptr, noCloneComp.Clone());

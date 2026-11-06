@@ -4014,9 +4014,9 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedRejectsInternalTypes)
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, PrivateComponent)
 {
-  EXPECT_FALSE(components::Factory::Instance()->HasType(
+  EXPECT_TRUE(components::Factory::Instance()->HasType(
       PrivateIntComponent::typeId));
-  EXPECT_FALSE(components::Factory::Instance()->HasType(
+  EXPECT_TRUE(components::Factory::Instance()->HasType(
       PrivateTagComponent::typeId));
 
   Entity e1 = manager.CreateEntity();
@@ -4063,9 +4063,10 @@ TEST_P(EntityComponentManagerFixture, PrivateComponent)
   EXPECT_EQ(15, manager.ComponentData<PrivateIntComponent>(e1));
   EXPECT_EQ(15, manager.Component<PrivateIntComponent>(e1)->Data());
 
-  // Private component must not appear in ComponentTypes() or State()
-  EXPECT_EQ(0u, manager.ComponentTypes(e1).count(PrivateIntComponent::typeId));
-  EXPECT_EQ(0u, manager.ComponentTypes(e1).count(PrivateTagComponent::typeId));
+  // Private component is registered in Factory, so it appears in
+  // ComponentTypes(), but not in State()
+  EXPECT_EQ(1u, manager.ComponentTypes(e1).count(PrivateIntComponent::typeId));
+  EXPECT_EQ(1u, manager.ComponentTypes(e1).count(PrivateTagComponent::typeId));
   auto stateMsg = manager.State();
   for (int i = 0; i < stateMsg.entities_size(); ++i)
   {
@@ -4078,17 +4079,16 @@ TEST_P(EntityComponentManagerFixture, PrivateComponent)
     }
   }
 
-  // Runtime Each rejects private component type IDs
-  // TODO(luca) consider allowing private components in runtime queries
+  // Runtime Each works on private component type IDs
   const EntityComponentManager &constManager = manager;
   int runtimeCalls = 0;
-  EXPECT_FALSE(constManager.Each({PrivateIntComponent::typeId},
+  EXPECT_TRUE(constManager.Each({PrivateIntComponent::typeId},
       [&](Entity, const std::vector<const components::BaseComponent *> &)
       {
         ++runtimeCalls;
         return true;
       }));
-  EXPECT_EQ(0, runtimeCalls);
+  EXPECT_EQ(2, runtimeCalls);
 
   // Add a public component to test multi-component queries and groups
   manager.CreateComponent(e1, IntComponent(100));
@@ -4181,13 +4181,29 @@ TEST_P(EntityComponentManagerFixture,
   EXPECT_EQ(1u, types.count(NoSerializeIntComponent::typeId));
   EXPECT_EQ(1u, types.count(NoCloneIntComponent::typeId));
 
-  // State() serializes NoSerializeIntComponent as empty, so SetState() skips it
+  // State() skips NoSerializeIntComponent, so SetState() does not create it
   auto stateMsg = manager.State();
   EntityCompMgrTest stateTargetMgr;
   stateTargetMgr.SetState(stateMsg);
   EXPECT_NE(nullptr, stateTargetMgr.Component<IntComponent>(e1));
   EXPECT_EQ(nullptr, stateTargetMgr.Component<NoSerializeIntComponent>(e1));
   EXPECT_NE(nullptr, stateTargetMgr.Component<NoCloneIntComponent>(e1));
+
+  msgs::SerializedStateMap stateMapMsg;
+  manager.State(stateMapMsg);
+  EntityCompMgrTest stateMapTargetMgr;
+  stateMapTargetMgr.SetState(stateMapMsg);
+  EXPECT_NE(nullptr, stateMapTargetMgr.Component<IntComponent>(e1));
+  EXPECT_EQ(nullptr, stateMapTargetMgr.Component<NoSerializeIntComponent>(e1));
+  EXPECT_NE(nullptr, stateMapTargetMgr.Component<NoCloneIntComponent>(e1));
+
+  // CopyFrom must copy IntComponent and NoSerializeIntComponent, but skip
+  // NoCloneIntComponent
+  EntityCompMgrTest copyMgr;
+  copyMgr.CopyFrom(manager);
+  EXPECT_NE(nullptr, copyMgr.Component<IntComponent>(e1));
+  EXPECT_NE(nullptr, copyMgr.Component<NoSerializeIntComponent>(e1));
+  EXPECT_EQ(nullptr, copyMgr.Component<NoCloneIntComponent>(e1));
 
   // Clone must clone IntComponent and NoSerializeIntComponent, but skip
   // NoCloneIntComponent
