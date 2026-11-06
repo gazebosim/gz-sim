@@ -746,7 +746,7 @@ namespace gz
 
     /// \brief Specialized conversion from a projector SDF object to
     /// a projector message object.
-    /// \param[in] _in Projecotr SDF object.
+    /// \param[in] _in Projector SDF object.
     /// \return Projector message.
     template<>
     sdf::Projector convert(const msgs::Projector &_in);

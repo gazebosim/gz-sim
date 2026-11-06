@@ -58,7 +58,8 @@ class Subscription
     }
     std::lock_guard<std::mutex> lock(this->mutex);
     const auto callback = &Subscription::OnMessage;
-    if (!_node.Subscribe(_topicName, callback, this))
+    this->subscriber = _node.CreateSubscriber(_topicName, callback, this);
+    if (!this->subscriber)
     {
       throw std::runtime_error("Cannot subscribe to " + _topicName);
     }
@@ -176,6 +177,9 @@ class Subscription
     }
     this->messageArrival.notify_all();
   }
+
+  /// \brief Transport subscriber object.
+  private: transport::Node::Subscriber subscriber;
 
   /// \brief Flag to indicate if topic is subscribed or not
   private: bool subscribed{false};

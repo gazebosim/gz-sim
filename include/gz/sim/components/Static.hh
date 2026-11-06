@@ -33,6 +33,12 @@ namespace components
   /// moveable).
   using Static = Component<bool, class StaticTag>;
   GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Static", Static)
+
+  /// \brief A component that contains a bool command to change the static state
+  /// of an entity.
+  using StaticCmd = Component<bool, class StaticCmdTag>;
+  GZ_SIM_REGISTER_COMPONENT(
+      "gz_sim_components.StaticCmd", StaticCmd)
 }
 }
 }

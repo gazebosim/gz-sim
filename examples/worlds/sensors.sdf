@@ -24,6 +24,10 @@
       name="gz::sim::systems::AirPressure">
     </plugin>
     <plugin
+      filename="gz-sim-air-speed-system"
+      name="gz::sim::systems::AirSpeed">
+    </plugin>
+    <plugin
       filename="gz-sim-altimeter-system"
       name="gz::sim::systems::Altimeter">
     </plugin>
@@ -157,7 +161,7 @@
           <always_on>1</always_on>
           <update_rate>30</update_rate>
           <visualize>true</visualize>
-          <topic>air_pressure</topic>
+          <topic>air_speed</topic>
           <enable_metrics>true</enable_metrics>
           <air_speed>
             <pressure>
@@ -206,9 +210,7 @@
     </model>
 
     <model name="force_torque_demo">
-      <link name="base_plate">
-        <static>true</static>
-      </link>
+      <link name="base_plate"/>
 
       <link name="link_1">
         <pose> 0 0 2.0 0 0 0</pose>

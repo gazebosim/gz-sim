@@ -15,6 +15,7 @@
  *
 */
 
+#include <chrono>
 #include <optional>
 #include <gtest/gtest.h>
 
@@ -24,6 +25,7 @@
 #include <gz/math/Rand.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Factory.hh"
@@ -3222,6 +3224,76 @@ TEST_P(EntityComponentManagerFixture,
 }
 
 //////////////////////////////////////////////////
+/// \brief Test that after serializing and deserializing state the hierarchy
+/// is preserved.
+TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(StateMsgHierarchy))
+{
+  static constexpr std::size_t NUM_ENTITIES = 100;
+  EntityComponentManager originalECMStateMap;
+  EntityComponentManager otherECMStateMap;
+
+  // A series of entities where half have no parent and half have the previous
+  // entity as a parent.
+  std::vector<Entity> entities;
+  entities.reserve(NUM_ENTITIES);
+  auto parentEntity = kNullEntity;
+  for (std::size_t i = 0; i < NUM_ENTITIES; ++i)
+  {
+    auto entity = originalECMStateMap.CreateEntity();
+    originalECMStateMap.CreateComponent(entity,
+        components::Name("entity_" + std::to_string(i)));
+    if (i % 2)
+    {
+      EXPECT_TRUE(originalECMStateMap.SetParentEntity(entity, parentEntity));
+    }
+    parentEntity = entity;
+    entities.push_back(entity);
+  }
+
+  // update the other ECM to have the new entity and component
+  msgs::SerializedStateMap stateMapMsg;
+  originalECMStateMap.State(stateMapMsg);
+  otherECMStateMap.SetState(stateMapMsg);
+
+  ASSERT_EQ(otherECMStateMap.EntityCount(), originalECMStateMap.EntityCount());
+  for (std::size_t i = 0; i < NUM_ENTITIES; ++i)
+  {
+    auto desc = otherECMStateMap.Descendants(entities[i]);
+    // Descendants includes self, remove it to simplify asserts
+    desc.erase(entities[i]);
+    if (i % 2 == 0)
+    {
+      // Entity with no descendents
+      ASSERT_EQ(desc.size(), 1);
+      EXPECT_EQ(*desc.begin(), entities[i + 1]);
+    } else {
+      EXPECT_EQ(desc.size(), 0);
+    }
+  }
+
+  EntityComponentManager otherECMState;
+  auto stateMsg = originalECMStateMap.State();
+  otherECMState.SetState(stateMsg);
+
+  ASSERT_EQ(otherECMState.EntityCount(), originalECMStateMap.EntityCount());
+  for (std::size_t i = 0; i < NUM_ENTITIES; ++i)
+  {
+    auto desc = otherECMState.Descendants(entities[i]);
+    // Descendants includes self, remove it to simplify asserts
+    desc.erase(entities[i]);
+    if (i % 2 == 0)
+    {
+      // Entity with no descendents
+      ASSERT_EQ(desc.size(), 1);
+      EXPECT_EQ(*desc.begin(), entities[i + 1]);
+    } else {
+      EXPECT_EQ(desc.size(), 0);
+    }
+  }
+}
+
+//////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture, CopyEcm)
 {
   Entity entity = manager.CreateEntity();
@@ -3489,6 +3561,26 @@ TEST_P(EntityComponentManagerFixture, EntityByName)
   EXPECT_TRUE(entityByName);
   CompareEntityComponents<components::Name>(manager, entity,
     *entityByName, true);
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture, HasEqualityOperator)
+{
+  EXPECT_TRUE(traits::HasEqualityOperator<int>::value);
+  EXPECT_TRUE(
+      traits::HasEqualityOperator<std::chrono::nanoseconds>::value);
+  EXPECT_FALSE(traits::HasEqualityOperator<Custom>::value);
+
+  Entity entity = manager.CreateEntity();
+  using namespace std::chrono_literals;
+  auto comp = manager.CreateComponent<AnimationTime>(entity,
+      AnimationTime(100ms));
+  ASSERT_NE(nullptr, comp);
+  EXPECT_EQ(100ms, comp->Data());
+
+  EXPECT_TRUE(manager.SetComponentData<AnimationTime>(entity, 200ms));
+  EXPECT_EQ(200ms, manager.ComponentData<AnimationTime>(entity));
+  EXPECT_FALSE(manager.SetComponentData<AnimationTime>(entity, 200ms));
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

@@ -69,6 +69,9 @@ namespace gz
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
     class SimulationRunnerPrivate;
+#ifdef _WIN32
+    class SimulationRunnerWinHandleStorage;
+#endif
 
     class GZ_SIM_VISIBLE SimulationRunner
     {

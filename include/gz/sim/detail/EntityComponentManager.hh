@@ -41,29 +41,15 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
 //////////////////////////////////////////////////
 namespace traits
 {
-  /// \brief Helper struct to determine if an equality operator is present.
-  struct TestEqualityOperator
-  {
-  };
-  template<typename T>
-  TestEqualityOperator operator == (const T&, const T&);
-
   /// \brief Type trait that determines if an operator== is defined for `T`.
-  template<typename T>
-  struct HasEqualityOperator
+  template <typename, typename = std::void_t<>>
+  struct HasEqualityOperator : std::false_type {};
+
+  template <typename T>
+  struct HasEqualityOperator<
+      T, std::void_t<decltype(std::declval<T>() == std::declval<T>())>>
+      : std::true_type
   {
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wnonnull"
-#endif
-    enum
-    {
-      // False positive codecheck "Using C-style cast"
-      value = !std::is_same<decltype(*(T*)(0) == *(T*)(0)), TestEqualityOperator>::value // NOLINT
-    };
-#if !defined(_MSC_VER)
-#pragma GCC diagnostic pop
-#endif
   };
 }
 
@@ -435,6 +421,11 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, ComponentTypeTs *...)>>::type _f)
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
@@ -457,6 +448,11 @@ template <typename... ComponentTypeTs>
 void EntityComponentManager::EachNew(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
+  // Nothing to do if no entity was created since the last
+  // ClearNewlyCreatedEntities call: skip the view lookup entirely.
+  if (!this->HasNewEntities())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
@@ -479,13 +475,17 @@ template<typename ...ComponentTypeTs>
 void EntityComponentManager::EachRemoved(typename identity<std::function<
     bool(const Entity &_entity, const ComponentTypeTs *...)>>::type _f) const
 {
+  // Nothing to do if no entity is marked for removal: skip the view lookup
+  // entirely.
+  if (!this->HasEntitiesMarkedForRemoval())
+    return;
+
   // Get the view. This will create a new view if one does not already
   // exist.
   auto view = this->FindView<ComponentTypeTs...>();
 
-  // Iterate over the entities in the view and in the newly created
-  // entities list, and invoke the callback
-  // function.
+  // Iterate over the entities in the view that are marked for removal, and
+  // invoke the callback function.
   for (const Entity entity : view->ToRemoveEntities())
   {
     const auto &data = view->EntityComponentData(entity);
