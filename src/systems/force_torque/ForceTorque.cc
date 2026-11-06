@@ -357,12 +357,16 @@ void ForceTorquePrivate::AddSensor(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _forceTorque->Data();
   data.SetName(sensorScopedName);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/forcetorque";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
+  topicNameOptions.defaultTopicSuffix = "forcetorque";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::ForceTorqueSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::ForceTorqueSensor>(data);

@@ -186,12 +186,16 @@ void LogicalCameraPrivate::AddLogicalCamera(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   auto data = _logicalCamera->Data()->Clone();
   data->GetAttribute("name")->Set(sensorScopedName);
+
   // check topic
-  if (!data->HasElement("topic"))
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/logical_camera";
-    data->GetElement("topic")->Set(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
+  topicNameOptions.defaultTopicSuffix = "logical_camera";
+  auto topic = resolvedTopicName(data, topicNameOptions);
+  data->GetElement("topic")->Set(topic);
+
   std::unique_ptr<sensors::LogicalCameraSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::LogicalCameraSensor>(data);
