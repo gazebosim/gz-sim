@@ -1023,6 +1023,7 @@ gz_sim_system_libraries(
             "src/systems/joint_controller/**/*.cc",
             "src/systems/joint_controller/**/*.hh",
         ],
+        exclude = ["src/systems/joint_controller/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-joint-controller-system.so",
     static_lib_name = "gz-sim-joint-controller-system-static",
@@ -1037,12 +1038,32 @@ gz_sim_system_libraries(
     ],
 )
 
+joint_controller_test_sources = glob([
+    "src/systems/joint_controller/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-joint-controller-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in joint_controller_test_sources]
+
 gz_sim_system_libraries(
     srcs = glob(
         [
             "src/systems/joint_position_controller/**/*.cc",
             "src/systems/joint_position_controller/**/*.hh",
         ],
+        exclude = ["src/systems/joint_position_controller/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-joint-position-controller-system.so",
     static_lib_name = "gz-sim-joint-position-controller-system-static",
@@ -1057,6 +1078,25 @@ gz_sim_system_libraries(
         "@gz-transport//parameters",
     ],
 )
+
+joint_position_controller_test_sources = glob([
+    "src/systems/joint_position_controller/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-joint-position-controller-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in joint_position_controller_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(

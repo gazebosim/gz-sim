@@ -20,6 +20,7 @@
 
 #include <gz/sim/System.hh>
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -47,17 +48,24 @@ namespace systems
   /// - `<use_actuator_msg>` True to enable the use of actuator message
   /// for velocity command. The actuator msg is an array of floats for
   /// position, velocity and normalized commands. Relies on
-  /// `<actuator_number>` for the index of the velocity actuator and
-  /// defaults to topic "/actuators" when `topic` or `sub_topic` is not set.
+  /// `<actuator_number>` for the index of the velocity actuator.
+  /// When neither `<topic>` nor `<sub_topic>` is specified, the default
+  /// topic is `/actuators` without a namespace, or
+  /// `<namespace>/actuators` with a namespace.
   ///
   /// - `<actuator_number>` used with `<use_actuator_msg>` to set
   /// the index of the velocity actuator.
   ///
   /// - `<topic>` Topic to receive commands in. Defaults to
-  ///     `/model/<model_name>/joint/<joint_name>/cmd_vel`.
+  /// `/model/<model_name>/joint/<joint_name>/cmd_vel` without a namespace,
+  /// or `<namespace>/cmd_vel` with a namespace.
+  /// Relative topic names are prefixed with the model namespace, while
+  /// absolute topic names remain unchanged.
   ///
-  /// - `<sub_topic>` Sub topic to receive commands in.
-  /// Defaults to "/model/<model_name>/<sub_topic>".
+  /// - `<sub_topic>` Deprecated. Use `<topic>` instead.
+  /// When specified, the topic is resolved as
+  /// `/model/<model_name>/<sub_topic>` without a namespace, or
+  /// `<namespace>/<sub_topic>` with a namespace.
   ///
   /// - `<initial_velocity>` Velocity to start with.
   ///
@@ -102,11 +110,18 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+    };
+
     /// \brief Constructor
     public: JointController();
 
     /// \brief Destructor
-    public: ~JointController() override = default;
+    public: ~JointController() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -118,6 +133,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointControllerPrivate> dataPtr;
