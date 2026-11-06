@@ -1,0 +1,237 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="camera_sensor">
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <model name="box">
+      <pose>0 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="link">
+
+        <collision name="collision_0">
+          <geometry>
+            <box><size>5 5 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual_0">
+          <geometry>
+            <box><size>5 5 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0 1 0 0.8</ambient>
+            <diffuse>0 1 0 0.8</diffuse>
+            <specular>1 1 1 0.8</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="camera">
+      <static>true</static>
+      <pose>-6 2 2 0 0.5 0</pose>
+      <link name="link">
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000166667</ixx>
+            <iyy>0.000166667</iyy>
+            <izz>0.000166667</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.1</size>
+            </box>
+          </geometry>
+        </visual>
+        <sensor name="camera" type="camera">
+          <pose>1 0 1.3 0 0 0</pose>
+          <camera>
+            <triggered>true</triggered>
+            <trigger_topic>test_trigger</trigger_topic>
+            <camera_info_topic>test_camera_info</camera_info_topic>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <noise>
+              <type>gaussian_quantized</type>
+              <mean>0.01</mean>
+              <stddev>0.0002</stddev>
+            </noise>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>30</update_rate>
+          <visualize>true</visualize>
+          <topic>camera</topic>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="default_topics">
+      <pose>10 0 0.5 0 0 0.0 </pose>
+      <static>true</static>
+      <link name="camera_link">
+        <sensor name="camera" type="camera">
+          <update_rate>50</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.047</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+
+      <link name="gpu_lidar_link">
+        <sensor name='gpu_lidar' type='gpu_lidar'>"
+          <update_rate>40</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>640</samples>
+                <resolution>1</resolution>
+                <min_angle>-1.396263</min_angle>
+                <max_angle>1.396263</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>0.01</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.08</min>
+              <max>10.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+        </sensor>
+      </link>
+
+      <link name="depth_camera_link">
+        <sensor name="depth_camera" type="depth_camera">
+          <update_rate>25</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.05</horizontal_fov>
+            <image>
+              <width>256</width>
+              <height>256</height>
+              <format>R_FLOAT32</format>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+            <depth_camera>
+              <clip>
+                <near>0.05</near>
+                <far>9.0</far>
+              </clip>
+            </depth_camera>
+          </camera>
+        </sensor>
+      </link>
+
+      <link name="rgbd_camera_link">
+        <sensor name="rgbd_camera" type="rgbd_camera">
+          <update_rate>10</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.05</horizontal_fov>
+            <image>
+              <width>256</width>
+              <height>256</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>10.0</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+
+      <link name="thermal_camera_link">
+        <sensor name="thermal_camera" type="thermal_camera">
+          <update_rate>40</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.15</horizontal_fov>
+            <image>
+              <width>300</width>
+              <height>200</height>
+            </image>
+            <clip>
+              <near>0.14</near>
+              <far>120.0</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+
+      <link name="segmentation_camera_link">
+        <sensor name="segmentation_camera" type="segmentation_camera">
+          <update_rate>25</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>1.0</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.11</near>
+              <far>20.0</far>
+            </clip>
+            <segmentation_type>panoptic</segmentation_type>
+          </camera>
+        </sensor>
+      </link>
+
+      <link name="wide_angle_camera_link">
+        <sensor name="wide_angle_camera" type="wideanglecamera">
+          <update_rate>25</update_rate>
+          <camera>
+            <triggered>true</triggered>
+            <horizontal_fov>3.14</horizontal_fov>
+            <image>
+              <width>320</width>
+              <height>240</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100.0</far>
+            </clip>
+          </camera>
+        </sensor>
+      </link>
+
+    </model>
+  </world>
+</sdf>
