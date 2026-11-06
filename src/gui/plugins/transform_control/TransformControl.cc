@@ -198,10 +198,11 @@ void TransformControl::LoadConfig(const tinyxml2::XMLElement *)
   if (this->title.empty())
     this->title = "Transform control";
 
+  // All the events handled here are sent to the main window. Don't filter the
+  // QuickWindow: Qt Quick posts private events there whose types collide with
+  // gz-sim's (QEvent::User + 1 and + 2).
   gz::gui::App()->findChild<gz::gui::MainWindow *>
       ()->installEventFilter(this);
-  gz::gui::App()->findChild<gz::gui::MainWindow *>
-      ()->QuickWindow()->installEventFilter(this);
 }
 
 /////////////////////////////////////////////////
