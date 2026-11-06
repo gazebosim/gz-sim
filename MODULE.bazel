@@ -11,6 +11,9 @@ bazel_dep(name = "protobuf", version = "30.1", repo_name = "com_google_protobuf"
 bazel_dep(name = "rules_cc", version = "0.2.0")
 bazel_dep(name = "rules_license", version = "1.0.0")
 bazel_dep(name = "rules_proto", version = "7.1.0")
+
+# Rust toolchain for Zenoh in gz-transport
+bazel_dep(name = "rules_rs", version = "0.0.109")
 bazel_dep(name = "tinyxml2", version = "10.0.0")
 
 # Gazebo Dependencies
@@ -26,6 +29,9 @@ bazel_dep(name = "gz-sensors", version = "10.0.0")
 bazel_dep(name = "gz-transport", version = "15.0.0")
 bazel_dep(name = "gz-utils", version = "4.0.0")
 bazel_dep(name = "sdformat", version = "16.0.0")
+
+rules_rust = use_extension("@rules_rs//rs:rules_rust.bzl", "rules_rust")
+use_repo(rules_rust, "rules_rust")
 
 # Override Gz deps to be pulled from the `main` branches so that CI uses deps
 # from HEAD on `main`.
