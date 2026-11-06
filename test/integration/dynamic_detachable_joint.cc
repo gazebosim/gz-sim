@@ -65,15 +65,18 @@ class DynamicDetachableJointTest : public InternalFixture<::testing::Test>
   public: std::unique_ptr<Server> server;
 };
 
-// See https://github.com/gazebosim/gz-sim/issues/1175 for GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
+// See https://github.com/gazebosim/gz-sim/issues/1175 for
+// GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
 
 /////////////////////////////////////////////////
 // TEST 1
 // "AttachDetach"
 // This test checks the following:
-// 1. attach when within threshold → child (red_cube) follows parent, meaning when the rod moves up (+Z axis) the child moves along with it
+// 1. attach when within threshold → child (red_cube) follows parent, meaning
+//    when the rod moves up (+Z axis) the child moves along with it
 // 2. detach → child free-falls due to gravity
-TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach))
+TEST_F(DynamicDetachableJointTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach))
 {
   using namespace std::chrono_literals;
 
@@ -123,7 +126,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
 
   transport::Node node;
 
-  // "attach" red_cube(which is on the ground) to the "rod" using the DynamicDetachableJoint service
+  // "attach" red_cube(which is on the ground) to the "rod" using the
+  // DynamicDetachableJoint service
   {
     msgs::AttachDetachRequest req;
     req.set_child_model_name("red_cube");
@@ -156,7 +160,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
     ASSERT_EQ(iters, cubePoses.size());
     ASSERT_EQ(iters, rodPoses.size());
 
-    // Additional check to ensure the red_cube is rigidly attached to the rod by comparing relative pose
+    // Additional check to ensure the red_cube is rigidly attached to the rod
+    // by comparing relative pose
     auto rel0 = cubePoses.front().Pos() - rodPoses.front().Pos();
     auto rel1 = cubePoses.back().Pos()  - rodPoses.back().Pos();
     EXPECT_LT((rel1 - rel0).Length(), 5e-4);
@@ -177,7 +182,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
 
     msgs::Boolean rep;
     bool result_2 = false;
-    bool outcome_2 = node.Request("/world/dynamic_detachable_joint_test/set_pose",
+    bool outcome_2 = node.Request(
+      "/world/dynamic_detachable_joint_test/set_pose",
       poseReq, 1000u, rep, result_2);
 
     // verify service call succeeded
@@ -201,9 +207,11 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
     // Track how much the red_cube moved up
     auto movedZ = cubePoses.back().Pos().Z() - pos_before_lift;
     EXPECT_GT(movedZ, 0.15);  // followed rod upwards
-    gzdbg << "[after-lift] red_cube Δz=" << movedZ << " (expect ~0.21)" << std::endl;
+    gzdbg << "[after-lift] red_cube Δz=" << movedZ << " (expect ~0.21)"
+          << std::endl;
 
-    // Additional check to ensure the red_cube is rigidly attached to the rod by comparing relative pose
+    // Additional check to ensure the red_cube is rigidly attached to the rod
+    // by comparing relative pose
     auto rel0 = cubePoses.front().Pos() - rodPoses.front().Pos();
     auto rel1 = cubePoses.back().Pos()  - rodPoses.back().Pos();
     EXPECT_LT((rel1 - rel0).Length(), 5e-4);
@@ -229,7 +237,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
     gzdbg << "[detach] ok" << std::endl;
   }
 
-  // The ideal distance an object falls under gravity is given as d = 0.5 * g * t^2
+  // The ideal distance an object falls under gravity is given as
+  // d = 0.5 * g * t^2
   // Let it fall for about 150 ms, then check if dz (z distance travelled) > d
   {
     cubePoses.clear();
@@ -237,8 +246,9 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AttachDetach)
     this->server->Run(true, iters, false);
     ASSERT_EQ(iters, cubePoses.size());
 
-    const double dt = 0.001; // 1 ms from the test world
-    const double t = static_cast<double>(iters - 1) * dt; // N poses give N-1 integration intervals
+    const double dt = 0.001;  // 1 ms from the test world
+    // N poses give N-1 integration intervals
+    const double t = static_cast<double>(iters - 1) * dt;
     const double d = 0.5 * 9.8 * t * t;
     const double dz = cubePoses.front().Pos().Z() - cubePoses.back().Pos().Z();
 
@@ -308,7 +318,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OutOfRange))
 
     msgs::Boolean rep;
     bool result_1 = false;
-    bool outcome_1 = node.Request("/world/dynamic_detachable_joint_test/set_pose",
+    bool outcome_1 = node.Request(
+      "/world/dynamic_detachable_joint_test/set_pose",
       poseReq, 1000u, rep, result_1);
 
     // verify service call succeeded
@@ -320,16 +331,20 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OutOfRange))
   // Let the pose update apply before attempting attach
   this->server->Run(true, 5, false);
 
-  // Additional check to ensure if gap is actually larger than attach_distance (0.1 m)
+  // Additional check to ensure if gap is actually larger than
+  // attach_distance (0.1 m)
   {
     ASSERT_FALSE(rodPoses.empty());
     ASSERT_FALSE(cubePoses.empty());
-    const double gap = std::abs(rodPoses.back().Pos().Z() - cubePoses.back().Pos().Z());
+    const double gap = std::abs(
+        rodPoses.back().Pos().Z() - cubePoses.back().Pos().Z());
     ASSERT_GT(gap, 0.1 + 1e-3);
   }
 
-  // Attempt to "attach" → request is processed, but attach is rejected in PreUpdate of the plugin
-  // Error is logged if out of range, and we verify by poses that nothing attached
+  // Attempt to "attach" → request is processed, but attach is rejected in
+  // PreUpdate of the plugin.
+  // Error is logged if out of range, and we verify by poses that nothing
+  // attached
   {
     msgs::AttachDetachRequest req;
     req.set_child_model_name("red_cube");
@@ -344,8 +359,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OutOfRange))
     // verify service call succeeded
     ASSERT_TRUE(outcome_2);
     ASSERT_TRUE(result_2);
-    gzdbg << "[attach-out-of-range] request processed and an error is logged if out of range"
-          << std::endl;
+    gzdbg << "[attach-out-of-range] request processed and an error is logged "
+          << "if out of range" << std::endl;
   }
 
   // Additional check to ensure red_cube is still on the ground
@@ -365,7 +380,8 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OutOfRange))
 // TEST 3
 // "MultipleChildrenSequential"
 // This test checks the following
-// 1. attach lift detach each target child in turn (red_cube, green_cube, blue_cube)
+// 1. attach lift detach each target child in turn
+//    (red_cube, green_cube, blue_cube)
 // 2. only the attached child follows the parent rod when it moves up (+Z axis)
 // 3. after detaching the target child free-falls due to gravity
 // 4. non-target children stay on the ground (~z = 0.05)
@@ -414,8 +430,13 @@ TEST_F(DynamicDetachableJointTest,
 
   transport::Node node;
 
-  struct Target { const char *name; double x; std::vector<math::Pose3d>* poses; };
-  std::array<Target,3> targets{{
+  struct Target
+  {
+    const char *name;
+    double x;
+    std::vector<math::Pose3d>* poses;
+  };
+  std::array<Target, 3> targets{{
     {"red_cube",   0.30, &redPoses},
     {"green_cube", 0.10, &greenPoses},
     {"blue_cube",  0.50, &bluePoses},
@@ -432,7 +453,8 @@ TEST_F(DynamicDetachableJointTest,
 
     msgs::Boolean rep;
     bool result_pose = false;
-    bool outcome_pose = node.Request("/world/dynamic_detachable_joint_test/set_pose",
+    bool outcome_pose = node.Request(
+      "/world/dynamic_detachable_joint_test/set_pose",
       poseReq, 1000u, rep, result_pose);
 
     // verify service call succeeded
@@ -451,7 +473,8 @@ TEST_F(DynamicDetachableJointTest,
 
     // "attach" target child to the rod using the service
     {
-      gzdbg << "[attach] request: model=" << target.name << " link=link" << std::endl;
+      gzdbg << "[attach] request: model=" << target.name << " link=link"
+            << std::endl;
 
       msgs::AttachDetachRequest req;
       req.set_child_model_name(target.name);
@@ -533,7 +556,8 @@ TEST_F(DynamicDetachableJointTest,
 
     // "detach" the target and verify free-fall
     {
-      gzdbg << "[detach] request: model=" << target.name << " link=link" << std::endl;
+      gzdbg << "[detach] request: model=" << target.name << " link=link"
+            << std::endl;
 
       msgs::AttachDetachRequest req;
       req.set_child_model_name(target.name);
@@ -559,8 +583,9 @@ TEST_F(DynamicDetachableJointTest,
       ASSERT_EQ(iters, greenPoses.size());
       ASSERT_EQ(iters, bluePoses.size());
 
-      const double dt = 0.001; // 1 ms from the test world
-      const double t = static_cast<double>(iters - 1) * dt; // N poses give N-1 integration intervals
+      const double dt = 0.001;  // 1 ms from the test world
+      // N poses give N-1 integration intervals
+      const double t = static_cast<double>(iters - 1) * dt;
       const double d = 0.5 * 9.8 * t * t;
       const auto &v = *target.poses;
       const double dz = v.front().Pos().Z() - v.back().Pos().Z();

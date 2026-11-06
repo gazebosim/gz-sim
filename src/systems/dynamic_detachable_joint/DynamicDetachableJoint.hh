@@ -20,13 +20,13 @@
 #ifndef GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
 #define GZ_SIM_SYSTEMS_DYNAMICDETACHABLEJOINT_HH_
 
+#include <memory>
+#include <mutex>
+#include <string>
+
 #include <gz/msgs/dynamic_detachable_joint.pb.h>
 #include <gz/msgs/entity.pb.h>
 #include <gz/msgs/result.pb.h>
-
-#include <mutex>
-#include <memory>
-#include <string>
 
 #include <gz/transport/Node.hh>
 
@@ -49,8 +49,9 @@ namespace systems
 /// model with a parent model that is defined in the SDF/URDF.
 ///
 /// Unlike the standard DetachableJoint which requires child model specification
-/// in the SDF, this system accepts child model and link names via service calls.
-/// Hence, it is a more flexible extension of the existing DetachableJoint system.
+/// in the SDF, this system accepts child model and link names via service
+/// calls. Hence, it is a more flexible extension of the existing
+/// DetachableJoint system.
 ///
 /// ## System Parameters
 ///
@@ -92,14 +93,15 @@ namespace systems
     private: transport::Node::Publisher outputPub;
 
     /// \brief Callback for attach/detach service request
-    /// \param[in] _req Request message containing child model/link names and command
+    /// \param[in] _req Request message containing child model/link names and
+    /// command
     /// \param[out] _res Response message with error code and message
     /// \return Always returns true to indicate message was processed
     private: bool OnServiceRequest(const gz::msgs::AttachDetachRequest &_req,
                                    gz::msgs::Result &_res);
 
     /// \brief Helper function to publish the state of the detachment
-    private: void PublishJointState(bool attached);
+    private: void PublishJointState(bool _attached);
 
     /// \brief The model associated with this system.
     private: Model model;
