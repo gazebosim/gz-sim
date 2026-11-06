@@ -26,6 +26,7 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/Model.hh>
+#include <gz/sim/Util.hh>
 
 #include <gz/math/PID.hh>
 
@@ -33,13 +34,13 @@
 #include <gz/msgs/joint_trajectory.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>
-#include <gz/transport/TopicUtils.hh>
 
 #include <map>
 #include <string>
 #include <vector>
 
 #include "JointTrajectoryController.hh"
+
 
 using namespace gz;
 using namespace sim;
@@ -374,22 +375,24 @@ void JointTrajectoryController::Configure(
     this->dataPtr->useHeaderStartTime = false;
   }
 
-  // Subscribe to joint trajectory commands
-  auto trajectoryTopic = _sdf->Get<std::string>("topic");
-  if (trajectoryTopic.empty())
-  {
-    // If not specified, use the default topic based on model name
-    trajectoryTopic = "/model/" + model.Name(_ecm) + "/joint_trajectory";
-  }
-  // Make sure the topic is valid
-  const auto validTrajectoryTopic = transport::TopicUtils::AsValidTopic(
-      trajectoryTopic);
+  // Resolve joint trajectory command topic
+  TopicNameOptions trajectoryTopicOptions;
+  
+  trajectoryTopicOptions.sdfElementName = "topic";
+  trajectoryTopicOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  trajectoryTopicOptions.defaultTopicPrefix = "/model/" + model.Name(_ecm);
+  trajectoryTopicOptions.defaultTopicSuffix = "joint_trajectory";
+
+  // Make sure topic is valid
+  const auto validTrajectoryTopic = resolvedTopicName(_sdf, trajectoryTopicOptions);
+
   if (validTrajectoryTopic.empty())
   {
-    gzerr << "[JointTrajectoryController] Cannot subscribe to invalid topic ["
-           << trajectoryTopic << "].\n";
+    gzerr <<  "[JointTrajectoryController] Cannot resolve a valid joint trajectory topic."
+              " Check <topic> element and namespace configuration.\n";
     return;
   }
+
   // Subscribe
   gzmsg << "[JointTrajectoryController] Subscribing to joint trajectory"
             " commands on topic [" << validTrajectoryTopic << "].\n";
