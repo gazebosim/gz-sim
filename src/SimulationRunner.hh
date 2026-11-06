@@ -555,15 +555,6 @@ namespace gz
 
       private: bool resetInitiated{false};
 
-      /// \brief True to create entities.
-      private: bool createEntities{false};
-      private: bool entitiesCreated{false};
-
-      /// \brief Flag indicating if the server encountered errors during
-      /// initialization and should exit immediately. See
-      /// `SetExitedWithErrors()`.
-      private: bool exitedWithErrors{false};
-
       /// \brief Whether parallel PostUpdate is enabled.
       private: bool parallelPostUpdates{true};
 #ifdef _WIN32
