@@ -19,9 +19,14 @@
 
 #include "DynamicDetachableJoint.hh"
 
+#include <algorithm>
+#include <chrono>
+#include <future>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gz/common/Profiler.hh>
@@ -60,42 +65,13 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("parent_link"))
-  {
-    auto parentLinkName = _sdf->Get<std::string>("parent_link");
-    this->parentLinkEntity = this->model.LinkByName(_ecm, parentLinkName);
-    if (kNullEntity == this->parentLinkEntity)
-    {
-      gzerr << "Link with name " << parentLinkName
-             << " not found in model " << this->model.Name(_ecm)
-             << ". Make sure the parameter 'parent_link' has the "
-             << "correct value. Failed to initialize.\n";
-      return;
-    }
-  }
-  else
-  {
-    gzerr << "'parent_link' is a required parameter for "
-          << "DynamicDetachableJoint. Failed to initialize.\n";
-    return;
-  }
-
   // Setup attach distance threshold
-  auto [value, found] = _sdf->Get<double>(
-      "attach_distance", this->defaultAttachDistance);
-  if (!found)
+  if (_sdf->HasElement("attach_distance"))
   {
-    gzwarn << "No 'attach_distance' specified in sdf, using default value of "
-          << this->defaultAttachDistance << " meters.\n";
+    this->attachDistance = _sdf->Get<double>("attach_distance");
+    gzmsg << "Found 'attach_distance' in sdf: " << *this->attachDistance
+          << " meters.\n";
   }
-  else
-  {
-    gzmsg << "Found 'attach_distance' in sdf: " << value << " meters.\n";
-  }
-
-  this->attachDistance = value;
-  gzmsg << "Final attachDistance set to: " << this->attachDistance
-        << " meters.\n";
 
   // Setup service
   // Check if the SDF has a service_name element
@@ -124,6 +100,17 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
       this->serviceName, &DynamicDetachableJoint::OnServiceRequest, this))
   {
     gzerr << "Error advertising service [" << this->serviceName << "]"
+          << std::endl;
+    return;
+  }
+
+  // Advertise the blocking service
+  const std::string blockingServiceName = this->serviceName + "/blocking";
+  if (!this->node.Advertise(
+      blockingServiceName,
+      &DynamicDetachableJoint::OnBlockingServiceRequest, this))
+  {
+    gzerr << "Error advertising service [" << blockingServiceName << "]"
           << std::endl;
     return;
   }
@@ -166,114 +153,230 @@ void DynamicDetachableJoint::PreUpdate(
   EntityComponentManager &_ecm)
 {
   GZ_PROFILE("DynamicDetachableJoint::PreUpdate");
+  if (!this->validConfig)
+  {
+    return;
+  }
+
   std::lock_guard<std::mutex> lock(this->mutex);
 
-  // only allow attaching if child entity is detached
-  if (this->validConfig && !this->isAttached)
+  // Clean up any active joints whose parent link, child link, or joint entity
+  // was removed externally.
+  for (auto it = this->attachedJoints.begin();
+       it != this->attachedJoints.end();)
   {
-    // return if attach is not requested.
-    if (!this->attachRequested)
+    const auto &key = it->first;
+    const auto &info = it->second;
+    if (!_ecm.HasEntity(info.parentLinkEntity) ||
+        !_ecm.HasEntity(info.childLinkEntity) ||
+        !_ecm.HasEntity(info.jointEntity))
     {
-      return;
-    }
-    // Look for the child model and link
-    Entity modelEntity{kNullEntity};
-
-    // if child model is the parent model
-    if ("__model__" == this->childModelName)
-    {
-      modelEntity = this->model.Entity();
+      if (kNullEntity != info.jointEntity && _ecm.HasEntity(info.jointEntity))
+      {
+        _ecm.RequestRemoveEntity(info.jointEntity);
+      }
+      gzdbg << "Attached entity for parent link [" << key.parentLinkName
+            << "] and child model [" << key.childModelName << "] link ["
+            << key.childLinkName << "] was removed externally. "
+            << "Cleaning up detachable joint." << std::endl;
+      this->PublishJointState(kNullEntity);
+      it = this->attachedJoints.erase(it);
     }
     else
     {
-      // Querying the ECM for the child model entity
-      modelEntity = _ecm.EntityByComponents(
-          components::Model(), components::Name(this->childModelName));
+      ++it;
     }
-
-    // if child model is not found
-    if (kNullEntity == modelEntity)
-    {
-      gzerr << "Attach Failed. child model [" << this->childModelName
-              << "] could not be found.\n";
-      this->attachRequested = false;  // reset attach request
-      return;
-    }
-
-    this->childLinkEntity = _ecm.EntityByComponents(
-        components::Link(),
-        components::ParentEntity(modelEntity),
-        components::Name(this->childLinkName));
-
-    // if child link is not found
-    if (kNullEntity == this->childLinkEntity)
-    {
-      gzerr << "Attach Failed. child link [" << this->childLinkName
-              << "] could not be found.\n";
-      this->attachRequested = false;  // reset attach request
-      return;
-    }
-
-    // store the child and parent link poses in the world frame
-    math::Pose3d childPose = gz::sim::worldPose(this->childLinkEntity, _ecm);
-    math::Pose3d parentPose = gz::sim::worldPose(this->parentLinkEntity, _ecm);
-
-    auto dist = childPose.Pos().Distance(parentPose.Pos());
-    gzdbg << "Centre-to-centre distance: " << dist << " m" << std::endl;
-
-    // Check if the child link is within the attach distance
-    if (dist > this->attachDistance)
-    {
-      gzerr << "Attach Failed. Child Link [" << this->childLinkName
-              << "] is too far from parent. Distance: " << dist
-              << "m, threshold: " << this->attachDistance << "m" << std::endl;
-      this->attachRequested = false;  // reset attach request
-      return;
-    }
-    // If the child link is within the attach distance, proceed to attach
-    gzmsg << "Attach Success. Child model [" << this->childModelName
-          << "] link [" << this->childLinkName << "] attached to parent link. "
-          << "Distance: " << dist << "m" << std::endl;
-
-    // Attach the models
-    // We do this by creating a detachable joint entity.
-    this->detachableJointEntity = _ecm.CreateEntity();
-
-    // creating the joint
-    _ecm.CreateComponent(
-        this->detachableJointEntity,
-        components::DetachableJoint({this->parentLinkEntity,
-                                      this->childLinkEntity, "fixed"}));
-    this->attachRequested = false;
-    this->isAttached = true;
-    // Keep track of the attached pair for future validation
-    this->attachedChildModelName = this->childModelName;
-    this->attachedChildLinkName  = this->childLinkName;
-    this->PublishJointState(this->isAttached);
-    gzdbg << "Attaching entity: " << this->detachableJointEntity
-          << std::endl;
   }
 
-  // only allow detaching if child entity is attached
-  if (this->isAttached)
+  // Return if no attach or detach requests are pending.
+  if (this->pendingRequests.empty())
   {
-    if (this->detachRequested && (kNullEntity != this->detachableJointEntity))
+    return;
+  }
+
+  std::vector<std::shared_ptr<PendingRequest>> requests;
+  requests.swap(this->pendingRequests);
+
+  for (auto &reqPtr : requests)
+  {
+    gz::msgs::Result res;
+    const auto &key = reqPtr->key;
+
+    if (gz::msgs::AttachDetachRequest::ATTACH == reqPtr->command)
     {
+      // Only allow attaching if this parent/child pair is detached
+      if (this->attachedJoints.find(key) != this->attachedJoints.end())
+      {
+        std::string msg = "Already attached parent link [" +
+            key.parentLinkName + "] to child model [" + key.childModelName +
+            "] at link [" + key.childLinkName + "].";
+        gzdbg << msg << std::endl;
+        res.set_error_code(1);
+        res.set_message(msg);
+        reqPtr->promise.set_value(res);
+        continue;
+      }
+
+      // Look for the parent link
+      Entity parentLinkEntity =
+          this->FindParentLinkEntity(key.parentLinkName, _ecm);
+      if (kNullEntity == parentLinkEntity)
+      {
+        std::string msg = "Attach Failed. Parent link [" +
+            key.parentLinkName + "] could not be found in model [" +
+            this->model.Name(_ecm) + "].";
+        gzerr << msg << std::endl;
+        res.set_error_code(1);
+        res.set_message(msg);
+        reqPtr->promise.set_value(res);
+        continue;
+      }
+
+      // Look for the child model and link
+      Entity modelEntity = this->FindChildModelEntity(
+          key.childModelName, key.childLinkName, _ecm);
+
+      // if child model is not found
+      if (kNullEntity == modelEntity)
+      {
+        std::string msg = "Attach Failed. child model [" +
+            key.childModelName + "] could not be found.";
+        gzerr << msg << std::endl;
+        res.set_error_code(1);
+        res.set_message(msg);
+        reqPtr->promise.set_value(res);
+        continue;
+      }
+
+      Entity childLinkEntity = this->FindChildLinkEntity(
+          modelEntity, key.childLinkName, _ecm);
+
+      // if child link is not found
+      if (kNullEntity == childLinkEntity)
+      {
+        std::string msg = "Attach Failed. child link [" +
+            key.childLinkName + "] could not be found.";
+        gzerr << msg << std::endl;
+        res.set_error_code(1);
+        res.set_message(msg);
+        reqPtr->promise.set_value(res);
+        continue;
+      }
+
+      // store the child and parent link poses in the world frame
+      math::Pose3d childPose = gz::sim::worldPose(childLinkEntity, _ecm);
+      math::Pose3d parentPose = gz::sim::worldPose(parentLinkEntity, _ecm);
+
+      auto dist = childPose.Pos().Distance(parentPose.Pos());
+      gzdbg << "Centre-to-centre distance: " << dist << " m" << std::endl;
+
+      // Check if the child link is within the attach distance (if configured)
+      if (this->attachDistance.has_value() && dist > *this->attachDistance)
+      {
+        std::string msg = "Attach Failed. Child Link [" + key.childLinkName +
+            "] is too far from parent link [" + key.parentLinkName +
+            "]. Distance: " + std::to_string(dist) + "m, threshold: " +
+            std::to_string(*this->attachDistance) + "m";
+        gzerr << msg << std::endl;
+        res.set_error_code(1);
+        res.set_message(msg);
+        reqPtr->promise.set_value(res);
+        continue;
+      }
+
+      // If the child link is within the attach distance, proceed to attach
+      std::string msg = "Attach Success. Child model [" + key.childModelName +
+          "] link [" + key.childLinkName + "] attached to parent link [" +
+          key.parentLinkName + "]. Distance: " + std::to_string(dist) + "m";
+      gzmsg << msg << std::endl;
+
+      // Attach the models
+      // We do this by creating a detachable joint entity.
+      Entity jointEntity = _ecm.CreateEntity();
+
+      // creating the joint
+      _ecm.CreateComponent(
+          jointEntity,
+          components::DetachableJoint({parentLinkEntity,
+                                        childLinkEntity, "fixed"}));
+
+      // Keep track of the attached pair for future validation
+      this->attachedJoints[key] =
+          AttachedJointInfo{jointEntity, parentLinkEntity, childLinkEntity};
+      this->PublishJointState(childLinkEntity);
+      gzdbg << "Attaching entity: " << jointEntity << std::endl;
+
+      res.set_error_code(0);
+      res.set_message(msg);
+      reqPtr->promise.set_value(res);
+    }
+    else if (gz::msgs::AttachDetachRequest::DETACH == reqPtr->command)
+    {
+      // only allow detaching if child entity is attached
+      auto it = this->attachedJoints.find(key);
+      if (it == this->attachedJoints.end())
+      {
+        std::string msg = "Detach rejected: parent link [" +
+            key.parentLinkName + "] is not attached to child model [" +
+            key.childModelName + "] link [" + key.childLinkName + "].";
+        gzerr << msg << std::endl;
+        res.set_error_code(1);
+        res.set_message(msg);
+        reqPtr->promise.set_value(res);
+        continue;
+      }
+
       // Detach the models
-      gzmsg << "Detach Success. Child model [" << this->attachedChildModelName
-            << "] link [" << this->attachedChildLinkName
-            << "] detached from parent link." << std::endl;
-      gzdbg << "Removing entity: " << this->detachableJointEntity << std::endl;
-      _ecm.RequestRemoveEntity(this->detachableJointEntity);
-      this->detachableJointEntity = kNullEntity;
-      this->detachRequested = false;
-      this->isAttached = false;
-      // Publish using the last known attached pair, then clear them.
-      this->PublishJointState(this->isAttached);
-      this->attachedChildModelName.clear();
-      this->attachedChildLinkName.clear();
+      std::string msg = "Detach Success. Child model [" + key.childModelName +
+          "] link [" + key.childLinkName + "] detached from parent link [" +
+          key.parentLinkName + "].";
+      gzmsg << msg << std::endl;
+      if (kNullEntity != it->second.jointEntity &&
+          _ecm.HasEntity(it->second.jointEntity))
+      {
+        gzdbg << "Removing entity: " << it->second.jointEntity << std::endl;
+        _ecm.RequestRemoveEntity(it->second.jointEntity);
+      }
+
+      this->attachedJoints.erase(it);
+      this->PublishJointState(kNullEntity);
+      res.set_error_code(0);
+      res.set_message(msg);
+      reqPtr->promise.set_value(res);
     }
   }
+}
+
+//////////////////////////////////////////////////
+void DynamicDetachableJoint::Reset(
+    const UpdateInfo &/*_info*/,
+    EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("DynamicDetachableJoint::Reset");
+  std::lock_guard<std::mutex> lock(this->mutex);
+
+  for (const auto &[key, info] : this->attachedJoints)
+  {
+    if (kNullEntity != info.jointEntity && _ecm.HasEntity(info.jointEntity))
+    {
+      _ecm.RequestRemoveEntity(info.jointEntity);
+    }
+  }
+
+  if (!this->attachedJoints.empty())
+  {
+    this->PublishJointState(kNullEntity);
+    this->attachedJoints.clear();
+  }
+
+  for (auto &reqPtr : this->pendingRequests)
+  {
+    gz::msgs::Result res;
+    res.set_error_code(1);
+    res.set_message("Request cancelled due to simulation reset.");
+    reqPtr->promise.set_value(res);
+  }
+  this->pendingRequests.clear();
 }
 
 //////////////////////////////////////////////////
@@ -284,80 +387,151 @@ bool DynamicDetachableJoint::OnServiceRequest(
   GZ_PROFILE("DynamicDetachableJoint::OnServiceRequest");
   std::lock_guard<std::mutex> lock(this->mutex);
 
+  std::shared_ptr<PendingRequest> pendingReq;
+  if (this->ValidateAndCreatePendingRequest(_req, _res, pendingReq))
+  {
+    this->pendingRequests.push_back(pendingReq);
+  }
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool DynamicDetachableJoint::OnBlockingServiceRequest(
+    const gz::msgs::AttachDetachRequest &_req,
+    gz::msgs::Result &_res)
+{
+  GZ_PROFILE("DynamicDetachableJoint::OnBlockingServiceRequest");
+  std::shared_ptr<PendingRequest> pendingReq;
+  std::future<gz::msgs::Result> future;
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    if (!this->ValidateAndCreatePendingRequest(_req, _res, pendingReq))
+    {
+      return true;
+    }
+    future = pendingReq->promise.get_future();
+    this->pendingRequests.push_back(pendingReq);
+  }
+
+  if (future.wait_for(this->blockingTimeout) == std::future_status::ready)
+  {
+    _res = future.get();
+    return true;
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    auto it = std::find(
+        this->pendingRequests.begin(),
+        this->pendingRequests.end(),
+        pendingReq);
+    if (it != this->pendingRequests.end())
+    {
+      this->pendingRequests.erase(it);
+      _res.set_error_code(1);
+      _res.set_message(
+          "Timed out waiting for simulation update to process request.");
+      return true;
+    }
+  }
+
+  _res = future.get();
+  return true;
+}
+
+//////////////////////////////////////////////////
+bool DynamicDetachableJoint::ValidateAndCreatePendingRequest(
+    const gz::msgs::AttachDetachRequest &_req,
+    gz::msgs::Result &_res,
+    std::shared_ptr<PendingRequest> &_pendingReq)
+{
   // Check if the request is valid
-  if (_req.child_model_name().empty() || _req.child_link_name().empty())
+  if (_req.parent_link_name().empty() ||
+      _req.child_model_name().empty() ||
+      _req.child_link_name().empty())
   {
     _res.set_error_code(1);
     _res.set_message(
-        "Invalid request: child_model_name and child_link_name must be set.");
-    return true;
+        "Invalid request: parent_link_name, child_model_name, and "
+        "child_link_name must be set.");
+    return false;
   }
+
+  JointKey key{
+      _req.parent_link_name(),
+      _req.child_model_name(),
+      _req.child_link_name()};
 
   switch (_req.command())
   {
     case gz::msgs::AttachDetachRequest::ATTACH:
     {
       // If attach is requested
-      if (this->isAttached)
+      if (this->attachedJoints.find(key) != this->attachedJoints.end())
       {
         _res.set_error_code(1);
-        _res.set_message("Already attached to child model [" +
-                         this->attachedChildModelName +
-                         "] at link [" + this->attachedChildLinkName + "].");
-        gzdbg << "Already attached to child model ["
-              << this->attachedChildModelName
-              << "] at link [" << this->attachedChildLinkName << "]"
-              << std::endl;
-        return true;
+        _res.set_message("Already attached parent link [" +
+                         key.parentLinkName + "] to child model [" +
+                         key.childModelName + "] at link [" +
+                         key.childLinkName + "].");
+        gzdbg << _res.message() << std::endl;
+        return false;
       }
 
-      // set the child model and link names from the request
-      this->childModelName = _req.child_model_name();
-      this->childLinkName  = _req.child_link_name();
-      this->attachRequested = true;
+      // Queue the attach request
+      _pendingReq = std::make_shared<PendingRequest>();
+      _pendingReq->key = key;
+      _pendingReq->command = gz::msgs::AttachDetachRequest::ATTACH;
       _res.set_error_code(0);
-      _res.set_message("Attach request accepted for child model [" +
-                       this->childModelName +
-                       "] at link [" + this->childLinkName + "].");
+      _res.set_message("Attach request accepted for parent link [" +
+                       key.parentLinkName + "] and child model [" +
+                       key.childModelName + "] at link [" +
+                       key.childLinkName + "].");
       return true;
     }
 
     case gz::msgs::AttachDetachRequest::DETACH:
     {
       // If detach is requested
-      if (!this->isAttached)
+      bool pendingAttachExists = std::any_of(
+          this->pendingRequests.begin(),
+          this->pendingRequests.end(),
+          [&key](const std::shared_ptr<PendingRequest> &_r)
+          {
+            return _r->command == gz::msgs::AttachDetachRequest::ATTACH &&
+                   !(_r->key < key) && !(key < _r->key);
+          });
+
+      if (this->attachedJoints.empty() && !pendingAttachExists)
       {
         _res.set_error_code(1);
         _res.set_message(
             "Detach request rejected: no child link is currently attached.");
         gzdbg << "Already detached" << std::endl;
-        return true;
+        return false;
       }
 
       // Validate that the request matches what is actually attached.
-      const auto &reqModel = _req.child_model_name();
-      const auto &reqLink  = _req.child_link_name();
-      if (reqModel != this->attachedChildModelName ||
-          reqLink  != this->attachedChildLinkName)
+      if (this->attachedJoints.find(key) == this->attachedJoints.end() &&
+          !pendingAttachExists)
       {
         _res.set_error_code(1);
         _res.set_message(
-          "Detach rejected: requested [" + reqModel + "] link [" + reqLink +
-          "] but currently attached to [" + this->attachedChildModelName +
-          "] link [" + this->attachedChildLinkName + "]."
-        );
-        gzerr << "Detach rejected: requested [" << reqModel << "] link ["
-              << reqLink << "] but currently attached to ["
-              << this->attachedChildModelName << "] link ["
-              << this->attachedChildLinkName << "]." << std::endl;
-        return true;
+            "Detach rejected: parent link [" + key.parentLinkName +
+            "] is not attached to child model [" + key.childModelName +
+            "] link [" + key.childLinkName + "].");
+        gzerr << _res.message() << std::endl;
+        return false;
       }
 
-      this->detachRequested = true;
+      _pendingReq = std::make_shared<PendingRequest>();
+      _pendingReq->key = key;
+      _pendingReq->command = gz::msgs::AttachDetachRequest::DETACH;
       _res.set_error_code(0);
-      _res.set_message("Detach request accepted for child model [" +
-                       this->attachedChildModelName +
-                       "] at link [" + this->attachedChildLinkName + "].");
+      _res.set_message("Detach request accepted for parent link [" +
+                       key.parentLinkName + "] and child model [" +
+                       key.childModelName + "] at link [" +
+                       key.childLinkName + "].");
       return true;
     }
 
@@ -366,18 +540,122 @@ bool DynamicDetachableJoint::OnServiceRequest(
     {
       _res.set_error_code(1);
       _res.set_message("Invalid request: command must be ATTACH or DETACH.");
-      return true;
+      return false;
     }
   }
 }
 
 //////////////////////////////////////////////////
-void DynamicDetachableJoint::PublishJointState(bool _attached)
+Entity DynamicDetachableJoint::FindParentLinkEntity(
+    const std::string &_parentLinkName,
+    const EntityComponentManager &_ecm) const
+{
+  Entity linkEntity = this->model.LinkByName(_ecm, _parentLinkName);
+  if (kNullEntity != linkEntity)
+  {
+    return linkEntity;
+  }
+
+  auto entities = entitiesFromScopedName(
+      _parentLinkName, _ecm, this->model.Entity());
+  for (const auto &entity : entities)
+  {
+    if (_ecm.EntityHasComponentType(entity, components::Link::typeId))
+    {
+      return entity;
+    }
+  }
+  return kNullEntity;
+}
+
+//////////////////////////////////////////////////
+Entity DynamicDetachableJoint::FindChildModelEntity(
+    const std::string &_childModelName,
+    const std::string &_childLinkName,
+    const EntityComponentManager &_ecm) const
+{
+  // if child model is the parent model
+  if ("__model__" == _childModelName)
+  {
+    return this->model.Entity();
+  }
+
+  // Querying the ECM for a top-level child model entity first
+  Entity directModel = _ecm.EntityByComponents(
+      components::Model(), components::Name(_childModelName));
+  if (kNullEntity != directModel &&
+      kNullEntity !=
+          this->FindChildLinkEntity(directModel, _childLinkName, _ecm))
+  {
+    return directModel;
+  }
+
+  // Querying the ECM by scoped name to support nested models
+  auto entitiesMatchingName = entitiesFromScopedName(_childModelName, _ecm);
+  std::vector<Entity> candidateModels;
+  for (const auto &entity : entitiesMatchingName)
+  {
+    if (_ecm.EntityHasComponentType(entity, components::Model::typeId))
+    {
+      candidateModels.push_back(entity);
+    }
+  }
+
+  if (candidateModels.size() == 1)
+  {
+    return candidateModels.front();
+  }
+
+  for (const auto &entity : candidateModels)
+  {
+    if (kNullEntity != this->FindChildLinkEntity(entity, _childLinkName, _ecm))
+    {
+      return entity;
+    }
+  }
+
+  if (!candidateModels.empty())
+  {
+    return candidateModels.front();
+  }
+
+  return directModel;
+}
+
+//////////////////////////////////////////////////
+Entity DynamicDetachableJoint::FindChildLinkEntity(
+    Entity _modelEntity,
+    const std::string &_childLinkName,
+    const EntityComponentManager &_ecm) const
+{
+  Entity linkEntity = _ecm.EntityByComponents(
+      components::Link(),
+      components::ParentEntity(_modelEntity),
+      components::Name(_childLinkName));
+  if (kNullEntity != linkEntity)
+  {
+    return linkEntity;
+  }
+
+  auto entities = entitiesFromScopedName(
+      _childLinkName, _ecm, _modelEntity);
+  for (const auto &entity : entities)
+  {
+    if (_ecm.EntityHasComponentType(entity, components::Link::typeId))
+    {
+      return entity;
+    }
+  }
+  return kNullEntity;
+}
+
+//////////////////////////////////////////////////
+void DynamicDetachableJoint::PublishJointState(Entity _childLinkEntity)
 {
   gz::msgs::Entity stateMsg;
-  if (_attached)
+  if (kNullEntity != _childLinkEntity)
   {
-    stateMsg.set_id(this->childLinkEntity);
+    stateMsg.set_id(_childLinkEntity);
     stateMsg.set_type(gz::msgs::Entity::LINK);
   }
   else
@@ -391,6 +669,7 @@ void DynamicDetachableJoint::PublishJointState(bool _attached)
 GZ_ADD_PLUGIN(DynamicDetachableJoint,
                     System,
                     DynamicDetachableJoint::ISystemConfigure,
+                    DynamicDetachableJoint::ISystemReset,
                     DynamicDetachableJoint::ISystemPreUpdate)
 
 GZ_ADD_PLUGIN_ALIAS(DynamicDetachableJoint,

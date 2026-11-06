@@ -72,7 +72,6 @@
 
       <plugin filename="gz-sim-dynamic-detachable-joint-system"
               name="gz::sim::systems::DynamicDetachableJoint">
-        <parent_link>arm</parent_link>
         <service_name>/payload/attach_detach</service_name>
         <output_topic>/payload/child_state</output_topic>
         <attach_distance>0.1</attach_distance> <!-- 10 cm -->
