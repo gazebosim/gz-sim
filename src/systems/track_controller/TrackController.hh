@@ -18,6 +18,8 @@
 #define GZ_SIM_SYSTEMS_TRACKCONTROLLER_HH_
 
 #include <memory>
+#include <string>
+
 #include <gz/sim/System.hh>
 #include "gz/sim/physics/Events.hh"
 
@@ -75,10 +77,18 @@ namespace systems
   /// - `<velocity_topic>`: Name of the topic on which the system accepts
   ///   velocity commands.
   ///   Defaults to `/model/${model_name}/link/${link_name}/track_cmd_vel`.
+  ///   If the model has a  namespace, the default topic becomes
+  ///   `{namespace}/track_cmd_vel`. The custom topic is then prefixed with
+  ///   the namespace if it does not start with `/`, or remains unchanged
+  ///   if it starts with `/`.
   ///
   /// - `<center_of_rotation_topic>`: The topic on which the track accepts
   ///   center of rotation commands. Defaults to
   ///   `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`.
+  ///   If the model has a  namespace, the default topic becomes
+  ///   `{namespace}/track_cmd_center_of_rotation`. The custom topic is then
+  ///   prefixed with the namespace if it does not start with `/`, or remains
+  ///   unchanged if it starts with `/`.
   ///
   /// - `<max_command_age>`: If this parameter is set, each velocity or center
   ///   of rotation command will only act for the given number of seconds and
@@ -88,6 +98,10 @@ namespace systems
   ///   and instantaneous velocity) is published. This can be used e.g. to
   ///   simulate a conveyor with encoder feedback.
   ///   Defaults to `/model/${model_name}/link/${link_name}/odometry`.
+  ///   If the model has a  namespace, the default topic becomes
+  ///   `{namespace}/odometry`. The custom topic is then prefixed with the
+  ///   namespace if it does not start with `/`, or remains unchanged if it
+  ///   starts with `/`.
   ///
   /// - `<odometry_publish_frequency>`: the frequency (in Hz) at which the
   ///   odometry messages are published. Defaults to 50 Hz.
@@ -114,6 +128,19 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Command center of rotation topic name
+      public: std::string cmdCorTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+    };
+
     /// \brief Constructor
     public: TrackController();
 
@@ -134,6 +161,9 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
       const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TrackControllerPrivate> dataPtr;
