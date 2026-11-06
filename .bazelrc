@@ -21,3 +21,4 @@ build --dynamic_mode=off
 # OS specific settings
 build --enable_platform_specific_config
 build:macos --macos_minimum_os=10.15
+build:macos --@rules_rust//rust/settings:use_hermetic_macos_sdkroot=false
