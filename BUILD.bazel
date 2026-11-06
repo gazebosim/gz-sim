@@ -1239,13 +1239,6 @@ gz_sim_system_libraries(
     ],
 )
 
-gz_export_header(
-    name = "LogicalAudioSensorSystemExport",
-    out = "include/gz/sim/logicalaudiosensorplugin-system/Export.hh",
-    export_base = "GZ_SIM_LOGICALAUDIOSENSORPLUGIN_SYSTEM",
-    lib_name = "gz-sim-logicalaudiosensorplugin-system",
-)
-
 gz_sim_system_libraries(
     srcs = glob(
         [
@@ -1253,7 +1246,7 @@ gz_sim_system_libraries(
             "src/systems/logical_audio_sensor_plugin/**/*.hh",
         ],
         exclude = ["src/systems/logical_audio_sensor_plugin/**/*_TEST.cc"],
-    ) + ["include/gz/sim/logicalaudiosensorplugin-system/Export.hh"],
+    ),
     so_lib_name = "gz-sim-logicalaudiosensorplugin-system.so",
     static_lib_name = "gz-sim-logicalaudiosensorplugin-system-static",
     visibility = ["//visibility:public"],
