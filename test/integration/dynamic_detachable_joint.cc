@@ -142,6 +142,7 @@ TEST_F(DynamicDetachableJointTest,
   // DynamicDetachableJoint service
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -233,6 +234,7 @@ TEST_F(DynamicDetachableJointTest,
   {
     gzdbg << "[detach] request: model=red_cube link=link" << std::endl;
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::DETACH);
@@ -359,6 +361,7 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OutOfRange))
   // attached
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -489,6 +492,7 @@ TEST_F(DynamicDetachableJointTest,
             << std::endl;
 
       msgs::AttachDetachRequest req;
+      req.set_parent_link_name("arm");
       req.set_child_model_name(target.name);
       req.set_child_link_name("link");
       req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -572,6 +576,7 @@ TEST_F(DynamicDetachableJointTest,
             << std::endl;
 
       msgs::AttachDetachRequest req;
+      req.set_parent_link_name("arm");
       req.set_child_model_name(target.name);
       req.set_child_link_name("link");
       req.set_command(msgs::AttachDetachRequest::DETACH);
@@ -650,6 +655,7 @@ TEST_F(DynamicDetachableJointTest,
   // 1. Nonexistent child model should return error_code == 1
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("nonexistent_model");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -680,6 +686,7 @@ TEST_F(DynamicDetachableJointTest,
   //    should return error_code == 1
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("blue_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -694,6 +701,7 @@ TEST_F(DynamicDetachableJointTest,
   // 4. Valid in-range attach (red_cube at x=0.30) should succeed
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -708,6 +716,7 @@ TEST_F(DynamicDetachableJointTest,
   // 5. Detach via blocking service should succeed
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::DETACH);
@@ -779,7 +788,6 @@ TEST_F(DynamicDetachableJointTest,
       <plugin filename="gz-sim-dynamic-detachable-joint-system"
               name="gz::sim::systems::DynamicDetachableJoint">
         <service_name>/dual_arm/attach_detach</service_name>
-        <attach_distance>0.15</attach_distance>
       </plugin>
     </model>
     <model name="container">

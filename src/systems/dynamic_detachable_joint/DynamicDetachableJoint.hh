@@ -25,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -54,10 +55,10 @@ namespace systems
 /// model with a parent model that is defined in the SDF/URDF.
 ///
 /// Unlike the standard DetachableJoint which requires child model specification
-/// in the SDF, this system accepts child model and link names (and optionally
-/// the parent link name) via service calls. Hence, it is a more flexible
-/// extension of the existing DetachableJoint system and can manage multiple
-/// parent/child attachment pairs simultaneously.
+/// in the SDF, this system accepts parent link, child model, and child link
+/// names via service calls. Hence, it is a more flexible extension of the
+/// existing DetachableJoint system and can manage multiple parent/child
+/// attachment pairs simultaneously.
 ///
 /// Both an asynchronous service (`<service_name>`) and a blocking service
 /// (`<service_name>/blocking`) are advertised. The blocking service waits for
@@ -67,12 +68,9 @@ namespace systems
 ///
 /// ## System Parameters
 ///
-/// - `<parent_link>` (optional): Default name of the link in the parent model
-///   to be used in creating a fixed joint with a link in the child model when
-///   `parent_link_name` is not specified in the service request.
-///
 /// - `<attach_distance>` (optional): Maximum distance in meters between parent
-///   and child links to allow attachment. Defaults to 0.1 meters.
+///   and child links to allow attachment. If not specified, distance is not
+///   checked and attachment is always allowed regardless of distance.
 ///
 /// - `<service_name>` (optional): Service name for attach/detach requests.
 ///   Defaults to `/model/{model_name}/dynamic_detachable_joint/attach_detach`.
@@ -229,20 +227,15 @@ namespace systems
     /// \brief The model associated with this system.
     private: Model model;
 
-    /// \brief Default parent link name configured in SDF.
-    private: std::string defaultParentLinkName;
-
     /// \brief Active detachable joints keyed by parent/child pair.
     private: std::map<JointKey, AttachedJointInfo> attachedJoints;
 
     /// \brief Queue of pending requests to process in PreUpdate.
     private: std::vector<std::shared_ptr<PendingRequest>> pendingRequests;
 
-    /// \brief Minimum distance to consider the child link as attached.
-    private: double defaultAttachDistance = 0.1;
-
-    /// \brief Distance to consider the child link as attached.
-    private: double attachDistance{defaultAttachDistance};
+    /// \brief Optional maximum distance to consider the child link as
+    /// attachable. If std::nullopt, distance is not checked.
+    private: std::optional<double> attachDistance;
 
     /// \brief Timeout for blocking service requests.
     private: std::chrono::milliseconds blockingTimeout{5000};

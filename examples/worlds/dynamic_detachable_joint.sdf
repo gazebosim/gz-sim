@@ -32,7 +32,7 @@ gz service -s /payload/attach_detach \
   --reqtype gz.msgs.AttachDetachRequest \
   --reptype gz.msgs.Result \
   --timeout 3000 \
-  --req 'child_model_name:"red_cube" child_link_name:"link" command:ATTACH'
+  --req 'parent_link_name:"arm" child_model_name:"red_cube" child_link_name:"link" command:ATTACH'
 
 gz service -s /world/dynamic_detach_demo/set_pose \
   --reqtype gz.msgs.Pose \
@@ -49,7 +49,7 @@ gz service -s /payload/attach_detach \
   --reqtype gz.msgs.AttachDetachRequest \
   --reptype gz.msgs.Result \
   --timeout 3000 \
-  --req 'child_model_name:"red_cube" child_link_name:"link" command:DETACH'
+  --req 'parent_link_name:"arm" child_model_name:"red_cube" child_link_name:"link" command:DETACH'
 
 # Rotate the robot back to original orientation.
 gz service -s /world/dynamic_detach_demo/set_pose \
@@ -208,7 +208,6 @@ gz service -s /world/dynamic_detach_demo/set_pose \
 
       <plugin filename="gz-sim-dynamic-detachable-joint-system"
               name="gz::sim::systems::DynamicDetachableJoint">
-        <parent_link>arm</parent_link>
         <service_name>/payload/attach_detach</service_name>
         <output_topic>/payload/child_state</output_topic>
         <attach_distance>0.3</attach_distance> <!--30 cm-->

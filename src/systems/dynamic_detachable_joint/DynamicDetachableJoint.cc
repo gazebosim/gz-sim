@@ -24,6 +24,7 @@
 #include <future>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -64,43 +65,13 @@ void DynamicDetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
-  if (_sdf->HasElement("parent_link"))
-  {
-    this->defaultParentLinkName = _sdf->Get<std::string>("parent_link");
-    Entity parentLinkEntity =
-        this->FindParentLinkEntity(this->defaultParentLinkName, _ecm);
-    if (kNullEntity == parentLinkEntity)
-    {
-      gzerr << "Link with name " << this->defaultParentLinkName
-             << " not found in model " << this->model.Name(_ecm)
-             << ". Make sure the parameter 'parent_link' has the "
-             << "correct value. Failed to initialize.\n";
-      return;
-    }
-  }
-  else
-  {
-    gzdbg << "No default 'parent_link' specified in SDF for "
-          << "DynamicDetachableJoint on model [" << this->model.Name(_ecm)
-          << "]. 'parent_link_name' must be provided in service requests.\n";
-  }
-
   // Setup attach distance threshold
-  auto [value, found] = _sdf->Get<double>(
-      "attach_distance", this->defaultAttachDistance);
-  if (!found)
+  if (_sdf->HasElement("attach_distance"))
   {
-    gzwarn << "No 'attach_distance' specified in sdf, using default value of "
-          << this->defaultAttachDistance << " meters.\n";
+    this->attachDistance = _sdf->Get<double>("attach_distance");
+    gzmsg << "Found 'attach_distance' in sdf: " << *this->attachDistance
+          << " meters.\n";
   }
-  else
-  {
-    gzmsg << "Found 'attach_distance' in sdf: " << value << " meters.\n";
-  }
-
-  this->attachDistance = value;
-  gzmsg << "Final attachDistance set to: " << this->attachDistance
-        << " meters.\n";
 
   // Setup service
   // Check if the SDF has a service_name element
@@ -299,13 +270,13 @@ void DynamicDetachableJoint::PreUpdate(
       auto dist = childPose.Pos().Distance(parentPose.Pos());
       gzdbg << "Centre-to-centre distance: " << dist << " m" << std::endl;
 
-      // Check if the child link is within the attach distance
-      if (dist > this->attachDistance)
+      // Check if the child link is within the attach distance (if configured)
+      if (this->attachDistance.has_value() && dist > *this->attachDistance)
       {
         std::string msg = "Attach Failed. Child Link [" + key.childLinkName +
             "] is too far from parent link [" + key.parentLinkName +
             "]. Distance: " + std::to_string(dist) + "m, threshold: " +
-            std::to_string(this->attachDistance) + "m";
+            std::to_string(*this->attachDistance) + "m";
         gzerr << msg << std::endl;
         res.set_error_code(1);
         res.set_message(msg);
@@ -474,30 +445,22 @@ bool DynamicDetachableJoint::ValidateAndCreatePendingRequest(
     gz::msgs::Result &_res,
     std::shared_ptr<PendingRequest> &_pendingReq)
 {
-  // Resolve the parent link name (request overrides SDF default)
-  const std::string parentLinkName = _req.parent_link_name().empty() ?
-      this->defaultParentLinkName : _req.parent_link_name();
-
-  if (parentLinkName.empty())
-  {
-    _res.set_error_code(1);
-    _res.set_message(
-        "Invalid request: parent_link_name is not set and no default "
-        "<parent_link> was configured.");
-    return false;
-  }
-
   // Check if the request is valid
-  if (_req.child_model_name().empty() || _req.child_link_name().empty())
+  if (_req.parent_link_name().empty() ||
+      _req.child_model_name().empty() ||
+      _req.child_link_name().empty())
   {
     _res.set_error_code(1);
     _res.set_message(
-        "Invalid request: child_model_name and child_link_name must be set.");
+        "Invalid request: parent_link_name, child_model_name, and "
+        "child_link_name must be set.");
     return false;
   }
 
   JointKey key{
-      parentLinkName, _req.child_model_name(), _req.child_link_name()};
+      _req.parent_link_name(),
+      _req.child_model_name(),
+      _req.child_link_name()};
 
   switch (_req.command())
   {
