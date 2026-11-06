@@ -14,6 +14,27 @@ release will remove the deprecated code.
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
 
+* **Buoyancy**
+  * The buoyant force now acts at the collision geometry's centroid instead
+    of the collision origin. This changes behavior for cone collisions
+    (centroid a quarter length from the base) and mesh collisions (centroid
+    wherever the geometry puts it); the origin centered primitives are
+    unaffected. In graded mode the layer above the last declared interface
+    uses the shape centroid as well.
+  * Mesh collisions now honor the SDF `<scale>` element in buoyancy
+    calculations: the displaced volume scales by the product of the three
+    components and the centroid componentwise. Models that relied on the
+    unscaled volume will float differently; the shipped example duck
+    displaces an eighth of what it did.
+  * The graded buoyancy mode now accounts for the orientation of each
+    collision when slicing it against a fluid interface. Previously the
+    slicing plane was always axis aligned in the shape's own frame, so a
+    rolled or pitched shape displaced the wrong volume at the wrong
+    centroid, and a heeled floating body could receive a capsizing moment
+    instead of a righting moment. Bodies at nonzero roll or pitch near a
+    fluid interface now float and right themselves per hydrostatic theory;
+    models tuned to compensate for the old behavior may need retuning.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
@@ -96,6 +117,17 @@ release will remove the deprecated code.
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
+  * Several `EntityComponentManager` APIs have been deprecated as part of the
+    move to the Entt library:
+    * `EachNoCache`, there is no explicit cache anymore, use `Each` instead.
+    * `Entities`, Entities are not stored in a graph anymore, use
+      `EntitiesVector` if you need all the entities in the world, combine it
+      reading the `ParentEntity` and `Children` components if you need hierarchy
+      information.
+    * `ForEach` is an internal function that is not used anymore.
+    * `ComponentTypesWithPeriodicChanges` is significantly more expensive in
+      the new architecture and had no users so it has been deprecated.
+
 
 * **Breaking Changes**
   * Plugins for entities spawned into the world should now be able to
@@ -115,6 +147,23 @@ release will remove the deprecated code.
     through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
     registered before they are instantiated, else a static assertion failure
     will be triggered at compile time.
+  * The implementation of the EntityComponentManager now uses the entt library
+    behind the scenes. This results in a few breaking changes:
+    * The order of entities returned by the Each APIs is not guaranteed to be
+      sorted anymore. Internal systems have been migrated to work regardless
+      of entity order, downstream systems should be updated.
+    * Entities are not stored in a `gz::math::Graph` anymore. Users that need
+      hierarchy information should read the `ParentEntity` or `Children`
+      components attached to entities.
+    * Deleting a non existing entity now does not mark it for removal.
+    * `HasComponentType` now returns whether the EntityComponentManager has any
+      instance of the component, instead of whether it was ever created.
+    * Removing components now can deallocate the memory, instead of just marking
+      the component as removed and keeping it in place. Users are advised not to
+      store any component pointer.
+    * Queries with a repeated component are not allowed anymore. Users should
+      make sure their `Each` calls don't have duplicated components of the same
+      type.
 
 ## Gazebo Sim 9.x to 10.0
 

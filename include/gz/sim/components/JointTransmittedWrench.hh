@@ -46,7 +46,7 @@ namespace components
 using JointTransmittedWrench =
     Component<msgs::Wrench, class JointTransmittedWrenchTag,
               serializers::MsgSerializer>;
-GZ_SIM_REGISTER_COMPONENT("gz_sim_components.JointTransmittedWrench",
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.JointTransmittedWrench",
                               JointTransmittedWrench)
 }  // namespace components
 }

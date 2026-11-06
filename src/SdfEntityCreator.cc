@@ -54,6 +54,7 @@
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/JointType.hh"
+#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/LaserRetro.hh"
 #include "gz/sim/components/Level.hh"
 #include "gz/sim/components/LevelEntityNames.hh"
@@ -70,6 +71,7 @@
 #include "gz/sim/components/Material.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
@@ -526,6 +528,12 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Model *_model,
       components::Pose(ResolveSdfPose(_model->SemanticPose())));
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Name(_model->Name()));
+  const auto ns = _model->Namespace();
+  if (ns.has_value() && !ns->empty())
+  {
+    this->dataPtr->ecm->CreateComponent(modelEntity,
+        components::Namespace(ns.value()));
+  }
   bool isStatic = _model->Static() || _staticParent;
   this->dataPtr->ecm->CreateComponent(modelEntity,
       components::Static(isStatic));
@@ -730,6 +738,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Link *_link)
     // If disable gravity, create a GravityEnabled component to the entity
     this->dataPtr->ecm->CreateComponent(
         linkEntity, components::GravityEnabled(false));
+  }
+
+  // The kinematic state of a link that does not set <kinematic> depends on
+  // the <kinematic><enabled> parameter of the Physics system, so only create
+  // the component when the SDF sets it explicitly.
+  if (_link->Element() && _link->Element()->HasElement("kinematic"))
+  {
+    this->dataPtr->ecm->CreateComponent(
+        linkEntity, components::Kinematic(_link->Kinematic()));
   }
 
   // Visuals

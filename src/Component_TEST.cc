@@ -26,6 +26,7 @@
 #include <gz/math/Inertial.hh>
 
 #include "gz/sim/components/Component.hh"
+#include "gz/sim/components/Factory.hh"
 #include "gz/sim/components/Serialization.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/EntityComponentManager.hh"
@@ -87,6 +88,9 @@ using CustomMsg =
     serializers::MsgSerializer>;
 GZ_SIM_REGISTER_COMPONENT("gz_sim_components.CustomMsg", CustomMsg)
 
+using DeclareOnly = components::Component<int, class DeclareOnlyTag>;
+GZ_SIM_DECLARE_COMPONENT("gz_sim_components.DeclareOnly", DeclareOnly)
+
 //////////////////////////////////////////////////
 class ComponentTest : public InternalFixture<::testing::Test>
 {
@@ -96,6 +100,32 @@ class ComponentTest : public InternalFixture<::testing::Test>
     common::setenv("GZ_DEBUG_COMPONENT_FACTORY", "true");
   }
 };
+
+/////////////////////////////////////////////////
+TEST_F(ComponentTest, DeclareOnlyMacro)
+{
+  // typeId and typeName come from the ADL helper functions; no registration
+  // object is involved.
+  EXPECT_EQ(common::hash64("gz_sim_components.DeclareOnly"),
+      DeclareOnly::typeId);
+  ASSERT_NE(nullptr, DeclareOnly::typeName);
+  EXPECT_STREQ("gz_sim_components.DeclareOnly", DeclareOnly::typeName);
+
+  // GZ_SIM_DECLARE_COMPONENT alone must not register with the Factory.
+  EXPECT_FALSE(components::Factory::Instance()->HasType(DeclareOnly::typeId));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentTest, CoreComponentWithoutLocalRegistration)
+{
+  // Component headers are declare-only: typeName must still resolve via ADL
+  // in this TU...
+  ASSERT_NE(nullptr, components::Name::typeName);
+  EXPECT_STREQ("gz_sim_components.Name", components::Name::typeName);
+  // ...and the core library's definition TU must have registered the type.
+  EXPECT_TRUE(components::Factory::Instance()->HasType(
+      components::Name::typeId));
+}
 
 //////////////////////////////////////////////////
 /// Test that using the default constructor of Component doesn't cause

@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <deque>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <tuple>
@@ -65,6 +66,7 @@
 #include <gz/physics/GetEntities.hh>
 #include <gz/physics/GetRayIntersection.hh>
 #include <gz/physics/Joint.hh>
+#include <gz/physics/KinematicLink.hh>
 #include <gz/physics/Link.hh>
 #include <gz/physics/RemoveEntities.hh>
 #include <gz/physics/Shape.hh>
@@ -141,6 +143,7 @@
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointTransmittedWrench.hh"
 #include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/Physics.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
@@ -208,10 +211,11 @@ class gz::sim::systems::PhysicsPrivate
             physics::FeaturePolicy3d, MinimumFeatureList>;
 
   /// \brief Create physics entities
-  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM. Link entities get a Kinematic
+  /// component holding their resolved kinematic state.
   /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
   /// already exists in the physics system
-  public: void CreatePhysicsEntities(const EntityComponentManager &_ecm,
+  public: void CreatePhysicsEntities(EntityComponentManager &_ecm,
                                      bool _warnIfEntityExists = true);
 
   /// \brief Create world entities
@@ -228,11 +232,36 @@ class gz::sim::systems::PhysicsPrivate
                                    bool _warnIfEntityExists = true);
 
   /// \brief Create link entities
-  /// \param[in] _ecm Constant reference to ECM.
+  /// \param[in] _ecm Mutable reference to ECM. Links without a Kinematic
+  /// component get one holding their resolved kinematic state.
   /// \param[in] _warnIfEntityExists True to emit warnings if the same entity
   /// already exists in the physics system
-  public: void CreateLinkEntities(const EntityComponentManager &_ecm,
+  public: void CreateLinkEntities(EntityComponentManager &_ecm,
                                   bool _warnIfEntityExists = true);
+
+  /// \brief Create a Kinematic component holding the resolved kinematic state
+  /// of a link that was just added to entityLinkMap, unless the link already
+  /// has one. Other systems can then query the state, e.g. to restore it
+  /// after temporarily changing it with a KinematicCmd.
+  /// \param[in] _ecm Mutable reference to ECM.
+  /// \param[in] _linkEntity Link entity present in entityLinkMap.
+  public: void RecordKinematicState(EntityComponentManager &_ecm,
+                                    const Entity &_linkEntity);
+
+  /// \brief Apply the default kinematic state of the `<kinematic><enabled>`
+  /// parameter to the links of a model, and of its nested models, whose SDF
+  /// does not set `<kinematic>`, so that the physics engine creates them in
+  /// that state. Links whose SDF sets `<kinematic>` keep it.
+  /// \param[in, out] _model Model SDF about to be passed to the physics
+  /// engine.
+  /// \param[in] _prefix Scoped name prefix of the model, for _dynamicLinks.
+  /// \param[out] _dynamicLinks Scoped names of the links that stay dynamic
+  /// because their SDF sets `<kinematic>false</kinematic>` while the default
+  /// is kinematic.
+  public: void ApplyKinematicDefault(sdf::Model &_model,
+                                     const std::string &_prefix,
+                                     std::vector<std::string> &_dynamicLinks)
+                                     const;
 
   /// \brief Create collision entities
   /// \param[in] _ecm Constant reference to ECM.
@@ -266,9 +295,11 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
-  /// \returns Output data from the physics engine (this currently contains
-  /// data for links that experienced a pose change in the physics step)
-  public: gz::physics::ForwardStep::Output Step(
+  /// \returns Optional output data from the physics engine (this currently
+  /// contains data for links that experienced a pose change in the physics
+  /// step).
+  /// The reference remains valid until the next call to Step.
+  public: const std::optional<gz::physics::ForwardStep::Output> &Step(
               const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Get data of links that were updated in the latest physics step.
@@ -283,7 +314,8 @@ class gz::sim::systems::PhysicsPrivate
   /// properly (models must be updated in topological order).
   public: std::map<Entity, physics::FrameData3d> ChangedLinks(
               EntityComponentManager &_ecm,
-              const gz::physics::ForwardStep::Output &_updatedLinks);
+              const std::optional<gz::physics::ForwardStep::Output>
+                &_updatedLinks);
 
   /// \brief Check if a model contains any plane collision geometry.
   /// \param[in] modelEntity The entity of the model to check.
@@ -407,6 +439,10 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Entities whose gravity enabled commands have been processed and
   /// should be deleted the following iteration.
   public: std::unordered_set<Entity> gravityEnabledCmdsToRemove;
+
+  /// \brief Entities whose kinematic commands have been processed and
+  /// should be deleted the following iteration.
+  public: std::unordered_set<Entity> kinematicCmdsToRemove;
 
   /// \brief Entities whose collision enabled commands have been processed and
   /// should be deleted the following iteration.
@@ -698,6 +734,13 @@ class gz::sim::systems::PhysicsPrivate
             physics::GravityEnabled>{};
 
   //////////////////////////////////////////////////
+  // Kinematic link
+  /// \brief Feature list for setting the kinematic state of a link.
+  public: struct KinematicLinkFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::KinematicLink>{};
+
+  //////////////////////////////////////////////////
   // Collision Enabled
   /// \brief Feature list for enabling and disabling model collisions.
   public: struct ModelCollisionEnabledFeatureList : physics::FeatureList<
@@ -805,6 +848,14 @@ class gz::sim::systems::PhysicsPrivate
             physics::WorldModelFeature>{};
 
   //////////////////////////////////////////////////
+  // Kinematic contacts
+  /// \brief Feature list for enabling or disabling the contacts between
+  /// kinematic links and static or kinematic links.
+  public: struct KinematicContactsFeatureList : physics::FeatureList<
+            MinimumFeatureList,
+            physics::KinematicContacts>{};
+
+  //////////////////////////////////////////////////
   /// \brief World EntityFeatureMap
   public: using WorldEntityMap = EntityFeatureMap3d<
           physics::World,
@@ -819,7 +870,8 @@ class gz::sim::systems::PhysicsPrivate
           CollisionDetectorFeatureList,
           SolverFeatureList,
           WorldModelFeatureList,
-          CollisionPairMaxContactsFeatureList
+          CollisionPairMaxContactsFeatureList,
+          KinematicContactsFeatureList
           >;
 
   /// \brief A map between world entity ids in the ECM to World Entities in
@@ -853,7 +905,8 @@ class gz::sim::systems::PhysicsPrivate
             LinkForceFeatureList,
             MeshFeatureList,
             LinkBoundingBoxFeatureList,
-            GravityEnabledFeatureList>;
+            GravityEnabledFeatureList,
+            KinematicLinkFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -927,8 +980,17 @@ class gz::sim::systems::PhysicsPrivate
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
 
+  /// \brief Default kinematic state of links whose SDF does not set
+  /// `<kinematic>`, from the `<kinematic><enabled>` parameter.
+  public: bool kinematicEnabled = false;
+
+  /// \brief Whether contacts between kinematic links and static or other
+  /// kinematic links are detected, from the `<kinematic><contacts><enabled>`
+  /// parameter.
+  public: bool kinematicContacts = true;
+
   /// \brief Cached physics output, to reduce allocations / deallocations
-  physics::ForwardStep::Output stepOutput;
+  std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
 };
 
 //////////////////////////////////////////////////
@@ -994,6 +1056,19 @@ void Physics::Configure(const Entity &_entity,
   this->dataPtr->enforceFixedConstraint =
       _sdf->Get<bool>("enforce_fixed_constraint",
       this->dataPtr->enforceFixedConstraint).first;
+
+  // Kinematic link settings.
+  if (auto kinematicElement = _sdf->FindElement("kinematic"))
+  {
+    this->dataPtr->kinematicEnabled = kinematicElement->Get<bool>(
+        "enabled", this->dataPtr->kinematicEnabled).first;
+    if (auto kinematicContactsElement =
+        kinematicElement->FindElement("contacts"))
+    {
+      this->dataPtr->kinematicContacts = kinematicContactsElement->Get<bool>(
+          "enabled", this->dataPtr->kinematicContacts).first;
+    }
+  }
 
   plugin::Loader pluginLoader;
   if (isStaticPlugin(pluginLib))
@@ -1125,12 +1200,9 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
-    gz::physics::ForwardStep::Output stepOutput;
-    // Only step if not paused.
-    if (!_info.paused)
-    {
-      stepOutput = this->dataPtr->Step(_info.dt);
-    }
+    const std::optional<gz::physics::ForwardStep::Output> emptyStepOutput;
+    const auto &stepOutput = _info.paused ? emptyStepOutput :
+        this->dataPtr->Step(_info.dt);
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
@@ -1154,7 +1226,7 @@ void Physics::Reset(const UpdateInfo &, EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreatePhysicsEntities(const EntityComponentManager &_ecm,
+void PhysicsPrivate::CreatePhysicsEntities(EntityComponentManager &_ecm,
                                            bool _warnIfEntityExists)
 {
   // Clear the set of links that were added to a model.
@@ -1193,11 +1265,46 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           return true;
         }
 
+        auto physicsComp = _ecm.Component<components::Physics>(_entity);
+
         sdf::World world;
         world.SetName(_name->Data());
         world.SetGravity(_gravity->Data());
+        if (physicsComp)
+        {
+          if (auto* physics = world.PhysicsByIndex(0))
+          {
+            *physics = physicsComp->Data();
+          }
+        }
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
+
+        // Kinematic contacts. Set before any model is created so that the
+        // links are created with the right collision filters.
+        if (!this->kinematicContacts)
+        {
+          auto kinematicContactsFeature =
+              this->entityWorldMap.EntityCast<KinematicContactsFeatureList>(
+              _entity);
+          if (!kinematicContactsFeature)
+          {
+            static bool informed{false};
+            if (!informed)
+            {
+              gzdbg << "Attempting to disable the contacts of kinematic "
+                    << "links, but the physics engine doesn't support "
+                    << "feature [KinematicContacts]. Contacts between "
+                    << "kinematic links and static or kinematic links will "
+                    << "be detected." << std::endl;
+              informed = true;
+            }
+          }
+          else
+          {
+            kinematicContactsFeature->SetKinematicContactsEnabled(false);
+          }
+        }
 
         // Optional world features
         auto collisionDetectorComp =
@@ -1275,8 +1382,6 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           }
         }
 
-        auto physicsComp =
-            _ecm.Component<components::Physics>(_entity);
         if (physicsComp)
         {
           auto maxContactsFeature =
@@ -1367,11 +1472,37 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
     model.SetRawPose(_pose->Data());
     model.SetPoseRelativeTo("");
 
+    // Kinematic default: set <kinematic> on the links that do not set it
+    // before the model is constructed, so that the physics engine creates
+    // them kinematic. Static models are left alone.
+    auto staticComp = _ecm.Component<components::Static>(_entity);
+    if (this->kinematicEnabled && !model.Static() &&
+        !(staticComp && staticComp->Data()))
+    {
+      std::vector<std::string> dynamicLinks;
+      this->ApplyKinematicDefault(model, model.Name(), dynamicLinks);
+      // Nested models are also visited from their top-level model, which is
+      // the one the physics engine builds the whole tree from, so report
+      // their links from there only.
+      if (!dynamicLinks.empty() &&
+          this->entityWorldMap.HasEntity(_parent->Data()))
+      {
+        // Models exported from Gazebo classic often carry an explicit
+        // <kinematic>0</kinematic>, so say which links keep it.
+        std::string names;
+        for (const auto &link : dynamicLinks)
+          names += (names.empty() ? "" : ", ") + link;
+        gzmsg << "Links [" << names << "] stay dynamic because their SDF "
+              << "sets <kinematic>false</kinematic>, which overrides the "
+              << "<kinematic><enabled> parameter of the Physics system."
+              << std::endl;
+      }
+    }
+
     sdf::Root root;
     root.SetModel(model);
     root.UpdateGraphs();
 
-    auto staticComp = _ecm.Component<components::Static>(_entity);
     if (staticComp && staticComp->Data())
     {
       model.SetStatic(staticComp->Data());
@@ -1484,7 +1615,7 @@ void PhysicsPrivate::CreateModelEntities(const EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
+void PhysicsPrivate::CreateLinkEntities(EntityComponentManager &_ecm,
                                         bool _warnIfEntityExists)
 {
   _ecm.EachNew<components::Link, components::Name, components::Pose,
@@ -1538,6 +1669,7 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           this->entityLinkMap.AddEntity(_entity, existingLink);
           this->topLevelModelMap.insert(
             std::make_pair(_entity, topLevelModel(_entity, _ecm)));
+          this->RecordKinematicState(_ecm, _entity);
           return true;
         }
 
@@ -1580,6 +1712,14 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
           link.SetEnableGravity(gravityEnabled->Data());
         }
 
+        // A link constructed at runtime has no SDF that could set
+        // <kinematic>, so it takes the value of its Kinematic component, if
+        // any, or else the default of the <kinematic><enabled> parameter.
+        const components::Kinematic *kinematic =
+            _ecm.Component<components::Kinematic>(_entity);
+        link.SetKinematic(nullptr != kinematic ?
+            kinematic->Data() : this->kinematicEnabled);
+
         auto constructLinkFeature =
           this->entityModelMap.EntityCast<ConstructSdfLinkFeatureList>(
             _parent->Data());
@@ -1601,9 +1741,61 @@ void PhysicsPrivate::CreateLinkEntities(const EntityComponentManager &_ecm,
         this->entityLinkMap.AddEntity(_entity, linkPtrPhys);
         this->topLevelModelMap.insert(std::make_pair(_entity,
             topLevelModel(_entity, _ecm)));
+        this->RecordKinematicState(_ecm, _entity);
 
         return true;
       });
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::RecordKinematicState(EntityComponentManager &_ecm,
+    const Entity &_linkEntity)
+{
+  if (nullptr != _ecm.Component<components::Kinematic>(_linkEntity))
+    return;
+
+  // Links of static models are never kinematic; otherwise the default of
+  // the <kinematic><enabled> parameter applies to links whose SDF does not
+  // set <kinematic> (those that do already have the component).
+  bool kinematic = this->kinematicEnabled;
+  if (const auto *parent = _ecm.Component<components::ParentEntity>(
+        _linkEntity); nullptr != parent &&
+      this->staticEntities.find(parent->Data()) != this->staticEntities.end())
+  {
+    kinematic = false;
+  }
+  // Prefer the state the physics engine actually created the link with.
+  if (auto kinematicLink =
+      this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_linkEntity))
+  {
+    kinematic = kinematicLink->GetKinematic();
+  }
+  _ecm.CreateComponent(_linkEntity, components::Kinematic(kinematic));
+}
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::ApplyKinematicDefault(sdf::Model &_model,
+    const std::string &_prefix, std::vector<std::string> &_dynamicLinks) const
+{
+  for (uint64_t i = 0; i < _model.LinkCount(); ++i)
+  {
+    sdf::Link *link = _model.LinkByIndex(i);
+    // The <kinematic> element of a link, when present, overrides the default
+    if (link->Element() && link->Element()->HasElement("kinematic"))
+    {
+      if (this->kinematicEnabled && !link->Kinematic())
+        _dynamicLinks.push_back(_prefix + "::" + link->Name());
+      continue;
+    }
+    link->SetKinematic(this->kinematicEnabled);
+  }
+
+  for (uint64_t i = 0; i < _model.ModelCount(); ++i)
+  {
+    sdf::Model *nested = _model.ModelByIndex(i);
+    this->ApplyKinematicDefault(*nested, _prefix + "::" + nested->Name(),
+        _dynamicLinks);
+  }
 }
 
 //////////////////////////////////////////////////
@@ -2927,6 +3119,69 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::GravityEnabledCmd>(entity);
   }
 
+  // update Link kinematic state
+  auto olderKinematicCmdsToRemove = std::move(this->kinematicCmdsToRemove);
+  this->kinematicCmdsToRemove.clear();
+
+  _ecm.Each<components::Link,
+    components::KinematicCmd,
+    components::Name>(
+      [&](const Entity &_entity, const components::Link *,
+          const components::KinematicCmd *_kinematicCmd,
+          const components::Name *_name)->bool
+      {
+        this->kinematicCmdsToRemove.insert(_entity);
+
+        auto linkPtrPhys = this->entityLinkMap.Get(_entity);
+        if (nullptr == linkPtrPhys)
+          return true;
+
+        auto kinematicLinkFeature =
+          this->entityLinkMap.EntityCast<KinematicLinkFeatureList>(_entity);
+
+        if (!kinematicLinkFeature)
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set link kinematic state, but the "
+                   << "physics engine doesn't support feature "
+                   << "[KinematicLink]. Kinematic state won't be populated."
+                   << " " << _name->Data()
+                   << std::endl;
+            informed = true;
+          }
+
+          // Continue loop so commands are marked for removal in next iteration
+          return true;
+        }
+        kinematicLinkFeature->SetKinematic(_kinematicCmd->Data());
+
+        // Reflect the new state in the Kinematic component so other systems
+        // can query it.
+        auto kinematicComp = _ecm.Component<components::Kinematic>(_entity);
+        if (nullptr == kinematicComp)
+        {
+          _ecm.CreateComponent(_entity,
+              components::Kinematic(_kinematicCmd->Data()));
+        }
+        else
+        {
+          auto state = kinematicComp->SetData(_kinematicCmd->Data(),
+              [](const bool &_a, const bool &_b){return _a == _b;}) ?
+              ComponentState::OneTimeChange : ComponentState::NoChange;
+          _ecm.SetChanged(_entity, components::Kinematic::typeId, state);
+        }
+        return true;
+      });
+
+  // Remove kinematic commands from previous iteration. We let them rotate
+  // one iteration so other systems have a chance to react to them too.
+  for (const Entity &entity : olderKinematicCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::KinematicCmd>(entity);
+  }
+
   // update Collision enabled
   auto olderCollisionEnabledCmdsToRemove =
     std::move(this->collisionEnabledCmdsToRemove);
@@ -3455,6 +3710,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->collideBitmaskCmdsToRemove.clear();
   this->categoryBitmaskCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
+  this->kinematicCmdsToRemove.clear();
   this->collisionEnabledCmdsToRemove.clear();
 
   this->RemovePhysicsEntities(_ecm);
@@ -3571,7 +3827,7 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-gz::physics::ForwardStep::Output PhysicsPrivate::Step(
+const std::optional<gz::physics::ForwardStep::Output> &PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   GZ_PROFILE("PhysicsPrivate::Step");
@@ -3582,7 +3838,7 @@ gz::physics::ForwardStep::Output PhysicsPrivate::Step(
 
   for (const auto &world : this->entityWorldMap.Map())
   {
-    world.second->Step(this->stepOutput, state, input);
+    world.second->Step(*this->stepOutput, state, input);
   }
 
   return this->stepOutput;
@@ -3627,7 +3883,7 @@ math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 //////////////////////////////////////////////////
 std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
-    const gz::physics::ForwardStep::Output &_updatedLinks)
+    const std::optional<gz::physics::ForwardStep::Output> &_updatedLinks)
 {
   GZ_PROFILE("Links Frame Data");
 
@@ -3635,10 +3891,11 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
 
   // Check to see if the physics engine gave a list of changed poses. If not, we
   // will iterate through all of the links via the ECM to see which ones changed
-  if (_updatedLinks.Has<gz::physics::ChangedWorldPoses>())
+  if (_updatedLinks &&
+      _updatedLinks->Has<gz::physics::ChangedWorldPoses>())
   {
     for (const auto &link :
-        _updatedLinks.Query<gz::physics::ChangedWorldPoses>()->entries)
+        _updatedLinks->Query<gz::physics::ChangedWorldPoses>()->entries)
     {
       // get the gazebo entity that matches the updated physics link entity
       const auto linkPhys = this->entityLinkMap.GetPhysicsEntityPtr(link.body);

@@ -36,7 +36,7 @@ namespace components
   /// represented by gz::math::Vector3d.
   using LinearVelocityReset = Component<math::Vector3d ,
                                        class LinearVelocityResetTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.LinearVelocityReset", LinearVelocityReset)
 
   /// \brief Linear velocity of an entity in the world frame
@@ -44,7 +44,7 @@ namespace components
   /// represented by gz::math::Vector3d.
   using WorldLinearVelocityReset = Component<math::Vector3d ,
                                        class WorldLinearVelocityResetTag>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.WorldLinearVelocityReset", WorldLinearVelocityReset)
 }
 }

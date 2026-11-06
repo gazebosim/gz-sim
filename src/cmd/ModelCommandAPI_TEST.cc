@@ -239,10 +239,7 @@ TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
       "    - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "      [0.000000 0.000000 0.000000]\n"
       "      [0.000000 0.000000 0.000000]\n";
-    // Skip expectation on arm64 due to issue 3602
-#ifndef __aarch64__
     EXPECT_EQ(expectedOutput, output);
-#endif
   }
 
   // Tested command: gz model -m vehicle_blue --pose
@@ -391,10 +388,7 @@ TEST_F(ModelCommandAPI, GZ_UTILS_TEST_DISABLED_ON_WIN32(Commands))
       "  - Pose [ XYZ (m) ] [ RPY (rad) ]:\n"
       "    [0.000000 0.000000 0.000000]\n"
       "    [0.000000 0.000000 0.000000]\n";
-    // Skip expectation on arm64 due to issue 3602
-#ifndef __aarch64__
     EXPECT_EQ(expectedOutput, output);
-#endif
   }
 
   // Tested command: gz model -m vehicle_blue --joint caster_wheel

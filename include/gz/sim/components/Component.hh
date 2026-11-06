@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <type_traits>
 #include <utility>
 
 #include <gz/common/Console.hh>
@@ -28,6 +29,8 @@
 #include <gz/sim/config.hh>
 #include <gz/sim/Export.hh>
 #include <gz/sim/Types.hh>
+
+#include <gz/sim/detail/vendor/entt/core/type_info.hpp>
 
 namespace gz
 {
@@ -211,6 +214,20 @@ namespace components
     static_assert(false, "Type ID not set, did you register the component "
                   "through the GZ_SIM_REGISTER_COMPONENT macro?");
     return 0;
+  }
+
+  /// \brief Fallback function for ADL component type names.
+  /// This returns nullptr for components whose `gzSimFactoryComponentTypeId`
+  /// is defined manually instead of through the GZ_SIM_DECLARE_COMPONENT /
+  /// GZ_SIM_REGISTER_COMPONENT macros. For such components `typeName` keeps
+  /// its historical behavior: nullptr until Factory registration assigns it.
+  /// It is a template so it has lower priority than the non-template
+  /// overloads defined by the macros.
+  template <typename T>
+  // NOLINTNEXTLINE(readability/casting)
+  constexpr const char *gzSimFactoryComponentTypeName(T*)
+  {
+    return nullptr;
   }
 
   /// \brief Convenient type to be used by components that don't wrap any data.
@@ -410,9 +427,14 @@ namespace components
     public: inline static constexpr ComponentTypeId typeId =
             gzSimFactoryComponentTypeId(static_cast<Component*>(nullptr));
 
-    /// \brief Unique name for this component type. This is set through the
-    /// Factory registration.
-    public: inline static const char *typeName{nullptr};
+    /// \brief Unique name for this component type. Initialized via the
+    /// `gzSimFactoryComponentTypeName` ADL helper declared by the
+    /// GZ_SIM_DECLARE_COMPONENT / GZ_SIM_REGISTER_COMPONENT macros, so the
+    /// name is correct in every shared library regardless of which library
+    /// ran the Factory registration. Remains assignable for compatibility
+    /// (Factory registration also sets it).
+    public: inline static const char *typeName =
+            gzSimFactoryComponentTypeName(static_cast<Component*>(nullptr));
   };
 
   /// \brief Specialization for components that don't wrap any data.
@@ -471,9 +493,14 @@ namespace components
     public: inline static constexpr ComponentTypeId typeId =
             gzSimFactoryComponentTypeId(static_cast<Component*>(nullptr));
 
-    /// \brief Unique name for this component type. This is set through the
-    /// Factory registration.
-    public: inline static const char *typeName{nullptr};
+    /// \brief Unique name for this component type. Initialized via the
+    /// `gzSimFactoryComponentTypeName` ADL helper declared by the
+    /// GZ_SIM_DECLARE_COMPONENT / GZ_SIM_REGISTER_COMPONENT macros, so the
+    /// name is correct in every shared library regardless of which library
+    /// ran the Factory registration. Remains assignable for compatibility
+    /// (Factory registration also sets it).
+    public: inline static const char *typeName =
+            gzSimFactoryComponentTypeName(static_cast<Component*>(nullptr));
   };
 
   //////////////////////////////////////////////////
@@ -607,4 +634,20 @@ namespace components
 }
 }
 }
+
+namespace entt
+{
+template <typename T>
+struct type_hash<T, std::void_t<
+    std::enable_if_t<std::is_base_of_v<gz::sim::components::BaseComponent, T>>,
+    decltype(T::typeId)
+>>
+{
+  static constexpr ENTT_ID_TYPE value() noexcept
+  {
+    return T::typeId;
+  }
+};
+}
+
 #endif

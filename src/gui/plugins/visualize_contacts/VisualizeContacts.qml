@@ -55,21 +55,70 @@ GridLayout {
 
   Text {
     Layout.columnSpan: 2
-    id: radiusText
+    id: sphereRadiusText
     color: "dimgrey"
-    text: "Radius (m)"
+    text: "Sphere radius (m)"
   }
 
   GzSpinBox {
     Layout.columnSpan: 2
     Layout.fillWidth: true
-    id: radius
+    id: sphereRadius
     maximumValue: 2.00
     minimumValue: 0.01
     value: 0.10
     decimals: 2
     stepSize: 0.05
-    onEditingFinished: _VisualizeContacts.UpdateRadius(radius.value)
+    onEditingFinished: _VisualizeContacts.UpdateSphereRadius(sphereRadius.value)
+  }
+
+  CheckBox {
+    Layout.alignment: Qt.AlignHCenter
+    id: visualizeForces
+    Layout.columnSpan: 4
+    text: qsTr("Show Force Vectors")
+    checked: false
+    onClicked: {
+      _VisualizeContacts.OnVisualizeForces(checked)
+    }
+  }
+
+  Text {
+    Layout.columnSpan: 2
+    id: forceScaleText
+    color: "dimgrey"
+    text: "Force scale (m/N)"
+  }
+
+  GzSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: forceScale
+    maximumValue: 1.0
+    minimumValue: 0.005
+    value: 0.1
+    decimals: 3
+    stepSize: 0.005
+    onEditingFinished: _VisualizeContacts.UpdateForceScale(forceScale.value)
+  }
+
+  Text {
+    Layout.columnSpan: 2
+    id: arrowRadiusText
+    color: "dimgrey"
+    text: "Arrow radius (m)"
+  }
+
+  GzSpinBox {
+    Layout.columnSpan: 2
+    Layout.fillWidth: true
+    id: arrowRadius
+    maximumValue: 0.500
+    minimumValue: 0.001
+    value: 0.01
+    decimals: 3
+    stepSize: 0.002
+    onEditingFinished: _VisualizeContacts.UpdateArrowRadius(arrowRadius.value)
   }
 
   Text {

@@ -33,11 +33,11 @@ namespace components
 {
   /// \brief This component identifies an entity as being a level.
   using Level = Component<NoData, class LevelTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Level", Level)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Level", Level)
 
   /// \brief This component identifies an entity as being a default level.
   using DefaultLevel = Component<NoData, class DefaultLevelTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.DefaultLevel",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.DefaultLevel",
       DefaultLevel)
 }
 }

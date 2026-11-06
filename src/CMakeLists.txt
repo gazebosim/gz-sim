@@ -69,7 +69,6 @@ set(material_sources
 set (sources
   Actor.cc
   Barrier.cc
-  BaseView.cc
   Conversions.cc
   ComponentFactory.cc
   EntityComponentManager.cc
@@ -93,7 +92,6 @@ set (sources
   SystemManager.cc
   TestFixture.cc
   Util.cc
-  View.cc
   World.cc
   ${network_sources}
   ${comms_sources}
@@ -101,12 +99,15 @@ set (sources
   ${material_sources}
 )
 
+if (pybind11_FOUND)
+  list(APPEND sources ComponentPybindRegistry.cc)
+endif()
+
 set (gtest_sources
   ${gtest_sources}
   Actor_TEST.cc
   AddedMass_TEST.cc
   Barrier_TEST.cc
-  BaseView_TEST.cc
   ComponentFactory_TEST.cc
   Component_TEST.cc
   Conversions_TEST.cc
@@ -209,7 +210,7 @@ endif()
 
 if (pybind11_FOUND)
   target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE pybind11::embed)
-  target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PUBLIC -DHAVE_PYBIND11)
+  target_compile_definitions(${PROJECT_LIBRARY_TARGET_NAME} PRIVATE -DHAVE_PYBIND11)
 endif()
 
 if (UNIX AND NOT APPLE)
@@ -235,6 +236,7 @@ gz_build_tests(TYPE UNIT
     gz-sim
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 # Some server unit tests require rendering.

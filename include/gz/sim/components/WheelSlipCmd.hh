@@ -37,7 +37,7 @@ namespace components
   /// an entity in the world frame represented by msgs::WheelSlipParameters.
   using WheelSlipCmd = Component<gz::msgs::WheelSlipParametersCmd,
     class WheelSlipCmdTag, serializers::MsgSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.WheelSlipCmd",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.WheelSlipCmd",
       WheelSlipCmd)
 }
 }

@@ -2378,7 +2378,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       }
       mapAnimNameId[animName] = numAnims++;
     }
-    else if (extension == "dae")
+    else if (extension == "dae" || extension == "gltf" || extension == "glb")
     {
       // Load the mesh if it has not been loaded before
       const common::Mesh *animMesh = nullptr;
