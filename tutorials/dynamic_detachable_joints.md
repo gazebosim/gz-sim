@@ -11,9 +11,9 @@ chosen at runtime through a service request.
 
 The system has the following parameters:
 
-* `<parent_link>`: Name of the link in the model containing this system that
-will be used as the parent link in the detachable joint. This parameter is
-required.
+* `<parent_link>` (optional): Default name of the link in the model containing
+this system that will be used as the parent link in the detachable joint when
+`parent_link_name` is omitted from the service request.
 
 * `<attach_distance>` (optional): Maximum distance in meters between the parent
 link and requested child link. Attach requests are rejected during simulation
@@ -21,7 +21,8 @@ update when the links are farther apart. The default is 0.1 m.
 
 * `<service_name>` (optional): Service name for attach and detach requests. If
 empty, the default service name is
-`/model/<model_name>/dynamic_detachable_joint/attach_detach`.
+`/model/<model_name>/dynamic_detachable_joint/attach_detach`. A blocking
+variant is also advertised at `<service_name>/blocking`.
 
 * `<output_topic>` (optional): Topic name used to publish the attachment state.
 If empty, the default topic name is
@@ -59,10 +60,14 @@ gz service -s /payload/attach_detach \
   --req 'child_model_name:"red_cube" child_link_name:"link" command:DETACH'
 ```
 
-The service response is `gz.msgs.Result`. An `error_code` of 0 means the request
-was accepted by the service callback. The actual joint creation or removal is
-performed during `PreUpdate`, because it requires access to the simulation
-entity-component manager.
+The service response is `gz.msgs.Result`. On `<service_name>`, an `error_code`
+of 0 means the request was accepted and queued for the next `PreUpdate` step.
+To wait for `PreUpdate` to execute the joint creation or removal and return any
+runtime error (such as missing entities or exceeding `<attach_distance>`), call
+`<service_name>/blocking` instead. You can also pass `parent_link_name` in
+`gz.msgs.AttachDetachRequest` to attach or detach using a specific parent link
+on the model, allowing a single plugin instance to manage multiple parent/child
+pairs simultaneously.
 
 The state topic publishes `gz.msgs.Entity`. When a child link is attached, the
 message contains the attached link entity ID with type `LINK`. When detached,
