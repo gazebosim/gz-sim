@@ -18,6 +18,7 @@
 #define GZ_SIM_CAMERAVIDEORECORDER_SYSTEM_HH_
 
 #include <memory>
+#include <string>
 #include <gz/sim/config.hh>
 #include <gz/sim/System.hh>
 
@@ -39,10 +40,13 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// - `<service>`:  Name of topic for the video recorder service. If this is
+  /// - `<service>`: Name of topic for the video recorder service. If this is
   ///   not specified, the topic defaults to:
   ///   /world/`<world_name>`/model/`<model_name>`/link/`<link_name>`/
-  ///   sensor/`<sensor_name>`/record_video
+  ///   sensor/`<sensor_name>`/record_video, or
+  ///   `<namespace>`/record_video when the model has a namespace. Relative
+  ///   service names are prefixed with the namespace. Absolute service names
+  ///   remain unchanged.
   ///
   /// - `<use_sim_time>`: True/false value that specifies if the video should
   ///   be recorded using simulation time or real time. The default is false,
@@ -53,16 +57,38 @@ namespace systems
   ///
   /// - `<bitrate>`: Video recorder bitrate (bps). The default value is
   ///   2070000 bps, and the supported type is unsigned int.
+  ///
+  /// The camera sensor `<topic>` follows the same namespace rules. Its default
+  /// is /world/`<world_name>`/model/`<model_name>`/link/`<link_name>`/
+  /// sensor/`<sensor_name>`/image, or `<namespace>`/image when the model has
+  /// a namespace. The recorder also uses this topic as the prefix for the
+  /// `<topic>`/stats and `<topic>`/marker topics.
   class CameraVideoRecorder final:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
   {
+    /// \brief Resolved interface names
+    public: struct InterfaceNames
+    {
+      /// \brief Video recorder service
+      public: std::string service;
+
+      /// \brief Camera sensor topic
+      public: std::string sensorTopic;
+
+      /// \brief Recorder stats topic
+      public: std::string statsTopic;
+
+      /// \brief Marker topic
+      public: std::string markerTopic;
+    };
+
     /// \brief Constructor
     public: CameraVideoRecorder();
 
     /// \brief Destructor
-    public: ~CameraVideoRecorder() final = default;
+    public: ~CameraVideoRecorder() final;
 
     /// Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -73,6 +99,10 @@ namespace systems
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) final;
+
+    /// \brief Get the resolved interface names
+    /// \return Resolved interface names
+    public: InterfaceNames ResolvedInterfaceNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<CameraVideoRecorderPrivate> dataPtr;
