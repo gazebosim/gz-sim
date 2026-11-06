@@ -561,7 +561,6 @@ namespace gz
       private: std::unique_ptr<SimulationRunnerWinHandleStorage>
         winPrecisionTimer;
 #endif
-
       friend class LevelManager;
     };
     }
