@@ -1212,6 +1212,27 @@ void RenderUtil::Update()
   // create new entities
   {
     GZ_PROFILE("RenderUtil::Update Create");
+    // Reset marks surviving entities as new as well as restored entities.
+    // Keep their rendering objects, including sensors, instead of trying
+    // to create them again. Check after removals so deleted originals can
+    // still be recreated.
+    const auto skipExistingEntities = [this](auto &_entities)
+    {
+      _entities.erase(std::remove_if(_entities.begin(), _entities.end(),
+          [this](const auto &_entity)
+          {
+            return this->dataPtr->sceneManager.HasEntity(std::get<0>(_entity));
+          }), _entities.end());
+    };
+    skipExistingEntities(newModels);
+    skipExistingEntities(newActors);
+    skipExistingEntities(newLinks);
+    skipExistingEntities(newVisuals);
+    skipExistingEntities(newLights);
+    skipExistingEntities(newParticleEmitters);
+    skipExistingEntities(newProjectors);
+    skipExistingEntities(newSensors);
+
     // Presort to make sure parent models are spawned before their children
     std::sort(newModels.begin(), newModels.end(),
         [](const auto &_a, const auto &_b)
