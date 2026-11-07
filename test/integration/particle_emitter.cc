@@ -138,6 +138,7 @@ TEST_F(ParticleEmitterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
     const auto *pose = ecm->Component<components::Pose>(entity);
     ASSERT_NE(nullptr, pose);
 
+    EXPECT_EQ("smoke_generator", emitter->Data().name());
     EXPECT_EQ(msgs::ParticleEmitter_EmitterType_POINT,
         emitter->Data().type());
     EXPECT_EQ(math::Pose3d(0, 0, 0, 0, 0, 0), pose->Data());
