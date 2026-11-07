@@ -129,6 +129,12 @@ namespace gz
       /// \return True if wind mode is on.
       public: bool WindMode(const EntityComponentManager &_ecm) const;
 
+      /// \brief Get whether this link has gravity enabled.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if gravity mode is on, nullopt if component is missing.
+      public: std::optional<bool> GravityEnabled(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Get the ID of a collision entity which is an immediate child of
       /// this link.
       /// \param[in] _ecm Entity-component manager.
@@ -265,6 +271,12 @@ namespace gz
       /// \param[in] _vel Angular velocity to set in Link's Frame.
       public: void SetAngularVelocity(EntityComponentManager &_ecm,
           const math::Vector3d &_vel) const;
+
+      /// \brief Set a new command to change the link's gravity.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _enabled True to enable gravity, false otherwise.
+      public: void SetGravityEnabled(EntityComponentManager &_ecm,
+          bool _enabled) const;
 
       /// \brief Get the angular acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.

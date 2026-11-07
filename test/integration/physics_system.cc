@@ -55,6 +55,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Geometry.hh"
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/JointEffortLimitsCmd.hh"

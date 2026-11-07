@@ -55,11 +55,15 @@ namespace systems
   /// element is optional, and the default value is 50Hz.
   ///
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
+  /// receive command velocity messages. This element is optional, and the
   /// default value is `/model/{name_of_model}/cmd_vel`.
   ///
+  /// - `<enable_topic>`: Custom topic that this system will subscribe to in
+  /// order to receive enable messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/enable`.
+  ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
+  /// messages. This element is optional, and the default value is
   /// `/model/{name_of_model}/odometry`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
