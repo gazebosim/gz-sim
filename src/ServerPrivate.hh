@@ -90,6 +90,12 @@ namespace gz
       /// \brief Stop server.
       public: void Stop();
 
+      /// \brief Check whether any simulation runner has exited with errors,
+      /// for example because a system plugin failed to load. If so, mark the
+      /// server as exited with errors and stop all the simulation runners.
+      /// \return True if any simulation runner has exited with errors.
+      public: bool HandleRunnerErrors();
+
       /// \brief Sets up all transport.
       /// \detail Future publishers and subscribers should be created within
       /// this function.
@@ -231,7 +237,7 @@ namespace gz
 
       /// \brief Flag indicating if the server encountered errors during
       /// initialization and should exit immediately.
-      public: bool exitedWithErrors{false};
+      public: std::atomic<bool> exitedWithErrors{false};
 
       /// \brief List of names for all worlds loaded in this server.
       private: std::vector<std::string> worldNames;
