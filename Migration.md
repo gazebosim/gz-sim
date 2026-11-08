@@ -50,7 +50,7 @@ release will remove the deprecated code.
 * **Deprecations**
   * **AckermannSteering**: The `<sub_topic>` SDF parameter originally prefixes
     the specified value with `/model/{model_name}/`.
-    
+
     With the new model namespace support, `<sub_topic>` uses the model namespace
     as the prefix when one is specified, while preserving the original behavior
     otherwise.
