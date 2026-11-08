@@ -114,6 +114,14 @@ namespace gz
       public: std::optional<bool> GravityEnabled(
           const EntityComponentManager &_ecm) const;
 
+      /// \brief Get whether this link is kinematic. A kinematic link does
+      /// not react to forces and only moves as commanded.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return True if the link is kinematic, nullopt if component is
+      /// missing.
+      public: std::optional<bool> Kinematic(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Get the ID of a collision entity which is an immediate child of
       /// this link.
       /// \param[in] _ecm Entity-component manager.
@@ -256,6 +264,15 @@ namespace gz
       /// \param[in] _enabled True to enable gravity, false otherwise.
       public: void SetGravityEnabled(EntityComponentManager &_ecm,
           bool _enabled) const;
+
+      /// \brief Set a new command to change whether the link is kinematic.
+      /// Requires a physics engine that supports the KinematicLink feature,
+      /// e.g. bullet-featherstone.
+      /// \param[in] _ecm Entity-component manager.
+      /// \param[in] _kinematic True to make the link kinematic, false to
+      /// make it dynamic.
+      public: void SetKinematic(EntityComponentManager &_ecm,
+          bool _kinematic) const;
 
       /// \brief Get the angular acceleration of the body in the world frame.
       /// \param[in] _ecm Entity-component manager.
