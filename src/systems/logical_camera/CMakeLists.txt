@@ -1,23 +1,10 @@
 gz_add_system(logical-camera
   SOURCES
     LogicalCamera.cc
+  TEST_SOURCES
+    LogicalCamera_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-sensors::gz-sensors
     gz-sensors::logical_camera
 )
-
-gz_build_tests(TYPE UNIT
-  SOURCES
-    LogicalCamera_TEST.cc
-  LIB_DEPS
-    gz-sensors::logical_camera
-  ENVIRONMENT
-    GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-    GZ_IP=127.0.0.1
-)
-
-if (TARGET UNIT_LogicalCamera_TEST)
-  target_sources(UNIT_LogicalCamera_TEST PRIVATE LogicalCamera.cc)
-  target_include_directories(UNIT_LogicalCamera_TEST PRIVATE ${PROJECT_SOURCE_DIR}/test)
-endif()
