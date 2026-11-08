@@ -155,7 +155,9 @@ class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
 };
 
 //////////////////////////////////////////////////
-void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
+void testTopics(
+  const std::vector<std::string> &_publishedTopics,
+  const std::vector<std::string> &_subscribedTopics)
 {
   // TODO(anyone) This should be a new test, but running multiple tests with
   // sensors is not currently working
@@ -168,7 +170,7 @@ void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
   int sleep{0};
   int maxSleep{30};
   for (; sleep < maxSleep &&
-      !node.TopicInfo(_topics.front(), publishers, subscribers);
+      !node.TopicInfo(_publishedTopics.front(), publishers, subscribers);
       ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -177,29 +179,30 @@ void testTopics(const std::vector<std::string> &_topics, bool _checkPublished)
 
   std::vector<transport::TopicInfo> topicInfo;
   node.AllTopicInfo(topicInfo);
-  for (const std::string &topic : _topics)
+
+  auto checkTopics = [&topicInfo](
+      const std::vector<std::string> &_topics, bool _checkPublishers)
   {
-    auto info = std::find_if(topicInfo.begin(), topicInfo.end(),
-        [&topic](const transport::TopicInfo &_info)
-        {
-          return _info.topicName == topic;
-        });
+    for (const auto &topic : _topics)
+    {
+      auto info = std::find_if(topicInfo.begin(), topicInfo.end(),
+          [&topic](const transport::TopicInfo &_info)
+          {
+            return _info.topicName == topic;
+          });
 
-    if (info == topicInfo.end())
-    {
-      ADD_FAILURE() << "Could not find topic info for " << topic;
-      continue;
-    }
+      if (info == topicInfo.end())
+      {
+        ADD_FAILURE() << "Could not find topic info for " << topic;
+        continue;
+      }
 
-    if (_checkPublished)
-    {
-      EXPECT_EQ(1u, info->publishers.size());
+      EXPECT_EQ(1u, _checkPublishers ?
+        info->publishers.size() : info->subscribers.size());
     }
-    else
-    {
-      EXPECT_EQ(1u, info->subscribers.size());
-    }
-  }
+  };
+  checkTopics(_publishedTopics, true);
+  checkTopics(_subscribedTopics, false);
 }
 
 /////////////////////////////////////////////////
@@ -285,8 +288,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
       "/test_trigger"
   };
 
-  testTopics(published_topics, true);
-  testTopics(subscribed_topics, false);
+  testTopics(published_topics, subscribed_topics);
   testSensorEntityIds(*ecm, g_sensorEntityIds);
   testSensorTopicComponents(*ecm, g_sensorEntityIds, published_topics);
 
@@ -372,6 +374,5 @@ TEST_F(SensorsFixture, SensorNamespace)
       "/default_topics_ns/image/trigger",
       "/rgbd_default_topics_ns/trigger",
   };
-  testTopics(published_topics, true);
-  testTopics(subscribed_topics, false);
+  testTopics(published_topics, subscribed_topics);
 }
