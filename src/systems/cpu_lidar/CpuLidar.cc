@@ -84,7 +84,7 @@ class gz::sim::systems::CpuLidarPrivate
     const Entity _entity,
     const components::CpuLidar *_cpuLidar,
     const components::ParentEntity *_parent);
-  
+
   /// \brief Remove lidar sensors if their entities have been removed
   /// \param[in] _ecm Immutable reference to ECM.
   public: void RemoveSensorEntities(const EntityComponentManager &_ecm);
