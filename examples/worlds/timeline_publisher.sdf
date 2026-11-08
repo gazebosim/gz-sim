@@ -1,0 +1,433 @@
+<?xml version="1.0" ?>
+<!--
+  TimelinePublisher demo: a catapult
+
+  A TimelinePublisher plays a 6 second loop. At the start of each cycle it
+  calls the set_pose_vector service once to load the projectile and rebuild
+  the tower. One second later it publishes a joint target that drives the
+  arm until it hits its stop and throws the projectile at the tower, and at
+  three seconds it lowers the arm again.
+
+  The projectile and the crates come from the kinematic_workshop collection
+  on Fuel and are downloaded on the first run:
+  https://app.gazebosim.org/caguero/fuel/collections/kinematic_workshop
+
+  Run it with:
+
+    gz sim -r timeline_publisher.sdf
+
+  The timeline follows simulation time: pausing the simulation pauses it, and
+  resetting the world starts it over.
+
+  The throw is tuned for DART and bullet-featherstone. Other engines run the
+  same timeline, but the throw depends on how hard the arm stop is, so the
+  tower may not fall.
+-->
+<sdf version="1.11">
+  <world name="timeline_publisher">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands">
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin filename="gz-sim-timeline-publisher-system"
+            name="gz::sim::systems::TimelinePublisher">
+      <loop>true</loop>
+      <period>6</period>
+      <keyframe time="0">
+        <service name="/world/timeline_publisher/set_pose_vector"
+                 reqType="gz.msgs.Pose_V" repType="gz.msgs.Boolean">
+          pose { name: "projectile" position { x: -0.75 y: 0 z: 0.46 } }
+          pose { name: "crate_1" position { x: 2.3 y: 0 z: 0.12 } }
+          pose { name: "crate_2" position { x: 2.3 y: 0 z: 0.36 } }
+          pose { name: "crate_3" position { x: 2.3 y: 0 z: 0.6 } }
+          pose { name: "crate_4" position { x: 2.3 y: 0 z: 0.84 } }
+          pose { name: "crate_5" position { x: 2.3 y: 0 z: 1.08 } }
+          pose { name: "crate_6" position { x: 2.3 y: 0 z: 1.32 } }
+        </service>
+      </keyframe>
+      <keyframe time="1">
+        <output topic="/model/catapult/joint/hinge/0/cmd_pos"
+                type="gz.msgs.Double">
+          data: 2
+        </output>
+      </keyframe>
+      <keyframe time="3">
+        <output topic="/model/catapult/joint/hinge/0/cmd_pos"
+                type="gz.msgs.Double">
+          data: 0
+        </output>
+      </keyframe>
+    </plugin>
+
+    <gz:policies>
+      <include_gui_default_plugins>false</include_gui_default_plugins>
+    </gz:policies>
+
+    <gui fullscreen="0">
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.16 0.16 0.19</ambient_light>
+        <background_color>0.0055 0.0065 0.0095</background_color>
+        <camera_pose>0.2 -3.6 1.5 0 0.26 1.35</camera_pose>
+        <shadows>
+          <texture_size light_type="directional">4096</texture_size>
+        </shadows>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl"
+              name="Interactive view control">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right"/>
+            <line own="bottom" target="bottom"/>
+          </anchors>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+      </plugin>
+    </gui>
+
+    <scene>
+      <ambient>0.16 0.16 0.19 1</ambient>
+      <background>0.0055 0.0065 0.0095 1</background>
+      <grid>false</grid>
+      <shadows>true</shadows>
+    </scene>
+
+    <!-- A dim cool moon, a warm key spot on the action and a teal rim -->
+    <light type="directional" name="moon">
+      <pose>0 0 10 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.16 0.19 0.26 1</diffuse>
+      <specular>0.1 0.1 0.12 1</specular>
+      <direction>0.4 -0.5 -0.75</direction>
+    </light>
+    <light type="spot" name="key">
+      <pose>0.8 -2 6 0 0 0</pose>
+      <cast_shadows>true</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.95 0.85 0.72 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>0 0.316 -0.949</direction>
+      <attenuation>
+        <range>25</range>
+        <constant>0.2</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0.35</inner_angle>
+        <outer_angle>0.6</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+    </light>
+    <light type="spot" name="teal_rim">
+      <pose>1 7 4 0 0 0</pose>
+      <cast_shadows>false</cast_shadows>
+      <visualize>false</visualize>
+      <diffuse>0.2 0.65 1 1</diffuse>
+      <specular>0.8 0.8 0.8 1</specular>
+      <direction>0 -0.87 -0.49</direction>
+      <attenuation>
+        <range>30</range>
+        <constant>0.2</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <spot>
+        <inner_angle>0.5</inner_angle>
+        <outer_angle>0.8</outer_angle>
+        <falloff>1</falloff>
+      </spot>
+    </light>
+
+    <!-- A dark glossy floor with a lighter platform under the action -->
+    <model name="floor">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <cast_shadows>false</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <diffuse>0.045 0.05 0.06 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0</metalness>
+                <roughness>0.35</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <visual name="platform">
+          <pose>0.9 0 0.005 0 0 0</pose>
+          <geometry>
+            <cylinder>
+              <radius>2.8</radius>
+              <length>0.01</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <diffuse>0.12 0.125 0.14 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.05</metalness>
+                <roughness>0.7</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- A throwing arm on a hinge, driven with torque up to its stop -->
+    <model name="catapult">
+      <joint name="fixed" type="fixed">
+        <parent>world</parent>
+        <child>frame</child>
+      </joint>
+      <link name="frame">
+        <pose>0 0 0.15 0 0 0</pose>
+        <inertial auto="true"/>
+        <collision name="collision">
+          <density>500</density>
+          <geometry>
+            <box>
+              <size>0.1 0.2 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.2 0.3</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.16 0.17 0.19 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.6</metalness>
+                <roughness>0.35</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <visual name="glow">
+          <pose>0 0 0.1 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.104 0.204 0.02</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.02 0.02 0.02 1</diffuse>
+            <emissive>0.25 0.75 1.0 1</emissive>
+          </material>
+        </visual>
+      </link>
+      <link name="arm">
+        <pose>0 0 0.33 0 0 0</pose>
+        <inertial auto="true"/>
+        <collision name="beam">
+          <pose>-0.4 0 0 0 0 0</pose>
+          <density>300</density>
+          <geometry>
+            <box>
+              <size>0.8 0.05 0.03</size>
+            </box>
+          </geometry>
+        </collision>
+        <collision name="cup">
+          <pose>-0.75 0 0.02 0 0 0</pose>
+          <density>300</density>
+          <geometry>
+            <box>
+              <size>0.26 0.26 0.01</size>
+            </box>
+          </geometry>
+        </collision>
+        <collision name="lip">
+          <pose>-0.88 0 0.07 0 0 0</pose>
+          <density>300</density>
+          <geometry>
+            <box>
+              <size>0.01 0.26 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="beam_visual">
+          <pose>-0.4 0 0 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.8 0.05 0.03</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.20 0.45 0.85 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.1</metalness>
+                <roughness>0.45</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <visual name="cup_visual">
+          <pose>-0.75 0 0.02 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.26 0.26 0.01</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.16 0.17 0.19 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.6</metalness>
+                <roughness>0.35</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+        <visual name="lip_visual">
+          <pose>-0.88 0 0.07 0 0 0</pose>
+          <geometry>
+            <box>
+              <size>0.01 0.26 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <diffuse>0.16 0.17 0.19 1</diffuse>
+            <pbr>
+              <metal>
+                <metalness>0.6</metalness>
+                <roughness>0.35</roughness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+      <joint name="hinge" type="revolute">
+        <parent>frame</parent>
+        <child>arm</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+          <limit>
+            <lower>0</lower>
+            <upper>1.1</upper>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>hinge</joint_name>
+        <p_gain>100</p_gain>
+        <d_gain>2</d_gain>
+        <cmd_max>20</cmd_max>
+        <cmd_min>-20</cmd_min>
+      </plugin>
+    </model>
+
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_small</uri>
+      <name>projectile</name>
+      <pose>-0.75 0 0.46 0 0 0</pose>
+    </include>
+
+    <!-- A tower of six crates -->
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_1</name>
+      <pose>2.3 0 0.12 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_light</uri>
+      <name>crate_2</name>
+      <pose>2.3 0 0.36 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_3</name>
+      <pose>2.3 0 0.6 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_light</uri>
+      <name>crate_4</name>
+      <pose>2.3 0 0.84 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_blue</uri>
+      <name>crate_5</name>
+      <pose>2.3 0 1.08 0 0 0</pose>
+    </include>
+    <include>
+      <uri>https://fuel.gazebosim.org/1.0/caguero/models/kinematic_workshop_crate_light</uri>
+      <name>crate_6</name>
+      <pose>2.3 0 1.32 0 0 0</pose>
+    </include>
+  </world>
+</sdf>
