@@ -1,6 +1,8 @@
 gz_add_system(swerve-drive
   SOURCES
     SwerveDrive.cc
+  TEST_SOURCES
+    SwerveDrive_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common${GZ_COMMON_VER}::gz-common${GZ_COMMON_VER}
 )
