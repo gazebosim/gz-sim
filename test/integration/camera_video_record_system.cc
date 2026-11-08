@@ -29,7 +29,6 @@
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;

@@ -30,7 +30,6 @@
 #include "gz/transport/Node.hh"
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
