@@ -694,6 +694,26 @@ detachable_joint_test_sources = glob([
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/dynamic_detachable_joint/**/*.cc",
+            "src/systems/dynamic_detachable_joint/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-dynamic-detachable-joint-system.so",
+    static_lib_name = "gz-sim-dynamic-detachable-joint-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/diff_drive/**/*.cc",
             "src/systems/diff_drive/**/*.hh",
         ],
@@ -1124,6 +1144,7 @@ gz_sim_system_libraries(
             "src/systems/joint_traj_control/**/*.cc",
             "src/systems/joint_traj_control/**/*.hh",
         ],
+        exclude = ["src/systems/joint_traj_control/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-joint-trajectory-controller-system.so",
     static_lib_name = "gz-sim-joint-trajectory-controller-system-static",
@@ -1137,6 +1158,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+joint_traj_control_test_sources = glob([
+    "src/systems/joint_traj_control/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-joint-trajectory-controller-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in joint_traj_control_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1871,6 +1911,46 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
+            "src/systems/swerve_drive/**/*.cc",
+            "src/systems/swerve_drive/**/*.hh",
+        ],
+        exclude = ["src/systems/swerve_drive/*_TEST.cc"],
+    ),
+    so_lib_name = "gz-sim-swerve-drive-system.so",
+    static_lib_name = "gz-sim-swerve-drive-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+    ],
+)
+
+swerve_drive_test_sources = glob([
+    "src/systems/swerve_drive/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-swerve-drive-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in swerve_drive_test_sources]
 
 gz_sim_system_libraries(
     srcs = [

@@ -18,8 +18,10 @@
 #ifndef GZ_SIM_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 #define GZ_SIM_SYSTEMS_JOINT_TRAJECTORY_CONTROLLER_HH_
 
-#include <gz/sim/System.hh>
 #include <memory>
+#include <string>
+
+#include <gz/sim/System.hh>
 
 namespace gz
 {
@@ -37,7 +39,8 @@ namespace systems
   ///
   /// Joint trajectories can be sent to this plugin via Gazebo Transport.
   /// The default topic name is "/model/${MODEL_NAME}/joint_trajectory" that
-  /// can be configured with the `<topic>` system parameter.
+  /// can be configured with the `<topic>` system parameter. If the model has
+  /// a namespace, the default topic becomes `{namespace}/joint_trajectory`.
   ///
   /// This topic accepts gz::msgs::JointTrajectory messages that represent
   /// a full trajectory, defined as temporal `points` with their fields ordered
@@ -58,16 +61,19 @@ namespace systems
   /// might already be implemented in the motion planning framework of your
   /// choice).
   ///
-  /// The progress of the current trajectory can be tracked on topic whose name
-  /// is derived as `<topic>_progress`. This progress is indicated in the range
-  /// of (0.0, 1.0] and is currently based purely on `time_from_start` contained
-  /// in the trajectory points.
+  /// The progress of the current trajectory can be tracked on a topic whose
+  /// name is derived as `<resolved_trajectory_topic>_progress`. This
+  /// progress is indicated in the range of (0.0, 1.0] and is currently based
+  /// purely on `time_from_start` contained in the trajectory points.
   ///
   /// ## System Parameters
   ///
   /// - `<topic>` The name of the topic that this plugin subscribes to.
   ///  Optional parameter.
-  ///  Defaults to "/model/${MODEL_NAME}/joint_trajectory".
+  ///  Defaults to "/model/${MODEL_NAME}/joint_trajectory". If the model has
+  ///  a namespace, the default topic becomes `{namespace}/joint_trajectory`.
+  ///  The custom topic is then prefixed with the namespace if it does not
+  ///  start with `/`, or remains unchanged if it starts with `/`.
   ///
   /// - `<use_header_start_time>` If enabled, trajectory execution begins at the
   ///  timestamp contained in the header of received trajectory messages.
@@ -136,11 +142,21 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Joint trajectory command topic name
+      public: std::string trajectoryTopic;
+
+      /// \brief Joint trajectory progress topic name
+      public: std::string progressTopic;
+    };
+
     /// \brief Constructor
     public: JointTrajectoryController();
 
     /// \brief Destructor
-    public: ~JointTrajectoryController() override = default;
+    public: ~JointTrajectoryController() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -152,6 +168,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointTrajectoryControllerPrivate> dataPtr;
