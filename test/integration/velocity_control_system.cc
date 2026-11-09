@@ -127,8 +127,10 @@ class VelocityControlTest
   }
 
   /// \param[in] _sdfFile SDF file to load.
+  /// \param[in] _modelName Model name.
   /// \param[in] _cmdVelTopic Command velocity topic.
   protected: void TestPublishLinkCmd(const std::string &_sdfFile,
+                                 const std::string &_modelName,
                                  const std::string &_cmdVelTopic)
   {
     // Start server
@@ -147,13 +149,13 @@ class VelocityControlTest
 
     std::vector<math::Pose3d> modelPoses;
     std::vector<math::Pose3d> linkPoses;
-    testSystem.OnPostUpdate([&linkPoses, &modelPoses](
+    testSystem.OnPostUpdate([&linkPoses, &modelPoses, &_modelName](
       const UpdateInfo &,
       const EntityComponentManager &_ecm)
       {
         auto modelId = _ecm.EntityByComponents(
           components::Model(),
-          components::Name("vehicle_blue"));
+          components::Name(_modelName));
         EXPECT_NE(kNullEntity, modelId);
 
         auto modelPoseComp = _ecm.Component<components::Pose>(modelId);
@@ -250,7 +252,16 @@ TEST_P(VelocityControlTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmd))
 {
   TestPublishLinkCmd(
       std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
-      "/model/vehicle_blue/link/caster/cmd_vel");
+      "vehicle_blue", "/model/vehicle_blue/link/caster/cmd_vel");
+}
+
+/////////////////////////////////////////////////
+TEST_P(VelocityControlTest,
+  GZ_UTILS_TEST_DISABLED_ON_WIN32(PublishLinkCmdWithLinkElement))
+{
+  TestPublishLinkCmd(
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/velocity_control.sdf",
+      "vehicle_red", "/model/vehicle_red/link/caster/cmd_vel");
 }
 
 // Run multiple times
