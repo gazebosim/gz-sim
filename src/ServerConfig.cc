@@ -18,6 +18,9 @@
 
 #include <tinyxml2.h>
 
+#include <random>
+#include <string>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
@@ -835,6 +838,37 @@ void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 }
 
 /////////////////////////////////////////////////
+/// \brief Copy a file so that the destination never exists in a partially
+/// written state. The file is copied next to the destination and then moved
+/// into place, so that other processes that look for the destination at the
+/// same time either don't find it or find the complete file.
+/// \param[in] _from Existing file
+/// \param[in] _to Destination file
+/// \return True if the destination was created.
+bool copyFileAtomically(const std::string &_from, const std::string &_to)
+{
+  std::random_device rd;
+  const std::string tmp = _to + "." + std::to_string(rd()) + ".tmp";
+
+  if (!common::copyFile(_from, tmp))
+  {
+    common::removeFile(tmp, common::FSWO_SUPPRESS_WARNINGS);
+    return false;
+  }
+
+  if (!common::moveFile(tmp, _to))
+  {
+    // Replacing an existing file can fail, for example on Windows while
+    // another process has it open. That is fine if the file is there, since
+    // it can only have been put there by a complete copy.
+    common::removeFile(tmp, common::FSWO_SUPPRESS_WARNINGS);
+    return common::exists(_to);
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
 parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 {
@@ -1015,7 +1049,7 @@ sim::loadPluginInfo(bool _isPlayback)
              << std::endl;
       return ret;
     }
-    else if (!common::copyFile(installedConfig, defaultConfig))
+    else if (!copyFileAtomically(installedConfig, defaultConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
