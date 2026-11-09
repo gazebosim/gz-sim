@@ -156,7 +156,8 @@ void VelocityControl::Configure(const Entity &_entity,
   cmdVelTopicOptions.topicNamespace = ns;
   cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
   cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
-  resolvedTopicNames.modelCmdVelTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
+  resolvedTopicNames.modelCmdVelTopic =
+    resolvedTopicName(_sdf, cmdVelTopicOptions);
   if (resolvedTopicNames.modelCmdVelTopic.empty())
   {
     gzerr << "VelocityControl failed to find a valid topic name for "
@@ -180,8 +181,9 @@ void VelocityControl::Configure(const Entity &_entity,
     linkCmdVelTopicOptions.defaultTopicPrefix =
         defaultPrefix + "/link/" + _linkName;
     linkCmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
-    
-    const auto linkCmdVelTopic = resolvedTopicName(_Elem, linkCmdVelTopicOptions);
+
+    const auto linkCmdVelTopic =
+      resolvedTopicName(_Elem, linkCmdVelTopicOptions);
     if (linkCmdVelTopic.empty())
     {
       gzerr << "VelocityControl failed to find a valid topic name for "
