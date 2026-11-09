@@ -19,6 +19,8 @@
 
 #include <memory>
 #include <optional>
+#include <string>
+#include <unordered_map>
 
 #include <gz/sim/System.hh>
 
@@ -39,22 +41,50 @@ namespace systems
   /// ## System Parameters
   ///
   /// - `<topic>`: Topic to receive commands in. Defaults to
-  ///   `/model/<model_name>/cmd_vel`.
+  ///   `/model/<model_name>/cmd_vel`. without a namespace,
+  ///   or `{namespace}/cmd_vel` with a namespace.
+  ///   Relative topic names are prefixed with the model namespace when
+  ///   specified, while absolute topic names remain unchanged.
   ///
   /// - `<initial_linear>`: Linear velocity to start with.
   ///
   /// - `<initial_angular>`: Linear velocity to start with.
+  ///
+  /// - `<link_name>`: Deprecated. Use `<link>` instead. Name of a link to
+  ///   control. This element can be specified multiple times. The command
+  ///   topic defaults to `/model/<model_name>/link/<link_name>/cmd_vel`
+  ///   without a namespace, or `{namespace}/link/<link_name>/cmd_vel` with
+  ///   a namespace. Custom topic names are not supported.
+  ///
+  /// - `<link>`: Configuration for controlling an individual link.
+  ///   Multiple `<link>` elements can be specified.
+  ///   - `<name>`: Name of the link to control.
+  ///   - `<topic>`: Topic to receive velocity commands for the link.
+  ///     Defaults to `/model/<model_name>/link/<link_name>/cmd_vel` without
+  ///     a namespace, or `{namespace}/cmd_vel` with a namespace.
+  ///     Relative topic names are prefixed with the model namespace when
+  ///     specified, while absolute topic names remain unchanged.
   class VelocityControl
       : public System,
         public ISystemConfigure,
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Model command velocity topic name
+      public: std::string modelCmdVelTopic;
+
+      /// \brief Link command velocity topic names
+      public: std::unordered_map<std::string, std::string> linkCmdVelTopics;
+    };
+
     /// \brief Constructor
     public: VelocityControl();
 
     /// \brief Destructor
-    public: ~VelocityControl() override = default;
+    public: ~VelocityControl() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -71,6 +101,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<VelocityControlPrivate> dataPtr;
