@@ -17,9 +17,8 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "EntityComponentManagerDiff.hh"
+#include "gz/sim/detail/FlatSet.hh"
 
-#include <algorithm>
-#include <array>
 #include <functional>
 #include <map>
 #include <memory>
@@ -100,82 +99,9 @@ namespace
   struct ModifiedComponent { };
 
   /// \brief Set of component type ids. An entity has only a few changed or
-  /// removed component types, so the set keeps up to kInline ids inside the
-  /// object and uses a vector only for more. The ECM creates one set per
-  /// changed entity and step and destroys it when the step ends, so keeping
-  /// the common case off the heap saves an allocation and a free per entity
-  /// and step.
-  class ComponentTypeIdSet
-  {
-    public: void insert(const ComponentTypeId _typeId)
-    {
-      if (this->contains(_typeId))
-        return;
-      if (this->overflow.empty() && this->count < kInline)
-      {
-        this->local[this->count++] = _typeId;
-        return;
-      }
-      // The ids move to the vector together, so that begin() and end() always
-      // describe one contiguous range.
-      if (this->overflow.empty())
-      {
-        this->overflow.assign(this->local.begin(),
-            this->local.begin() + this->count);
-      }
-      this->overflow.push_back(_typeId);
-      ++this->count;
-    }
-
-    public: void erase(const ComponentTypeId _typeId)
-    {
-      ComponentTypeId *first = this->Data();
-      ComponentTypeId *last = first + this->count;
-      ComponentTypeId *it = std::find(first, last, _typeId);
-      if (it == last)
-        return;
-      std::copy(it + 1, last, it);
-      --this->count;
-      if (!this->overflow.empty())
-        this->overflow.pop_back();
-    }
-
-    public: bool contains(const ComponentTypeId _typeId) const
-    {
-      return std::find(this->begin(), this->end(), _typeId) != this->end();
-    }
-
-    public: bool empty() const { return this->count == 0; }
-
-    public: const ComponentTypeId *begin() const
-    {
-      return this->overflow.empty() ? this->local.data() :
-          this->overflow.data();
-    }
-
-    public: const ComponentTypeId *end() const
-    {
-      return this->begin() + this->count;
-    }
-
-    private: ComponentTypeId *Data()
-    {
-      return this->overflow.empty() ? this->local.data() :
-          this->overflow.data();
-    }
-
-    /// \brief Number of ids kept inside the object.
-    private: static constexpr std::size_t kInline{4};
-
-    /// \brief Number of ids in the set.
-    private: std::size_t count{0};
-
-    /// \brief Ids of a set with up to kInline ids.
-    private: std::array<ComponentTypeId, kInline> local{};
-
-    /// \brief Ids of a set that has outgrown local. Empty otherwise.
-    private: std::vector<ComponentTypeId> overflow;
-  };
+  /// removed component types, so a sorted vector is cheaper to build, query
+  /// and destroy than a node-based std::unordered_set.
+  using ComponentTypeIdSet = detail::FlatSet<ComponentTypeId>;
 
   /// \brief Internal component containing the components marked as one time
   /// changed for the specific entity.
