@@ -38,12 +38,12 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Pose.hh"
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -75,50 +75,35 @@ TEST_F(SpacecraftTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(InputTest))
   // Start server
   auto server = this->StartServer("/examples/worlds/spacecraft.sdf");
 
-  test::Relay testSystem;
   transport::Node node;
   auto cmdDutyCyclePublisher =
       node.Advertise<msgs::Actuators>("/dart/command/duty_cycle");
 
   const std::size_t iterTestStart{100};
   const std::size_t nIters{500};
-  std::vector<math::Pose3d> poses;
 
-  testSystem.OnPostUpdate(
-      [&](const UpdateInfo &_info,
-          const EntityComponentManager &_ecm)
-      {
-        // Command a thruster duty cycle
-        const double cmdDutyCycle{0};
-        if (_info.iterations == iterTestStart)
-        {
-          msgs::Actuators msg;
+  server->Run(true, iterTestStart, false);
+
+  // Command a thruster duty cycle
+  const double cmdDutyCycle{0};
+  msgs::Actuators msg;
 #if GOOGLE_PROTOBUF_VERSION >= 7035000
-          msg.mutable_normalized()->resize(12, cmdDutyCycle);
+  msg.mutable_normalized()->resize(12, cmdDutyCycle);
 #else
-          msg.mutable_normalized()->Resize(12, cmdDutyCycle);
+  msg.mutable_normalized()->Resize(12, cmdDutyCycle);
 #endif
-          msg.mutable_normalized()->Set(0, 1.0);
-          cmdDutyCyclePublisher.Publish(msg);
-        }
-        else
-        {
-            auto id = _ecm.EntityByComponents(
-              components::Model(),
-              components::Name("dart"));
-            EXPECT_NE(kNullEntity, id);
+  msg.mutable_normalized()->Set(0, 1.0);
+  cmdDutyCyclePublisher.Publish(msg);
 
-            auto poseComp = _ecm.Component<components::Pose>(id);
-            ASSERT_NE(nullptr, poseComp);
-            // Collect poses
-            poses.push_back(poseComp->Data());
-        }
-      });
-
-  server->AddSystem(testSystem.systemPtr);
-  server->Run(true, iterTestStart + nIters, false);
+  server->Run(true, nIters, false);
 
   // Check for movement in the right direction
-  math::Pose3d lastPose = poses.back();
-  EXPECT_GT(lastPose.Pos().Y(), 0.0);
+  auto ecm = server->EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+  const Entity id = ecm->EntityByComponents(
+      components::Model(), components::Name("dart"));
+  ASSERT_NE(kNullEntity, id);
+  const auto *poseComp = ecm->Component<components::Pose>(id);
+  ASSERT_NE(nullptr, poseComp);
+  EXPECT_GT(poseComp->Data().Pos().Y(), 0.0);
 }
