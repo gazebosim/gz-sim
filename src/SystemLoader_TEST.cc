@@ -21,6 +21,7 @@
 #include <sdf/World.hh>
 
 #include <gz/common/Filesystem.hh>
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/SystemLoader.hh"
 
@@ -218,4 +219,37 @@ TEST(SystemLoader, BadPluginName)
       pluginElem = pluginElem->GetNextElement("plugin");
     }
   }
+}
+
+/////////////////////////////////////////////////
+TEST(SystemLoader, InstallPrefixLibDir)
+{
+  SystemLoader sm;
+  std::list<std::string> paths = sm.PluginPaths();
+
+#ifdef _WIN32
+  const std::string libDir = "bin";
+#else
+  const std::string libDir = "lib";
+#endif
+  const std::string expected = common::joinPaths(
+      gz::sim::getInstallPrefix(), libDir);
+  // Remove trailing separators so "a/b/" and "a/b" compare equal.
+  auto stripSlash = [](std::string _p)
+  {
+    while (!_p.empty() && (_p.back() == '/' || _p.back() == '\\'))
+      _p.pop_back();
+    return _p;
+  };
+  bool hasPath = false;
+  for (const auto &s : paths)
+  {
+    if (stripSlash(common::absPath(s)) ==
+        stripSlash(common::absPath(expected)))
+    {
+      hasPath = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(hasPath);
 }
