@@ -18,6 +18,7 @@
 
 #include <tinyxml2.h>
 
+#include <cstdio>
 #include <random>
 #include <string>
 
@@ -856,11 +857,15 @@ bool copyFileAtomically(const std::string &_from, const std::string &_to)
     return false;
   }
 
-  if (!common::moveFile(tmp, _to))
+  // std::rename replaces an existing destination atomically on POSIX
+  // systems, and fails if the destination exists on Windows.
+  // common::moveFile would replace it on Windows too, but there another
+  // process can't open the file while it is being replaced, so a server that
+  // is reading the config at that moment would fail to load it.
+  if (std::rename(tmp.c_str(), _to.c_str()) != 0)
   {
-    // Replacing an existing file can fail, for example on Windows while
-    // another process has it open. That is fine if the file is there, since
-    // it can only have been put there by a complete copy.
+    // If the file is there, it can only have been put there by a complete
+    // copy.
     common::removeFile(tmp, common::FSWO_SUPPRESS_WARNINGS);
     return common::exists(_to);
   }
