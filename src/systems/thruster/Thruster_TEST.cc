@@ -53,7 +53,8 @@ void TestTopicNames(const std::string &_sdfString,
   EXPECT_EQ(topics.deadbandTopic, _expectedTopicNames.deadbandTopic);
 }
 
-/// \brief Build an SDF world with a Thruster model plugin
+/// \brief Build an SDF world with a Thruster model plugin.
+/// This SDF is incomplete and only used to test topic resolution behavior.
 /// \param[in] _modelNs Model namespace. Can be empty.
 /// \param[in] _ns Legacy plugin namespace. Can be empty.
 /// \param[in] _topic Custom command topic. Can be empty.
@@ -128,7 +129,7 @@ TEST(ThrusterTest, DefaultTopicNames)
       "/model/legacy_ns/joint/propeller_joint/force";
   TestTopicNames(MakeSdf("", "legacy_ns", "", true), expectedTopicNames);
 
-  // Test the default topic names when no leagacy namespace, no custom topic is
+  // Test the default topic names when no legacy namespace, no custom topic is
   // specified, but a model namespace is specified.
   expectedTopicNames.cmdTopic = "ns/cmd_thrust";
   expectedTopicNames.feedbackTopic = "ns/ang_vel";
