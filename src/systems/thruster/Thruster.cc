@@ -236,22 +236,23 @@ void Thruster::Configure(
 
   // Generate namespace
   const std::string modelNamespace = scopedNamespace(_ecm, _entity);
-  const std::string defaultPrefix = "/model/" + modelName + "/joint/" + jointName;
+  const std::string defaultPrefix =
+    "/model/" + modelName + "/joint/" + jointName;
   std::string ns = modelName;
   if (_sdf->HasElement("namespace"))
   {
-    gzwarn << "The <namespace> element is deprecated. Use <topic> together with "
-           << "the model namespace to configure the desired topic name instead. "
-           << "If both namespaces are specified, the <namespace> element will "
-           << "be ignored."
-           << std::endl;
-    ns= _sdf->Get<std::string>("namespace");
+    gzwarn << "The <namespace> element is deprecated. Use <topic> together "
+           << "with the model namespace to configure the desired topic name "
+           << "instead. If both namespaces are specified, the <namespace> "
+           << "element will be ignored." << std::endl;
+    ns = _sdf->Get<std::string>("namespace");
   }
   if (!_sdf->HasElement("topic") || _sdf->Get<std::string>("topic").empty())
   {
     ns = "/model/" + ns + "/joint/" + jointName;
   }
-  const std::string finalNamespace = modelNamespace.empty() ? ns : modelNamespace;
+  const std::string finalNamespace =
+    modelNamespace.empty() ? ns : modelNamespace;
 
   // Get thrust coefficient
   if (_sdf->HasElement("thrust_coefficient"))
@@ -357,7 +358,7 @@ void Thruster::Configure(
       topicStr.erase(0, topicStr.find_first_not_of("/"));
       topicElem->Set(topicStr);
     }
-    hasValidCustomTopic = 
+    hasValidCustomTopic =
       !gz::transport::TopicUtils::AsValidTopic(topicStr).empty();
   }
 
@@ -383,7 +384,7 @@ void Thruster::Configure(
           << "in the SDF." << std::endl;
     return;
   }
-  
+
   if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
   {
     this->dataPtr->node.Subscribe(
