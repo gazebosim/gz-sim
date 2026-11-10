@@ -20,6 +20,7 @@
 #include <gz/sim/System.hh>
 
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -141,6 +142,19 @@ namespace systems
     public gz::sim::ISystemPreUpdate,
     public gz::sim::ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+
+      /// \brief Feedback topic name
+      public: std::string feedbackTopic;
+
+      /// \brief Deadband topic name
+      public: std::string deadbandTopic;
+    };
+
     /// \brief Constructor
     public: Thruster();
 
@@ -159,6 +173,9 @@ namespace systems
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
         const EntityComponentManager &_ecm) override;
+
+    /// Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;
