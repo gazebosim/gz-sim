@@ -87,6 +87,7 @@ set (sources
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
+  PerformanceMonitor.cc
   SimulationRunner.cc
   SystemLoader.cc
   SystemManager.cc
@@ -126,6 +127,7 @@ set (gtest_sources
   Server_TEST.cc
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
+  PerformanceMonitor_TEST.cc
   SystemManager_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc
@@ -199,6 +201,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   protobuf::libprotobuf
   PRIVATE
   gz-plugin::loader
+  gz-sensors::gz-sensors
 )
 
 if(ENABLE_GUI)

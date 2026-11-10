@@ -68,6 +68,7 @@ namespace gz
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     // Forward declarations.
+    class PerformanceMonitor;
     class SimulationRunnerPrivate;
 #ifdef _WIN32
     class SimulationRunnerWinHandleStorage;
@@ -344,6 +345,26 @@ namespace gz
       /// \return True if successful.
       private: bool GuiInfoService(gz::msgs::GUI &_res);
 
+      /// \brief Service to start or stop the performance monitor.
+      /// \param[in] _req True to start monitoring, false to stop
+      /// \param[out] _res The state after the request
+      /// \return True, the service always succeeds
+      private: bool OnPerformanceMonitorEnable(const msgs::Boolean &_req,
+                  msgs::Boolean &_res);
+
+      /// \brief Read the configuration of the performance monitor from the
+      /// environment and set up its service, topic and event connections.
+      private: void SetupPerformanceMonitor();
+
+      /// \brief Create or destroy the performance monitor, if requested.
+      private: void UpdatePerformanceMonitor();
+
+      /// \brief Close the current iteration in the performance monitor, and
+      /// output a report if one is due.
+      /// \param[in] _paceStart When the loop started pacing itself
+      private: void EndPerformanceIteration(
+                  const std::chrono::steady_clock::time_point &_paceStart);
+
       /// \brief Calculate real time factor and populate currentInfo.
       private: void UpdateCurrentInfo();
 
@@ -603,6 +624,31 @@ namespace gz
 
       /// \brief Whether parallel PostUpdate is enabled.
       private: bool parallelPostUpdates{false};
+
+      /// \brief Measures where the time goes. Null unless monitoring was
+      /// requested. It is only written from the simulation thread, while no
+      /// post update threads are running.
+      private: std::unique_ptr<PerformanceMonitor> perfMonitor;
+
+      /// \brief Protects perfMonitor from the event callbacks, which run in
+      /// other threads.
+      private: std::mutex perfMonitorMutex;
+
+      /// \brief Whether monitoring has been requested
+      private: std::atomic<bool> perfMonitorRequested{false};
+
+      /// \brief Wall time between performance reports
+      private: std::chrono::steady_clock::duration perfReportPeriod{
+          std::chrono::seconds(5)};
+
+      /// \brief Publisher of the performance reports
+      private: transport::Node::Publisher perfReportPub;
+
+      /// \brief Connection for the render frame times
+      private: common::ConnectionPtr perfRenderConn;
+
+      /// \brief Connection for the physics contact samples
+      private: common::ConnectionPtr perfContactConn;
 #ifdef _WIN32
       private: std::unique_ptr<SimulationRunnerWinHandleStorage>
         winPrecisionTimer;

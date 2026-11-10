@@ -18,8 +18,12 @@
 #include "SimulationRunner.hh"
 
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <ostream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
 #include <unordered_set>
 #ifdef HAVE_PYBIND11
 #include <pybind11/pybind11.h>
@@ -41,6 +45,7 @@
 #include <vector>
 
 #include "gz/common/Profiler.hh"
+#include "gz/common/Util.hh"
 #include "gz/sim/Constants.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -59,12 +64,14 @@
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Events.hh"
+#include "gz/sim/PerformanceEvents.hh"
 #include "gz/sim/ServerConfig.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 #include "gz/sim/Util.hh"
 #include "gz/transport/TopicUtils.hh"
 #include "network/NetworkManagerPrimary.hh"
 #include "LevelManager.hh"
+#include "PerformanceMonitor.hh"
 #include "SdfGenerator.hh"
 
 #ifdef _WIN32
@@ -159,6 +166,8 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
           << _world.Name() << "]." << std::endl;
     return;
   }
+
+  this->SetupPerformanceMonitor();
 
   this->parametersRegistry = std::make_unique<
     gz::transport::parameters::ParametersRegistry>(
@@ -339,6 +348,10 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
 
   // TODO(louise) Combine both messages into one.
   this->node->Advertise("control", &SimulationRunner::OnWorldControl, this);
+  this->node->Advertise("performance/enable",
+      &SimulationRunner::OnPerformanceMonitorEnable, this);
+  this->perfReportPub =
+      this->node->Advertise<msgs::Diagnostics>("performance/report");
   this->node->Advertise("control/state", &SimulationRunner::OnWorldControlState,
       this);
   this->node->Advertise("playback/control",
@@ -697,6 +710,8 @@ void SimulationRunner::ProcessSystemQueue()
         this->postUpdateStartBarrier->Wait();
         if (this->postUpdateThreadsRunning)
         {
+          PerformanceMonitor::SystemTimer timer(this->perfMonitor.get(), system,
+              PerformanceSystemPhase::kPostUpdate);
           system->PostUpdate(this->currentInfo, this->entityCompMgr);
         }
         this->postUpdateStopBarrier->Wait();
@@ -705,6 +720,129 @@ void SimulationRunner::ProcessSystemQueue()
         << id << ")" << std::endl;
     }));
     id++;
+  }
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::SetupPerformanceMonitor()
+{
+  // Holds the number of seconds between reports. Unset means not monitoring.
+  constexpr char kPerformanceMonitorEnv[] = "GZ_SIM_PERFORMANCE_MONITOR";
+
+  // Connect here, before any system exists: the event manager is not thread
+  // safe when adding event types, and the render thread emits these.
+  this->perfRenderConn = this->eventMgr.Connect<events::RenderFrameStats>(
+      [this](const events::RenderFrameTimes &_times)
+      {
+        std::lock_guard<std::mutex> lock(this->perfMonitorMutex);
+        if (this->perfMonitor)
+        {
+          this->perfMonitor->OnRenderFrame(_times);
+        }
+      });
+  this->perfContactConn = this->eventMgr.Connect<events::PhysicsContactSample>(
+      [this](const std::unordered_map<Entity, unsigned int> &_contacts)
+      {
+        std::lock_guard<std::mutex> lock(this->perfMonitorMutex);
+        if (this->perfMonitor)
+        {
+          this->perfMonitor->OnContactSample(_contacts);
+        }
+      });
+
+  std::string periodStr;
+  if (common::env(kPerformanceMonitorEnv, periodStr) && !periodStr.empty())
+  {
+    double period{0.0};
+    std::istringstream stream(periodStr);
+    stream >> period;
+    if (stream.fail() || period <= 0.0)
+    {
+      gzwarn << "Ignoring invalid value [" << periodStr << "] of ["
+             << kPerformanceMonitorEnv << "]. It must be the number of seconds "
+             << "between performance reports." << std::endl;
+    }
+    else
+    {
+      this->perfReportPeriod =
+          std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+              std::chrono::duration<double>(period));
+      this->perfMonitorRequested = true;
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::OnPerformanceMonitorEnable(const msgs::Boolean &_req,
+    msgs::Boolean &_res)
+{
+  {
+    std::lock_guard<std::mutex> lock(this->perfMonitorMutex);
+    if (_req.data() && !this->perfMonitor && PerformanceMonitorEnabled())
+    {
+      gzwarn << "Not monitoring the performance of world ["
+             << this->worldName << "]: another world in this process is being "
+             << "monitored, and only one can be at a time." << std::endl;
+      _res.set_data(false);
+      return true;
+    }
+  }
+
+  this->perfMonitorRequested = _req.data();
+  _res.set_data(_req.data());
+  return true;
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::UpdatePerformanceMonitor()
+{
+  const bool requested = this->perfMonitorRequested;
+  if (requested == (this->perfMonitor != nullptr))
+  {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(this->perfMonitorMutex);
+  if (requested)
+  {
+    this->perfMonitor = PerformanceMonitor::Create(
+        this->perfReportPeriod, this->parallelPostUpdates);
+    if (!this->perfMonitor)
+    {
+      gzwarn << "Not monitoring the performance of world ["
+             << this->worldName << "]: another world in this process is being "
+             << "monitored, and only one can be at a time." << std::endl;
+      this->perfMonitorRequested = false;
+    }
+  }
+  else
+  {
+    this->perfMonitor.reset();
+  }
+}
+
+/////////////////////////////////////////////////
+void SimulationRunner::EndPerformanceIteration(
+    const std::chrono::steady_clock::time_point &_paceStart)
+{
+  this->perfMonitor->EndIteration(_paceStart, std::chrono::steady_clock::now(),
+      this->currentInfo, this->desiredRtf);
+
+  if (!this->perfMonitor->ReportDue())
+  {
+    return;
+  }
+
+  const auto report = this->perfMonitor->TakeReport(*this->systemMgr,
+      this->entityCompMgr);
+
+  // Printed instead of logged. The user asked for these reports, and they
+  // would be hidden with the default verbosity otherwise.
+  std::cout << report.ToString() << std::flush;
+
+  if (this->perfReportPub)
+  {
+    this->perfReportPub.Publish(report.ToMsg());
   }
 }
 
@@ -731,6 +869,8 @@ void SimulationRunner::UpdateSystems()
     {
       for (auto& system : systems)
       {
+        PerformanceMonitor::SystemTimer timer(this->perfMonitor.get(), system,
+            PerformanceSystemPhase::kPreUpdate);
         system->PreUpdate(this->currentInfo, this->entityCompMgr);
       }
     }
@@ -742,6 +882,8 @@ void SimulationRunner::UpdateSystems()
     {
       for (auto& system : systems)
       {
+        PerformanceMonitor::SystemTimer timer(this->perfMonitor.get(), system,
+            PerformanceSystemPhase::kUpdate);
         system->Update(this->currentInfo, this->entityCompMgr);
       }
     }
@@ -753,6 +895,8 @@ void SimulationRunner::UpdateSystems()
     {
       for (auto &system : this->systemMgr->SystemsPostUpdate())
       {
+        PerformanceMonitor::SystemTimer timer(this->perfMonitor.get(), system,
+            PerformanceSystemPhase::kPostUpdate);
         system->PostUpdate(this->currentInfo, this->entityCompMgr);
       }
     }
@@ -769,6 +913,10 @@ void SimulationRunner::UpdateSystems()
         this->postUpdateStartBarrier->Wait();
         this->postUpdateStopBarrier->Wait();
       }
+    }
+    if (this->perfMonitor)
+    {
+      this->perfMonitor->EndPostUpdate();
     }
     this->entityCompMgr.CreatePendingGroups();
   }
@@ -846,6 +994,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
   // runner is not paused.
   if (!this->currentInfo.paused)
     this->realTimeWatch.Start();
+
+  if (this->perfMonitor)
+    this->perfMonitor->StartRun(std::chrono::steady_clock::now());
 
   this->running = true;
 
@@ -966,6 +1117,9 @@ bool SimulationRunner::Run(const uint64_t _iterations)
 
     GZ_PROFILE("SimulationRunner::Run - Iteration");
 
+    // Start or stop monitoring the performance, if requested
+    this->UpdatePerformanceMonitor();
+
     // Update the step size and desired rtf
     this->UpdatePhysicsParams();
 
@@ -1003,6 +1157,12 @@ bool SimulationRunner::Run(const uint64_t _iterations)
     }
 
     this->resetInitiated = false;
+
+    std::chrono::steady_clock::time_point paceStart;
+    if (this->perfMonitor)
+    {
+      paceStart = std::chrono::steady_clock::now();
+    }
 
     // Only sleep when not paused.
     if (!this->currentInfo.paused)
@@ -1086,6 +1246,11 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       // This ensures that when the simulation is un-paused, the first step
       // has a valid schedule to meet, preventing a jump in RTF.
       nextUpdateTime = std::chrono::steady_clock::now() + this->updatePeriod;
+    }
+
+    if (this->perfMonitor)
+    {
+      this->EndPerformanceIteration(paceStart);
     }
   }
 

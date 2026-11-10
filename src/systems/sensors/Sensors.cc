@@ -61,10 +61,13 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Events.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/PerformanceEvents.hh"
 
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/rendering/GlobalIlluminationVct.hh"
+#include "gz/rendering/GpuWaitTime.hh"
+#include "gz/rendering/RenderEngine.hh"
 
 using namespace gz;
 using namespace sim;
@@ -191,6 +194,14 @@ class gz::sim::systems::SensorsPrivate
 
   /// \brief Flag to signal if a rendering update must be done
   public: std::atomic<bool> forceUpdate { false };
+
+  /// \brief Nanoseconds that PostUpdate has been blocked waiting for the
+  /// render thread since the last render pass. Only used while the performance
+  /// is being monitored.
+  public: std::atomic<int64_t> simThreadWaitNs { 0 };
+
+  /// \brief True if the render engine runs on a software rasterizer
+  public: bool softwareRenderer { false };
 
   /// \brief Thread that rendering will occur in
   public: std::thread renderThread;
@@ -382,6 +393,11 @@ void SensorsPrivate::WaitForInit()
         this->scene->SetActiveGlobalIllumination(this->giVct);
       }
 
+      if (this->scene && this->scene->Engine())
+      {
+        this->softwareRenderer = this->scene->Engine()->IsSoftwareRenderer();
+      }
+
       this->initialized = true;
     }
 
@@ -412,6 +428,23 @@ void SensorsPrivate::RunOnce()
     return;
 
   GZ_PROFILE("SensorsPrivate::RunOnce");
+
+  // Times of this pass for the performance monitor
+  const bool measure = PerformanceMonitorEnabled();
+  events::RenderFrameTimes frameTimes;
+  const auto gpuWaitStart = rendering::ThreadGpuWaitTime();
+  auto stageStart = std::chrono::steady_clock::now();
+  auto endStage = [&measure, &stageStart](
+      std::chrono::steady_clock::duration &_stage)
+  {
+    if (measure)
+    {
+      const auto now = std::chrono::steady_clock::now();
+      _stage += now - stageStart;
+      stageStart = now;
+    }
+  };
+
   {
     GZ_PROFILE("Update");
     std::unique_lock<std::mutex> timeLock(this->renderUtilMutex);
@@ -419,6 +452,7 @@ void SensorsPrivate::RunOnce()
     this->updateTimeApplied = this->updateTime;
     this->updateTimeCv.notify_one();
   }
+  endStage(frameTimes.sceneUpdate);
 
   bool activeSensorsEmpty = true;
   {
@@ -468,6 +502,7 @@ void SensorsPrivate::RunOnce()
 
       this->scene->PreRender();
     }
+    endStage(frameTimes.preRender);
 
     // disable sensors that have no subscribers to prevent doing unnecessary
     // work
@@ -501,6 +536,7 @@ void SensorsPrivate::RunOnce()
     {
       rs->SetActive(true);
     }
+    endStage(frameTimes.sensors);
 
     {
       GZ_PROFILE("PostRender");
@@ -511,9 +547,22 @@ void SensorsPrivate::RunOnce()
       this->scene->PostRender();
       this->eventManager->Emit<events::PostRender>();
     }
+    endStage(frameTimes.postRender);
 
     std::unique_lock<std::mutex> lk(this->sensorsMutex);
     this->activeSensors.clear();
+  }
+
+  if (measure)
+  {
+    frameTimes.gpuWait = std::chrono::duration_cast<
+        std::chrono::steady_clock::duration>(
+          rendering::ThreadGpuWaitTime() - gpuWaitStart);
+    frameTimes.simThreadWait = std::chrono::duration_cast<
+        std::chrono::steady_clock::duration>(std::chrono::nanoseconds(
+          this->simThreadWaitNs.exchange(0)));
+    frameTimes.softwareRenderer = this->softwareRenderer;
+    this->eventManager->Emit<events::RenderFrameStats>(frameTimes);
   }
 
   this->forceUpdate = false;
@@ -958,12 +1007,33 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
+    // For the performance monitor: account the time blocked by the render
+    // thread, including the time to get the mutexes that it holds while it
+    // works.
+    const bool measureWaits = PerformanceMonitorEnabled();
+    std::chrono::steady_clock::time_point waitStart;
+    const auto startWait = [&]()
+    {
+      if (measureWaits)
+        waitStart = std::chrono::steady_clock::now();
+    };
+    const auto endWait = [&]()
+    {
+      if (measureWaits)
+      {
+        this->dataPtr->simThreadWaitNs +=
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+              std::chrono::steady_clock::now() - waitStart).count();
+      }
+    };
+
     {
       GZ_PROFILE("UpdateFromECM");
       // Make sure we do not override the state in renderUtil if there are
       // still ECM changes that still need to be propagated to the scene,
       // i.e. wait until renderUtil.Update(), has taken place in the
       // rendering thread
+      startWait();
       std::unique_lock<std::mutex> lock(this->dataPtr->renderUtilMutex);
       this->dataPtr->updateTimeCv.wait(lock, [this]()
       {
@@ -971,6 +1041,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
                (this->dataPtr->updateTimeToApply ==
                this->dataPtr->updateTimeApplied);
       });
+      endWait();
 
       this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
       this->dataPtr->updateTime = _info.simTime;
@@ -1012,9 +1083,11 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
         this->dataPtr->UpdateBatteryState(_ecm);
 
       {
+        startWait();
         std::unique_lock<std::mutex> cvLock(this->dataPtr->renderMutex);
         this->dataPtr->renderCv.wait(cvLock, [this] {
           return !this->dataPtr->running || !this->dataPtr->updateAvailable; });
+        endWait();
       }
 
       if (!this->dataPtr->running)

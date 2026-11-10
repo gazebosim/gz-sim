@@ -97,6 +97,7 @@
 #include <sdf/World.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/PerformanceEvents.hh"
 #include "gz/sim/Link.hh"
 #include "gz/sim/Model.hh"
 #include "gz/sim/System.hh"
@@ -358,6 +359,15 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Update collision components from physics simulation
   /// \param[in] _ecm Mutable reference to ECM.
   public: void UpdateCollisions(EntityComponentManager &_ecm);
+
+  /// \brief Count the current contact points of each collision and send them
+  /// to the performance monitor.
+  /// \param[in] _ecm Constant reference to ECM.
+  public: void SampleContacts(const EntityComponentManager &_ecm);
+
+  /// \brief Last time that the contacts were sampled for the performance
+  /// monitor.
+  public: std::chrono::steady_clock::time_point lastContactSample;
 
   /// \brief Update ray intersection components from physics simulation
   /// \param[in] _ecm Mutable reference to ECM.
@@ -1205,6 +1215,20 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
         this->dataPtr->Step(_info.dt);
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
+
+    // Contacts are only needed once in a while for an estimate. The period is
+    // in wall time so that a simulation which is slow enough to take few steps
+    // per report is still sampled.
+    if (!_info.paused && PerformanceMonitorEnabled())
+    {
+      constexpr auto kContactSamplePeriod = std::chrono::milliseconds(100);
+      const auto now = std::chrono::steady_clock::now();
+      if (now - this->dataPtr->lastContactSample >= kContactSamplePeriod)
+      {
+        this->dataPtr->lastContactSample = now;
+        this->dataPtr->SampleContacts(_ecm);
+      }
+    }
 
     // Entities scheduled to be removed should be removed from physics after the
     // simulation step. Otherwise, since the to-be-removed entity still shows up
@@ -4826,6 +4850,36 @@ void PhysicsPrivate::UpdateSim(EntityComponentManager &_ecm,
   this->UpdateRayIntersections(_ecm);
 }  // NOLINT readability/fn_size
 // TODO (azeey) Reduce size of function and remove the NOLINT above
+
+//////////////////////////////////////////////////
+void PhysicsPrivate::SampleContacts(const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("PhysicsPrivate::SampleContacts");
+
+  const Entity worldEntity = _ecm.EntityByComponents(components::World());
+  if (worldEntity == kNullEntity || !this->entityWorldMap.HasEntity(worldEntity))
+    return;
+
+  auto world = this->entityWorldMap.EntityCast<ContactFeatureList>(worldEntity);
+  if (!world)
+    return;
+
+  std::unordered_map<Entity, unsigned int> contacts;
+  for (const auto &contactComposite : world->GetContactsFromLastStep())
+  {
+    const auto &contactPoint =
+        contactComposite.Get<WorldShapeType::ContactPoint>();
+    for (const auto &collision :
+         {contactPoint.collision1, contactPoint.collision2})
+    {
+      const Entity entity =
+          this->entityCollisionMap.GetByPhysicsId(collision->EntityID());
+      if (entity != kNullEntity)
+        ++contacts[entity];
+    }
+  }
+  this->eventManager->Emit<events::PhysicsContactSample>(contacts);
+}
 
 //////////////////////////////////////////////////
 void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
