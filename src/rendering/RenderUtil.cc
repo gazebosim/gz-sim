@@ -587,6 +587,12 @@ class gz::sim::RenderUtilPrivate
   public: void UpdateVisualLabels(
     const std::unordered_map<Entity, int> &_entityLabel);
 
+  /// \brief Create queued sensors on the rendering thread.
+  /// This should be called in RenderUtil::Update.
+  /// \param[in] _sensors Sensor entity, SDF description, and parent entity.
+  public: void CreateSensors(
+      const std::vector<std::tuple<Entity, sdf::Sensor, Entity>> &_sensors);
+
   /// \brief A helper function that removes the sensor associated with an
   /// entity, if an associated sensor exists. This should be called in
   /// RenderUtil::Update.
@@ -1326,49 +1332,7 @@ void RenderUtil::Update()
           std::get<2>(projector));
     }
 
-    if (this->dataPtr->enableSensors && this->dataPtr->createSensorCb)
-    {
-      for (const auto &sensor : newSensors)
-      {
-        Entity entity = std::get<0>(sensor);
-        const sdf::Sensor &dataSdf = std::get<1>(sensor);
-        Entity parent = std::get<2>(sensor);
-
-        // two sensors with the same name cause conflicts. We'll need to use
-        // scoped names
-        // TODO(anyone) do this in gz-sensors?
-        auto parentNode = this->dataPtr->sceneManager.NodeById(parent);
-        if (!parentNode)
-        {
-          gzerr << "Failed to create sensor with name[" << dataSdf.Name()
-                 << "] for entity [" << entity
-                 << "]. Parent not found with ID[" << parent << "]."
-                 << std::endl;
-          continue;
-        }
-
-        std::string sensorName =
-            this->dataPtr->createSensorCb(entity, dataSdf, parentNode->Name());
-        // Add to the system's scene manager
-        if (!this->dataPtr->sceneManager.AddSensor(entity, sensorName, parent))
-        {
-          gzerr << "Failed to create sensor [" << sensorName << "]"
-                 << std::endl;
-        }
-        else
-        {
-          auto sensorNode = this->dataPtr->sceneManager.NodeById(entity);
-          auto semPose = dataSdf.SemanticPose();
-          math::Pose3d sensorPose;
-          sdf::Errors errors = semPose.Resolve(sensorPose);
-          if (!errors.empty())
-          {
-            sensorPose = dataSdf.RawPose();
-          }
-          sensorNode->SetLocalPose(sensorPose);
-        }
-      }
-    }
+    this->dataPtr->CreateSensors(newSensors);
   }
 
   this->dataPtr->UpdateLights(entityLights);
@@ -1716,6 +1680,55 @@ void RenderUtil::Update()
 
   if (this->dataPtr->eventManager)
     this->dataPtr->eventManager->Emit<events::SceneUpdate>();
+}
+
+//////////////////////////////////////////////////
+void RenderUtilPrivate::CreateSensors(
+    const std::vector<std::tuple<Entity, sdf::Sensor, Entity>> &_sensors)
+{
+  if (!this->enableSensors || !this->createSensorCb)
+    return;
+
+  for (const auto &sensor : _sensors)
+  {
+    Entity entity = std::get<0>(sensor);
+    const sdf::Sensor &dataSdf = std::get<1>(sensor);
+    Entity parent = std::get<2>(sensor);
+
+    // two sensors with the same name cause conflicts. We'll need to use
+    // scoped names
+    // TODO(anyone) do this in gz-sensors?
+    auto parentNode = this->sceneManager.NodeById(parent);
+    if (!parentNode)
+    {
+      gzerr << "Failed to create sensor with name[" << dataSdf.Name()
+             << "] for entity [" << entity
+             << "]. Parent not found with ID[" << parent << "]."
+             << std::endl;
+      continue;
+    }
+
+    std::string sensorName =
+        this->createSensorCb(entity, dataSdf, parentNode->Name());
+    // Add to the system's scene manager
+    if (!this->sceneManager.AddSensor(entity, sensorName, parent))
+    {
+      gzerr << "Failed to create sensor [" << sensorName << "]"
+             << std::endl;
+    }
+    else
+    {
+      auto sensorNode = this->sceneManager.NodeById(entity);
+      auto semPose = dataSdf.SemanticPose();
+      math::Pose3d sensorPose;
+      sdf::Errors errors = semPose.Resolve(sensorPose);
+      if (!errors.empty())
+      {
+        sensorPose = dataSdf.RawPose();
+      }
+      sensorNode->SetLocalPose(sensorPose);
+    }
+  }
 }
 
 //////////////////////////////////////////////////
