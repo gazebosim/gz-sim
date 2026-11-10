@@ -248,7 +248,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
   ASSERT_NE(nullptr, ecm);
 
   std::string prefix{"/world/camera_sensor/model/default_topics/"};
-  std::vector<std::string> published_topics{
+  std::vector<std::string> publishedTopics{
       prefix + "link/camera_link/sensor/camera/image",
       prefix + "link/camera_link/sensor/camera/camera_info",
       prefix + "link/gpu_lidar_link/sensor/gpu_lidar/scan",
@@ -275,7 +275,7 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
       "/test_camera_info"
   };
 
-  std::vector<std::string> subscribed_topics{
+  std::vector<std::string> subscribedTopics{
       prefix + "link/camera_link/sensor/camera/image/trigger",
       prefix + "link/depth_camera_link/sensor/depth_camera/depth_image/"
              + "trigger",
@@ -288,9 +288,9 @@ TEST_F(SensorsFixture, HandleRemovedEntities)
       "/test_trigger"
   };
 
-  testTopics(published_topics, subscribed_topics);
+  testTopics(publishedTopics, subscribedTopics);
   testSensorEntityIds(*ecm, g_sensorEntityIds);
-  testSensorTopicComponents(*ecm, g_sensorEntityIds, published_topics);
+  testSensorTopicComponents(*ecm, g_sensorEntityIds, publishedTopics);
 
   g_sensorEntityIds.clear();
   g_scene.reset();
@@ -355,7 +355,7 @@ TEST_F(SensorsFixture, SensorNamespace)
   // Run the server so rendering sensors are created and start advertising.
   server.Run(true, 50, false);
 
-  std::vector<std::string> published_topics{
+  std::vector<std::string> publishedTopics{
       "/relative_topics_ns/camera_relative",
       "/relative_topics_ns/camera_info_relative",
       "/camera_absolute",
@@ -368,11 +368,11 @@ TEST_F(SensorsFixture, SensorNamespace)
       "/rgbd_default_topics_ns/points",
   };
 
-  std::vector<std::string> subscribed_topics{
+  std::vector<std::string> subscribedTopics{
       "/relative_topics_ns/trigger_relative",
       "/trigger_absolute",
       "/default_topics_ns/image/trigger",
       "/rgbd_default_topics_ns/trigger",
   };
-  testTopics(published_topics, subscribed_topics);
+  testTopics(publishedTopics, subscribedTopics);
 }

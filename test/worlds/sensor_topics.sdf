@@ -108,7 +108,7 @@
       </link>
 
       <link name="gpu_lidar_link">
-        <sensor name='gpu_lidar' type='gpu_lidar'>"
+        <sensor name='gpu_lidar' type='gpu_lidar'>
           <update_rate>40</update_rate>
           <ray>
             <scan>
