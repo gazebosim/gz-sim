@@ -1751,7 +1751,8 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
     }
     else
     {
-      topicOptions.defaultTopicSuffix = '/' + ns;
+      topicOptions.defaultTopicSuffix =
+        (!ns.empty() && ns.front() == '/') ? ns : '/' + ns;
     }
   }
 
