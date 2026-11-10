@@ -211,6 +211,9 @@ Thruster::Thruster():
 }
 
 /////////////////////////////////////////////////
+Thruster::~Thruster() = default;
+
+/////////////////////////////////////////////////
 void Thruster::Configure(
   const Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,

@@ -173,6 +173,9 @@ namespace systems
     /// \brief Constructor
     public: Thruster();
 
+    /// \brief Destructor
+    public: ~Thruster();
+
     /// Documentation inherited
     public: void Configure(
         const gz::sim::Entity &_entity,
