@@ -1,0 +1,8 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource prefix="PerformanceOverlay/">
+    <file>PerformanceOverlay.qml</file>
+    <file>LoadRow.qml</file>
+    <file>RtfHistory.qml</file>
+    <file>StackedBar.qml</file>
+  </qresource>
+</RCC>
