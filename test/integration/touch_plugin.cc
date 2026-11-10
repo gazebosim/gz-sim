@@ -31,9 +31,12 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Subscription.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 using namespace gz;
 using namespace sim;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 /// \brief Test TouchPlugin system
 class TouchPluginTest : public InternalFixture<::testing::Test>

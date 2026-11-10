@@ -43,12 +43,15 @@
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "helpers/ResetUtils.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
 namespace components = gz::sim::components;
 namespace reset = gz::sim::test::reset;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 //////////////////////////////////////////////////
 class ResetFixture: public InternalFixture<::testing::Test>

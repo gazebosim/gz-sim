@@ -35,10 +35,13 @@
 
 #include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 /// \brief Test VelocityControl system
 class VelocityControlTest
