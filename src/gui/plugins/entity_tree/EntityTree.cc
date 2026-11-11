@@ -357,6 +357,15 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         parentEntity = parentComp->Data();
       }
 
+      entities.insert({_entity,
+          {QString::fromStdString(_name->Data()), parentEntity}});
+      return true;
+    });
+
+    for (auto &[_entity, data] : entities)
+    {
+      auto &[name, parentEntity] = data;
+
       // World children are top-level
       if (this->dataPtr->worldEntity != kNullEntity &&
           parentEntity == this->dataPtr->worldEntity)
@@ -364,14 +373,6 @@ void EntityTree::Update(const UpdateInfo &, EntityComponentManager &_ecm)
         parentEntity = kNullEntity;
       }
 
-      entities.insert({_entity,
-          {QString::fromStdString(_name->Data()), parentEntity}});
-      return true;
-    });
-
-    for (const auto& [_entity, data] : entities)
-    {
-      const auto& [name, parentEntity] = data;
       QMetaObject::invokeMethod(&this->dataPtr->treeModel, "AddEntity",
           Qt::QueuedConnection,
           Q_ARG(Entity, _entity),
