@@ -16,6 +16,8 @@
  */
 #include <gtest/gtest.h>
 
+#include <cmath>
+
 #include <gz/common/Filesystem.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
@@ -31,6 +33,8 @@
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
 #include "../helpers/Relay.hh"
+#include "../helpers/Subscription.hh"
+#include "../helpers/Util.hh"
 
 using namespace gz;
 using namespace sim;
@@ -96,6 +100,12 @@ class EnvironmentSensorTest : public InternalFixture<::testing::Test>
 
 };
 
+/// \brief Test EnvironmentalSensorSystem reset behavior without timestamp
+/// assertions.
+class EnvironmentSensorResetTest : public InternalFixture<::testing::Test>
+{
+};
+
 /////////////////////////////////////////////////
 TEST_F(EnvironmentSensorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
 {
@@ -114,4 +124,115 @@ TEST_F(EnvironmentSensorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
   EXPECT_TRUE(this->receivedData.load());
   EXPECT_TRUE(this->receivedWind2dData.load());
   EXPECT_TRUE(this->receivedWind3dData.load());
+}
+
+/////////////////////////////////////////////////
+TEST_F(EnvironmentSensorResetTest,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetRestoresEarlyReadings))
+{
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_BINARY_PATH), "test",
+      "worlds", "environmental_sensor.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  const std::string humidityTopic =
+      "/world/environmental_sensor_test/model/model_with_sensor/link/link/"
+      "sensor/custom_sensor/environmental_sensor/humidity";
+
+  transport::Node node;
+  Subscription<msgs::Double> initialHumidity;
+  Subscription<msgs::Vector3d> initialWind2d;
+  Subscription<msgs::Vector3d> initialWind3d;
+  initialHumidity.Subscribe(node, humidityTopic, 1);
+  initialWind2d.Subscribe(node, "/wind_speed2d", 1);
+  initialWind3d.Subscribe(node, "/wind_speed3d", 1);
+
+  auto waitForHumidity =
+      [&server](Subscription<msgs::Double> &_subscription, auto _predicate)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u &&
+              _predicate(_subscription.Last());
+        });
+      };
+  auto waitForWind =
+      [&server](Subscription<msgs::Vector3d> &_subscription, auto _predicate)
+      {
+        return test::StepUntil(server, 2000, [&]
+        {
+          return _subscription.Count() > 0u &&
+              _predicate(_subscription.Last());
+        });
+      };
+
+  ASSERT_TRUE(waitForHumidity(initialHumidity,
+      [](const msgs::Double &_msg)
+      {
+        return _msg.data() < 0.2;
+      }));
+  const auto baselineHumidity = initialHumidity.Last();
+
+  ASSERT_TRUE(waitForWind(initialWind2d,
+      [](const msgs::Vector3d &_msg)
+      {
+        return std::abs(_msg.x() - 1.0) < 1e-6 &&
+            std::abs(_msg.y()) < 1e-6 &&
+            std::abs(_msg.z()) < 1e-6;
+      }));
+  ASSERT_TRUE(waitForWind(initialWind3d,
+      [](const msgs::Vector3d &_msg)
+      {
+        return std::abs(_msg.x()) < 1e-3 &&
+            std::abs(_msg.y() + 1.0) < 1e-3 &&
+            std::abs(_msg.z()) < 1e-3;
+      }));
+
+  ASSERT_TRUE(waitForHumidity(initialHumidity,
+      [](const msgs::Double &_msg)
+      {
+        return _msg.data() > 0.7;
+      }));
+  const auto preResetHumidity = initialHumidity.Last();
+  EXPECT_GT(preResetHumidity.data(), baselineHumidity.data() + 0.6);
+
+  server.ResetAll();
+
+  // Re-subscribe after reset to avoid accepting late pre-reset transport data.
+  transport::Node postResetNode;
+  Subscription<msgs::Double> postResetHumidity;
+  Subscription<msgs::Vector3d> postResetWind2d;
+  Subscription<msgs::Vector3d> postResetWind3d;
+  postResetHumidity.Subscribe(postResetNode, humidityTopic, 1);
+  postResetWind2d.Subscribe(postResetNode, "/wind_speed2d", 1);
+  postResetWind3d.Subscribe(postResetNode, "/wind_speed3d", 1);
+
+  ASSERT_TRUE(waitForHumidity(postResetHumidity,
+      [&preResetHumidity](const msgs::Double &_msg)
+      {
+        return _msg.data() < 0.2 &&
+            _msg.data() < preResetHumidity.data() - 0.6;
+      }));
+  const auto postResetHumidityMsg = postResetHumidity.Last();
+  EXPECT_NEAR(baselineHumidity.data(), postResetHumidityMsg.data(), 0.2);
+
+  ASSERT_TRUE(waitForWind(postResetWind2d,
+      [](const msgs::Vector3d &_msg)
+      {
+        return std::abs(_msg.x() - 1.0) < 1e-6 &&
+            std::abs(_msg.y()) < 1e-6 &&
+            std::abs(_msg.z()) < 1e-6;
+      }));
+  ASSERT_TRUE(waitForWind(postResetWind3d,
+      [](const msgs::Vector3d &_msg)
+      {
+        return std::abs(_msg.x()) < 1e-3 &&
+            std::abs(_msg.y() + 1.0) < 1e-3 &&
+            std::abs(_msg.z()) < 1e-3;
+      }));
 }
