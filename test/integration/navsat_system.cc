@@ -21,6 +21,7 @@
 #include <mutex>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
@@ -31,9 +32,9 @@
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
-#include "gz/sim/TestFixture.hh"
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
@@ -61,41 +62,36 @@ void navsatCb(const msgs::NavSat &_msg)
 // The test checks the world pose and sensor readings of a falling navsat
 TEST_F(NavSatTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
 {
-  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
     "test", "worlds", "navsat.sdf"));
+  Server server(serverConfig);
 
   auto topic = "world/navsat_sensor/"
       "model/navsat_model/link/link/sensor/navsat_sensor/navsat";
-
-  bool checkedComponents{false};
-  fixture.OnPostUpdate(
-    [&](
-      const sim::UpdateInfo &,
-      const sim::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Sensor, components::NavSat, components::Name,
-                components::SensorTopic>(
-          [&](const gz::sim::Entity &,
-              const components::Sensor *,
-              const components::NavSat *,
-              const components::Name *_name,
-              const components::SensorTopic *_topic) -> bool
-          {
-            EXPECT_EQ(_name->Data(), "navsat_sensor");
-            EXPECT_EQ(topic, _topic->Data());
-
-            checkedComponents = true;
-            return true;
-          });
-    }).Finalize();
 
   // subscribe to navsat topic
   transport::Node node;
   node.Subscribe(topic, &navsatCb);
 
   // Run server
-  fixture.Server()->Run(true, 300u, false);
-  EXPECT_TRUE(checkedComponents);
+  server.Run(true, 300u, false);
+
+  // Check the sensor entity. The world shares the sensor's name, so the
+  // lookup also asks for the Sensor component to make sure we get the sensor.
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+
+    const Entity sensor = ecm->EntityByComponents(
+        components::Sensor(), components::Name("navsat_sensor"));
+    ASSERT_NE(kNullEntity, sensor);
+    EXPECT_NE(nullptr, ecm->Component<components::NavSat>(sensor));
+
+    const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
+    ASSERT_NE(nullptr, topicComp);
+    EXPECT_EQ(topic, topicComp->Data());
+  }
 
   // Wait for messages to be received
   int sleep{0};
