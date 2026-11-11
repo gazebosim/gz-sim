@@ -17,15 +17,16 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <optional>
 
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/DetachableJoint.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -99,20 +100,17 @@ TEST_F(PhysicsSystemFixture,
 
   Server server(serverConfig);
 
-  unsigned int detachableJointCount = 0u;
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const UpdateInfo &,
-    const EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::DetachableJoint>(
-              [&](const Entity &,
-                  const components::DetachableJoint *) -> bool
-              {
-                detachableJointCount++;
-                return true;
-              });
-    });
-  server.AddSystem(testSystem.systemPtr);
+  auto countDetachableJoints = [](const EntityComponentManager &_ecm)
+  {
+    std::size_t count = 0u;
+    _ecm.Each<components::DetachableJoint>(
+        [&count](const Entity &, const components::DetachableJoint *) -> bool
+        {
+          ++count;
+          return true;
+        });
+    return count;
+  };
 
   server.Run(true, 1, false);
   EXPECT_TRUE(server.HasEntity("vehicle_blue"));
@@ -128,12 +126,14 @@ TEST_F(PhysicsSystemFixture,
   EXPECT_TRUE(server.HasEntity("B1"));
   EXPECT_TRUE(server.HasEntity("B2"));
   EXPECT_TRUE(server.HasEntity("B3"));
-  EXPECT_EQ(3u, detachableJointCount);
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(3u, countDetachableJoints(*ecm));
+  }
 
   EXPECT_TRUE(server.RequestRemoveEntity("vehicle_blue"));
   server.Run(true, 1, false);
-
-  detachableJointCount = 0u;
   server.Run(true, 1, false);
   EXPECT_FALSE(server.HasEntity("vehicle_blue"));
   EXPECT_FALSE(server.HasEntity("chassis"));
@@ -148,5 +148,9 @@ TEST_F(PhysicsSystemFixture,
   EXPECT_TRUE(server.HasEntity("B1"));
   EXPECT_TRUE(server.HasEntity("B2"));
   EXPECT_TRUE(server.HasEntity("B3"));
-  EXPECT_EQ(0u, detachableJointCount);
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(0u, countDetachableJoints(*ecm));
+  }
 }

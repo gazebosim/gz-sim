@@ -31,7 +31,7 @@ namespace components
 {
   /// \brief A component used to turn off a model's joint's movement.
   using HaltMotion = Component<bool, class HaltMotionTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.HaltMotion",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.HaltMotion",
       HaltMotion)
 }
 }

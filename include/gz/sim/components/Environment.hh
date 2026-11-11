@@ -89,7 +89,7 @@ namespace components
   using Environment =
       Component<std::shared_ptr<EnvironmentalData>, class EnvironmentalDataTag>;
 
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.Environment", Environment)
 }
 }

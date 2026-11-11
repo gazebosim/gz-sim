@@ -15,8 +15,13 @@
  *
 */
 
+#include <algorithm>
 #include <chrono>
 #include <optional>
+#include <tuple>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 #include <gtest/gtest.h>
 
 #include <gz/common/Console.hh>
@@ -33,11 +38,13 @@
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/config.hh"
+#include "gz/sim/detail/vendor/entt/core/type_info.hpp"
 #include "EntityComponentManagerDiff.hh"
 #include "../test/helpers/EnvTestFixture.hh"
 
@@ -2843,11 +2850,13 @@ TEST_P(EntityComponentManagerFixture,
 
   Entity topLevelEntity = manager.CreateEntity();
   manager.CreateComponent(topLevelEntity, components::Name("topLevelEntity"));
+  manager.CreateComponent(topLevelEntity, components::Namespace("topLevelNs"));
   manager.CreateComponent(topLevelEntity, IntComponent(123));
   manager.CreateComponent(topLevelEntity, StringComponent("string0"));
 
   Entity childEntity1 = manager.CreateEntity();
   manager.CreateComponent(childEntity1, components::Name("childEntity1"));
+  manager.CreateComponent(childEntity1, components::Namespace("childNs1"));
   manager.CreateComponent(childEntity1,
       components::ParentEntity(topLevelEntity));
   manager.CreateComponent(childEntity1, IntComponent(456));
@@ -2857,10 +2866,13 @@ TEST_P(EntityComponentManagerFixture,
   manager.CreateComponent(grandChildEntity1,
       components::Name("grandChildEntity1"));
   manager.CreateComponent(grandChildEntity1,
+      components::Namespace("grandChildNs1"));
+  manager.CreateComponent(grandChildEntity1,
       components::ParentEntity(childEntity1));
 
   Entity childEntity2 = manager.CreateEntity();
   manager.CreateComponent(childEntity2, components::Name("childEntity2"));
+  manager.CreateComponent(childEntity2, components::Namespace("childNs2"));
   manager.CreateComponent(childEntity2,
       components::ParentEntity(topLevelEntity));
   manager.CreateComponent(childEntity2, IntComponent(789));
@@ -2888,6 +2900,8 @@ TEST_P(EntityComponentManagerFixture,
             components::ParentEntity::typeId));
       CompareEntityComponents<components::Name>(manager, topLevelEntity,
           _clonedEntity, false);
+      CompareEntityComponents<components::Namespace>(manager, topLevelEntity,
+          _clonedEntity, true);
       CompareEntityComponents<IntComponent>(manager, topLevelEntity,
           _clonedEntity, true);
       CompareEntityComponents<StringComponent>(manager, topLevelEntity,
@@ -2916,6 +2930,8 @@ TEST_P(EntityComponentManagerFixture,
       EXPECT_EQ(clonedTopLevelEntity, parentComp->Data());
       CompareEntityComponents<components::Name>(manager, _clonedChild,
           _originalChild, false);
+      CompareEntityComponents<components::Namespace>(manager, _clonedChild,
+          _originalChild, true);
       CompareEntityComponents<IntComponent>(manager, _clonedChild,
           _originalChild, true);
       CompareEntityComponents<StringComponent>(manager, _clonedChild,
@@ -2923,13 +2939,15 @@ TEST_P(EntityComponentManagerFixture,
     };
 
   auto validateGrandChildClone =
-    [&](const Entity _clonedEntity, bool _sameParent)
+    [&](const Entity _clonedEntity, bool _sameNs, bool _sameParent)
     {
       EXPECT_NE(kNullEntity, _clonedEntity);
       EXPECT_EQ(manager.ComponentTypes(_clonedEntity),
           manager.ComponentTypes(grandChildEntity1));
       CompareEntityComponents<components::Name>(manager, _clonedEntity,
           grandChildEntity1, false);
+      CompareEntityComponents<components::Namespace>(manager, _clonedEntity,
+          grandChildEntity1, _sameNs);
       CompareEntityComponents<components::ParentEntity>(manager,
           _clonedEntity, grandChildEntity1, _sameParent);
       EXPECT_TRUE(manager.EntitiesByComponents(
@@ -2959,7 +2977,7 @@ TEST_P(EntityComponentManagerFixture,
 
       ASSERT_EQ(1u, clonedGrandChildren.size());
       clonedEntities.insert(clonedGrandChildren[0]);
-      validateGrandChildClone(clonedGrandChildren[0], false);
+      validateGrandChildClone(clonedGrandChildren[0], true, false);
       auto parentComp =
         manager.Component<components::ParentEntity>(clonedGrandChildren[0]);
       ASSERT_NE(nullptr, parentComp);
@@ -2979,18 +2997,20 @@ TEST_P(EntityComponentManagerFixture,
     EXPECT_TRUE(comparedToOriginalChild);
   }
 
-  // clone a child entity
+  // clone a child entity with a namespace provided
   auto grandChildParentComp =
     manager.Component<components::ParentEntity>(grandChildEntity1);
   ASSERT_NE(nullptr, grandChildParentComp);
   auto clonedGrandChildEntity = manager.Clone(grandChildEntity1,
-      grandChildParentComp->Data(), "", allowRename);
+      grandChildParentComp->Data(), "", allowRename, "clonedGrandChildNs");
   EXPECT_EQ(9u, manager.EntityCount());
   clonedEntities.insert(clonedGrandChildEntity);
-  validateGrandChildClone(clonedGrandChildEntity, true);
+  validateGrandChildClone(clonedGrandChildEntity, false, true);
 
-  // Try cloning an entity with a name that already exists, but allow renaming.
-  // This should succeed and generate a cloned entity with a unique name.
+  // Try cloning an entity with a name that already exists, but allow renaming
+  // and without a namespace provided.
+  // This should succeed and generate a cloned entity with a unique name
+  // and the same namespace.
   const auto existingName = "grandChildEntity1";
   EXPECT_NE(kNullEntity,
       manager.EntityByComponents(components::Name(existingName)));
@@ -2998,7 +3018,7 @@ TEST_P(EntityComponentManagerFixture,
       grandChildParentComp->Data(), existingName, allowRename);
   EXPECT_EQ(10u, manager.EntityCount());
   clonedEntities.insert(clonedGrandChildEntity);
-  validateGrandChildClone(renamedClonedEntity, true);
+  validateGrandChildClone(renamedClonedEntity, true, true);
 
   // Try cloning an entity with a name that already exists, without allowing
   // renaming. This should fail since entities should have unique names.
@@ -3090,8 +3110,8 @@ TEST_P(EntityComponentManagerFixture,
   }
 
   // try to clone an entity that does not exist
-  EXPECT_EQ(kNullEntity, manager.Clone(kNullEntity, topLevelEntity, "",
-        allowRename));
+  EXPECT_EQ(kNullEntity, manager.Clone(
+    kNullEntity, topLevelEntity, "", allowRename));
   EXPECT_EQ(18u, manager.EntityCount());
 }
 
@@ -3609,6 +3629,366 @@ TEST_P(EntityComponentManagerFixture, HasEqualityOperator)
   EXPECT_TRUE(manager.SetComponentData<AnimationTime>(entity, 200ms));
   EXPECT_EQ(200ms, manager.ComponentData<AnimationTime>(entity));
   EXPECT_FALSE(manager.SetComponentData<AnimationTime>(entity, 200ms));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that the runtime-typed Each() visits the same entities with
+/// the same component values as Each<ComponentTypeTs>(). EnTT does not
+/// guarantee an iteration order, so the results are compared as sets.
+TEST_P(EntityComponentManagerFixture, EachRuntimeTypedParity)
+{
+  // A mix of entities so the queries have to intersect storages of
+  // different sizes.
+  for (int i = 0; i < 6; ++i)
+  {
+    Entity entity = manager.CreateEntity();
+    manager.CreateComponent(entity, IntComponent(i));
+    if (i % 2 == 0)
+      manager.CreateComponent(entity, DoubleComponent(i * 0.5));
+  }
+  // An entity with no components at all.
+  manager.CreateEntity();
+
+  // Query through the const ECM so the template queries don't enqueue
+  // groups as a side effect of this test.
+  const EntityComponentManager &constManager = manager;
+
+  // Single component query.
+  std::vector<std::pair<Entity, int>> fromTemplate;
+  constManager.Each<IntComponent>(
+      [&](const Entity &_entity, const IntComponent *_int)
+      {
+        fromTemplate.emplace_back(_entity, _int->Data());
+        return true;
+      });
+
+  std::vector<std::pair<Entity, int>> fromRuntime;
+  constManager.Each({IntComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &_comps)
+      {
+        EXPECT_EQ(1u, _comps.size());
+        EXPECT_NE(nullptr, _comps[0]);
+        fromRuntime.emplace_back(_entity,
+            static_cast<const IntComponent *>(_comps[0])->Data());
+        return true;
+      });
+
+  EXPECT_EQ(6u, fromTemplate.size());
+  std::sort(fromTemplate.begin(), fromTemplate.end());
+  std::sort(fromRuntime.begin(), fromRuntime.end());
+  EXPECT_EQ(fromTemplate, fromRuntime);
+
+  // Two component query.
+  std::vector<std::tuple<Entity, int, double>> fromTemplate2;
+  constManager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &_entity, const IntComponent *_int,
+          const DoubleComponent *_double)
+      {
+        fromTemplate2.emplace_back(_entity, _int->Data(), _double->Data());
+        return true;
+      });
+
+  std::vector<std::tuple<Entity, int, double>> fromRuntime2;
+  constManager.Each({IntComponent::typeId, DoubleComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &_comps)
+      {
+        EXPECT_EQ(2u, _comps.size());
+        fromRuntime2.emplace_back(_entity,
+            static_cast<const IntComponent *>(_comps[0])->Data(),
+            static_cast<const DoubleComponent *>(_comps[1])->Data());
+        return true;
+      });
+
+  EXPECT_EQ(3u, fromTemplate2.size());
+  std::sort(fromTemplate2.begin(), fromTemplate2.end());
+  std::sort(fromRuntime2.begin(), fromRuntime2.end());
+  EXPECT_EQ(fromTemplate2, fromRuntime2);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check the runtime-typed query with an empty type list, and that
+/// returning false from the callback stops the iteration.
+TEST_P(EntityComponentManagerFixture, EachRuntimeTypedNoTypesAndEarlyStop)
+{
+  std::unordered_set<Entity> created;
+  for (int i = 0; i < 4; ++i)
+  {
+    Entity entity = manager.CreateEntity();
+    created.insert(entity);
+    manager.CreateComponent(entity, IntComponent(i));
+  }
+
+  const EntityComponentManager &constManager = manager;
+
+  // An empty type list matches every entity and yields no components.
+  std::unordered_set<Entity> visited;
+  constManager.Each({},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &_comps)
+      {
+        EXPECT_TRUE(_comps.empty());
+        visited.insert(_entity);
+        return true;
+      });
+  EXPECT_EQ(created, visited);
+
+  // Returning false stops the iteration.
+  int calls = 0;
+  constManager.Each({IntComponent::typeId},
+      [&](Entity,
+          const std::vector<const components::BaseComponent *> &)
+      {
+        ++calls;
+        return false;
+      });
+  EXPECT_EQ(1, calls);
+
+  calls = 0;
+  constManager.Each({},
+      [&](Entity,
+          const std::vector<const components::BaseComponent *> &)
+      {
+        ++calls;
+        return false;
+      });
+  EXPECT_EQ(1, calls);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check runtime-typed EachNew / EachRemoved parity with their
+/// template counterparts, including that Each() still visits entities that
+/// are marked for removal but not yet processed.
+TEST_P(EntityComponentManagerFixture, EachRuntimeTypedNewAndRemoved)
+{
+  Entity e1 = manager.CreateEntity();
+  Entity e2 = manager.CreateEntity();
+  manager.CreateComponent(e1, IntComponent(1));
+  manager.CreateComponent(e2, IntComponent(2));
+
+  const EntityComponentManager &constManager = manager;
+
+  // Both entities are new.
+  std::vector<std::pair<Entity, int>> newFromTemplate;
+  constManager.EachNew<IntComponent>(
+      [&](const Entity &_entity, const IntComponent *_int)
+      {
+        newFromTemplate.emplace_back(_entity, _int->Data());
+        return true;
+      });
+
+  std::vector<std::pair<Entity, int>> newFromRuntime;
+  constManager.EachNew({IntComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &_comps)
+      {
+        EXPECT_EQ(1u, _comps.size());
+        newFromRuntime.emplace_back(_entity,
+            static_cast<const IntComponent *>(_comps[0])->Data());
+        return true;
+      });
+
+  EXPECT_EQ(2u, newFromTemplate.size());
+  std::sort(newFromTemplate.begin(), newFromTemplate.end());
+  std::sort(newFromRuntime.begin(), newFromRuntime.end());
+  EXPECT_EQ(newFromTemplate, newFromRuntime);
+
+  // Nothing is marked for removal yet.
+  int removedCalls = 0;
+  constManager.EachRemoved({IntComponent::typeId},
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++removedCalls;
+        return true;
+      });
+  EXPECT_EQ(0, removedCalls);
+
+  manager.RunClearNewlyCreatedEntities();
+
+  // "Newness" is cleared.
+  int newCalls = 0;
+  constManager.EachNew({IntComponent::typeId},
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++newCalls;
+        return true;
+      });
+  EXPECT_EQ(0, newCalls);
+
+  manager.RequestRemoveEntity(e1);
+
+  std::vector<std::pair<Entity, int>> removedFromTemplate;
+  constManager.EachRemoved<IntComponent>(
+      [&](const Entity &_entity, const IntComponent *_int)
+      {
+        removedFromTemplate.emplace_back(_entity, _int->Data());
+        return true;
+      });
+
+  std::vector<std::pair<Entity, int>> removedFromRuntime;
+  constManager.EachRemoved({IntComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &_comps)
+      {
+        EXPECT_EQ(1u, _comps.size());
+        removedFromRuntime.emplace_back(_entity,
+            static_cast<const IntComponent *>(_comps[0])->Data());
+        return true;
+      });
+
+  ASSERT_EQ(1u, removedFromTemplate.size());
+  EXPECT_EQ(e1, removedFromTemplate.front().first);
+  std::sort(removedFromTemplate.begin(), removedFromTemplate.end());
+  std::sort(removedFromRuntime.begin(), removedFromRuntime.end());
+  EXPECT_EQ(removedFromTemplate, removedFromRuntime);
+
+  // An entity marked for removal is still visited by Each().
+  std::unordered_set<Entity> stillVisited;
+  constManager.Each({IntComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &)
+      {
+        stillVisited.insert(_entity);
+        return true;
+      });
+  EXPECT_EQ(2u, stillVisited.size());
+  EXPECT_EQ(1u, stillVisited.count(e1));
+  EXPECT_EQ(1u, stillVisited.count(e2));
+
+  manager.ProcessEntityRemovals();
+
+  stillVisited.clear();
+  constManager.Each({IntComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &)
+      {
+        stillVisited.insert(_entity);
+        return true;
+      });
+  EXPECT_EQ(1u, stillVisited.size());
+  EXPECT_EQ(1u, stillVisited.count(e2));
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a runtime-typed query naming a component type that no
+/// entity has yields no callbacks.
+TEST_P(EntityComponentManagerFixture, EachRuntimeTypedUnknownType)
+{
+  Entity entity = manager.CreateEntity();
+  manager.CreateComponent(entity, IntComponent(123));
+
+  const EntityComponentManager &constManager = manager;
+
+  // A type ID that was never registered at all returns false.
+  const ComponentTypeId unknownType{0xDEADBEEF};
+  int calls = 0;
+  auto countCalls =
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++calls;
+        return true;
+      };
+  EXPECT_FALSE(constManager.Each({unknownType}, countCalls));
+  EXPECT_FALSE(constManager.EachNew({unknownType}, countCalls));
+  EXPECT_FALSE(constManager.EachRemoved({unknownType}, countCalls));
+  EXPECT_EQ(0, calls);
+
+  // A registered type that no entity has, combined with one that exists,
+  // still returns true.
+  EXPECT_TRUE(constManager.Each(
+      {IntComponent::typeId, BoolComponent::typeId}, countCalls));
+  EXPECT_TRUE(constManager.EachNew(
+      {IntComponent::typeId, BoolComponent::typeId}, countCalls));
+  EXPECT_TRUE(constManager.EachRemoved(
+      {IntComponent::typeId, BoolComponent::typeId}, countCalls));
+  EXPECT_EQ(0, calls);
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that tag (NoData) components are handled by the
+/// runtime-typed query: their storage holds real objects.
+TEST_P(EntityComponentManagerFixture, EachRuntimeTypedTagComponent)
+{
+  Entity even = manager.CreateEntity();
+  Entity odd = manager.CreateEntity();
+  manager.CreateComponent(even, Even());
+  manager.CreateComponent(even, IntComponent(2));
+  manager.CreateComponent(odd, Odd());
+  manager.CreateComponent(odd, IntComponent(3));
+
+  const EntityComponentManager &constManager = manager;
+
+  std::vector<Entity> visited;
+  EXPECT_TRUE(constManager.Each({Even::typeId, IntComponent::typeId},
+      [&](Entity _entity,
+          const std::vector<const components::BaseComponent *> &_comps)
+      {
+        EXPECT_EQ(2u, _comps.size());
+        // Tag components are not empty types, so a valid pointer is passed.
+        EXPECT_NE(nullptr, _comps[0]);
+        EXPECT_EQ(2, static_cast<const IntComponent *>(_comps[1])->Data());
+        visited.push_back(_entity);
+        return true;
+      }));
+
+  ASSERT_EQ(1u, visited.size());
+  EXPECT_EQ(even, visited.front());
+}
+
+//////////////////////////////////////////////////
+/// \brief Check that a runtime-typed query refuses ids that name one of the
+/// ECM's internal book-keeping types rather than a real component.
+TEST_P(EntityComponentManagerFixture, EachRuntimeTypedRejectsInternalTypes)
+{
+  Entity parent = manager.CreateEntity();
+  Entity child = manager.CreateEntity();
+  manager.CreateComponent(parent, IntComponent(1));
+  // Creating a ParentEntity component populates the parent's internal
+  // Children component, so that storage is non-empty below.
+  manager.CreateComponent(child, components::ParentEntity(parent));
+
+  const EntityComponentManager &constManager = manager;
+
+  // The internal types live in the same registry, and therefore the same id
+  // space, as components, but they do not derive from BaseComponent.
+  // Children holds real objects, so without the guard the query would
+  // static_cast a Children to a BaseComponent and invoke a virtual function
+  // on it.
+  const ComponentTypeId childrenId = entt::type_hash<Children>::value();
+  ASSERT_FALSE(components::Factory::Instance()->HasType(childrenId));
+
+  int calls = 0;
+  EXPECT_FALSE(constManager.Each({childrenId},
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++calls;
+        return true;
+      }));
+  EXPECT_EQ(0, calls);
+
+  // NewEntity is an empty struct, so its storage holds no objects at all and
+  // value() would return nullptr, violating the documented guarantee that
+  // every pointer handed to the callback is non-null.
+  const ComponentTypeId newEntityId = entt::type_hash<NewEntity>::value();
+  ASSERT_FALSE(components::Factory::Instance()->HasType(newEntityId));
+
+  EXPECT_FALSE(constManager.Each({newEntityId, IntComponent::typeId},
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++calls;
+        return true;
+      }));
+  EXPECT_EQ(0, calls);
+
+  // A legitimate query still works after the rejected ones.
+  EXPECT_TRUE(constManager.Each({IntComponent::typeId},
+      [&](Entity, const std::vector<const components::BaseComponent *> &)
+      {
+        ++calls;
+        return true;
+      }));
+  EXPECT_EQ(1, calls);
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

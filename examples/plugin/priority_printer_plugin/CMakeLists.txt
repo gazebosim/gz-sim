@@ -9,7 +9,6 @@ gz_find_package(gz-plugin REQUIRED COMPONENTS register)
 gz_find_package(gz-sim REQUIRED)
 
 add_library(PriorityPrinter SHARED PriorityPrinter.cc)
-set_property(TARGET PriorityPrinter PROPERTY CXX_STANDARD 17)
 target_link_libraries(PriorityPrinter
   PRIVATE gz-plugin::gz-plugin
   PRIVATE gz-sim::gz-sim)

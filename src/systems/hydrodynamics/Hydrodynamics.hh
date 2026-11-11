@@ -147,6 +147,16 @@ namespace systems
   ///     `<{x|y|z|k|m|n}Dot{U|V|W|P|Q|R}>` e.g. `<xDotR>`
   ///
   /// ### Ocean Current
+  ///
+  /// A current is the velocity of the water, in metres per second, in the
+  /// world frame: x east, y north, z up for a world with ENU spherical
+  /// coordinates and a zero heading, which is the default. The plugin
+  /// damps the link on its velocity relative to the water,
+  /// `v_r = v - v_current`, so a body left alone in a current drifts
+  /// with it. Data in the marine convention (north, east, down, with
+  /// depth positive downwards) must be converted: x = east, y = north,
+  /// z = -down, and a depth d is a world z of -d.
+  ///
   ///   * `<default_current>` - Constant current velocity in world
   ///     frame. [gz::math::Vector3d, default: 0 0 0, m/s]
   ///   * `<namespace>` - If set, the plugin subscribes to
@@ -160,6 +170,15 @@ namespace systems
   ///   * `<lookup_current_x>` - CSV column for x current [string]
   ///   * `<lookup_current_y>` - CSV column for y current [string]
   ///   * `<lookup_current_z>` - CSV column for z current [string]
+  ///
+  /// The columns hold the water's velocity in metres per second along the
+  /// world's x, y and z. Data sets that follow the CF standard names, as
+  /// MBARI's LRAUV worlds do, map
+  /// `eastward_sea_water_velocity_meter_per_sec` to x and
+  /// `northward_sea_water_velocity_meter_per_sec` to y; an upward
+  /// velocity goes to z. The grid's own coordinates follow the
+  /// EnvironmentPreload `<dimensions>`: local x, y, z, or latitude,
+  /// longitude and altitude with a spherical reference.
   ///
   /// ### Feature Flags
   ///   * `<disable_coriolis>` - Disable the plugin's legacy Coriolis

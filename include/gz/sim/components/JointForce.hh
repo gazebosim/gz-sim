@@ -36,7 +36,7 @@ namespace components
   /// prismatic).
   using JointForce = Component<std::vector<double>, class JointForceTag,
                                serializers::VectorDoubleSerializer>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.JointForce", JointForce)
 }
 }

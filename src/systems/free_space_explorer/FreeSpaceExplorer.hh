@@ -19,6 +19,7 @@
 
 #include <gz/utils/ImplPtr.hh>
 #include <memory>
+#include <string>
 
 #include "gz/sim/System.hh"
 #include "gz/sim/config.hh"
@@ -38,14 +39,22 @@ namespace systems
   /// ## System Parameters
   ///
   /// This system takes in the following parameters:
-  ///    * `<lidar_topic>` - Topic to listen to LiDAR on
+  ///    * `<lidar_topic>` - Topic to listen to LiDAR on. Defaults to `scan`,
+  ///      or `<namespace>`/scan when the model has a namespace.
   ///    * `<width>` - Number of columns in the occupancy map
   ///    * `<height>` - Number of rows in the occupancy map
   ///    * `<resolution>` - Resolution of an individual cell
   ///    * `<sensor_link>` - Link on which the sensor is attached within the
   ///                      model.
-  ///    * `<image_topic>` - Topic to publish occupancy map on
+  ///    * `<image_topic>` - Topic to publish occupancy map on. Defaults to
+  ///      `scan_image`, or `<namespace>`/scan_image when the model has a
+  ///      namespace.
   ///    * `<start_topic>` - Topic to listen on before starting exploration.
+  ///      Defaults to `start`, or `<namespace>`/start when the model has a
+  ///      namespace.
+  ///
+  /// Relative topic names are prefixed with the model namespace. Absolute
+  /// topic names (starting with `/`) are left unchanged.
   ///
   /// Note: It is assumed the sensor does not implement any pose
   /// offset from the link itself. This may of may not be true.
@@ -56,6 +65,19 @@ namespace systems
     public gz::sim::ISystemPreUpdate,
     public gz::sim::ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief LiDAR topic
+      public: std::string lidarTopic;
+
+      /// \brief Occupancy map image topic
+      public: std::string imageTopic;
+
+      /// \brief Start topic
+      public: std::string startTopic;
+    };
+
     /// \brief Constructor
     public: FreeSpaceExplorer();
 
@@ -78,6 +100,10 @@ namespace systems
     public: void PostUpdate(
       const gz::sim::UpdateInfo &_info,
       const gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    /// \return Resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
