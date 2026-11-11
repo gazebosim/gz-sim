@@ -366,6 +366,10 @@ TEST_F(SensorsFixture, SensorNamespace)
       "/rgbd_default_topics_ns/depth_image",
       "/rgbd_default_topics_ns/camera_info",
       "/rgbd_default_topics_ns/points",
+      "/rgbd_default_topics_absolute_ns/image",
+      "/rgbd_default_topics_absolute_ns/depth_image",
+      "/rgbd_default_topics_absolute_ns/camera_info",
+      "/rgbd_default_topics_absolute_ns/points",
   };
 
   std::vector<std::string> subscribedTopics{
@@ -373,6 +377,7 @@ TEST_F(SensorsFixture, SensorNamespace)
       "/trigger_absolute",
       "/default_topics_ns/image/trigger",
       "/rgbd_default_topics_ns/trigger",
+      "/rgbd_default_topics_absolute_ns/trigger",
   };
   testTopics(publishedTopics, subscribedTopics);
 }
