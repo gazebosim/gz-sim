@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -33,7 +34,10 @@
 #include <gz/common/Util.hh>
 #include <gz/msgs/bytes.pb.h>
 #include <gz/msgs/image.pb.h>
+#include <gz/msgs/pose.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+
+#include <gz/transport/Node.hh>
 
 #include "WebsocketServer.hh"
 
@@ -129,6 +133,22 @@ class WebsocketServerTest : public InternalFixture<::testing::Test>
     c->creationTime = GZ_SYSTEM_TIME();
     c->authorized = true;
     _server.connections[_socketId] = std::move(c);
+  }
+
+  // Mark a connection unauthorized and set the server's user key. Befriended
+  // access lets us reach the private members.
+  protected: void RequireAuthorization(
+      sim::systems::WebsocketServer &_server, int _socketId,
+      const std::string &_key)
+  {
+    _server.connections[_socketId]->authorized = false;
+    _server.authorizationKey = _key;
+  }
+
+  protected: bool IsAuthorized(
+      const sim::systems::WebsocketServer &_server, int _socketId)
+  {
+    return _server.connections.at(_socketId)->authorized;
   }
 
   // Pop the first queued outbound frame from the given connection. The
@@ -395,4 +415,159 @@ TEST_F(WebsocketServerTest, OnAsset_AllowlistedFileNotReadable)
   EXPECT_EQ("asset_not_found", msg.data())
       << "unreadable allowlisted file was served or wrongly denied; "
          "expected asset_not_found after open() failed";
+}
+
+// -------------------------------------------------------------------------
+// OnMessage: binary request payloads.
+// A `req` payload is a serialized protobuf. It can hold zero bytes and
+// commas, and must reach the service unchanged.
+// -------------------------------------------------------------------------
+
+namespace
+{
+// Records the last request a test service received.
+struct EchoRecorder
+{
+  std::mutex mutex;
+  std::string received;
+  int calls{0};
+
+  bool OnRequest(const msgs::StringMsg &_req, msgs::StringMsg &_rep)
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    this->received = _req.SerializeAsString();
+    ++this->calls;
+    _rep.set_data("ok");
+    return true;
+  }
+};
+}  // namespace
+
+TEST_F(WebsocketServerTest, OnMessage_RequestBinaryPayload)
+{
+  sim::systems::WebsocketServer server;
+  this->InjectAuthorizedConnection(server, 1);
+
+  EchoRecorder recorder;
+  transport::Node node;
+  ASSERT_TRUE(node.Advertise("/test/ws_echo", &EchoRecorder::OnRequest,
+      &recorder));
+
+  // The payload holds a comma (0x2c) and zero bytes. Zero bytes also make
+  // the frame differ from the C string that ends at the first one.
+  msgs::StringMsg req;
+  req.set_data(std::string("a,b\0c,d", 7));
+  const std::string payload = req.SerializeAsString();
+  ASSERT_NE(std::string::npos, payload.find('\0'));
+  ASSERT_NE(std::string::npos, payload.find(','));
+
+  const std::string frame =
+      "req,/test/ws_echo,gz.msgs.StringMsg," + payload;
+  server.OnMessage(1, frame);
+
+  {
+    std::lock_guard<std::mutex> lock(recorder.mutex);
+    EXPECT_EQ(1, recorder.calls);
+    EXPECT_EQ(payload, recorder.received);
+  }
+
+  auto f = ParseFrame(this->PopFrame(server, 1));
+  EXPECT_EQ("req", f.op);
+  EXPECT_EQ("gz.msgs.StringMsg", f.type);
+  msgs::StringMsg rep;
+  ASSERT_TRUE(rep.ParseFromString(f.payload));
+  EXPECT_EQ("ok", rep.data());
+}
+
+TEST_F(WebsocketServerTest, OnMessage_RequestPoseIdentityOrientation)
+{
+  sim::systems::WebsocketServer server;
+  this->InjectAuthorizedConnection(server, 1);
+
+  struct PoseRecorder
+  {
+    std::mutex mutex;
+    std::string received;
+    bool OnRequest(const msgs::Pose &_req, msgs::StringMsg &_rep)
+    {
+      std::lock_guard<std::mutex> lock(this->mutex);
+      this->received = _req.SerializeAsString();
+      _rep.set_data("ok");
+      return true;
+    }
+  } recorder;
+
+  transport::Node node;
+  ASSERT_TRUE(node.Advertise("/test/ws_pose", &PoseRecorder::OnRequest,
+      &recorder));
+
+  msgs::Pose pose;
+  pose.set_name("box");
+  pose.mutable_position()->set_x(1.0);
+  pose.mutable_position()->set_y(2.0);
+  pose.mutable_orientation()->set_w(1.0);
+  const std::string payload = pose.SerializeAsString();
+
+  server.OnMessage(1, "req,/test/ws_pose,gz.msgs.Pose," + payload);
+
+  std::lock_guard<std::mutex> lock(recorder.mutex);
+  EXPECT_EQ(payload, recorder.received);
+}
+
+TEST_F(WebsocketServerTest, OnMessage_RequestEmptyPayload)
+{
+  sim::systems::WebsocketServer server;
+  this->InjectAuthorizedConnection(server, 1);
+
+  EchoRecorder recorder;
+  transport::Node node;
+  ASSERT_TRUE(node.Advertise("/test/ws_empty", &EchoRecorder::OnRequest,
+      &recorder));
+
+  // A message with only default values serializes to zero bytes, so the
+  // frame ends right after the third comma.
+  server.OnMessage(1, "req,/test/ws_empty,gz.msgs.StringMsg,");
+
+  {
+    std::lock_guard<std::mutex> lock(recorder.mutex);
+    EXPECT_EQ(1, recorder.calls);
+    EXPECT_EQ("", recorder.received);
+  }
+
+  auto f = ParseFrame(this->PopFrame(server, 1));
+  EXPECT_EQ("req", f.op);
+  msgs::StringMsg rep;
+  ASSERT_TRUE(rep.ParseFromString(f.payload));
+  EXPECT_EQ("ok", rep.data());
+}
+
+TEST_F(WebsocketServerTest, OnMessage_RequestMalformedFrames)
+{
+  sim::systems::WebsocketServer server;
+  this->InjectAuthorizedConnection(server, 1);
+
+  // Too few commas: rejected as an invalid frame, nothing is queued.
+  server.OnMessage(1, "req,/test/none");
+  EXPECT_EQ("", this->PopFrame(server, 1));
+
+  // Empty service: reported as not found instead of crashing.
+  server.OnMessage(1, "req,,gz.msgs.StringMsg,payload");
+  auto f = ParseFrame(this->PopFrame(server, 1));
+  EXPECT_EQ("req", f.op);
+  msgs::StringMsg rep;
+  ASSERT_TRUE(rep.ParseFromString(f.payload));
+  EXPECT_EQ("service_not_found", rep.data());
+}
+
+TEST_F(WebsocketServerTest, OnMessage_AuthWithEmptyFields)
+{
+  sim::systems::WebsocketServer server;
+  this->InjectAuthorizedConnection(server, 1);
+  this->RequireAuthorization(server, 1, "secret");
+
+  // Other operations still split with empty fields merged, so the key is
+  // the last part of "auth,,,secret".
+  server.OnMessage(1, "auth,,,secret");
+  EXPECT_TRUE(this->IsAuthorized(server, 1));
+  EXPECT_EQ("authorized", this->PopFrame(server, 1));
 }

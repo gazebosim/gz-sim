@@ -106,6 +106,10 @@ namespace systems
     ///     3. `message_type`: string, and
     ///     4. `payload`: serialized data.
     ///
+    /// The "req" payload is everything after the third comma, so it may
+    /// contain commas and zero bytes. The `topic_name` and `message_type`
+    /// components of a "req" frame must not contain commas.
+    ///
     /// The `operation` component is mandatory and must be one of:
     ///     1. "sub": Subscribe to the topic in the `topic_name` component,
     ///     2. "pub": Publish a message from the Gazebo Transport topic in
