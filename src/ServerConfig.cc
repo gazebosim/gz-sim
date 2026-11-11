@@ -18,9 +18,11 @@
 
 #include <tinyxml2.h>
 
+#include <chrono>
 #include <cstdio>
 #include <random>
 #include <string>
+#include <thread>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
@@ -952,6 +954,29 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
   }
   return ret;
 }
+
+/////////////////////////////////////////////////
+/// \brief Parse the plugins in the default config file.
+/// On Windows, a file that another server has just moved into place with
+/// copyFileAtomically can't be opened for a short moment, because the move
+/// still holds it open for deletion. Retry briefly in that case, instead of
+/// loading no plugins.
+/// \param[in] _fname Default config file, which exists
+/// \return List of plugins in the file
+std::list<ServerConfig::PluginInfo> parsePluginsFromDefaultConfig(
+    const std::string &_fname)
+{
+  tinyxml2::XMLDocument doc;
+  auto result = doc.LoadFile(_fname.c_str());
+  for (int i = 0; i < 20 && common::exists(_fname) &&
+       (result == tinyxml2::XML_ERROR_FILE_NOT_FOUND ||
+        result == tinyxml2::XML_ERROR_FILE_COULD_NOT_BE_OPENED); ++i)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    result = doc.LoadFile(_fname.c_str());
+  }
+  return parsePluginsFromDoc(doc);
+}
 }  // namespace
 
 /////////////////////////////////////////////////
@@ -1069,7 +1094,7 @@ sim::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = sim::parsePluginsFromFile(defaultConfig);
+  ret = parsePluginsFromDefaultConfig(defaultConfig);
 
   if (ret.empty())
   {
