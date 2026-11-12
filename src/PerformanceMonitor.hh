@@ -550,6 +550,10 @@ namespace gz
       /// \brief Discard what was collected and start a new interval.
       private: void Restart();
 
+      /// \brief Start a new interval at the last iteration seen. Only resets
+      /// what the simulation thread collects.
+      private: void StartInterval();
+
       /// \brief Wall time between reports
       private: std::chrono::steady_clock::duration reportPeriod;
 

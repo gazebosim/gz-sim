@@ -1156,6 +1156,12 @@ void PerformanceMonitor::Restart()
     this->contactSamples = 0u;
   }
   sensors::TakeSensorTimings();
+  this->StartInterval();
+}
+
+//////////////////////////////////////////////////
+void PerformanceMonitor::StartInterval()
+{
   this->windowStart = this->now;
   this->windowSimStart = this->simTime;
   this->sleep = Duration::zero();
@@ -1264,21 +1270,30 @@ PerformanceReport PerformanceMonitor::TakeReport(
   window.desiredRtf = this->desiredRtf;
   window.period = this->period;
 
+  // Take what was collected and start the next interval at once, so that what
+  // the render thread adds meanwhile goes to the next interval, not lost.
   std::unordered_map<const void *, SystemAccumulator> systemTimes;
-  std::unordered_map<Entity, double> averageContacts;
+  std::unordered_map<Entity, uint64_t> contactCounts;
+  uint64_t samples{0u};
   {
     std::lock_guard<std::mutex> lock(this->mutex);
-    systemTimes = this->systems;
-    window.lateLoop = this->lateLoop;
-    window.render = this->render;
-    window.renderFrames = this->renderFrames;
-    if (this->contactSamples > 0u)
+    systemTimes = std::exchange(this->systems, {});
+    window.lateLoop = std::exchange(this->lateLoop, Duration::zero());
+    window.render = std::exchange(this->render, {});
+    window.renderFrames = std::exchange(this->renderFrames, 0u);
+    contactCounts = std::exchange(this->contacts, {});
+    samples = std::exchange(this->contactSamples, 0u);
+  }
+  auto sensorTimings = sensors::TakeSensorTimings();
+  this->StartInterval();
+
+  std::unordered_map<Entity, double> averageContacts;
+  if (samples > 0u)
+  {
+    for (const auto &[entity, count] : contactCounts)
     {
-      for (const auto &[entity, count] : this->contacts)
-      {
-        averageContacts[entity] = static_cast<double>(count) /
-            static_cast<double>(this->contactSamples);
-      }
+      averageContacts[entity] = static_cast<double>(count) /
+          static_cast<double>(samples);
     }
   }
 
@@ -1308,7 +1323,7 @@ PerformanceReport PerformanceMonitor::TakeReport(
       window.systems.push_back(std::move(sample));
   }
 
-  for (auto &timing : sensors::TakeSensorTimings())
+  for (auto &timing : sensorTimings)
   {
     PerformanceSensorSample sample;
     // The simulation names the sensors model::link::sensor.
@@ -1323,7 +1338,5 @@ PerformanceReport PerformanceMonitor::TakeReport(
   }
 
   window.models = CollectPerformanceModels(_ecm, averageContacts);
-
-  this->Restart();
   return AnalyzePerformance(window);
 }

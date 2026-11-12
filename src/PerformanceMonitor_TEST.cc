@@ -18,10 +18,15 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <string>
+#include <thread>
+
+#include <gz/sensors/Sensor.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -994,4 +999,96 @@ TEST(PerformanceMonitorTest, NewRunStartsANewSchedule)
 
   const auto report = monitor->TakeReport(systemMgr, ecm);
   EXPECT_EQ(std::chrono::steady_clock::duration::zero(), report.late.Total());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, RenderFramesArrivingDuringAReportAreKept)
+{
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+
+  std::atomic<bool> stop{false};
+  std::atomic<uint64_t> sent{0};
+  std::thread renderThread([&]
+      {
+        events::RenderFrameTimes times;
+        times.sensors = 1ms;
+        while (!stop)
+        {
+          monitor->OnRenderFrame(times);
+          ++sent;
+        }
+      });
+
+  // Report while the frames arrive
+  while (sent == 0u)
+    std::this_thread::yield();
+  uint64_t received{0};
+  for (int i = 0; i < 2000; ++i)
+    received += monitor->TakeReport(systemMgr, ecm).renderFrames;
+  stop = true;
+  renderThread.join();
+  received += monitor->TakeReport(systemMgr, ecm).renderFrames;
+
+  EXPECT_LT(0u, sent);
+  EXPECT_EQ(sent, received);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief A sensor that has nothing to do when it updates
+class IdleSensor : public sensors::Sensor
+{
+  public: using sensors::Sensor::Update;
+
+  // Documentation inherited
+  public: bool Update(const std::chrono::steady_clock::duration &) override
+  {
+    return true;
+  }
+};
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, SensorUpdatesArrivingDuringAReportAreKept)
+{
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+
+  std::atomic<bool> stop{false};
+  std::atomic<uint64_t> sent{0};
+  std::thread renderThread([&]
+      {
+        IdleSensor sensor;
+        while (!stop)
+        {
+          if (sensor.Update(0s, true))
+            ++sent;
+        }
+      });
+
+  const auto updates = [](const PerformanceReport &_report)
+  {
+    uint64_t count{0};
+    for (const auto &sensor : _report.sensors)
+      count += sensor.updates;
+    return count;
+  };
+  // Report while the updates arrive
+  while (sent == 0u)
+    std::this_thread::yield();
+  uint64_t received{0};
+  for (int i = 0; i < 2000; ++i)
+    received += updates(monitor->TakeReport(systemMgr, ecm));
+  stop = true;
+  renderThread.join();
+  received += updates(monitor->TakeReport(systemMgr, ecm));
+
+  EXPECT_LT(0u, sent);
+  EXPECT_EQ(sent, received);
 }

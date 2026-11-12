@@ -242,6 +242,13 @@ gz_build_tests(TYPE UNIT
     GZ_IP=127.0.0.1
 )
 
+# The performance monitor test updates a sensor.
+if (TARGET UNIT_PerformanceMonitor_TEST)
+  target_link_libraries(UNIT_PerformanceMonitor_TEST
+    gz-sensors::gz-sensors
+  )
+endif()
+
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
  target_link_libraries(UNIT_Server_Rendering_TEST
