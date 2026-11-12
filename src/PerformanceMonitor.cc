@@ -281,6 +281,74 @@ void addData(msgs::Diagnostics &_msg, const std::string &_key,
 }  // namespace
 
 /////////////////////////////////////////////////
+PerformanceSchedule::Shares PerformanceSchedule::Step(Duration _busy,
+    Duration _period, const Shares &_shares)
+{
+  const auto owe = [this](const void *_system, Duration _time)
+  {
+    if (_time <= Duration::zero())
+      return;
+    auto it = std::find_if(this->owed.begin(), this->owed.end(),
+        [_system](const auto &_owed) { return _owed.first == _system; });
+    if (it == this->owed.end())
+      this->owed.emplace_back(_system, _time);
+    else
+      it->second += _time;
+  };
+
+  const Duration overrun = _busy - _period;
+  if (overrun > Duration::zero())
+  {
+    // The step puts the loop further behind, split like the step time.
+    Duration accounted{0};
+    for (const auto &[system, time] : _shares)
+    {
+      owe(system, scale(overrun, ratio(time, _busy)));
+      accounted += time;
+    }
+    owe(nullptr, scale(overrun,
+        ratio(std::max(_busy - accounted, Duration::zero()), _busy)));
+    this->debt += overrun;
+  }
+  else if (this->debt > Duration::zero())
+  {
+    // The slack of the step makes up for as much as it can, of what each
+    // one owes in proportion.
+    const Duration left = std::max(this->debt + overrun, Duration::zero());
+    const double keep = ratio(left, this->debt);
+    for (auto &share : this->owed)
+      share.second = scale(share.second, keep);
+    this->debt = left;
+  }
+
+  Shares lost;
+  if (this->debt > _period)
+  {
+    // The loop starts a new schedule, the time behind the old one is lost.
+    lost = std::move(this->owed);
+    this->Clear();
+  }
+  else if (this->debt <= Duration::zero())
+  {
+    this->Clear();
+  }
+  return lost;
+}
+
+/////////////////////////////////////////////////
+void PerformanceSchedule::Clear()
+{
+  this->debt = Duration::zero();
+  this->owed.clear();
+}
+
+/////////////////////////////////////////////////
+Duration PerformanceSchedule::Debt() const
+{
+  return this->debt;
+}
+
+/////////////////////////////////////////////////
 std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
     const EntityComponentManager &_ecm,
     const std::unordered_map<Entity, double> &_contacts)
@@ -426,7 +494,7 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
       });
 
   // Split the time that the simulation thread was busy, and the part of it
-  // that ran past the slot of the steps.
+  // that the steps lost to their schedule.
   Duration accounted{0};
   Duration sceneCopy{0};
   for (const auto &system : report.systems)
@@ -1108,25 +1176,30 @@ void PerformanceMonitor::EndIteration(
   this->simTime = _info.simTime;
   this->desiredRtf = _desiredRtf;
 
-  // The time that this step ran past its slot, split among what it spent its
-  // time on. Steps that aren't part of an interval are discarded with the rest
-  // of their measurements by Restart.
+  // The time that the loop lost to its schedule in this step, split among who
+  // spent it. Steps that aren't part of an interval are discarded with the
+  // rest of their measurements by Restart.
   this->period = _desiredRtf > 0.0 ?
       scale(_info.dt, 1.0 / _desiredRtf) : Duration::zero();
   {
     std::lock_guard<std::mutex> lock(this->mutex);
-    const Duration busy = _paceStart - stepStart;
-    const Duration late = busy - this->period;
-    if (late > Duration::zero())
+    if (_info.paused)
     {
-      Duration accounted{0};
-      for (const auto &[system, time] : this->stepCritical)
+      // The loop doesn't keep a schedule while paused, it starts a new one
+      // when it resumes.
+      this->schedule.Clear();
+    }
+    else
+    {
+      const Duration busy = _paceStart - stepStart;
+      for (const auto &[system, time] :
+          this->schedule.Step(busy, this->period, this->stepCritical))
       {
-        this->systems[system].late += scale(late, ratio(time, busy));
-        accounted += time;
+        if (nullptr != system)
+          this->systems[system].late += time;
+        else
+          this->lateLoop += time;
       }
-      this->lateLoop += scale(late,
-          ratio(std::max(busy - accounted, Duration::zero()), busy));
     }
     this->stepCritical.clear();
   }
@@ -1168,6 +1241,8 @@ void PerformanceMonitor::StartRun(
 {
   this->windowStart += _now - this->now;
   this->now = _now;
+  // The loop starts a new schedule when it runs again.
+  this->schedule.Clear();
 }
 
 //////////////////////////////////////////////////

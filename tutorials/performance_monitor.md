@@ -82,13 +82,18 @@ has a bottleneck.
 
 With a target real time factor, each step has a slot of wall time, the step
 size divided by the target. A step that fits in its slot costs no real time:
-the loop sleeps the rest of the slot away. Only the time that steps run past
-their slot lowers the RTF, so a limited simulation with a target is blamed on
-that time, and the report adds a `Time past the slot` line that splits it.
-The excess of each late step is split among what the step spent its time on.
+the loop sleeps the rest of the slot away. A step that runs past its slot puts
+the loop behind its schedule, and faster steps after it can make up for that.
+Only when the loop falls more than a slot behind does it give up on the
+schedule and start a new one, and the time that it was behind is lost for
+good. That lost time is what lowers the RTF, so a limited simulation with a
+target is blamed on it, and the report adds a `Time past the slot` line that
+splits it among the systems that put the loop behind.
 This matters when the load is bursty: physics that takes 0.45 ms of every
 1 ms slot is the biggest part of the step time but costs nothing, while a
 render stall of 11 ms in a few steps per second costs all of the lost time.
+Likewise a system that runs 0.5 ms past the slot every other step costs
+nothing if the step after it is fast enough to make up for it.
 Without a target the two measures are the same.
 
 ## What is an estimate

@@ -115,9 +115,8 @@ namespace gz
       /// the slowest system of each step delays it.
       std::chrono::steady_clock::duration critical{0};
 
-      /// \brief Its part of the time that steps ran past their slot at the
-      /// target real time factor. The excess of a late step is split among
-      /// the systems of that step in proportion to their critical time.
+      /// \brief Its part of the wall time that the steps lost to their
+      /// schedule at the target real time factor, see PerformanceSchedule.
       std::chrono::steady_clock::duration late{0};
 
       /// \brief Wall time of the updates for which CPU time was measured.
@@ -195,8 +194,8 @@ namespace gz
       /// if running as fast as possible
       std::chrono::steady_clock::duration period{0};
 
-      /// \brief Part of the time that steps ran past their slot spent outside
-      /// of any system, see PerformanceSystemSample::late
+      /// \brief Part of the wall time lost to the schedule that was spent
+      /// outside of any system, see PerformanceSystemSample::late
       std::chrono::steady_clock::duration lateLoop{0};
 
       /// \brief Sum of the render thread passes
@@ -255,7 +254,8 @@ namespace gz
       }
     };
 
-    /// \brief Time that steps ran past their slot, split by where it went.
+    /// \brief Wall time that the steps lost to their schedule, split by where
+    /// it went.
     struct PerformanceLateTime
     {
       /// \brief In the physics system
@@ -327,10 +327,9 @@ namespace gz
       /// if running as fast as possible
       std::chrono::steady_clock::duration period{0};
 
-      /// \brief Time that steps ran past their slot. At a target real time
-      /// factor this is what lowers the RTF: the loop sleeps away the rest
-      /// of the slot of a step that fits, and doesn't make up for a step that
-      /// falls a whole slot behind.
+      /// \brief Wall time that the steps lost to their schedule. At a target
+      /// real time factor this is what lowers the RTF, see
+      /// PerformanceSchedule.
       PerformanceLateTime late;
 
       /// \brief True if the location was chosen by the time past the slot
@@ -390,6 +389,50 @@ namespace gz
     ///
     /// The simulation loop creates this object only if monitoring was
     /// requested, the cost otherwise is a null check per system update.
+    /// \brief Finds the wall time that the steps of the simulation loop lose
+    /// at a target real time factor, and who spent it.
+    ///
+    /// It follows the pacing of SimulationRunner::Run. The loop sleeps away
+    /// the rest of the slot of a step that fits. A step that runs past its
+    /// slot leaves the loop behind its schedule, and faster steps after it
+    /// can make up for that. Only when the loop falls more than a slot behind
+    /// does it start a new schedule from where it is, and the time that it
+    /// was behind is lost for good. That time is split among the systems that
+    /// ran past their slots, in proportion to what each one still owed.
+    class GZ_SIM_VISIBLE PerformanceSchedule
+    {
+      /// \brief Time spent by each system interface, nullptr for the time
+      /// outside of any system
+      public: using Shares = std::vector<std::pair<const void *,
+                  std::chrono::steady_clock::duration>>;
+
+      /// \brief Add a step.
+      /// \param[in] _busy Wall time of the step, from the end of the pacing
+      /// of the previous one to the start of its own
+      /// \param[in] _period Wall time slot of a step, zero if running as fast
+      /// as possible
+      /// \param[in] _shares Time of the step in each system interface. The
+      /// rest of the step was outside of any system.
+      /// \return The wall time lost in this step, split among who spent it
+      public: Shares Step(std::chrono::steady_clock::duration _busy,
+                  std::chrono::steady_clock::duration _period,
+                  const Shares &_shares);
+
+      /// \brief Forget the debt, as the loop does when it stops pacing.
+      public: void Clear();
+
+      /// \brief Get the time that the loop is behind its schedule.
+      /// \return The time
+      public: std::chrono::steady_clock::duration Debt() const;
+
+      /// \brief Time that the loop is behind its schedule
+      private: std::chrono::steady_clock::duration debt{0};
+
+      /// \brief Part of the debt owed by each system interface, nullptr for
+      /// outside of any system
+      private: Shares owed;
+    };
+
     class GZ_SIM_VISIBLE PerformanceMonitor
     {
       /// \brief Measures one update of one system, if there is a monitor.
@@ -538,9 +581,11 @@ namespace gz
                   std::chrono::steady_clock::duration>> stepPostUpdates;
 
       /// \brief Critical time of each system interface in the current step,
-      /// used to split the time that the step runs past its slot
-      private: std::vector<std::pair<const void *,
-                  std::chrono::steady_clock::duration>> stepCritical;
+      /// used to split the time that the step puts the loop behind
+      private: PerformanceSchedule::Shares stepCritical;
+
+      /// \brief Follows the schedule of the simulation loop
+      private: PerformanceSchedule schedule;
 
       /// \brief Time past the slot of the steps spent outside of any system
       private: std::chrono::steady_clock::duration lateLoop{0};

@@ -17,10 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
+#include <map>
+#include <memory>
 #include <string>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Joint.hh"
@@ -34,6 +38,7 @@
 #include "gz/sim/components/World.hh"
 
 #include "PerformanceMonitor.hh"
+#include "SystemManager.hh"
 
 using namespace gz;
 using namespace sim;
@@ -726,4 +731,267 @@ TEST(PerformanceMonitorTest, TimeBetweenRunsIsNotCounted)
   // Running does.
   iterate(*monitor, start + 101s, 4100ms);
   EXPECT_TRUE(monitor->ReportDue());
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Keys of the systems in the schedule tests
+const char kSystemA{'a'};
+const char kSystemB{'b'};
+const char kSystemC{'c'};
+
+/// \brief Time lost per system
+using Lost = std::map<const void *, std::chrono::steady_clock::duration>;
+
+/// \brief Run a step of a schedule.
+/// \param[in, out] _schedule The schedule
+/// \param[in, out] _lost Adds the time lost in the step
+/// \param[in] _busy Wall time of the step
+/// \param[in] _shares Time of the systems in the step
+/// \param[in] _period Wall time slot of a step
+void step(PerformanceSchedule &_schedule, Lost &_lost,
+    std::chrono::steady_clock::duration _busy,
+    const PerformanceSchedule::Shares &_shares,
+    std::chrono::steady_clock::duration _period = 1ms)
+{
+  for (const auto &[system, time] : _schedule.Step(_busy, _period, _shares))
+    _lost[system] += time;
+}
+
+/// \brief Get the milliseconds lost by a system.
+/// \param[in] _lost Time lost per system
+/// \param[in] _system The system, nullptr for outside of any system
+/// \return The milliseconds
+double lostMs(const Lost &_lost, const void *_system)
+{
+  const auto it = _lost.find(_system);
+  if (it == _lost.end())
+    return 0.0;
+  return std::chrono::duration<double, std::milli>(it->second).count();
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+// The loop keeps its schedule when a step runs past its slot by less than a
+// slot, so the next step can make up for it.
+TEST(PerformanceScheduleTest, NextStepMakesUpForAnOverrunShorterThanASlot)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+  EXPECT_EQ(500us, schedule.Debt());
+  step(schedule, lost, 500us, {{&kSystemB, 500us}});
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), schedule.Debt());
+  EXPECT_TRUE(lost.empty());
+}
+
+/////////////////////////////////////////////////
+// When the loop falls more than a slot behind it starts a new schedule from
+// there, and the time it was behind is lost, split among who spent it.
+TEST(PerformanceScheduleTest, DebtIsLostWhenTheLoopFallsASlotBehind)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+  step(schedule, lost, 10500us, {{&kSystemB, 10500us}});
+  EXPECT_NEAR(0.5, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(9.5, lostMs(lost, &kSystemB), 1e-3);
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), schedule.Debt());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, SlackPaysBackTheDebtOfEachInProportion)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  // 0.6 ms owed by A, then 0.2 ms more by B
+  step(schedule, lost, 1600us, {{&kSystemA, 1600us}});
+  step(schedule, lost, 1200us, {{&kSystemB, 1200us}});
+  // 0.4 ms of slack pays back half of the 0.8 ms
+  step(schedule, lost, 600us, {});
+  EXPECT_EQ(400us, schedule.Debt());
+  // 2 ms more puts the loop more than a slot behind
+  step(schedule, lost, 3ms, {{&kSystemC, 3ms}});
+  EXPECT_NEAR(0.3, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(0.1, lostMs(lost, &kSystemB), 1e-3);
+  EXPECT_NEAR(2.0, lostMs(lost, &kSystemC), 1e-3);
+  EXPECT_NEAR(0.0, lostMs(lost, nullptr), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, OverrunIsSplitLikeTheStepTime)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 3ms, {{&kSystemA, 2ms}, {&kSystemB, 500us}});
+  EXPECT_NEAR(4.0 / 3.0, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(1.0 / 3.0, lostMs(lost, &kSystemB), 1e-3);
+  EXPECT_NEAR(1.0 / 3.0, lostMs(lost, nullptr), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, WithoutATargetAllOfTheStepIsLost)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 2ms, {{&kSystemA, 1500us}}, 0ms);
+  EXPECT_NEAR(1.5, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(0.5, lostMs(lost, nullptr), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, ClearForgetsTheDebt)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+  schedule.Clear();
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), schedule.Debt());
+  step(schedule, lost, 10500us, {{&kSystemB, 10500us}});
+  EXPECT_NEAR(0.0, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(9.5, lostMs(lost, &kSystemB), 1e-3);
+}
+
+/////////////////////////////////////////////////
+// A runs 0.5 ms past the slot in every other step, and the step after it
+// makes up for it. B stalls once every 100 steps. Removing A would save 5 ms
+// and removing B 100 ms, while A ran past its slot for 250 ms in total.
+TEST(PerformanceScheduleTest, StallsAreBlamedNotOverrunsThatTheLoopMadeUpFor)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  for (int i = 0; i < 1000; ++i)
+  {
+    if (i % 2 == 0)
+      step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+    else if (i % 100 == 1)
+      step(schedule, lost, 10500us, {{&kSystemB, 10500us}});
+    else
+      step(schedule, lost, 500us, {{&kSystemB, 500us}});
+  }
+  EXPECT_NEAR(5.0, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(95.0, lostMs(lost, &kSystemB), 1e-3);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Runs iterations of a monitor paced like the simulation loop at a
+/// real time target with 1 ms steps. The loop sleeps until the end of the
+/// slot of a step that fits, and starts a new schedule when it falls more
+/// than a slot behind.
+class PacedLoop
+{
+  /// \brief Constructor
+  /// \param[in, out] _monitor The monitor
+  /// \param[in] _start Wall time of the start
+  public: PacedLoop(PerformanceMonitor &_monitor,
+              const std::chrono::steady_clock::time_point &_start)
+      : monitor(_monitor), now(_start), deadline(_start + 1ms)
+  {
+  }
+
+  /// \brief Run a step.
+  /// \param[in] _busy Wall time of the step outside of any system
+  public: void Step(std::chrono::steady_clock::duration _busy)
+  {
+    const auto paceStart = this->now + _busy;
+    this->now = std::max(paceStart, this->deadline);
+    this->deadline += 1ms;
+    if (this->deadline < this->now)
+      this->deadline = this->now + 1ms;
+
+    this->simTime += 1ms;
+    UpdateInfo info;
+    info.simTime = this->simTime;
+    info.dt = 1ms;
+    info.paused = false;
+    this->monitor.EndIteration(paceStart, this->now, info, 1.0);
+  }
+
+  /// \brief Stop running, and run again later with a new schedule.
+  /// \param[in] _stopped Wall time without running
+  public: void Resume(std::chrono::steady_clock::duration _stopped)
+  {
+    this->now += _stopped;
+    this->deadline = this->now + 1ms;
+    this->monitor.StartRun(this->now);
+  }
+
+  /// \brief The monitor
+  private: PerformanceMonitor &monitor;
+
+  /// \brief Wall time
+  private: std::chrono::steady_clock::time_point now;
+
+  /// \brief End of the slot of the next step
+  private: std::chrono::steady_clock::time_point deadline;
+
+  /// \brief Simulation time
+  private: std::chrono::steady_clock::duration simTime{0};
+};
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, LateTimeIsTheWallTimeThatTheScheduleLoses)
+{
+  const auto start = std::chrono::steady_clock::now();
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  PacedLoop loop(*monitor, start);
+
+  // Past the warm up
+  for (int i = 0; i < 2100; ++i)
+    loop.Step(0ms);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+  monitor->TakeReport(systemMgr, ecm);
+
+  // Steps 0.5 ms past the slot that the next step makes up for, and 10 ms
+  // stalls
+  for (int i = 0; i < 1000; ++i)
+  {
+    if (i % 2 == 0)
+      loop.Step(1500us);
+    else if (i % 100 == 1)
+      loop.Step(10500us);
+    else
+      loop.Step(500us);
+  }
+
+  const auto report = monitor->TakeReport(systemMgr, ecm);
+  ASSERT_EQ(1000u, report.iterations);
+  const auto lost = report.wall - 1000 * 1ms;
+  EXPECT_EQ(100ms, lost);
+  const double lateMs = std::chrono::duration<double, std::milli>(
+      report.late.Total()).count();
+  EXPECT_NEAR(100.0, lateMs, 1e-3);
+}
+
+/////////////////////////////////////////////////
+// The loop starts a new schedule when it runs again, so what it was behind
+// before doesn't count.
+TEST(PerformanceMonitorTest, NewRunStartsANewSchedule)
+{
+  const auto start = std::chrono::steady_clock::now();
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  PacedLoop loop(*monitor, start);
+  for (int i = 0; i < 2100; ++i)
+    loop.Step(0ms);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+  monitor->TakeReport(systemMgr, ecm);
+
+  // 0.5 ms behind when it stops, 0.6 ms behind after the first step of the
+  // next run, which the next steps make up for
+  loop.Step(1500us);
+  loop.Resume(1s);
+  loop.Step(1600us);
+  loop.Step(0ms);
+  loop.Step(0ms);
+
+  const auto report = monitor->TakeReport(systemMgr, ecm);
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), report.late.Total());
 }

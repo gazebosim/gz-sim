@@ -61,16 +61,17 @@ class SlowSystem : public System, public ISystemPreUpdate
   /// \param[in] _spin True to use the CPU, false to be blocked
   /// \param[in] _duration Time that it takes in a step
   /// \param[in] _every It takes time once in this many steps
+  /// \param[in] _phase In which of those steps, from 0 to _every - 1
   public: explicit SlowSystem(bool _spin,
               std::chrono::steady_clock::duration _duration = 5ms,
-              uint64_t _every = 1u)
-      : spin(_spin), duration(_duration), every(_every) {}
+              uint64_t _every = 1u, uint64_t _phase = 0u)
+      : spin(_spin), duration(_duration), every(_every), phase(_phase) {}
 
   // Documentation inherited
   public: void PreUpdate(const UpdateInfo &_info,
               EntityComponentManager &) override
   {
-    if (_info.iterations % this->every != 0u)
+    if (_info.iterations % this->every != this->phase)
       return;
 
     const auto end = std::chrono::steady_clock::now() + this->duration;
@@ -94,6 +95,9 @@ class SlowSystem : public System, public ISystemPreUpdate
 
   /// \brief It takes time once in this many steps
   private: uint64_t every;
+
+  /// \brief In which of those steps it takes time
+  private: uint64_t phase;
 };
 
 /// \brief The verdict of a report
@@ -327,6 +331,44 @@ TEST_F(PerformanceMonitorTest, LateStepsBeatWorkThatFitsTheSlot)
   ASSERT_TRUE(listener.Wait(30s, verdict));
   EXPECT_TRUE(verdict.limited);
   EXPECT_LT(verdict.rtf, 0.9);
+  EXPECT_EQ("system", verdict.location);
+  EXPECT_NE(std::string::npos, verdict.culprit.find("on model sphere"))
+      << verdict.culprit;
+  server.Stop();
+}
+
+/////////////////////////////////////////////////
+// A step that runs past its slot by less than a slot doesn't cost real time
+// if the next step is fast: the loop keeps its schedule and the next step
+// makes up for it. Only the steps that put the loop a whole slot behind do.
+TEST_F(PerformanceMonitorTest, OverrunsThatTheNextStepMakesUpForAreNotLate)
+{
+  common::setenv("GZ_SIM_PERFORMANCE_MONITOR", "1");
+  ReportListener listener;
+
+  Server server(realTimeConfig());
+  const auto box = server.EntityByName("box");
+  ASSERT_TRUE(box.has_value());
+  const auto sphere = server.EntityByName("sphere");
+  ASSERT_TRUE(sphere.has_value());
+  // 1.45 ms every other step, about 0.5 ms past the slot each time, which
+  // the fast step after it makes up for: 50 ms past the slot per 200 steps
+  // that cost no real time
+  ASSERT_TRUE(server.AddSystem(std::make_shared<SlowSystem>(true, 1450us, 2u),
+        *box, std::nullopt).value_or(false));
+  // 20 ms once every 200 steps, which costs about 20 ms per 200 steps
+  ASSERT_TRUE(server.AddSystem(
+        std::make_shared<SlowSystem>(true, 20ms, 200u, 1u),
+        *sphere, std::nullopt).value_or(false));
+  ASSERT_TRUE(server.Run(false, 0, false));
+
+  // Skip the first report, the warm up may still be in it
+  Verdict verdict;
+  ASSERT_TRUE(listener.Wait(30s, verdict));
+  listener.Reset();
+  ASSERT_TRUE(listener.Wait(30s, verdict));
+  EXPECT_TRUE(verdict.limited);
+  EXPECT_LT(verdict.rtf, 0.95);
   EXPECT_EQ("system", verdict.location);
   EXPECT_NE(std::string::npos, verdict.culprit.find("on model sphere"))
       << verdict.culprit;
