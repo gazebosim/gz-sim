@@ -3991,6 +3991,124 @@ TEST_P(EntityComponentManagerFixture, EachRuntimeTypedRejectsInternalTypes)
   EXPECT_EQ(1, calls);
 }
 
+/////////////////////////////////////////////////
+/// \brief Helper to check that the hierarchy tracked by the ECM matches the
+/// expected children of each parent.
+/// \param[in] _ecm Entity component manager.
+/// \param[in] _parent Parent entity.
+/// \param[in] _children Expected direct children of _parent. The children are
+/// expected to have no children of their own.
+static void ExpectChildren(const EntityComponentManager &_ecm,
+    Entity _parent, const std::unordered_set<Entity> &_children)
+{
+  auto expected = _children;
+  expected.insert(_parent);
+  EXPECT_EQ(expected, _ecm.Descendants(_parent)) << "Parent: " << _parent;
+  for (const auto &child : _children)
+  {
+    EXPECT_EQ(_parent, _ecm.ParentEntity(child)) << "Child: " << child;
+  }
+}
+
+/////////////////////////////////////////////////
+// Check that calling SetState with a SerializedStateMap that changes the
+// value of an existing ParentEntity component keeps the hierarchy in sync.
+// See https://github.com/gazebosim/gz-sim/issues/3955
+TEST_P(EntityComponentManagerFixture, SetStateMapUpdatesParentEntity)
+{
+  auto e1 = manager.CreateEntity();
+  auto e2 = manager.CreateEntity();
+  auto e3 = manager.CreateEntity();
+  EXPECT_TRUE(manager.SetParentEntity(e3, e1));
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+
+  // Serialize state while e3 is a child of e1
+  msgs::SerializedStateMap stateMsg;
+  manager.State(stateMsg);
+
+  // Reparent e3 to e2
+  EXPECT_TRUE(manager.SetParentEntity(e3, e2));
+  ExpectChildren(manager, e1, {});
+  ExpectChildren(manager, e2, {e3});
+  manager.SetAllComponentsUnchanged();
+
+  // Restoring the state should move e3 back under e1
+  manager.SetState(stateMsg);
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+
+  // A hierarchy change is reported as a one time change
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e3, components::ParentEntity::typeId));
+
+  // Setting the same state again must leave the hierarchy untouched
+  manager.SetAllComponentsUnchanged();
+  manager.SetState(stateMsg);
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+}
+
+/////////////////////////////////////////////////
+// Same as above, using the SerializedState overload of SetState.
+TEST_P(EntityComponentManagerFixture, SetStateUpdatesParentEntity)
+{
+  auto e1 = manager.CreateEntity();
+  auto e2 = manager.CreateEntity();
+  auto e3 = manager.CreateEntity();
+  EXPECT_TRUE(manager.SetParentEntity(e3, e1));
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+
+  // Serialize state while e3 is a child of e1
+  auto stateMsg = manager.State();
+
+  // Reparent e3 to e2
+  EXPECT_TRUE(manager.SetParentEntity(e3, e2));
+  ExpectChildren(manager, e1, {});
+  ExpectChildren(manager, e2, {e3});
+
+  // Restoring the state should move e3 back under e1
+  manager.SetState(stateMsg);
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+
+  // Setting the same state again must leave the hierarchy untouched
+  manager.SetState(stateMsg);
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+}
+
+/////////////////////////////////////////////////
+// Check that SetComponentData on an existing ParentEntity component keeps the
+// hierarchy in sync.
+TEST_P(EntityComponentManagerFixture, SetComponentDataUpdatesParentEntity)
+{
+  auto e1 = manager.CreateEntity();
+  auto e2 = manager.CreateEntity();
+  auto e3 = manager.CreateEntity();
+
+  // Component doesn't exist yet, so it is created
+  EXPECT_TRUE(manager.SetComponentData<components::ParentEntity>(e3, e1));
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+
+  // Same value, nothing changes
+  manager.SetAllComponentsUnchanged();
+  EXPECT_FALSE(manager.SetComponentData<components::ParentEntity>(e3, e1));
+  ExpectChildren(manager, e1, {e3});
+  ExpectChildren(manager, e2, {});
+  EXPECT_EQ(ComponentState::NoChange,
+      manager.ComponentState(e3, components::ParentEntity::typeId));
+
+  // Reparent through SetComponentData
+  EXPECT_TRUE(manager.SetComponentData<components::ParentEntity>(e3, e2));
+  ExpectChildren(manager, e1, {});
+  ExpectChildren(manager, e2, {e3});
+  EXPECT_EQ(ComponentState::OneTimeChange,
+      manager.ComponentState(e3, components::ParentEntity::typeId));
+}
+
 // Run multiple times. We want to make sure that static globals don't cause
 // problems.
 INSTANTIATE_TEST_SUITE_P(EntityComponentManagerRepeat,
