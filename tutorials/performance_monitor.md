@@ -38,7 +38,7 @@ Performance report, last 5.0 s, 2417 steps: RTF 0.48 (target 1.00)
   Step time 2.05 ms: rendering wait 1.74 ms (85%), physics 0.05 ms (2%), ...
   Render thread 8.12 ms/frame (1201 frames): GPU wait 7.32 ms (90%), ...
   Sensors, slowest first:
-    big_cam::link::camera: 8.01 ms/update x 1201 (CPU 0.71 ms, GPU wait 7.30 ms)
+    big_cam::link::camera: 8.01 ms/update x 1201 (outside GPU wait 0.71 ms, GPU wait 7.30 ms)
   Models, biggest load first (physics and scene are estimated):
     big_cam: sensors 1.99 ms/step, plugins 0.00 ms/step, physics ~0.00 ms/step, scene ~0.00 ms/step (0 DOF, 0 contacts, 0 visuals)
   ...
@@ -49,7 +49,7 @@ The bottleneck line has a resource and a location:
 | Resource | Meaning |
 |---|---|
 | `CPU` | Computation is the limit. Software rasterizers such as llvmpipe count here and the report says so. |
-| `GPU` | The render thread spends most of its time (65% or more) blocked on the GPU, which includes copying images out of GPU memory. |
+| `GPU` | The render thread spends most of its time (65% or more) blocked on the GPU, which includes waiting for the GPU to transfer images out of its memory. |
 | `CPU and GPU` | The render thread spends comparable time computing and blocked on the GPU, so improving only one of them gains little. High resolution cameras in simple scenes usually end up here. |
 | not computing | A system is blocked waiting for something outside of the simulation, like a socket or a lock-step partner. |
 | unknown | Rendering is the limit, but the render engine does not report its GPU waits. |
@@ -74,7 +74,12 @@ The monitor discards the first seconds, then accumulates over each interval:
   has to wait for the GPU, like reading back a rendered image. GPU work that
   completes while the CPU is still busy isn't counted because it isn't limiting
   anything, so a GPU at 100% utilization that keeps up is not reported as the
-  bottleneck.
+  bottleneck. With ogre2, copying an image on the CPU once the GPU has
+  transferred it is not counted as waiting either. The `ogre` engine counts it,
+  since Ogre 1 transfers and copies the image in one call.
+  The sensor lines give the rest of the time of each update as
+  `outside GPU wait`. That is mostly CPU work, but it is wall time, so it also
+  holds any other time that the render thread is blocked.
 
 The simulation counts as limited when it runs below 97% of its target real time
 factor. A simulation with a target of 0 runs as fast as it can, so it always

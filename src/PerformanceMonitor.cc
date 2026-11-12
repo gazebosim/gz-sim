@@ -975,7 +975,7 @@ std::string PerformanceReport::ToString() const
       const auto &sensor = this->sensors[i];
       const double updates = static_cast<double>(sensor.updates);
       out << "    " << sensor.name << ": " << ms(sensor.total) / updates
-          << " ms/update x " << sensor.updates << " (CPU "
+          << " ms/update x " << sensor.updates << " (outside GPU wait "
           << ms(sensor.total - sensor.gpuWait) / updates << " ms, GPU wait "
           << ms(sensor.gpuWait) / updates << " ms)\n";
     }

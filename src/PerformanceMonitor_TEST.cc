@@ -760,6 +760,16 @@ TEST(PerformanceMonitorTest, TextQualifiesTheSensorNamedForRenderStalls)
 }
 
 /////////////////////////////////////////////////
+// What a sensor update spends outside of the GPU wait is not all CPU work, it
+// can be blocked on other things too, so it isn't called CPU.
+TEST(PerformanceMonitorTest, TextNamesTheSensorTimeOutsideTheGpuWait)
+{
+  const auto text = AnalyzePerformance(renderStallWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find("bot::shoulder::rgbd: 7.31 ms/update "
+      "x 100 (outside GPU wait 4.39 ms, GPU wait 2.92 ms)")) << text;
+}
+
+/////////////////////////////////////////////////
 TEST(PerformanceMonitorTest, MessageCarriesTheVerdict)
 {
   PerformanceWindow window = slowWindow();
