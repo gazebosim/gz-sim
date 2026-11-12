@@ -115,6 +115,11 @@ namespace gz
       /// the slowest system of each step delays it.
       std::chrono::steady_clock::duration critical{0};
 
+      /// \brief Its part of the time that steps ran past their slot at the
+      /// target real time factor. The excess of a late step is split among
+      /// the systems of that step in proportion to their critical time.
+      std::chrono::steady_clock::duration late{0};
+
       /// \brief Wall time of the updates for which CPU time was measured.
       std::chrono::steady_clock::duration sampledWall{0};
 
@@ -186,6 +191,14 @@ namespace gz
       /// \brief Target real time factor, zero means as fast as possible
       double desiredRtf{1.0};
 
+      /// \brief Wall time slot of a step at the target real time factor, zero
+      /// if running as fast as possible
+      std::chrono::steady_clock::duration period{0};
+
+      /// \brief Part of the time that steps ran past their slot spent outside
+      /// of any system, see PerformanceSystemSample::late
+      std::chrono::steady_clock::duration lateLoop{0};
+
       /// \brief Sum of the render thread passes
       events::RenderFrameTimes render;
 
@@ -242,6 +255,30 @@ namespace gz
       }
     };
 
+    /// \brief Time that steps ran past their slot, split by where it went.
+    struct PerformanceLateTime
+    {
+      /// \brief In the physics system
+      std::chrono::steady_clock::duration physics{0};
+
+      /// \brief In the sensors system: waiting for the render thread, or
+      /// copying the entity changes for it
+      std::chrono::steady_clock::duration rendering{0};
+
+      /// \brief In the other systems
+      std::chrono::steady_clock::duration otherSystems{0};
+
+      /// \brief Outside of any system
+      std::chrono::steady_clock::duration loop{0};
+
+      /// \brief Sum of all
+      std::chrono::steady_clock::duration Total() const
+      {
+        return this->physics + this->rendering + this->otherSystems +
+            this->loop;
+      }
+    };
+
     /// \brief The outcome of analyzing an interval.
     struct GZ_SIM_VISIBLE PerformanceReport
     {
@@ -285,6 +322,20 @@ namespace gz
 
       /// \brief Step time outside of any system
       std::chrono::steady_clock::duration engine{0};
+
+      /// \brief Wall time slot of a step at the target real time factor, zero
+      /// if running as fast as possible
+      std::chrono::steady_clock::duration period{0};
+
+      /// \brief Time that steps ran past their slot. At a target real time
+      /// factor this is what lowers the RTF: the loop sleeps away the rest
+      /// of the slot of a step that fits, and doesn't make up for a step that
+      /// falls a whole slot behind.
+      PerformanceLateTime late;
+
+      /// \brief True if the location was chosen by the time past the slot
+      /// rather than by the step time
+      bool rankedByLateTime{false};
 
       /// \brief Sum of the render thread passes
       events::RenderFrameTimes render;
@@ -470,6 +521,7 @@ namespace gz
       {
         std::chrono::steady_clock::duration wall{0};
         std::chrono::steady_clock::duration critical{0};
+        std::chrono::steady_clock::duration late{0};
         std::chrono::steady_clock::duration sampledWall{0};
         std::chrono::steady_clock::duration sampledCpu{0};
       };
@@ -484,6 +536,17 @@ namespace gz
       /// \brief Post updates of the current step, used to find the slowest
       private: std::vector<std::pair<const void *,
                   std::chrono::steady_clock::duration>> stepPostUpdates;
+
+      /// \brief Critical time of each system interface in the current step,
+      /// used to split the time that the step runs past its slot
+      private: std::vector<std::pair<const void *,
+                  std::chrono::steady_clock::duration>> stepCritical;
+
+      /// \brief Time past the slot of the steps spent outside of any system
+      private: std::chrono::steady_clock::duration lateLoop{0};
+
+      /// \brief Wall time slot of a step at the target real time factor
+      private: std::chrono::steady_clock::duration period{0};
 
       /// \brief Sum of the render thread passes
       private: events::RenderFrameTimes render;

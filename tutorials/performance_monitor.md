@@ -80,6 +80,17 @@ The simulation counts as limited when it runs below 97% of its target real time
 factor. A simulation with a target of 0 runs as fast as it can, so it always
 has a bottleneck.
 
+With a target real time factor, each step has a slot of wall time, the step
+size divided by the target. A step that fits in its slot costs no real time:
+the loop sleeps the rest of the slot away. Only the time that steps run past
+their slot lowers the RTF, so a limited simulation with a target is blamed on
+that time, and the report adds a `Time past the slot` line that splits it.
+The excess of each late step is split among what the step spent its time on.
+This matters when the load is bursty: physics that takes 0.45 ms of every
+1 ms slot is the biggest part of the step time but costs nothing, while a
+render stall of 11 ms in a few steps per second costs all of the lost time.
+Without a target the two measures are the same.
+
 ## What is an estimate
 
 Sensor, system and render thread times are measured. The share of each model in

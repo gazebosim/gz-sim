@@ -404,6 +404,7 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
   report.busy = std::max(_window.wall - _window.sleep, Duration::zero());
   report.iterations = _window.iterations;
   report.desiredRtf = _window.desiredRtf;
+  report.period = _window.period;
   report.rtf = ratio(_window.simTime, _window.wall);
   report.render = _window.render;
   report.renderFrames = _window.renderFrames;
@@ -424,8 +425,8 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
         return _a.total > _b.total;
       });
 
-  // Split the time that the simulation thread was busy.
-  const PerformanceSystemSample *slowestOther = nullptr;
+  // Split the time that the simulation thread was busy, and the part of it
+  // that ran past the slot of the steps.
   Duration accounted{0};
   Duration sceneCopy{0};
   for (const auto &system : report.systems)
@@ -435,6 +436,7 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
     if (name == "Physics")
     {
       report.physics += system.critical;
+      report.late.physics += system.late;
     }
     else if (name == "Sensors")
     {
@@ -443,16 +445,42 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
           _window.render.simThreadWait);
       sceneCopy += std::max(system.critical - _window.render.simThreadWait,
           Duration::zero());
+      report.late.rendering += system.late;
     }
     else
     {
       report.otherSystems += system.critical;
-      if (!slowestOther)
-        slowestOther = &system;
+      report.late.otherSystems += system.late;
     }
   }
   report.otherSystems += sceneCopy;
   report.engine = std::max(report.busy - accounted, Duration::zero());
+  report.late.loop = _window.lateLoop;
+
+  // At a target real time factor the loop sleeps away the rest of the slot of
+  // a step that fits in it, so that step costs no real time however long it
+  // is. Only the time past the slot lowers the RTF, and the loop doesn't make
+  // up for a step that falls a whole slot behind. Bursty work that makes a
+  // few steps very late (render stalls) costs the RTF, steady work that fits
+  // (physics well under the slot) doesn't. Rank by that time then. As fast as
+  // possible, all of the step is past its zero slot and both rankings agree.
+  report.rankedByLateTime = report.limited && _window.desiredRtf > 0.0 &&
+      report.late.Total() > Duration::zero();
+  const auto rankTime = [&report](const PerformanceSystemSample &_system)
+  {
+    return report.rankedByLateTime ? _system.late : _system.critical;
+  };
+
+  const PerformanceSystemSample *slowestOther = nullptr;
+  for (const auto &system : report.systems)
+  {
+    const std::string name = shortSystemName(system.name);
+    if (name != "Physics" && name != "Sensors" &&
+        (!slowestOther || rankTime(system) > rankTime(*slowestOther)))
+    {
+      slowestOther = &system;
+    }
+  }
 
   // Attribute load to the models.
   std::map<std::string, PerformanceModelLoad> loads;
@@ -505,14 +533,18 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
         return _a.Total() > _b.Total();
       });
 
-  // Find the location: the biggest consumer of the step time.
+  // Find the location: the biggest consumer of the step time, or of the time
+  // past the slot.
   const Duration slowestOtherTime =
-      slowestOther ? slowestOther->critical : Duration::zero();
-  Duration biggest = report.physics;
+      slowestOther ? rankTime(*slowestOther) : Duration::zero();
+  Duration biggest = report.rankedByLateTime ? report.late.physics :
+      report.physics;
   report.location = PerformanceLocation::kPhysics;
-  if (report.renderWait + sceneCopy > biggest)
+  const Duration renderingTime = report.rankedByLateTime ?
+      report.late.rendering : report.renderWait + sceneCopy;
+  if (renderingTime > biggest)
   {
-    biggest = report.renderWait + sceneCopy;
+    biggest = renderingTime;
     report.location = PerformanceLocation::kRendering;
   }
   if (slowestOtherTime > biggest)
@@ -520,9 +552,11 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
     biggest = slowestOtherTime;
     report.location = PerformanceLocation::kSystem;
   }
-  if (report.engine > biggest)
+  const Duration loopTime = report.rankedByLateTime ? report.late.loop :
+      report.engine;
+  if (loopTime > biggest)
   {
-    biggest = report.engine;
+    biggest = loopTime;
     report.location = PerformanceLocation::kEngine;
   }
   if (biggest <= Duration::zero())
@@ -766,6 +800,26 @@ std::string PerformanceReport::ToString() const
       << perStep(this->engine) << " ms ("
       << percent(this->engine) << "%)\n";
 
+  if (this->rankedByLateTime)
+  {
+    const Duration lateTotal = this->late.Total();
+    const auto latePercent = [lateTotal](Duration _time)
+    {
+      return static_cast<int>(100.0 * ratio(_time, lateTotal) + 0.5);
+    };
+    out << "  Time past the " << ms(this->period) << " ms slot "
+        << perStep(lateTotal)
+        << " ms/step, which is what lowers the RTF: rendering "
+        << perStep(this->late.rendering) << " ms ("
+        << latePercent(this->late.rendering) << "%), physics "
+        << perStep(this->late.physics) << " ms ("
+        << latePercent(this->late.physics) << "%), other systems "
+        << perStep(this->late.otherSystems) << " ms ("
+        << latePercent(this->late.otherSystems) << "%), loop "
+        << perStep(this->late.loop) << " ms ("
+        << latePercent(this->late.loop) << "%)\n";
+  }
+
   if (this->renderFrames > 0u)
   {
     const double frames = static_cast<double>(this->renderFrames);
@@ -851,6 +905,13 @@ msgs::Diagnostics PerformanceReport::ToMsg() const
   addTime(msg, "step/render_wait", this->renderWait, this->wall);
   addTime(msg, "step/other_systems", this->otherSystems, this->wall);
   addTime(msg, "step/loop", this->engine, this->wall);
+
+  addData(msg, "ranked_by_late_time",
+      this->rankedByLateTime ? "true" : "false");
+  addTime(msg, "late/physics", this->late.physics, this->wall);
+  addTime(msg, "late/rendering", this->late.rendering, this->wall);
+  addTime(msg, "late/other_systems", this->late.otherSystems, this->wall);
+  addTime(msg, "late/loop", this->late.loop, this->wall);
 
   addTime(msg, "render/total", renderTotal(this->render), this->wall);
   addTime(msg, "render/gpu_wait", this->render.gpuWait, this->wall);
@@ -960,6 +1021,7 @@ void PerformanceMonitor::Record(const void *_system,
   else
   {
     accumulator.critical += _wall;
+    this->stepCritical.emplace_back(_system, _wall);
   }
 
   if (_cpu.count() >= 0)
@@ -984,6 +1046,7 @@ void PerformanceMonitor::EndPostUpdate()
         return _a.second < _b.second;
       });
   this->systems[slowest->first].critical += slowest->second;
+  this->stepCritical.push_back(*slowest);
   this->stepPostUpdates.clear();
 }
 
@@ -1018,6 +1081,7 @@ void PerformanceMonitor::Restart()
     std::lock_guard<std::mutex> lock(this->mutex);
     this->systems.clear();
     this->stepPostUpdates.clear();
+    this->lateLoop = Duration::zero();
     this->render = {};
     this->renderFrames = 0u;
     this->contacts.clear();
@@ -1038,10 +1102,34 @@ void PerformanceMonitor::EndIteration(
 {
   // A world reset takes the simulation time back to the start.
   const bool rewound = _info.simTime < this->simTime;
+  const auto stepStart = this->now;
 
   this->now = _paceEnd;
   this->simTime = _info.simTime;
   this->desiredRtf = _desiredRtf;
+
+  // The time that this step ran past its slot, split among what it spent its
+  // time on. Steps that aren't part of an interval are discarded with the rest
+  // of their measurements by Restart.
+  this->period = _desiredRtf > 0.0 ?
+      scale(_info.dt, 1.0 / _desiredRtf) : Duration::zero();
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    const Duration busy = _paceStart - stepStart;
+    const Duration late = busy - this->period;
+    if (late > Duration::zero())
+    {
+      Duration accounted{0};
+      for (const auto &[system, time] : this->stepCritical)
+      {
+        this->systems[system].late += scale(late, ratio(time, busy));
+        accounted += time;
+      }
+      this->lateLoop += scale(late,
+          ratio(std::max(busy - accounted, Duration::zero()), busy));
+    }
+    this->stepCritical.clear();
+  }
 
   // Time paused says nothing about performance, and there is nothing to
   // measure against. Start over when the simulation resumes.
@@ -1099,12 +1187,14 @@ PerformanceReport PerformanceMonitor::TakeReport(
   window.simTime = this->simTime - this->windowSimStart;
   window.iterations = this->iterations;
   window.desiredRtf = this->desiredRtf;
+  window.period = this->period;
 
   std::unordered_map<const void *, SystemAccumulator> systemTimes;
   std::unordered_map<Entity, double> averageContacts;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
     systemTimes = this->systems;
+    window.lateLoop = this->lateLoop;
     window.render = this->render;
     window.renderFrames = this->renderFrames;
     if (this->contactSamples > 0u)
@@ -1135,6 +1225,7 @@ PerformanceReport PerformanceMonitor::TakeReport(
       found = true;
       sample.wall += it->second.wall;
       sample.critical += it->second.critical;
+      sample.late += it->second.late;
       sample.sampledWall += it->second.sampledWall;
       sample.sampledCpu += it->second.sampledCpu;
     }

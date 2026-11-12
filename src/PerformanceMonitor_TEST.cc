@@ -472,6 +472,133 @@ TEST(PerformanceMonitorTest, UnthrottledAlwaysHasABottleneck)
 }
 
 /////////////////////////////////////////////////
+namespace
+{
+/// \brief An interval at real time target 1 with 1 ms steps, measured on a
+/// robot with many cameras, all of them subscribed: physics takes
+/// 0.45 ms of every step, which fits in the slot, while about 20 render
+/// stalls per second of 11 ms each make those steps late.
+PerformanceWindow renderStallWindow()
+{
+  PerformanceWindow window;
+  window.wall = 5s;
+  window.simTime = 4077ms;
+  window.iterations = 4077;
+  window.desiredRtf = 1.0;
+  window.period = 1ms;
+  window.sleep = 1942ms;
+
+  auto physics = system(kPhysics, 1835ms);
+  physics.late = 41ms;
+  window.systems.push_back(physics);
+
+  auto sensors = system(kSensors, 1060ms);
+  sensors.late = 840ms;
+  window.systems.push_back(sensors);
+
+  window.systems.push_back(system("other", 120ms));
+  window.lateLoop = 42ms;
+
+  window.renderFrames = 102;
+  window.render = renderTimes(3822ms, 1530ms);
+  window.render.simThreadWait = 938ms;
+  window.sensors.push_back(
+      sensor("bot::shoulder::rgbd", "bot", 731ms, 292ms));
+  return window;
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, RenderStallsBeatPhysicsThatFitsItsSlot)
+{
+  const auto report = AnalyzePerformance(renderStallWindow());
+  EXPECT_TRUE(report.limited);
+  EXPECT_TRUE(report.rankedByLateTime);
+  // Physics is the biggest share of the step, but it never makes a step late.
+  EXPECT_GT(report.physics, report.renderWait);
+  EXPECT_EQ(PerformanceLocation::kRendering, report.location);
+  EXPECT_EQ("bot::shoulder::rgbd", report.culprit);
+  EXPECT_EQ(840ms, report.late.rendering);
+  EXPECT_EQ(41ms, report.late.physics);
+  EXPECT_EQ(42ms, report.late.loop);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, PhysicsPastItsSlotIsPhysics)
+{
+  // Every step takes 2 ms of physics at a 1 ms slot, with a 10 ms render
+  // stall every 100 steps.
+  PerformanceWindow window = slowWindow();
+  window.period = 1ms;
+  window.iterations = 3000;
+  window.simTime = 3000ms;
+  window.wall = 6300ms;
+
+  auto physics = system(kPhysics, 6000ms);
+  physics.late = 3000ms;
+  window.systems.push_back(physics);
+
+  auto sensors = system(kSensors, 300ms);
+  sensors.late = 300ms;
+  window.systems.push_back(sensors);
+  window.render = renderTimes(300ms, 200ms);
+  window.renderFrames = 30;
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_TRUE(report.limited);
+  EXPECT_TRUE(report.rankedByLateTime);
+  EXPECT_EQ(PerformanceLocation::kPhysics, report.location);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, LateSystemIsNamedOverABusierOne)
+{
+  // A system that fits in the slot of every step against one that makes a
+  // few steps very late.
+  PerformanceWindow window = slowWindow();
+  window.period = 1ms;
+  window.iterations = 3000;
+  window.simTime = 3000ms;
+  window.wall = 4200ms;
+  window.sleep = 1500ms;
+
+  auto steady = system("steady", 1800ms, "box");
+  steady.late = 20ms;
+  window.systems.push_back(steady);
+
+  auto bursty = system("bursty", 900ms, "sphere");
+  bursty.late = 1150ms;
+  window.systems.push_back(bursty);
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_TRUE(report.limited);
+  EXPECT_EQ(PerformanceLocation::kSystem, report.location);
+  EXPECT_EQ("bursty on model sphere", report.culprit);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, KeepingUpRanksByStepTime)
+{
+  // Late steps that the following ones make up for don't lower the RTF.
+  PerformanceWindow window = renderStallWindow();
+  window.simTime = window.wall;
+  window.iterations = 5000;
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_FALSE(report.limited);
+  EXPECT_FALSE(report.rankedByLateTime);
+  EXPECT_EQ(PerformanceLocation::kPhysics, report.location);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, TextShowsTheTimePastTheSlot)
+{
+  const auto text = AnalyzePerformance(renderStallWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find("in rendering")) << text;
+  EXPECT_NE(std::string::npos, text.find("past the 1.00 ms slot")) << text;
+}
+
+/////////////////////////////////////////////////
 TEST(PerformanceMonitorTest, MessageCarriesTheVerdict)
 {
   PerformanceWindow window = slowWindow();

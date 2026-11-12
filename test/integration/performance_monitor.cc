@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <limits>
 #include <map>
 #include <memory>
@@ -53,18 +54,26 @@ namespace
 const char kReportTopic[] = "/world/default/performance/report";
 const char kEnableService[] = "/world/default/performance/enable";
 
-/// \brief A system that makes every simulation step slow.
+/// \brief A system that makes simulation steps slow.
 class SlowSystem : public System, public ISystemPreUpdate
 {
   /// \brief Constructor
   /// \param[in] _spin True to use the CPU, false to be blocked
-  public: explicit SlowSystem(bool _spin) : spin(_spin) {}
+  /// \param[in] _duration Time that it takes in a step
+  /// \param[in] _every It takes time once in this many steps
+  public: explicit SlowSystem(bool _spin,
+              std::chrono::steady_clock::duration _duration = 5ms,
+              uint64_t _every = 1u)
+      : spin(_spin), duration(_duration), every(_every) {}
 
   // Documentation inherited
-  public: void PreUpdate(const UpdateInfo &,
+  public: void PreUpdate(const UpdateInfo &_info,
               EntityComponentManager &) override
   {
-    const auto end = std::chrono::steady_clock::now() + 5ms;
+    if (_info.iterations % this->every != 0u)
+      return;
+
+    const auto end = std::chrono::steady_clock::now() + this->duration;
     if (this->spin)
     {
       while (std::chrono::steady_clock::now() < end)
@@ -79,6 +88,12 @@ class SlowSystem : public System, public ISystemPreUpdate
 
   /// \brief True to use the CPU, false to be blocked
   private: bool spin;
+
+  /// \brief Time that it takes in a step
+  private: std::chrono::steady_clock::duration duration;
+
+  /// \brief It takes time once in this many steps
+  private: uint64_t every;
 };
 
 /// \brief The verdict of a report
@@ -181,6 +196,39 @@ ServerConfig shapesConfig()
       "test", "worlds", "shapes.sdf"));
   return config;
 }
+
+/// \brief Get a configuration that loads a world with two models, which runs
+/// at real time
+ServerConfig realTimeConfig()
+{
+  ServerConfig config;
+  config.SetSdfString(R"(<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="default">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+    <model name="box">
+      <pose>0 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>1 1 1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="sphere">
+      <pose>0 3 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><sphere><radius>0.5</radius></sphere></geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>)");
+  return config;
+}
 }  // namespace
 
 /// \brief Test the performance monitor with a running simulation.
@@ -247,6 +295,41 @@ TEST_F(PerformanceMonitorTest, BlockedSystemIsExternal)
   EXPECT_TRUE(verdict.limited);
   EXPECT_EQ("external", verdict.resource);
   EXPECT_EQ("system", verdict.location);
+  server.Stop();
+}
+
+/////////////////////////////////////////////////
+// At a real time target only the steps that run past their slot lower the
+// RTF. A system that fits in the slot of every step isn't the bottleneck,
+// even if it takes more time overall than one that makes a few steps late.
+TEST_F(PerformanceMonitorTest, LateStepsBeatWorkThatFitsTheSlot)
+{
+  common::setenv("GZ_SIM_PERFORMANCE_MONITOR", "1");
+  ReportListener listener;
+
+  Server server(realTimeConfig());
+  const auto box = server.EntityByName("box");
+  ASSERT_TRUE(box.has_value());
+  const auto sphere = server.EntityByName("sphere");
+  ASSERT_TRUE(sphere.has_value());
+  // 0.6 ms of every 1 ms step: 30 ms per 50 steps, which costs no real time
+  ASSERT_TRUE(server.AddSystem(std::make_shared<SlowSystem>(true, 600us),
+        *box, std::nullopt).value_or(false));
+  // 20 ms once every 50 steps, which costs about 20 ms per 50 steps
+  ASSERT_TRUE(server.AddSystem(std::make_shared<SlowSystem>(true, 20ms, 50u),
+        *sphere, std::nullopt).value_or(false));
+  ASSERT_TRUE(server.Run(false, 0, false));
+
+  // Skip the first report, the warm up may still be in it
+  Verdict verdict;
+  ASSERT_TRUE(listener.Wait(30s, verdict));
+  listener.Reset();
+  ASSERT_TRUE(listener.Wait(30s, verdict));
+  EXPECT_TRUE(verdict.limited);
+  EXPECT_LT(verdict.rtf, 0.9);
+  EXPECT_EQ("system", verdict.location);
+  EXPECT_NE(std::string::npos, verdict.culprit.find("on model sphere"))
+      << verdict.culprit;
   server.Stop();
 }
 
