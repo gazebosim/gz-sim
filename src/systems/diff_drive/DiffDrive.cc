@@ -140,6 +140,11 @@ class gz::sim::systems::DiffDrivePrivate
 
   /// \brief Angular velocity limiter.
   public: std::unique_ptr<math::SpeedLimiter> limiterAng;
+  
+  /// \brief True once Configure has completed successfully. If Configure
+  /// returns early (e.g. not attached to a model), the update functions
+  /// must not run because members such as the speed limiters are null.
+  public: bool configured{false};
 
   /// \brief Previous control command.
   public: Commands last0Cmd;
@@ -436,6 +441,8 @@ void DiffDrive::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
+
+  this->dataPtr->configured = true;
 }
 
 //////////////////////////////////////////////////
@@ -443,6 +450,10 @@ void DiffDrive::PreUpdate(const UpdateInfo &_info,
     EntityComponentManager &_ecm)
 {
   GZ_PROFILE("DiffDrive::PreUpdate");
+
+  // Configure failed, nothing to do
+  if(!this->dataPtr->configured)
+    return;
 
   // \TODO(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
@@ -550,6 +561,11 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
     const EntityComponentManager &_ecm)
 {
   GZ_PROFILE("DiffDrive::PostUpdate");
+  
+  // Configure failed, nothing to do
+  if(!this->dataPtr->configured)
+    return;
+
   // Nothing left to do if paused.
   if (_info.paused)
     return;

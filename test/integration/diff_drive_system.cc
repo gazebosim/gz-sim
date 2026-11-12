@@ -26,6 +26,7 @@
 #include <gz/math/Pose3.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
+#include <sdf/Plugin.hh>
 
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Model.hh"
@@ -784,6 +785,37 @@ TEST_P(DiffDriveTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Pose_VCustomTfTopic))
   ASSERT_NE(maxSleep, sleep);
 
   EXPECT_EQ(5u, odomPosesCount);
+}
+
+/////////////////////////////////////////////////
+// Regression test for https://github.com/gazebosim/gz-sim/issues/2867
+// DiffDrive attached to an entity that isn't a model fails to configure.
+// Stepping the simulation afterwards must not crash.
+TEST_P(DiffDriveTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ConfigureFailureDoesNotCrash))
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/diff_drive.sdf");
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(0ns);
+
+  // std::nullopt attaches the system to the world entity, which is not a
+  // model, so Configure returns before creating the speed limiters.
+  sdf::Plugin plugin("gz-sim-diff-drive-system",
+      "gz::sim::systems::DiffDrive",
+      "<left_joint>left_wheel_joint</left_joint>"
+      "<right_joint>right_wheel_joint</right_joint>"
+      "<wheel_separation>1.25</wheel_separation>"
+      "<wheel_radius>0.3</wheel_radius>");
+  auto added = server.AddSystem(plugin, std::nullopt);
+  ASSERT_TRUE(added.has_value());
+
+  // Running unpaused calls PreUpdate and PostUpdate. Before the fix,
+  // PostUpdate dereferenced a null speed limiter and segfaulted.
+  ASSERT_TRUE(server.Run(true, 100, false));
+  EXPECT_EQ(100u, *server.IterationCount());
 }
 
 // Run multiple times
