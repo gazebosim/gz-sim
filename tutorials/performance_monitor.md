@@ -102,11 +102,16 @@ Sensor, system and render thread times are measured. The share of each model in
 the physics step is not: the physics engines step the whole world at once. It is
 estimated from the degrees of freedom of the parts of the model that can move,
 its collision shapes, how many contact points the moving parts have, and the
-triangles of the moving meshes that are touching something. The report marks it
-as such. Treat it as a pointer on where to look first. The weights were measured
-on DART, one of them on a single case, and the contacts of a model are assumed to
-be solved together, so a pile of many separate models that touch each other is
-underestimated.
+triangles of the moving meshes that are touching something. Contacts are
+sampled ten times a second. Their cost is taken as the average of the square of
+the contact points of the model in each sample, since a model that touches
+something only now and then pays for all of those contacts at once, and a mesh
+counts for the share of the samples in which it touches something. The report
+marks it as such. Treat it as a pointer on where to look first, a share of the
+physics time and not the time that removing the model would save. The weights
+were measured on DART, one of them on a single case, and the contacts of a model
+are assumed to be solved together, so a pile of many separate models that touch
+each other is underestimated.
 
 A model is only named as the physics bottleneck when it holds more than half of
 the estimate. Otherwise the report says that no model dominates and gives the

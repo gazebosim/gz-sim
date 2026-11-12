@@ -189,7 +189,7 @@ double physicsCost(const PerformanceModelSample &_model)
 {
   return static_cast<double>(_model.dof) +
       kCollisionWeight * _model.collisions +
-      kContactWeight * _model.contacts * _model.contacts +
+      kContactWeight * _model.contactsSquared +
       kContactingKiloTriangleWeight *
       (_model.contactingMeshTriangles / 1000.0);
 }
@@ -351,8 +351,21 @@ Duration PerformanceSchedule::Debt() const
 /////////////////////////////////////////////////
 std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
     const EntityComponentManager &_ecm,
-    const std::unordered_map<Entity, double> &_contacts)
+    const PerformanceContactSamples &_samples)
 {
+  // The contact points of each collision in each sample
+  const size_t sampleCount = _samples.size();
+  std::unordered_map<Entity, std::vector<unsigned int>> contactSeries;
+  for (size_t i = 0; i < sampleCount; ++i)
+  {
+    for (const auto &[entity, count] : _samples[i])
+    {
+      auto &series = contactSeries[entity];
+      series.resize(sampleCount, 0u);
+      series[i] = count;
+    }
+  }
+
   std::vector<PerformanceModelSample> models;
   _ecm.Each<components::Model, components::Name, components::ParentEntity>(
       [&](const Entity &_entity, const components::Model *,
@@ -401,6 +414,10 @@ std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
         int links = 0;
         int joints = 0;
         unsigned int jointsDof = 0u;
+        // The contact points of all the collisions of the model, per sample.
+        // They are solved together, so their cost is about the square of the
+        // total in each step.
+        std::vector<double> modelContacts;
         for (const Entity entity : descendants)
         {
           const bool isFixed = fixedEntities.count(entity) > 0u;
@@ -422,19 +439,31 @@ std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
             ++model.collisions;
             // Solving a contact is work for the body that can move, not for
             // the floor under it.
-            auto contactsIt = _contacts.find(entity);
-            if (!isFixed && contactsIt != _contacts.end() &&
-                contactsIt->second > 0.0)
+            auto seriesIt = contactSeries.find(entity);
+            if (isFixed || seriesIt == contactSeries.end())
+              continue;
+            const auto &series = seriesIt->second;
+            const auto touching = std::count_if(series.begin(), series.end(),
+                [](unsigned int _count) { return _count > 0u; });
+            if (touching == 0)
+              continue;
+
+            modelContacts.resize(sampleCount, 0.0);
+            for (size_t i = 0; i < sampleCount; ++i)
+              modelContacts[i] += static_cast<double>(series[i]);
+
+            // A mesh is checked triangle by triangle only while it touches
+            // something.
+            auto *element =
+                _ecm.Component<components::CollisionElement>(entity);
+            if (element && element->Data().Geom() &&
+                element->Data().Geom()->MeshShape())
             {
-              model.contacts += contactsIt->second;
-              auto *element =
-                  _ecm.Component<components::CollisionElement>(entity);
-              if (element && element->Data().Geom() &&
-                  element->Data().Geom()->MeshShape())
-              {
-                model.contactingMeshTriangles +=
-                    meshTriangles(*element->Data().Geom()->MeshShape());
-              }
+              model.contactingMeshTriangles += static_cast<uint64_t>(
+                  std::llround(static_cast<double>(
+                    meshTriangles(*element->Data().Geom()->MeshShape())) *
+                    static_cast<double>(touching) /
+                    static_cast<double>(sampleCount)));
             }
           }
           else if (_ecm.Component<components::Visual>(entity))
@@ -452,6 +481,12 @@ std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
         // Each kinematic tree that isn't attached to the world floats.
         model.dof = jointsDof + 6u * static_cast<unsigned int>(
             std::max(links - joints, 0));
+        for (const double contacts : modelContacts)
+        {
+          model.contacts += contacts / static_cast<double>(sampleCount);
+          model.contactsSquared +=
+              contacts * contacts / static_cast<double>(sampleCount);
+        }
         models.push_back(std::move(model));
         return true;
       });
@@ -1137,9 +1172,7 @@ void PerformanceMonitor::OnContactSample(
     const std::unordered_map<Entity, unsigned int> &_contacts)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  for (const auto &[entity, count] : _contacts)
-    this->contacts[entity] += count;
-  ++this->contactSamples;
+  this->contactSamples.push_back(_contacts);
 }
 
 //////////////////////////////////////////////////
@@ -1152,8 +1185,7 @@ void PerformanceMonitor::Restart()
     this->lateLoop = Duration::zero();
     this->render = {};
     this->renderFrames = 0u;
-    this->contacts.clear();
-    this->contactSamples = 0u;
+    this->contactSamples.clear();
   }
   sensors::TakeSensorTimings();
   this->StartInterval();
@@ -1273,29 +1305,17 @@ PerformanceReport PerformanceMonitor::TakeReport(
   // Take what was collected and start the next interval at once, so that what
   // the render thread adds meanwhile goes to the next interval, not lost.
   std::unordered_map<const void *, SystemAccumulator> systemTimes;
-  std::unordered_map<Entity, uint64_t> contactCounts;
-  uint64_t samples{0u};
+  PerformanceContactSamples contacts;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
     systemTimes = std::exchange(this->systems, {});
     window.lateLoop = std::exchange(this->lateLoop, Duration::zero());
     window.render = std::exchange(this->render, {});
     window.renderFrames = std::exchange(this->renderFrames, 0u);
-    contactCounts = std::exchange(this->contacts, {});
-    samples = std::exchange(this->contactSamples, 0u);
+    contacts = std::exchange(this->contactSamples, {});
   }
   auto sensorTimings = sensors::TakeSensorTimings();
   this->StartInterval();
-
-  std::unordered_map<Entity, double> averageContacts;
-  if (samples > 0u)
-  {
-    for (const auto &[entity, count] : contactCounts)
-    {
-      averageContacts[entity] = static_cast<double>(count) /
-          static_cast<double>(samples);
-    }
-  }
 
   // One system may implement several phases through different interfaces.
   for (const auto &system : _systemMgr.Systems())
@@ -1337,6 +1357,6 @@ PerformanceReport PerformanceMonitor::TakeReport(
     window.sensors.push_back(std::move(sample));
   }
 
-  window.models = CollectPerformanceModels(_ecm, averageContacts);
+  window.models = CollectPerformanceModels(_ecm, contacts);
   return AnalyzePerformance(window);
 }

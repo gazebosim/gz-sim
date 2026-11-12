@@ -157,8 +157,9 @@ namespace gz
       /// \brief Number of collision shapes
       unsigned int collisions{0};
 
-      /// \brief Triangles of the mesh collisions that move and are touching
-      /// something, which are the ones checked triangle by triangle.
+      /// \brief Triangles of the mesh collisions that move, times the share of
+      /// the contact samples in which they touch something. A mesh is checked
+      /// triangle by triangle while it touches something.
       uint64_t contactingMeshTriangles{0};
 
       /// \brief Number of visuals
@@ -169,7 +170,16 @@ namespace gz
 
       /// \brief Average number of contact points of its collisions
       double contacts{0.0};
+
+      /// \brief Average of the square of the number of contact points of its
+      /// collisions, which is what solving them costs
+      double contactsSquared{0.0};
     };
+
+    /// \brief Samples of the contact points of each collision, one map per
+    /// sample. A collision without contacts may be left out of a sample.
+    using PerformanceContactSamples =
+        std::vector<std::unordered_map<Entity, unsigned int>>;
 
     /// \brief Everything measured in one report interval.
     struct PerformanceWindow
@@ -377,12 +387,12 @@ namespace gz
 
     /// \brief Collect the properties of all the top level models.
     /// \param[in] _ecm Entities of the simulation
-    /// \param[in] _contacts Average contact points per collision
+    /// \param[in] _contacts Samples of the contact points per collision
     /// \return The models
     GZ_SIM_VISIBLE
     std::vector<PerformanceModelSample> CollectPerformanceModels(
         const EntityComponentManager &_ecm,
-        const std::unordered_map<Entity, double> &_contacts);
+        const PerformanceContactSamples &_contacts);
 
     /// \brief Measures where the wall time of the simulation goes, finds what
     /// limits the real time factor and reports it periodically.
@@ -603,11 +613,8 @@ namespace gz
       /// \brief Number of render thread passes
       private: uint64_t renderFrames{0};
 
-      /// \brief Sum of the contact samples per collision
-      private: std::unordered_map<Entity, uint64_t> contacts;
-
-      /// \brief Number of contact samples
-      private: uint64_t contactSamples{0};
+      /// \brief Contact samples of the current interval
+      private: PerformanceContactSamples contactSamples;
 
       /// \brief Start of the current interval
       private: std::chrono::steady_clock::time_point windowStart;

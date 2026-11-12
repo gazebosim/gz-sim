@@ -25,8 +25,16 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
 #include <gz/sensors/Sensor.hh>
+#include <sdf/Collision.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Mesh.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -288,6 +296,7 @@ TEST(PerformanceMonitorTest, PhysicsNamesTheCostliestModel)
   pile.dof = 600;
   pile.collisions = 100;
   pile.contacts = 400.0;
+  pile.contactsSquared = 400.0 * 400.0;
   window.models.push_back(pile);
 
   const auto report = AnalyzePerformance(window);
@@ -355,7 +364,7 @@ TEST(PerformanceMonitorTest, NestedStaticModelDoesNotMove)
   ecm.CreateComponent(fixedCollision, components::Collision());
 
   const auto models = CollectPerformanceModels(ecm,
-      {{freeCollision, 3.0}, {fixedCollision, 40.0}});
+      {{{freeCollision, 3u}, {fixedCollision, 40u}}});
   ASSERT_EQ(1u, models.size());
   EXPECT_EQ("conveyor", models[0].name);
   EXPECT_EQ(6u, models[0].dof);
@@ -392,11 +401,113 @@ TEST(PerformanceMonitorTest, LinkWeldedToTheWorldDoesNotMove)
   ecm.CreateComponent(joint, components::ParentLinkName("world"));
   ecm.CreateComponent(joint, components::ChildLinkName("base"));
 
-  const auto models = CollectPerformanceModels(ecm, {{collision, 48.0}});
+  const auto models = CollectPerformanceModels(ecm, {{{collision, 48u}}});
   ASSERT_EQ(1u, models.size());
   EXPECT_EQ(0u, models[0].dof);
   EXPECT_EQ(1u, models[0].collisions);
   EXPECT_DOUBLE_EQ(0.0, models[0].contacts);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Add a model with one free link to a world.
+/// \param[in, out] _ecm Entities
+/// \param[in] _world The world
+/// \param[in] _name Name of the model
+/// \param[in] _collisions Number of collisions of its link
+/// \return The collisions
+std::vector<Entity> addFreeModel(EntityComponentManager &_ecm, Entity _world,
+    const std::string &_name, unsigned int _collisions = 1u)
+{
+  const auto addChild = [&_ecm](Entity _parent)
+  {
+    const Entity entity = _ecm.CreateEntity();
+    _ecm.SetParentEntity(entity, _parent);
+    _ecm.CreateComponent(entity, components::ParentEntity(_parent));
+    return entity;
+  };
+  const Entity model = addChild(_world);
+  _ecm.CreateComponent(model, components::Model());
+  _ecm.CreateComponent(model, components::Name(_name));
+  const Entity link = addChild(model);
+  _ecm.CreateComponent(link, components::Link());
+  std::vector<Entity> collisions;
+  for (unsigned int i = 0; i < _collisions; ++i)
+  {
+    collisions.push_back(addChild(link));
+    _ecm.CreateComponent(collisions.back(), components::Collision());
+  }
+  return collisions;
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+// Solving contacts costs about the square of their number in each step, so
+// 30 contacts in one sample of 10 cost more than 3 in all of them.
+TEST(PerformanceMonitorTest, IntermittentContactsCostTheMeanOfTheirSquare)
+{
+  EntityComponentManager ecm;
+  const Entity world = ecm.CreateEntity();
+  ecm.CreateComponent(world, components::World());
+  const auto collisions = addFreeModel(ecm, world, "gripper");
+
+  PerformanceContactSamples samples(10);
+  samples[0][collisions[0]] = 30u;
+  const auto models = CollectPerformanceModels(ecm, samples);
+  ASSERT_EQ(1u, models.size());
+  EXPECT_DOUBLE_EQ(3.0, models[0].contacts);
+  EXPECT_DOUBLE_EQ(90.0, models[0].contactsSquared);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, ContactsOfAModelAreAddedBeforeSquaring)
+{
+  EntityComponentManager ecm;
+  const Entity world = ecm.CreateEntity();
+  ecm.CreateComponent(world, components::World());
+  const auto collisions = addFreeModel(ecm, world, "hand", 2u);
+
+  PerformanceContactSamples samples(2);
+  samples[0][collisions[0]] = 4u;
+  samples[0][collisions[1]] = 4u;
+  const auto models = CollectPerformanceModels(ecm, samples);
+  ASSERT_EQ(1u, models.size());
+  EXPECT_DOUBLE_EQ(4.0, models[0].contacts);
+  EXPECT_DOUBLE_EQ(32.0, models[0].contactsSquared);
+}
+
+/////////////////////////////////////////////////
+// A mesh collision is only checked triangle by triangle while it touches
+// something.
+TEST(PerformanceMonitorTest, MeshThatTouchesBrieflyWeighsItsShareOfTheTime)
+{
+  const std::string meshName = "PerformanceMonitorTest_box";
+  common::MeshManager::Instance()->CreateBox(meshName,
+      math::Vector3d::One, math::Vector2d::One);
+  const auto *mesh = common::MeshManager::Instance()->MeshByName(meshName);
+  ASSERT_NE(nullptr, mesh);
+  const uint64_t triangles = mesh->IndexCount() / 3u;
+  ASSERT_LT(0u, triangles);
+
+  EntityComponentManager ecm;
+  const Entity world = ecm.CreateEntity();
+  ecm.CreateComponent(world, components::World());
+  const auto collisions = addFreeModel(ecm, world, "spinner");
+  sdf::Mesh meshShape;
+  meshShape.SetUri(meshName);
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::MESH);
+  geometry.SetMeshShape(meshShape);
+  sdf::Collision collision;
+  collision.SetGeom(geometry);
+  ecm.CreateComponent(collisions[0], components::CollisionElement(collision));
+
+  PerformanceContactSamples samples(4);
+  samples[0][collisions[0]] = 2u;
+  const auto models = CollectPerformanceModels(ecm, samples);
+  ASSERT_EQ(1u, models.size());
+  EXPECT_EQ(triangles / 4u, models[0].contactingMeshTriangles);
 }
 
 /////////////////////////////////////////////////
@@ -410,6 +521,7 @@ TEST(PerformanceMonitorTest, MovingMeshInContactOutweighsStaticGeometry)
   spinner.dof = 1;
   spinner.collisions = 5;
   spinner.contacts = 4.0;
+  spinner.contactsSquared = 16.0;
   spinner.contactingMeshTriangles = 7724;
   window.models.push_back(spinner);
 
