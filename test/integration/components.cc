@@ -75,6 +75,7 @@
 #include "gz/sim/components/Performer.hh"
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/PerformerLevels.hh"
+#include "gz/sim/components/PhysicsEngineInfo.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Projector.hh"
@@ -1446,6 +1447,23 @@ TEST_F(ComponentsTest, PerformerLevels)
   EXPECT_EQ(1u, comp3.Data().count(9));
   EXPECT_EQ(1u, comp3.Data().count(10));
   EXPECT_EQ(0u, comp3.Data().count(1));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ComponentsTest, PhysicsEngineInfo)
+{
+  // Create components
+  auto comp1 = components::PhysicsEngineInfo("dartsim 6.16.0");
+
+  // Stream operators, the name and version are separated by a space
+  std::ostringstream ostr;
+  comp1.Serialize(ostr);
+  EXPECT_EQ("dartsim 6.16.0", ostr.str());
+
+  std::istringstream istr("bullet-featherstone 3.25.0");
+  components::PhysicsEngineInfo comp2;
+  comp2.Deserialize(istr);
+  EXPECT_EQ("bullet-featherstone 3.25.0", comp2.Data());
 }
 
 /////////////////////////////////////////////////
