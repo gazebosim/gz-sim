@@ -741,6 +741,25 @@ TEST(PerformanceMonitorTest, TextShowsTheRtfOfAVerySlowRun)
 }
 
 /////////////////////////////////////////////////
+// The render thread updates the sensors together, so the time that rendering
+// runs past the slot can't be split among them. The sensor named is the one
+// with the most render time, and the text says so when there is a choice.
+TEST(PerformanceMonitorTest, TextQualifiesTheSensorNamedForRenderStalls)
+{
+  PerformanceWindow window = renderStallWindow();
+  auto text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos,
+      text.find("in rendering: bot::shoulder::rgbd\n")) << text;
+
+  window.sensors.push_back(sensor("bot::wrist::camera", "bot", 269ms, 100ms));
+  const auto report = AnalyzePerformance(window);
+  EXPECT_EQ("bot::shoulder::rgbd", report.culprit);
+  text = report.ToString();
+  EXPECT_NE(std::string::npos, text.find("in rendering: bot::shoulder::rgbd "
+      "(largest render load, 73% of the sensor time)\n")) << text;
+}
+
+/////////////////////////////////////////////////
 TEST(PerformanceMonitorTest, MessageCarriesTheVerdict)
 {
   PerformanceWindow window = slowWindow();

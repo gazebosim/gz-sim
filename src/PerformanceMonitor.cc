@@ -893,7 +893,23 @@ std::string PerformanceReport::ToString() const
     {
       out << ": " << this->culprit;
       if (this->location == PerformanceLocation::kPhysics)
+      {
         out << " (estimated)";
+      }
+      // The render thread updates the sensors together, so the time that it
+      // runs past the slot can't be split among them. The sensor named is the
+      // one with the most render time, which needn't be the one that stalls.
+      else if (this->location == PerformanceLocation::kRendering &&
+          this->rankedByLateTime && this->sensors.size() > 1u &&
+          this->culprit == this->sensors.front().name)
+      {
+        Duration sensorsTotal{0};
+        for (const auto &sensor : this->sensors)
+          sensorsTotal += sensor.total;
+        out << " (largest render load, " << static_cast<int>(100.0 *
+            ratio(this->sensors.front().total, sensorsTotal) + 0.5)
+            << "% of the sensor time)";
+      }
     }
     out << "\n";
   }

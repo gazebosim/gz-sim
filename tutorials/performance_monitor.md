@@ -96,6 +96,15 @@ Likewise a system that runs 0.5 ms past the slot every other step costs
 nothing if the step after it is fast enough to make up for it.
 Without a target the two measures are the same.
 
+The render thread updates all of the sensors in one pass, so the time that
+rendering runs past the slot can't be split among them. The sensor named is the
+one with the most render time, and when there is more than one sensor the
+report gives its share, as in `(largest render load, 73% of the sensor time)`.
+With a low share, look at the other sensors too: one that renders rarely but
+for long can be what puts the loop behind. Whether rendering is limited by the
+CPU or the GPU is likewise taken from all of the frames, not only the ones that
+put the loop behind.
+
 ## What is an estimate
 
 Sensor, system and render thread times are measured. The share of each model in
