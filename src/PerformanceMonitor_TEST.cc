@@ -721,6 +721,26 @@ TEST(PerformanceMonitorTest, TextShowsTheTimePastTheSlot)
 }
 
 /////////////////////////////////////////////////
+// Two decimals would show any RTF below 0.005 as 0.00.
+TEST(PerformanceMonitorTest, TextShowsTheRtfOfAVerySlowRun)
+{
+  PerformanceWindow window = slowWindow();
+  window.systems.push_back(system(kPhysics, 9s));
+  window.simTime = 16ms;
+  window.iterations = 16;
+  auto text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos, text.find("RTF 0.0016 ")) << text;
+
+  window.simTime = 500ms;
+  window.iterations = 500;
+  text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos, text.find("RTF 0.050 ")) << text;
+
+  text = AnalyzePerformance(slowWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find("RTF 0.50 ")) << text;
+}
+
+/////////////////////////////////////////////////
 TEST(PerformanceMonitorTest, MessageCarriesTheVerdict)
 {
   PerformanceWindow window = slowWindow();

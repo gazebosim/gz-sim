@@ -22,6 +22,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <map>
 #include <sstream>
@@ -116,6 +117,17 @@ constexpr double kContactingKiloTriangleWeight = 1250.0;
 
 /// \brief Whether a monitor is collecting, see PerformanceMonitorEnabled.
 std::atomic<bool> performanceMonitorEnabled{false};
+
+/// \brief Get the number of decimals to print a real time factor with.
+/// \param[in] _rtf The real time factor
+/// \return Two, or enough for two significant digits below 0.1, which two
+/// decimals would round to nothing in a very slow simulation
+int rtfDecimals(double _rtf)
+{
+  if (_rtf >= 0.1 || _rtf <= 0.0)
+    return 2;
+  return 1 + static_cast<int>(std::ceil(-std::log10(_rtf)));
+}
 
 /// \brief Convert a duration to milliseconds.
 /// \param[in] _time The duration
@@ -838,8 +850,9 @@ std::string PerformanceReport::ToString() const
 
   out << "Performance report, last " << std::setprecision(1)
       << std::chrono::duration<double>(this->wall).count() << " s, "
-      << this->iterations << " steps: RTF " << std::setprecision(2)
-      << this->rtf;
+      << this->iterations << " steps: RTF "
+      << std::setprecision(rtfDecimals(this->rtf)) << this->rtf
+      << std::setprecision(2);
   if (this->desiredRtf > 0.0)
     out << " (target " << this->desiredRtf << ")";
   else
