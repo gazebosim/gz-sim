@@ -56,6 +56,11 @@ using namespace gz;
 using namespace gz::sim;
 using namespace std::chrono_literals;
 
+/// \brief Upper bound when waiting for the server to start or stop running.
+/// The waits return as soon as the state is reached, so a slow machine only
+/// makes them longer and never makes them fail early.
+constexpr auto kRunStateTimeout = 30s;
+
 /////////////////////////////////////////////////
 class ServerFixture : public InternalFixture<::testing::TestWithParam<int>>
 {
@@ -575,9 +580,9 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
 
   EXPECT_TRUE(server.Running());
 
-  // Add a small sleep because the non-blocking Run call causes the
-  // simulation runner to start asynchronously.
-  GZ_SLEEP_MS(500);
+  // The non-blocking Run call starts the simulation runner asynchronously.
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return *server.Running(0); }));
   EXPECT_TRUE(*server.Running(0));
 
   EXPECT_EQ(0u, server.IterationCount());
@@ -591,12 +596,9 @@ TEST_P(ServerFixture, RunNonBlockingPaused)
   EXPECT_FALSE(*server.Paused());
   EXPECT_TRUE(server.Running());
 
-  while (*server.IterationCount() < 100)
-    GZ_SLEEP_MS(100);
-
-  // Sleep one more time before checking because iterationCount might be updated
-  // before the iteration is complete
-  GZ_SLEEP_MS(100);
+  // Wait for the run to finish, not just for the last iteration to start.
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return !server.Running() && !*server.Running(0); }));
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -610,13 +612,42 @@ TEST_P(ServerFixture, RunNonBlockingThenDestroy)
   // blocks forever joining the thread (issue #3829). Repeated to widen the
   // race window.
   ServerConfig serverConfig;
-  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
-      "test", "worlds", "shapes.sdf"));
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
 
   for (int i = 0; i < 50; ++i)
   {
     sim::Server server(serverConfig);
     EXPECT_TRUE(server.Run(false, 0, false)) << "iteration " << i;
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, RunNonBlockingShortMultiple)
+{
+  // A short non-blocking run can finish before Server::Run() returns. Run()
+  // must still return true without blocking, and the run must step the world
+  // (issues #2609 and #3829). This depends on thread timing, so it is
+  // repeated, and every wait is bounded so a regression fails with a message
+  // instead of hanging until the CTest timeout.
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+
+  for (int i = 0; i < 100; ++i)
+  {
+    sim::Server server(serverConfig);
+    server.SetUpdatePeriod(1ns);
+    EXPECT_TRUE(server.Run(false, 1, false)) << "iteration " << i;
+
+    ASSERT_NE(std::nullopt, server.IterationCount());
+    int sleep = 0;
+    const int maxSleep = 5000;
+    while (*server.IterationCount() < 1 && sleep < maxSleep)
+    {
+      GZ_SLEEP_MS(1);
+      ++sleep;
+    }
+    EXPECT_LT(sleep, maxSleep) << "run never executed on iteration " << i;
+    EXPECT_EQ(1u, *server.IterationCount()) << "iteration " << i;
   }
 }
 
@@ -684,6 +715,72 @@ TEST_P(ServerFixture, RunAfterSignal)
 }
 
 /////////////////////////////////////////////////
+TEST_P(ServerFixture, RunAfterStop)
+{
+  // Stopping is permanent: no form of Run may succeed or step the world after
+  // Stop(), whether the server never ran or already ran before the stop.
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+
+  auto expectNoRun = [](sim::Server &_server, uint64_t _iterations)
+  {
+    EXPECT_FALSE(_server.Run(false, 1, false));
+    EXPECT_FALSE(_server.Run(true, 1, false));
+    EXPECT_FALSE(_server.RunOnce(false));
+
+    // Give a run thread, had one been created, time to step.
+    GZ_SLEEP_MS(100);
+    ASSERT_NE(std::nullopt, _server.IterationCount());
+    EXPECT_EQ(_iterations, *_server.IterationCount());
+    EXPECT_FALSE(_server.Running());
+    EXPECT_EQ(Server::Status::STOPPED, _server.GetStatus());
+  };
+
+  {
+    SCOPED_TRACE("stopped before any run");
+    sim::Server server(serverConfig);
+    server.SetUpdatePeriod(1ns);
+    server.Stop();
+    expectNoRun(server, 0u);
+  }
+
+  {
+    SCOPED_TRACE("stopped after a blocking run");
+    sim::Server server(serverConfig);
+    server.SetUpdatePeriod(1ns);
+    EXPECT_TRUE(server.Run(true, 1, false));
+    ASSERT_NE(std::nullopt, server.IterationCount());
+    EXPECT_EQ(1u, *server.IterationCount());
+    server.Stop();
+    expectNoRun(server, 1u);
+  }
+}
+
+/////////////////////////////////////////////////
+TEST_P(ServerFixture, StopRightAfterNonBlockingRun)
+{
+  // A Stop() right after a non-blocking Run() can land before the run thread
+  // is scheduled. Once Stop() returns, the server must not report that it is
+  // running, also after the run thread starts. This depends on thread timing,
+  // so it is repeated.
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(TestWorldSansPhysics::World());
+
+  for (int i = 0; i < 50; ++i)
+  {
+    sim::Server server(serverConfig);
+    EXPECT_TRUE(server.Run(false, 0, false)) << "iteration " << i;
+    server.Stop();
+
+    for (int j = 0; j < 20; ++j)
+    {
+      ASSERT_FALSE(server.Running()) << "iteration " << i << ", poll " << j;
+      std::this_thread::yield();
+    }
+  }
+}
+
+/////////////////////////////////////////////////
 TEST_P(ServerFixture, RunNonBlocking)
 {
   sim::Server server;
@@ -695,12 +792,10 @@ TEST_P(ServerFixture, RunNonBlocking)
   server.SetUpdatePeriod(1ns);
 
   server.Run(false, 100, false);
-  while (*server.IterationCount() < 100)
-    GZ_SLEEP_MS(100);
 
-  // Sleep one more time before checking because iterationCount might be updated
-  // before the iteration is complete
-  GZ_SLEEP_MS(100);
+  // Wait for the run to finish, not just for the last iteration to start.
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return !server.Running() && !*server.Running(0); }));
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -851,12 +946,9 @@ TEST_P(ServerFixture, RunNonBlockingMultiple)
   EXPECT_TRUE(server.Run(false, 100, false));
   EXPECT_FALSE(server.Run(false, 100, false));
 
-  while (*server.IterationCount() < 100)
-    GZ_SLEEP_MS(100);
-
-  // Sleep one more time before checking because iterationCount might be updated
-  // before the iteration is complete
-  GZ_SLEEP_MS(100);
+  // Wait for the run to finish, not just for the last iteration to start.
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return !server.Running() && !*server.Running(0); }));
   EXPECT_EQ(100u, *server.IterationCount());
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -872,13 +964,15 @@ TEST_P(ServerFixture, SigInt)
   // Run forever, non-blocking.
   server.Run(false, 0, false);
 
-  GZ_SLEEP_MS(500);
-
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return *server.Running(0); }));
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
 
+  // The signal handler thread stops the server asynchronously.
   std::raise(SIGTERM);
-  GZ_SLEEP_MS(20);
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return !server.Running() && !*server.Running(0); }));
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -897,8 +991,8 @@ TEST_P(ServerFixture, ServerControlStop)
   // Run forever, non-blocking.
   server.Run(false, 0, false);
 
-  GZ_SLEEP_MS(500);
-
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return *server.Running(0); }));
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
 
@@ -932,7 +1026,8 @@ TEST_P(ServerFixture, ServerControlStop)
   EXPECT_TRUE(result);
   EXPECT_TRUE(res.data());
 
-  GZ_SLEEP_MS(500);
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return !server.Running() && !*server.Running(0); }));
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
@@ -954,8 +1049,8 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   // Run the server to test whether we can add systems while system is running
   server.Run(false, 0, false);
 
-  GZ_SLEEP_MS(500);
-
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return *server.Running(0); }));
   EXPECT_TRUE(server.Running());
   EXPECT_TRUE(*server.Running(0));
 
@@ -981,9 +1076,10 @@ TEST_P(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(AddSystemWhileRunning))
   EXPECT_FALSE(result.value());
   EXPECT_EQ(3u, *server.SystemCount());
 
-  // Stop the server
+  // Stop the server. The signal handler thread stops it asynchronously.
   std::raise(SIGTERM);
-  GZ_SLEEP_MS(20);
+  EXPECT_TRUE(test::WaitUntil(kRunStateTimeout,
+      [&]() { return !server.Running() && !*server.Running(0); }));
 
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
