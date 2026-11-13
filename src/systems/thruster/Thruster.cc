@@ -155,11 +155,8 @@ class gz::sim::systems::ThrusterPrivateData
   /// \brief Mutex to protect enableDeadband
   public: std::mutex deadbandMutex;
 
-  /// \brief Topic name used to enable/disable the deadband
-  public: std::string deadbandTopic = "";
-
-  /// \brief Topic name used to control thrust. Optional
-  public: std::string topic = "";
+  /// \brief Resolved topic names
+  public: Thruster::TopicNames resolvedTopicNames;
 
   /// \brief Battery entity used by the thruster to consume power.
   public: std::string batteryName = "";
@@ -214,6 +211,9 @@ Thruster::Thruster():
 }
 
 /////////////////////////////////////////////////
+Thruster::~Thruster() = default;
+
+/////////////////////////////////////////////////
 void Thruster::Configure(
   const Entity &_entity,
   const std::shared_ptr<const sdf::Element> &_sdf,
@@ -225,13 +225,6 @@ void Thruster::Configure(
   auto model = Model(_entity);
   auto modelName = model.Name(_ecm);
 
-  // Get namespace
-  std::string ns = modelName;
-  if (_sdf->HasElement("namespace"))
-  {
-    ns = _sdf->Get<std::string>("namespace");
-  }
-
   // Get joint name
   if (!_sdf->HasElement("joint_name"))
   {
@@ -240,6 +233,26 @@ void Thruster::Configure(
     return;
   }
   auto jointName = _sdf->Get<std::string>("joint_name");
+
+  // Generate namespace
+  const std::string modelNamespace = scopedNamespace(_ecm, _entity);
+  const std::string defaultPrefix =
+    "/model/" + modelName + "/joint/" + jointName;
+  std::string ns = modelName;
+  if (_sdf->HasElement("namespace"))
+  {
+    gzwarn << "The <namespace> element is deprecated. Use <topic> together "
+           << "with the model namespace to configure the desired topic name "
+           << "instead. If both namespaces are specified, the <namespace> "
+           << "element will be ignored." << std::endl;
+    ns = _sdf->Get<std::string>("namespace");
+  }
+  if (!_sdf->HasElement("topic") || _sdf->Get<std::string>("topic").empty())
+  {
+    ns = "/model/" + ns + "/joint/" + jointName;
+  }
+  const std::string finalNamespace =
+    modelNamespace.empty() ? ns : modelNamespace;
 
   // Get thrust coefficient
   if (_sdf->HasElement("thrust_coefficient"))
@@ -309,13 +322,6 @@ void Thruster::Configure(
     this->dataPtr->enableDeadband = true;
   }
 
-  // Get a custom topic.
-  if (_sdf->HasElement("topic"))
-  {
-    this->dataPtr->topic = transport::TopicUtils::AsValidTopic(
-      _sdf->Get<std::string>("topic"));
-  }
-
   this->dataPtr->jointEntity = model.JointByName(_ecm, jointName);
   if (kNullEntity == this->dataPtr->jointEntity)
   {
@@ -337,88 +343,129 @@ void Thruster::Configure(
       this->dataPtr->jointEntity);
   this->dataPtr->linkEntity = model.LinkByName(_ecm, childLink->Data());
 
-  std::string thrusterTopic;
-  std::string feedbackTopic;
-  if (!this->dataPtr->topic.empty())
+  // Preserve the original Thruster behavior when no model namespace is set.
+  // In the legacy logic, <namespace> is prepended to <topic> regardless of
+  // whether the custom topic is relative or absolute. Remove leading slashes
+  // here so resolvedTopicName() applies the legacy namespace in both cases.
+  auto sdfCopy = _sdf->Clone();
+  bool hasValidCustomTopic = false;
+  if (sdfCopy->HasElement("topic"))
   {
-    // Subscribe to specified topic for force commands
-    thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
-      ns + "/" + this->dataPtr->topic);
-    this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
-      ns + "/" + this->dataPtr->topic + "/enable_deadband");
-    if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
+    auto topicElem = sdfCopy->GetElement("topic");
+    std::string topicStr = topicElem->Get<std::string>();
+    if (modelNamespace.empty() && !ns.empty())
     {
-      this->dataPtr->node.Subscribe(
-          thrusterTopic,
-          &ThrusterPrivateData::OnCmdThrust,
-          this->dataPtr.get());
-
-      feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
-        ns + "/" + this->dataPtr->topic + "/ang_vel");
+      topicStr.erase(0, topicStr.find_first_not_of("/"));
+      topicElem->Set(topicStr);
     }
-    else
-    {
-      this->dataPtr->node.Subscribe(
-        thrusterTopic,
-        &ThrusterPrivateData::OnCmdAngVel,
-        this->dataPtr.get());
-
-      feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
-          ns + "/" + this->dataPtr->topic + "/force");
-    }
+    hasValidCustomTopic =
+      !gz::transport::TopicUtils::AsValidTopic(topicStr).empty();
   }
-  else if (this->dataPtr->opmode ==
-           ThrusterPrivateData::OperationMode::ForceCmd)
+
+  // Subscribe to commands
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdTopicOptions;
+  cmdTopicOptions.sdfElementName = "topic";
+  cmdTopicOptions.topicNamespace = finalNamespace;
+  cmdTopicOptions.defaultTopicPrefix = defaultPrefix;
+  if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
   {
-    // Subscribe to force commands
-    thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/cmd_thrust");
-
-    this->dataPtr->node.Subscribe(
-      thrusterTopic,
-      &ThrusterPrivateData::OnCmdThrust,
-      this->dataPtr.get());
-
-    feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/ang_vel");
-
-    this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/enable_deadband");
+    cmdTopicOptions.defaultTopicSuffix = "cmd_thrust";
   }
   else
   {
-    gzdbg << "Using angular velocity mode" << std::endl;
-    // Subscribe to angvel commands
-    thrusterTopic = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/cmd_vel");
-
-    this->dataPtr->node.Subscribe(
-      thrusterTopic,
-      &ThrusterPrivateData::OnCmdAngVel,
-      this->dataPtr.get());
-
-    feedbackTopic = gz::transport::TopicUtils::AsValidTopic(
-        "/model/" + ns + "/joint/" + jointName + "/force");
-
-    this->dataPtr->deadbandTopic = gz::transport::TopicUtils::AsValidTopic(
-      "/model/" + ns + "/joint/" + jointName + "/enable_deadband");
+    cmdTopicOptions.defaultTopicSuffix = "cmd_vel";
+  }
+  resolvedTopicNames.cmdTopic = resolvedTopicName(sdfCopy, cmdTopicOptions);
+  if (resolvedTopicNames.cmdTopic.empty())
+  {
+    gzerr << "Thruster failed to find a valid topic name for command "
+          << "messages. Check the <topic> and the namespace attribute "
+          << "in the SDF." << std::endl;
+    return;
   }
 
-  gzmsg << "Thruster listening to commands on [" << thrusterTopic << "]"
-        << std::endl;
-
-  if (!this->dataPtr->deadbandTopic.empty())
+  if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
   {
     this->dataPtr->node.Subscribe(
-        this->dataPtr->deadbandTopic,
-        &ThrusterPrivateData::OnDeadbandEnable,
+        resolvedTopicNames.cmdTopic,
+        &ThrusterPrivateData::OnCmdThrust,
         this->dataPtr.get());
-    gzmsg << "Thruster listening to enable_deadband on ["
-          << this->dataPtr->deadbandTopic << "]" << std::endl;
+    resolvedTopicNames.feedbackTopic =
+      resolvedTopicNames.cmdTopic + "/ang_vel";
+  }
+  else
+  {
+    this->dataPtr->node.Subscribe(
+        resolvedTopicNames.cmdTopic,
+        &ThrusterPrivateData::OnCmdAngVel,
+        this->dataPtr.get());
+    resolvedTopicNames.feedbackTopic =
+      resolvedTopicNames.cmdTopic + "/force";
+  }
+  gzmsg << "Thruster listening to commands on ["
+        << resolvedTopicNames.cmdTopic << "]" << std::endl;
+
+  // Advertise feedback topic
+  TopicNameOptions fdbTopicOptions;
+  fdbTopicOptions.sdfElementName = "topic";
+  fdbTopicOptions.topicNamespace = finalNamespace;
+  fdbTopicOptions.defaultTopicPrefix = defaultPrefix;
+  std::string fdbTopicSuffix;
+  if (this->dataPtr->opmode == ThrusterPrivateData::OperationMode::ForceCmd)
+  {
+    fdbTopicSuffix = "ang_vel";
+  }
+  else
+  {
+    fdbTopicSuffix = "force";
+  }
+  fdbTopicOptions.defaultTopicSuffix = fdbTopicSuffix;
+  resolvedTopicNames.feedbackTopic =
+    resolvedTopicName(sdfCopy, fdbTopicOptions);
+  if (hasValidCustomTopic)
+  {
+    resolvedTopicNames.feedbackTopic += "/" + fdbTopicSuffix;
   }
 
+  if (resolvedTopicNames.feedbackTopic.empty())
+  {
+    gzerr << "Thruster failed to find a valid topic name for feedback "
+          << "messages. Check the <topic> and the namespace attribute "
+          << "in the SDF." << std::endl;
+    return;
+  }
   this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Double>(
-      feedbackTopic);
+    resolvedTopicNames.feedbackTopic);
+  gzmsg << "Thruster publishing feedback on ["
+        << resolvedTopicNames.feedbackTopic << "]" << std::endl;
+
+  // Subscribe to deadband enable/disable topic
+  TopicNameOptions deadbandTopicOptions;
+  deadbandTopicOptions.sdfElementName = "topic";
+  deadbandTopicOptions.topicNamespace = finalNamespace;
+  deadbandTopicOptions.defaultTopicPrefix = defaultPrefix;
+  deadbandTopicOptions.defaultTopicSuffix = "enable_deadband";
+  resolvedTopicNames.deadbandTopic =
+    resolvedTopicName(sdfCopy, deadbandTopicOptions);
+  if (hasValidCustomTopic)
+  {
+    resolvedTopicNames.deadbandTopic += "/enable_deadband";
+  }
+
+  if (resolvedTopicNames.deadbandTopic.empty())
+  {
+    gzerr << "Thruster failed to find a valid topic name for deadband "
+          << "enable/disable messages. Check the <topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
+    return;
+  }
+  this->dataPtr->node.Subscribe(
+      resolvedTopicNames.deadbandTopic,
+      &ThrusterPrivateData::OnDeadbandEnable,
+      this->dataPtr.get());
+  gzmsg << "Thruster listening to enable_deadband on ["
+        << resolvedTopicNames.deadbandTopic << "]" << std::endl;
 
   // Create necessary components if not present.
   enableComponent<components::AngularVelocity>(_ecm, this->dataPtr->linkEntity);
@@ -770,6 +817,12 @@ void Thruster::PostUpdate(const UpdateInfo &/*unused*/,
   const EntityComponentManager &_ecm)
 {
   this->dataPtr->enabled = this->dataPtr->HasSufficientBattery(_ecm);
+}
+
+//////////////////////////////////////////////////
+Thruster::TopicNames Thruster::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(

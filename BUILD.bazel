@@ -1948,6 +1948,7 @@ gz_sim_system_libraries(
             "src/systems/thruster/**/*.cc",
             "src/systems/thruster/**/*.hh",
         ],
+        exclude = ["src/systems/thruster/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-thruster-system.so",
     static_lib_name = "gz-sim-thruster-system-static",
@@ -1960,6 +1961,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+thruster_test_sources = glob([
+    "src/systems/thruster/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-thruster-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in thruster_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(

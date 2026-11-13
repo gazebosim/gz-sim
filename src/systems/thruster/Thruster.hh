@@ -20,6 +20,7 @@
 #include <gz/sim/System.hh>
 
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -43,17 +44,28 @@ namespace systems
   /// plugin will publish angular velocity in radians per second on
   /// `/model/{ns}/joint/{joint_name}/ang_vel` as a gz.msgs.double. If
   /// `<use_angvel_cmd>` is set to true it publishes force in Newtons instead to
-  /// `/model/{ns}/joint/{joint_name}/force`.
+  /// `/model/{ns}/joint/{joint_name}/force`. When a model namespace is set,
+  /// the default feedback topic becomes `{namespace}/ang_vel`
+  /// or `{namespace}/force`, respectively.
   ///
   /// ## System Parameters
   ///
-  /// - `<namespace>`: The namespace in which the robot exists. The plugin will
-  ///   listen on the topic `/model/{namespace}/joint/{joint_name}/cmd_thrust`or
+  /// - `<namespace>`: Deprecated. Use model namespace instead. The namespace
+  ///   in which the robot exists. The plugin will listen on the topic
+  ///   `/model/{namespace}/joint/{joint_name}/cmd_thrust`or
   ///   `/model/{namespace}/joint/{joint_name}/cmd_vel` depending on the mode of
   ///   operation. If {topic} is set then the plugin will listen on
-  ///   {namespace}/{topic}
-  ///   [Optional]
-  /// - `<topic>`: The topic for receiving thrust commands. [Optional]
+  ///   {namespace}/{topic} If a model namespace is set, this element is
+  ///   ignored. [Optional]
+  /// - `<topic>`: The topic for receiving thrust commands. The default value
+  ///   is `/model/{name_of_model}/joint/{joint_name}/cmd_thrust`, or
+  ///   `/model/{name_of_model}/joint/{joint_name}/cmd_vel` when
+  ///   `<use_angvel_cmd>` is true. If the model has a namespace, the default
+  ///   topic becomes `{namespace}/cmd_thrust` or `{namespace}/cmd_vel`.
+  ///   Relative custom topics are prefixed with the model namespace, while
+  ///   absolute custom topics remain unchanged. Without a model namespace,
+  ///   the legacy `<namespace>` prefix is applied to both relative and
+  ///   absolute custom topics. [Optional]
   /// - `<joint_name>`: This is the joint in the model which corresponds to the
   ///   propeller. [Required]
   /// - `<use_angvel_cmd>`: If set to true will make the thruster
@@ -90,7 +102,11 @@ namespace systems
   ///                 thruster won't spin nor generate thrust. This value can
   ///                 be changed at runtime using a topic. The topic is either
   ///                 `/model/{ns}/joint/{jointName}/enable_deadband` or
-  ///                 `{ns}/{topic}/enable_deadband` depending on other params
+  ///                 `{ns}/{topic}/enable_deadband` depending on other params.
+  ///                 When a model namespace is set, the default topic becomes
+  ///                 `{namespace}/enable_deadband`, or
+  ///                 `{namespace}/{topic}/enable_deadband` if a custom topic
+  ///                 is set.
   /// - `<wake_fraction>`: Relative speed reduction between the water
   ///                      at the propeller (Va) vs behind the vessel.
   ///                      [Optional, defaults to 0.2]
@@ -141,8 +157,24 @@ namespace systems
     public gz::sim::ISystemPreUpdate,
     public gz::sim::ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+
+      /// \brief Feedback topic name
+      public: std::string feedbackTopic;
+
+      /// \brief Deadband topic name
+      public: std::string deadbandTopic;
+    };
+
     /// \brief Constructor
     public: Thruster();
+
+    /// \brief Destructor
+    public: ~Thruster();
 
     /// Documentation inherited
     public: void Configure(
@@ -159,6 +191,9 @@ namespace systems
     /// Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
         const EntityComponentManager &_ecm) override;
+
+    /// Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ThrusterPrivateData> dataPtr;
