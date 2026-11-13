@@ -2116,6 +2116,7 @@ gz_sim_system_libraries(
             "src/systems/velocity_control/**/*.cc",
             "src/systems/velocity_control/**/*.hh",
         ],
+        exclude = ["src/systems/velocity_control/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-velocity-control-system.so",
     static_lib_name = "gz-sim-velocity-control-system-static",
@@ -2130,6 +2131,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+velocity_control_test_sources = glob([
+    "src/systems/velocity_control/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-velocity-control-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in velocity_control_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
