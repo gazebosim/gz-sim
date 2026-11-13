@@ -117,3 +117,78 @@ TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   // "box"
   server.RunOnce(false);
 }
+
+/////////////////////////////////////////////////
+TEST_F(WorldControlState,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(StateOnlyRequestPreservesPause))
+{
+  ServerConfig serverConfig;
+  Server server(serverConfig);
+  transport::Node node;
+
+  ASSERT_TRUE(server.SetPaused(true));
+  ASSERT_TRUE(server.Paused().has_value());
+  EXPECT_TRUE(server.Paused().value());
+
+  EntityComponentManager localEcm;
+  Entity entity = kNullEntity;
+  bool stateApplied = false;
+  test::Relay testSystem;
+  testSystem.OnUpdate([&](const UpdateInfo &,
+      EntityComponentManager &_ecm)
+    {
+      if (entity == kNullEntity)
+      {
+        localEcm.CopyFrom(_ecm);
+        return;
+      }
+      const auto name = _ecm.Component<components::Name>(entity);
+      stateApplied = name && name->Data() == "state_only_entity";
+    });
+  ASSERT_TRUE(server.AddSystem(testSystem.systemPtr).value_or(false));
+  ASSERT_TRUE(server.RunOnce(true));
+  entity = localEcm.CreateEntity();
+  ASSERT_NE(entity, kNullEntity);
+  localEcm.CreateComponent(entity, components::Name("state_only_entity"));
+
+  msgs::WorldControlState req;
+  req.mutable_state()->CopyFrom(localEcm.State({entity}));
+  msgs::Boolean rep;
+  bool result = false;
+  constexpr unsigned int timeout = 5000;
+  ASSERT_TRUE(node.Request(
+      "/world/default/control/state", req, timeout, rep, result));
+  ASSERT_TRUE(result);
+  ASSERT_TRUE(rep.data());
+
+  // Process the state-only request while staying paused. The request must not
+  // create an implicit WorldControl with the protobuf default pause=false.
+  ASSERT_TRUE(server.RunOnce(true));
+  EXPECT_TRUE(stateApplied);
+  ASSERT_TRUE(server.Paused().has_value());
+  EXPECT_TRUE(server.Paused().value());
+}
+
+/////////////////////////////////////////////////
+TEST_F(WorldControlState,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(ExplicitWorldControlCanUnpause))
+{
+  ServerConfig serverConfig;
+  Server server(serverConfig);
+  transport::Node node;
+
+  ASSERT_TRUE(server.SetPaused(true));
+  msgs::WorldControlState req;
+  req.mutable_world_control()->set_pause(false);
+  msgs::Boolean rep;
+  bool result = false;
+  constexpr unsigned int timeout = 5000;
+  ASSERT_TRUE(node.Request(
+      "/world/default/control/state", req, timeout, rep, result));
+  ASSERT_TRUE(result);
+  ASSERT_TRUE(rep.data());
+
+  ASSERT_TRUE(server.RunOnce(true));
+  ASSERT_TRUE(server.Paused().has_value());
+  EXPECT_FALSE(server.Paused().value());
+}
