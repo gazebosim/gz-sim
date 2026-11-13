@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_MECANUMDRIVE_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
@@ -66,16 +67,25 @@ namespace systems
   /// element is optional, and the default value is 50Hz.
   ///
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
-  /// receive command velocity messages. This element if optional, and the
-  /// default value is `/model/{name_of_model}/cmd_vel`.
+  /// receive command velocity messages. This element is optional, and the
+  /// default value is `/model/{name_of_model}/cmd_vel`. If the model has a
+  /// namespace, the default topic becomes `{namespace}/cmd_vel`. The custom
+  /// topic is then prefixed with the namespace if it does not start with `/`,
+  /// or remains unchanged if it starts with `/`.
   ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
-  /// `/model/{name_of_model}/odometry`.
+  /// messages. This element is optional, and the default value is
+  /// `/model/{name_of_model}/odometry`. If the model has a namespace,
+  /// the default topic becomes `{namespace}/odometry`. The custom topic is
+  /// then prefixed with the namespace if it does not start with `/`, or
+  /// remains unchanged if it starts with `/`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
-  /// transform from `frame_id` to `child_frame_id`. This element if optional,
-  ///  and the default value is `/model/{name_of_model}/tf`.
+  /// transform from `frame_id` to `child_frame_id`. This element is optional,
+  ///  and the default value is `/model/{name_of_model}/tf`. If the model has
+  /// a namespace, the default topic becomes `{namespace}/tf`. The custom topic
+  /// is then prefixed with the namespace if it does not start with `/`, or
+  /// remains unchanged if it starts with `/`.
   ///
   /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
@@ -146,11 +156,24 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+    };
+
     /// \brief Constructor
     public: MecanumDrive();
 
     /// \brief Destructor
-    public: ~MecanumDrive() override = default;
+    public: ~MecanumDrive();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -167,6 +190,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<MecanumDrivePrivate> dataPtr;
