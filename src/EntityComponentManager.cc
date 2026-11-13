@@ -487,7 +487,14 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
 
   if (!_namespace.empty())
   {
-    this->CreateComponent(clonedEntity, components::Namespace(_namespace));
+    std::string resolvedNs = _namespace;
+    const std::string placeholder{"{name}"};
+    auto pos = resolvedNs.find(placeholder);
+    if (pos != std::string::npos)
+    {
+      resolvedNs.replace(pos, placeholder.size(), clonedName);
+    }
+    this->CreateComponent(clonedEntity, components::Namespace(resolvedNs));
   }
   else if (auto originalNsComp =
     this->Component<components::Namespace>(_entity))

@@ -215,7 +215,8 @@ class gz::sim::ServerConfigPrivate
             sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
             behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
-            waitForAssets(_cfg->waitForAssets) { }
+            waitForAssets(_cfg->waitForAssets),
+            policies(_cfg->policies) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -306,6 +307,9 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief True to block while simulation assets download.
   public: bool waitForAssets{true};
+
+  /// \brief Simulation policies (<gz:policies>) to apply to loaded worlds.
+  public: std::map<std::string, std::string> policies;
 };
 
 //////////////////////////////////////////////////
@@ -803,6 +807,19 @@ std::optional<sdf::Root> &ServerConfig::SdfRoot() const
 ServerConfig::SourceType ServerConfig::Source() const
 {
   return this->dataPtr->source;
+}
+
+/////////////////////////////////////////////////
+void ServerConfig::AddPolicy(const std::string &_name,
+    const std::string &_value)
+{
+  this->dataPtr->policies[_name] = _value;
+}
+
+/////////////////////////////////////////////////
+const std::map<std::string, std::string> &ServerConfig::Policies() const
+{
+  return this->dataPtr->policies;
 }
 
 /////////////////////////////////////////////////

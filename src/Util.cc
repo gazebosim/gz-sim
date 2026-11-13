@@ -36,10 +36,12 @@
 #include <gz/transport/TopicUtils.hh>
 #include <sdf/Types.hh>
 #include <sdf/Element.hh>
+#include <sdf/Sensor.hh>
 
 #include <gz/fuel_tools/Interface.hh>
 #include <gz/fuel_tools/ClientConfig.hh>
 
+#include "gz/sim/Constants.hh"
 #include "gz/sim/components/Actor.hh"
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/Collision.hh"
@@ -281,6 +283,171 @@ std::string scopedNamespace(const EntityComponentManager &_ecm,
   }
 
   return result;
+}
+
+//////////////////////////////////////////////////
+FrameIdPolicy frameIdPolicy(const EntityComponentManager &_ecm)
+{
+  Entity world = worldEntity(_ecm);
+  if (world == kNullEntity)
+    return FrameIdPolicy::kLocal;
+
+  auto worldSdfComp = _ecm.Component<components::WorldSdf>(world);
+  if (!worldSdfComp)
+    return FrameIdPolicy::kLocal;
+
+  auto worldElem = worldSdfComp->Data().Element();
+  if (!worldElem)
+    return FrameIdPolicy::kLocal;
+
+  auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+  if (!policies)
+    return FrameIdPolicy::kLocal;
+
+  std::string mode = policies->Get<std::string>("frame_ids", "local").first;
+  if (mode == "scoped")
+    return FrameIdPolicy::kScoped;
+  if (mode == "namespaced")
+    return FrameIdPolicy::kNamespaced;
+  return FrameIdPolicy::kLocal;
+}
+
+//////////////////////////////////////////////////
+std::string framePrefix(const EntityComponentManager &_ecm,
+    const Entity &_entity)
+{
+  if (frameIdPolicy(_ecm) != FrameIdPolicy::kNamespaced)
+    return "";
+
+  Entity entity = _entity;
+  Entity modelEntity = kNullEntity;
+  while (entity != kNullEntity)
+  {
+    if (_ecm.Component<components::Model>(entity))
+    {
+      modelEntity = entity;
+      break;
+    }
+    auto parentComp = _ecm.Component<components::ParentEntity>(entity);
+    if (!parentComp)
+      break;
+    entity = parentComp->Data();
+  }
+
+  if (modelEntity == kNullEntity)
+    return "";
+
+  std::string ns = scopedNamespace(_ecm, modelEntity);
+  const auto begin = ns.find_first_not_of('/');
+  if (begin == std::string::npos)
+    return "";
+  const auto end = ns.find_last_not_of('/');
+  return ns.substr(begin, end - begin + 1) + "/";
+}
+
+//////////////////////////////////////////////////
+std::string resolveFrameId(std::string_view _prefix,
+    std::string_view _localFrame)
+{
+  if (_localFrame.empty())
+    return "";
+
+  if (_localFrame == "world" || _localFrame == "map" || _localFrame == "earth")
+    return std::string(_localFrame);
+
+  if (_localFrame.front() == '/')
+    return std::string(_localFrame.substr(1));
+
+  if (_prefix.empty())
+    return std::string(_localFrame);
+
+  return std::string(_prefix) + std::string(_localFrame);
+}
+
+//////////////////////////////////////////////////
+std::string modelFrameId(const EntityComponentManager &_ecm,
+    const Entity &_modelEntity)
+{
+  FrameIdPolicy policy = frameIdPolicy(_ecm);
+  if (policy == FrameIdPolicy::kScoped)
+  {
+    return removeParentScope(
+        scopedName(_modelEntity, _ecm, "::", false), "::");
+  }
+
+  auto nameComp = _ecm.Component<components::Name>(_modelEntity);
+  std::string modelName = nameComp ? nameComp->Data() : "";
+  if (policy == FrameIdPolicy::kLocal)
+  {
+    return modelName;
+  }
+
+  // FrameIdPolicy::kNamespaced
+  auto nsComp = _ecm.Component<components::Namespace>(_modelEntity);
+  std::string rawNs = nsComp ? nsComp->Data() : "";
+  std::string cleanNs;
+  const auto begin = rawNs.find_first_not_of('/');
+  if (begin != std::string::npos)
+  {
+    const auto end = rawNs.find_last_not_of('/');
+    cleanNs = rawNs.substr(begin, end - begin + 1);
+  }
+
+  std::string localName = cleanNs.empty() ? modelName : cleanNs;
+  if (!rawNs.empty() && rawNs.front() == '/')
+  {
+    return localName;
+  }
+
+  auto parentComp = _ecm.Component<components::ParentEntity>(_modelEntity);
+  std::string parentPrefix =
+      parentComp ? framePrefix(_ecm, parentComp->Data()) : "";
+  return resolveFrameId(parentPrefix, localName);
+}
+
+//////////////////////////////////////////////////
+std::string sensorFrameId(const Entity &_entity,
+    const EntityComponentManager &_ecm, const sdf::Sensor &_sdfSensor)
+{
+  std::string explicitFrameId = _sdfSensor.FrameId();
+  if (explicitFrameId.empty() && _sdfSensor.Element())
+  {
+    explicitFrameId =
+        _sdfSensor.Element()->Get<std::string>("gz_frame_id", "").first;
+  }
+
+  if (frameIdPolicy(_ecm) == FrameIdPolicy::kScoped)
+  {
+    if (!explicitFrameId.empty())
+      return explicitFrameId;
+    return removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  }
+
+  auto nameComp = _ecm.Component<components::Name>(_entity);
+  std::string localFrame = explicitFrameId.empty() ?
+      (nameComp ? nameComp->Data() : _sdfSensor.Name()) : explicitFrameId;
+  return resolveFrameId(framePrefix(_ecm, _entity), localFrame);
+}
+
+//////////////////////////////////////////////////
+std::string sensorFrameId(const Entity &_entity,
+    const EntityComponentManager &_ecm)
+{
+  auto sensorFrameComp = _ecm.Component<components::SensorFrameId>(_entity);
+  std::string explicitFrameId =
+      sensorFrameComp ? sensorFrameComp->Data() : "";
+
+  if (frameIdPolicy(_ecm) == FrameIdPolicy::kScoped)
+  {
+    if (!explicitFrameId.empty())
+      return explicitFrameId;
+    return removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  }
+
+  auto nameComp = _ecm.Component<components::Name>(_entity);
+  std::string localFrame = explicitFrameId.empty() ?
+      (nameComp ? nameComp->Data() : "") : explicitFrameId;
+  return resolveFrameId(framePrefix(_ecm, _entity), localFrame);
 }
 
 std::string resolvedTopicName(const std::shared_ptr<const sdf::Element> &_sdf,

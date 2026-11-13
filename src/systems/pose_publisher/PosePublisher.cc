@@ -50,13 +50,53 @@
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/Static.hh"
 #include "gz/sim/components/Visual.hh"
+#include "gz/sim/components/World.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Model.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace systems;
+
+namespace
+{
+std::string entityFrameId(const EntityComponentManager &_ecm,
+    const Entity &_entity)
+{
+  const FrameIdPolicy policy = frameIdPolicy(_ecm);
+  if (_ecm.Component<components::World>(_entity))
+  {
+    if (policy == FrameIdPolicy::kScoped)
+    {
+      auto nameComp = _ecm.Component<components::Name>(_entity);
+      return nameComp ? nameComp->Data() : "world";
+    }
+    return "world";
+  }
+
+  if (_ecm.Component<components::Model>(_entity))
+  {
+    return modelFrameId(_ecm, _entity);
+  }
+
+  if (_ecm.Component<components::Sensor>(_entity))
+  {
+    return sensorFrameId(_entity, _ecm);
+  }
+
+  if (policy == FrameIdPolicy::kScoped)
+  {
+    return removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
+  }
+
+  auto nameComp = _ecm.Component<components::Name>(_entity);
+  if (!nameComp)
+    return "";
+  return resolveFrameId(framePrefix(_ecm, _entity), nameComp->Data());
+}
+}  // namespace
 
 /// \brief Private data class for PosePublisher
 class gz::sim::systems::PosePublisherPrivate
@@ -446,28 +486,38 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
 
     if (fillPose)
     {
-      std::string frame;
-      std::string childFrame;
       auto entityName = _ecm.Component<components::Name>(entity);
       if (!entityName)
         continue;
-      childFrame =
-        removeParentScope(scopedName(entity, _ecm, "::", false), "::");
 
+      std::string childFrame = entityFrameId(_ecm, entity);
+      std::string frame;
       if (parent)
       {
         auto parentName = _ecm.Component<components::Name>(parent->Data());
         if (parentName)
         {
-          frame = removeParentScope(
-              scopedName(parent->Data(), _ecm, "::", false), "::");
+          frame = entityFrameId(_ecm, parent->Data());
         }
       }
+
+      if (sensor && this->publishSensorPose && frame == childFrame)
+        continue;
+
       this->entitiesToPublish[entity] = std::make_pair(frame, childFrame);
+
+      if (this->staticPosePublisher && isModel)
+      {
+        auto staticComp = _ecm.Component<components::Static>(entity);
+        if (!staticComp || !staticComp->Data())
+        {
+          this->dynamicEntities.insert(entity);
+        }
+      }
     }
 
     // get dynamic entities
-    if (this->staticPosePublisher && joint)
+    if (this->staticPosePublisher && this->publishLinkPose && joint)
     {
       sdf::JointType jointType =
           _ecm.Component<components::JointType>(entity)->Data();
@@ -526,8 +576,11 @@ void PosePublisherPrivate::InitializeEntitiesToPublish(
   if (this->staticPosePublisher)
   {
     this->poses.reserve(this->dynamicEntities.size());
-    this->staticPoses.reserve(
-        this->entitiesToPublish.size() - this->dynamicEntities.size());
+    if (this->entitiesToPublish.size() > this->dynamicEntities.size())
+    {
+      this->staticPoses.reserve(
+          this->entitiesToPublish.size() - this->dynamicEntities.size());
+    }
   }
   else
   {

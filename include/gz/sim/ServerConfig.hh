@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <list>
+#include <map>
 #include <memory>
 #include <optional> // NOLINT(*)
 #include <string>
@@ -464,6 +465,17 @@ namespace gz
       /// \brief Get the type of source
       /// \return The source type.
       public: SourceType Source() const;
+
+      /// \brief Set or override a simulation policy (`<gz:policies>`) on
+      /// loaded worlds.
+      /// \param[in] _name Policy element name (e.g. `"frame_ids"`).
+      /// \param[in] _value Policy value string (e.g. `"namespaced"`).
+      public: void AddPolicy(const std::string &_name,
+                             const std::string &_value);
+
+      /// \brief Get the simulation policies configured on this ServerConfig.
+      /// \return Map of policy names to policy values.
+      public: const std::map<std::string, std::string> &Policies() const;
 
       /// \brief Private data pointer
       private: std::unique_ptr<ServerConfigPrivate> dataPtr;
