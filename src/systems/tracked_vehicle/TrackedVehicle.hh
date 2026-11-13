@@ -18,6 +18,8 @@
 #define GZ_SIM_SYSTEMS_TRACKEDVEHICLE_HH_
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include <gz/sim/System.hh>
 
@@ -57,10 +59,18 @@ namespace systems
   ///   - `<link>`: The link representing the track. Required parameter.
   ///   - `<velocity_topic>`: The topic on which the track accepts velocity
   ///     commands (defaults to
-  ///     `/model/${model_name}/link/${link_name}/track_cmd_vel`).
+  ///     `/model/${model_name}/link/${link_name}/track_cmd_vel`). If the model
+  ///     has a namespace, the default topic becomes
+  ///     `{namespace}/track_cmd_vel`. The custom topic is then prefixed with
+  ///     the namespace if it does not start with `/`, or remains unchanged if
+  ///     it starts with `/`.
   ///   - `<center_of_rotation_topic>`: The topic on which the track accepts
   ///     center of rotation commands (defaults to
   ///     `/model/${model_name}/link/${link_name}/track_cmd_center_of_rotation`)
+  ///     If the model has a namespace, the default topic becomes
+  ///     `{namespace}/track_cmd_center_of_rotation`. The custom topic is then
+  ///     prefixed with the namespace if it does not start with `/`, or remains
+  ///     unchanged if it starts with `/`.
   ///
   /// - `<tracks_separation>`: Distance between tracks, in meters. Required
   ///   parameter.
@@ -105,20 +115,32 @@ namespace systems
   ///
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
   ///   receive command velocity messages. This element is optional, and the
-  ///   default value is `/model/{model_name}/cmd_vel`.
+  ///   default value is `/model/{model_name}/cmd_vel`. If the model has a
+  ///   namespace, the default topic becomes `{namespace}/cmd_vel`. The custom
+  ///   topic is then prefixed with the namespace if it does not start with
+  ///   `/`, or remains unchanged if it starts with `/`.
   ///
   /// - `<steering_efficiency_topic>`: Custom topic that this system will
   ///   subscribe to in order to receive steering efficiency messages.
   ///   This element is optional, and the default value is
-  ///   `/model/{model_name}/steering_efficiency`.
+  ///   `/model/{model_name}/steering_efficiency`. If the model has a
+  ///   namespace, the default topic becomes `{namespace}/steering_efficiency`.
+  ///   The custom topic is then prefixed with the namespace if it does not
+  ///   start with `/`, or remains unchanged if it starts with `/`.
   ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
   ///   messages. This element is optional, and the default value is
-  ///   `/model/{model_name}/odometry`.
+  ///   `/model/{model_name}/odometry`. If the model has a namespace,
+  ///   the default topic becomes `{namespace}/odometry`. The custom topic is
+  ///   then prefixed with the namespace if it does not start with `/`, or
+  ///   remains unchanged if it starts with `/`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
   ///   transform from `frame_id` to `child_frame_id`. This element is optional,
-  ///   and the default value is `/model/{model_name}/tf`.
+  ///   and the default value is `/model/{model_name}/tf`. If the model has
+  ///   a namespace, the default topic becomes `{namespace}/tf`. The custom
+  ///   topic is then prefixed with the namespace if it does not start with
+  ///   `/`, or remains unchanged if it starts with `/`.
   ///
   /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
   ///   origin of the odometry transform in both the `<tf_topic>`
@@ -141,6 +163,28 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+
+      /// \brief Steering efficiency topic name
+      public: std::string seTopic;
+
+      /// \brief Track velocity topic names
+      public: std::unordered_map<std::string, std::string> trackVelTopics;
+
+      /// \brief Track center of rotation topic names
+      public: std::unordered_map<std::string, std::string> trackCorTopics;
+    };
+
     /// \brief Constructor
     public: TrackedVehicle();
 
@@ -162,6 +206,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TrackedVehiclePrivate> dataPtr;
