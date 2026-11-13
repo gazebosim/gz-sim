@@ -33,6 +33,14 @@ namespace systems
 
   /// \brief This system applies a thrust force to models with spinning
   /// propellers. See examples/worlds/quadcopter.sdf for a demonstration.
+  ///
+  /// ## System Parameters
+  ///
+  /// - `motorSpeedPubTopic`: Optional topic on which to publish the motor's
+  /// current angular velocity as a gz.msgs.Double, in rad/s. The sign is
+  /// chosen so that the nominal spin direction (accounting for
+  /// `turningDirection`) is positive. If not set, no topic is advertised
+  /// and behavior is unchanged from prior releases.
   class MulticopterMotorModel
       : public System,
         public ISystemConfigure,
