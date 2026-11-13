@@ -141,6 +141,7 @@ void ServerPrivate::Stop()
   // SimulationRunner::Run returns. That way, `ServerPrivate::Run` cannot return
   // before the signal handler is finished.
   std::lock_guard<std::mutex> lock(this->runMutex);
+  this->stopped = true;
   this->running = false;
   for (std::unique_ptr<SimulationRunner> &runner : this->simRunners)
   {
@@ -154,17 +155,14 @@ void ServerPrivate::Stop()
 /////////////////////////////////////////////////
 bool ServerPrivate::Run(const uint64_t _iterations)
 {
-  std::unique_lock<std::mutex> startLock(this->runMutex);
-
-  // A signal arrived before the run started. Clear `running`, which a
-  // non-blocking Server::Run has already set.
-  if (this->signalReceived)
   {
-    this->running = false;
-    return false;
+    // Server::Run set `running` before calling this function. A Stop() that
+    // landed since then, for example before the run thread was scheduled,
+    // has already cleared it, so there is nothing left to run.
+    std::lock_guard<std::mutex> lock(this->runMutex);
+    if (this->stopped)
+      return false;
   }
-  this->running = true;
-  startLock.unlock();
 
   bool result = true;
 

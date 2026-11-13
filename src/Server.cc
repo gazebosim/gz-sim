@@ -251,7 +251,8 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
     runner->SetPaused(_paused);
 
-  // Check the current state, and return early if preconditions are not met.
+  // Check the preconditions and mark the server as running under one lock, so
+  // that a Stop() can't land between the checks and the start of the run.
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
     if (!this->dataPtr->sigHandler.Initialized())
@@ -267,30 +268,35 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
       return false;
     }
 
-    if (this->dataPtr->signalReceived)
+    // Set by Stop(), which signals and /server_control stop requests call.
+    if (this->dataPtr->stopped)
     {
-      gzwarn << "A stop signal was received before the run started. "
-             << "Simulation will not run.\n";
+      gzwarn << "The server has been stopped and won't run again.\n";
       return false;
+    }
+
+    // Make sure two threads are not created
+    if (!_blocking &&
+        this->dataPtr->runThread.get_id() != std::thread::id())
+    {
+      return false;
+    }
+
+    // Set `running` here, before the run starts, and never from the run
+    // itself. Run() then doesn't need to wait for the run thread to start,
+    // and a Stop() that lands before that thread is scheduled clears the
+    // flag for good.
+    this->dataPtr->running = true;
+
+    if (!_blocking)
+    {
+      this->dataPtr->runThread =
+        std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
+      return true;
     }
   }
 
-  if (_blocking)
-    return this->dataPtr->Run(_iterations);
-
-  // Make sure two threads are not created
-  std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
-  if (this->dataPtr->runThread.get_id() == std::thread::id())
-  {
-    // Set `running` here instead of waiting for the run thread: a short run
-    // could finish and clear it before the wait ever saw it (issue #3829).
-    this->dataPtr->running = true;
-    this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
-    return true;
-  }
-
-  return false;
+  return this->dataPtr->Run(_iterations);
 }
 
 /////////////////////////////////////////////////

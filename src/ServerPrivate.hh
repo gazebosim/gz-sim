@@ -181,8 +181,14 @@ namespace gz
       public: std::mutex runMutex;
 
       /// \brief This is used to indicate that Run has been called, and the
-      /// server is in the run state. It is cleared again when the run ends.
+      /// server is in the run state. Only Server::Run sets it. It is cleared
+      /// again when the run ends or when Stop() is called.
       public: std::atomic<bool> running{false};
+
+      /// \brief Set by Stop(), which signals and stop requests on
+      /// /server_control also call. Once set the server never runs again.
+      /// Protected by runMutex.
+      public: bool stopped{false};
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;
