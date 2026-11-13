@@ -47,6 +47,29 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   /// for its split between CPU and GPU to mean anything.
   constexpr double kPerformanceOverlayMinRender{0.05};
 
+  namespace performance_overlay
+  {
+    /// \brief Model of a sensor, empty if the name has no scope.
+    /// \param[in] _name Scoped name, model::link::sensor
+    /// \return The top level model name
+    inline std::string SensorModel(const std::string &_name)
+    {
+      const auto scope = _name.find("::");
+      return scope == std::string::npos ? "" : _name.substr(0, scope);
+    }
+
+    /// \brief Short name of a sensor for display, model::sensor
+    /// \param[in] _name Scoped name, model::link::sensor
+    /// \return The name without the link
+    inline std::string SensorLabel(const std::string &_name)
+    {
+      const auto scope = _name.rfind("::");
+      if (scope == std::string::npos)
+        return _name;
+      return SensorModel(_name) + _name.substr(scope);
+    }
+  }  // namespace performance_overlay
+
   /// \brief A sensor of a performance report. Shares are fractions of the
   /// wall time of the report.
   struct PerformanceOverlaySensor
@@ -64,19 +87,50 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \return The top level model name
     public: std::string Model() const
     {
-      const auto scope = this->name.find("::");
-      return scope == std::string::npos ? "" : this->name.substr(0, scope);
+      return performance_overlay::SensorModel(this->name);
     }
 
     /// \brief Short name for display, model::sensor
     /// \return The name without the link
     public: std::string Label() const
     {
-      const auto scope = this->name.rfind("::");
-      if (scope == std::string::npos)
-        return this->name;
-      return this->Model() + this->name.substr(scope);
+      return performance_overlay::SensorLabel(this->name);
     }
+  };
+
+  /// \brief A sensor that produced no data in a performance report
+  struct PerformanceOverlayDatalessSensor
+  {
+    /// \brief Scoped name, model::link::sensor
+    std::string name;
+
+    /// \brief Why it produced no data: no_subscribers, info_only or
+    /// not_updated
+    std::string reason;
+
+    /// \brief Model the sensor belongs to, empty if the name has no scope.
+    /// \return The top level model name
+    public: std::string Model() const
+    {
+      return performance_overlay::SensorModel(this->name);
+    }
+
+    /// \brief Short name for display, model::sensor
+    /// \return The name without the link
+    public: std::string Label() const
+    {
+      return performance_overlay::SensorLabel(this->name);
+    }
+  };
+
+  /// \brief Sensors that produced no data for the same reason
+  struct PerformanceOverlayDatalessGroup
+  {
+    /// \brief The reason, in words
+    std::string reason;
+
+    /// \brief Short names of the sensors
+    std::vector<std::string> labels;
   };
 
   /// \brief What a top level model costs. Shares are fractions of the wall
@@ -172,6 +226,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Slowest sensors first
     std::vector<PerformanceOverlaySensor> sensors;
 
+    /// \brief Sensors that produced no data, by name
+    std::vector<PerformanceOverlayDatalessSensor> datalessSensors;
+
     /// \brief Most expensive models first
     std::vector<PerformanceOverlayModel> models;
 
@@ -219,6 +276,31 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       if (!this->limited && !detail.empty())
         return "Largest use is " + detail;
       return detail;
+    }
+
+    /// \brief The sensors that produced no data, grouped by reason in the
+    /// order of the console report
+    /// \return Groups that have sensors
+    public: std::vector<PerformanceOverlayDatalessGroup> DatalessGroups() const
+    {
+      const std::pair<const char *, const char *> reasons[] = {
+        {"no_subscribers", "No subscribers"},
+        {"info_only", "Only camera_info subscribed"},
+        {"not_updated", "Subscribed, not updated"}};
+      std::vector<PerformanceOverlayDatalessGroup> groups;
+      for (const auto &[reason, words] : reasons)
+      {
+        PerformanceOverlayDatalessGroup group;
+        group.reason = words;
+        for (const auto &sensor : this->datalessSensors)
+        {
+          if (sensor.reason == reason)
+            group.labels.push_back(sensor.Label());
+        }
+        if (!group.labels.empty())
+          groups.push_back(std::move(group));
+      }
+      return groups;
     }
 
     /// \brief Share of the render thread blocked on the GPU
@@ -361,7 +443,10 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       if (data.value_size() < 1)
         continue;
       const std::string &value = data.value(0);
-      if (data.key() == "limited")
+      std::string sensorName = data.key();
+      if (performance_overlay::ConsumePrefix(sensorName, "dataless_sensor/"))
+        report.datalessSensors.push_back({sensorName, value});
+      else if (data.key() == "limited")
         report.limited = value == "true";
       else if (data.key() == "software_renderer")
         report.softwareRenderer = value == "true";
