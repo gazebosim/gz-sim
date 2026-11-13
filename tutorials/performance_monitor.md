@@ -21,8 +21,9 @@ gz service -s /world/my_world/performance/enable \
   --timeout 3000 --req 'data: true'
 ```
 
-Rendering sensors only do work while something subscribes to them, so run the
-simulation with the subscribers that you care about, like your ROS bridge.
+Sensors only do work while something subscribes to them, so run the
+simulation with the subscribers that you care about, like your ROS bridge. The
+reports list the sensors that produced no data, see below.
 
 Only one world per process can be monitored at a time. If a server runs several
 worlds, the first one to start monitoring is the one monitored.
@@ -60,6 +61,27 @@ The bottleneck line has a resource and a location:
 | `rendering` | The simulation waits for the render thread to finish the sensors. |
 | `system` | A system other than physics and sensors, it is named in the report. |
 | `engine` | The simulation loop, outside of any system. |
+
+Sensors that produced no data in the interval are listed apart, after the
+sensors that did, grouped by the reason:
+
+```
+  Sensors without data, they only work for subscribers:
+    no subscribers: robot::left::camera, robot::base::imu
+    only camera_info subscribed, not rendered: robot::right::camera
+    subscribed, but not updated: robot::wrist::triggered_camera
+```
+
+| Reason | Meaning |
+|---|---|
+| `no subscribers` | Nothing subscribes to the sensor, so it is not updated and costs nothing. Its cost is missing from the report until something subscribes. |
+| `only camera_info subscribed, not rendered` | Only the information about the images is subscribed. The camera publishes it at its rate without rendering, but it keeps the render thread updating the scene. |
+| `subscribed, but not updated` | Something subscribes but the sensor was not updated: a triggered sensor that wasn't triggered, a sensor that was switched off, or one that updates less often than the reports. |
+
+The message has one header entry per sensor without data, with the key
+`dataless_sensor/<sensor name>` and the value `no_subscribers`, `info_only` or
+`not_updated`. The sensors of the systems in Gazebo report why they produced
+no data. A sensor updated by another plugin is listed only when it was updated.
 
 ## How it measures
 

@@ -32,6 +32,7 @@
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/ForceTorqueSensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/ForceTorque.hh"
@@ -185,7 +186,7 @@ void ForceTorque::PostUpdate(const UpdateInfo &_info,
     for (const auto &[sensorEntity, sensor] : this->dataPtr->entitySensorMap)
     {
       if (sensor->NextDataUpdateTime() <= _info.simTime &&
-          sensor->HasConnections())
+          sensors::SensorHasConnections(*sensor))
       {
         needsUpdate = true;
         break;

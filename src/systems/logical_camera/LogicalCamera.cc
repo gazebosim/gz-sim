@@ -35,6 +35,7 @@
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/LogicalCameraSensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/LogicalCamera.hh"
 #include "gz/sim/components/Name.hh"
@@ -153,7 +154,7 @@ void LogicalCamera::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+          sensors::SensorHasConnections(*it.second))
       {
         needsUpdate = true;
         break;

@@ -18,13 +18,17 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/camera_info.pb.h>
 #include <gz/msgs/diagnostics.pb.h>
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/imu.pb.h>
 #include <gz/msgs/world_control.pb.h>
 
 #include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <functional>
 #include <limits>
 #include <map>
 #include <memory>
@@ -124,6 +128,9 @@ struct Verdict
   std::string culprit;
   bool limited{false};
   double rtf{0.0};
+
+  /// \brief Why each sensor without data had none, by sensor name
+  std::map<std::string, std::string> dataless;
 };
 
 /// \brief Collects reports from the performance topic.
@@ -185,10 +192,15 @@ class ReportListener
   private: void OnReport(const msgs::Diagnostics &_msg)
   {
     std::map<std::string, std::string> data;
+    std::map<std::string, std::string> dataless;
+    const std::string datalessPrefix{"dataless_sensor/"};
     for (const auto &entry : _msg.header().data())
     {
-      if (entry.value_size() > 0)
-        data[entry.key()] = entry.value(0);
+      if (entry.value_size() < 1)
+        continue;
+      data[entry.key()] = entry.value(0);
+      if (entry.key().rfind(datalessPrefix, 0) == 0)
+        dataless[entry.key().substr(datalessPrefix.size())] = entry.value(0);
     }
 
     std::lock_guard<std::mutex> lock(this->mutex);
@@ -197,6 +209,7 @@ class ReportListener
     this->last.culprit = data["culprit"];
     this->last.limited = data["limited"] == "true";
     this->last.rtf = _msg.real_time_factor();
+    this->last.dataless = std::move(dataless);
     this->minRtf = std::min(this->minRtf, this->last.rtf);
     ++this->count;
   }
@@ -214,6 +227,47 @@ ServerConfig shapesConfig()
   ServerConfig config;
   config.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
       "test", "worlds", "shapes.sdf"));
+  return config;
+}
+
+/// \brief Get a configuration that loads a world with a camera and an IMU,
+/// which only work while something subscribes to them
+ServerConfig sensorsConfig()
+{
+  ServerConfig config;
+  config.SetSdfString(R"(<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="default">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-sensors-system"
+        name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <model name="bot">
+      <static>true</static>
+      <link name="link">
+        <sensor name="camera" type="camera">
+          <update_rate>10</update_rate>
+          <topic>/performance_test/image</topic>
+          <camera>
+            <camera_info_topic>/performance_test/camera_info</camera_info_topic>
+            <horizontal_fov>1.0</horizontal_fov>
+            <image><width>64</width><height>48</height></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
+        </sensor>
+        <sensor name="imu" type="imu">
+          <update_rate>100</update_rate>
+          <topic>/performance_test/imu</topic>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>)");
   return config;
 }
 
@@ -483,5 +537,56 @@ TEST_F(PerformanceMonitorTest, WorldResetDoesNotProduceBogusReports)
   ASSERT_TRUE(listener.Wait(30s, verdict));
   EXPECT_EQ("cpu", verdict.resource);
   EXPECT_GE(listener.MinRtf(), 0.0);
+  server.Stop();
+}
+
+/////////////////////////////////////////////////
+// Sensors only work while something subscribes to their data. The reports say
+// which sensors produced no data, and why.
+TEST_F(PerformanceMonitorTest,
+    GZ_UTILS_TEST_DISABLED_ON_MAC(SensorsWithoutDataAreReported))
+{
+  common::setenv("GZ_SIM_PERFORMANCE_MONITOR", "1");
+  ReportListener listener;
+
+  Server server(sensorsConfig());
+  ASSERT_TRUE(server.Run(false, 0, false));
+
+  // The second report from now. The first one can start before a change.
+  const auto nextVerdict = [&listener]()
+  {
+    listener.Reset();
+    const auto end = std::chrono::steady_clock::now() + 60s;
+    while (listener.Count() < 2 && std::chrono::steady_clock::now() < end)
+      std::this_thread::sleep_for(100ms);
+    EXPECT_LE(2, listener.Count());
+    Verdict verdict;
+    EXPECT_TRUE(listener.Wait(1s, verdict));
+    return verdict;
+  };
+
+  auto verdict = nextVerdict();
+  EXPECT_EQ("no_subscribers", verdict.dataless["bot::link::camera"]);
+  EXPECT_EQ("no_subscribers", verdict.dataless["bot::link::imu"]);
+
+  transport::Node node;
+  std::atomic<int> infos{0};
+  std::function<void(const msgs::CameraInfo &)> onInfo =
+      [&infos](const msgs::CameraInfo &) { ++infos; };
+  ASSERT_TRUE(node.Subscribe("/performance_test/camera_info", onInfo));
+  std::function<void(const msgs::IMU &)> onImu = [](const msgs::IMU &) {};
+  ASSERT_TRUE(node.Subscribe("/performance_test/imu", onImu));
+  verdict = nextVerdict();
+  EXPECT_LT(0, infos.load());
+  EXPECT_EQ("info_only", verdict.dataless["bot::link::camera"]);
+  EXPECT_EQ(0u, verdict.dataless.count("bot::link::imu"));
+
+  std::atomic<int> images{0};
+  std::function<void(const msgs::Image &)> onImage =
+      [&images](const msgs::Image &) { ++images; };
+  ASSERT_TRUE(node.Subscribe("/performance_test/image", onImage));
+  verdict = nextVerdict();
+  EXPECT_LT(0, images.load());
+  EXPECT_TRUE(verdict.dataless.empty());
   server.Stop();
 }

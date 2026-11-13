@@ -35,6 +35,7 @@
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/NavSatSensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Name.hh"
@@ -146,7 +147,7 @@ void NavSat::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+          sensors::SensorHasConnections(*it.second))
       {
         needsUpdate = true;
         break;

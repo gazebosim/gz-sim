@@ -113,6 +113,7 @@ msgs::Diagnostics physicsReport()
   addShare(msg, "model/robot/sensors", 0.4);
   addShare(msg, "model/robot/plugins", 0.04);
   addShare(msg, "model/idle_model/physics_estimate", 0.001);
+  addData(msg, "dataless_sensor/robot::arm::camera", "no_subscribers");
   return msg;
 }
 
@@ -246,6 +247,39 @@ TEST(PerformanceOverlayData, ReadsTheSensors)
 }
 
 /////////////////////////////////////////////////
+TEST(PerformanceOverlayData, ReadsTheSensorsWithoutData)
+{
+  msgs::Diagnostics msg;
+  addData(msg, "dataless_sensor/robot::arm::camera", "no_subscribers");
+  addData(msg, "dataless_sensor/robot::base::depth", "info_only");
+  addData(msg, "dataless_sensor/robot::base::imu", "no_subscribers");
+  addData(msg, "dataless_sensor/robot::base::trigger", "not_updated");
+
+  const auto report = ParsePerformanceReport(msg);
+  ASSERT_EQ(4u, report.datalessSensors.size());
+  EXPECT_EQ("robot::arm::camera", report.datalessSensors[0].name);
+  EXPECT_EQ("robot::camera", report.datalessSensors[0].Label());
+  EXPECT_EQ("robot", report.datalessSensors[0].Model());
+  EXPECT_EQ("no_subscribers", report.datalessSensors[0].reason);
+  EXPECT_EQ("info_only", report.datalessSensors[1].reason);
+
+  // Grouped by reason, in the order of the console report
+  const auto groups = report.DatalessGroups();
+  ASSERT_EQ(3u, groups.size());
+  EXPECT_EQ("No subscribers", groups[0].reason);
+  EXPECT_EQ((std::vector<std::string>{"robot::camera", "robot::imu"}),
+      groups[0].labels);
+  EXPECT_EQ("Only camera_info subscribed", groups[1].reason);
+  EXPECT_EQ(std::vector<std::string>{"robot::depth"}, groups[1].labels);
+  EXPECT_EQ("Subscribed, not updated", groups[2].reason);
+  EXPECT_EQ(std::vector<std::string>{"robot::trigger"}, groups[2].labels);
+
+  // Reports without them, like the ones of older servers
+  EXPECT_TRUE(ParsePerformanceReport(msgs::Diagnostics()).DatalessGroups()
+      .empty());
+}
+
+/////////////////////////////////////////////////
 TEST(PerformanceOverlayData, SystemsLeaveOutWhatHasItsOwnBar)
 {
   const auto report = ParsePerformanceReport(physicsReport());
@@ -362,6 +396,10 @@ TEST_F(PerformanceOverlayGui, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(Workflow))
   const auto report = plugin->Report();
   EXPECT_EQ("Limited by the CPU", report["headline"].toString());
   EXPECT_EQ(2, report["models"].toList().size());
+  const auto dataless = report["dataless"].toList();
+  ASSERT_EQ(1, dataless.size());
+  EXPECT_EQ("No subscribers", dataless[0].toMap()["reason"].toString());
+  EXPECT_EQ("robot::camera", dataless[0].toMap()["sensors"].toString());
   EXPECT_EQ(1, plugin->History().size());
   EXPECT_TRUE(plugin->Notice().isEmpty());
 
