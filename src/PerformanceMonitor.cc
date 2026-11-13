@@ -96,8 +96,8 @@ constexpr auto kWarmUpTime = 2s;
 /// \brief Number of entries of each table of the console report.
 constexpr size_t kMaxReportRows = 5u;
 
-/// \brief Names of the sensors without data given in the text, per reason
-constexpr size_t kMaxDatalessNames = 10u;
+/// \brief Number of sensors without data listed in the console report
+constexpr size_t kMaxDatalessRows = 10u;
 
 /// \brief Cost of the contacts of a model, which is this weight times the
 /// square of its contact points, in equivalent degrees of freedom. The contacts
@@ -557,9 +557,18 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
       dataless.reason = PerformanceDatalessReason::kInfoOnly;
     report.datalessSensors.push_back(std::move(dataless));
   }
+  // The subscribed ones first: something waits for their data.
+  const auto subscribed = [](const PerformanceDatalessSensor &_sensor)
+  {
+    return _sensor.reason != PerformanceDatalessReason::kNoSubscribers;
+  };
   std::sort(report.datalessSensors.begin(), report.datalessSensors.end(),
-      [](const auto &_a, const auto &_b)
+      [&](const auto &_a, const auto &_b)
       {
+        if (subscribed(_a) != subscribed(_b))
+          return subscribed(_a);
+        if (_a.reason != _b.reason)
+          return _a.reason < _b.reason;
         return _a.name < _b.name;
       });
   std::sort(report.sensors.begin(), report.sensors.end(),
@@ -995,7 +1004,8 @@ std::string PerformanceReport::ToString() const
         << " ms\n";
   }
 
-  if (!this->sensors.empty())
+  // The sensors that produced no data follow the others.
+  if (!this->sensors.empty() || !this->datalessSensors.empty())
   {
     out << "  Sensors, slowest first:\n";
     for (size_t i = 0; i < std::min(kMaxReportRows, this->sensors.size()); ++i)
@@ -1007,35 +1017,27 @@ std::string PerformanceReport::ToString() const
           << ms(sensor.total - sensor.gpuWait) / updates << " ms, GPU wait "
           << ms(sensor.gpuWait) / updates << " ms)\n";
     }
-  }
 
-  if (!this->datalessSensors.empty())
-  {
-    out << "  Sensors without data, they only work for subscribers:\n";
-    const std::pair<PerformanceDatalessReason, const char *> reasons[] = {
-      {PerformanceDatalessReason::kNoSubscribers, "no subscribers"},
-      {PerformanceDatalessReason::kInfoOnly,
-          "only camera_info subscribed, not rendered"},
-      {PerformanceDatalessReason::kNotUpdated,
-          "subscribed, but not updated"}};
-    for (const auto &[reason, label] : reasons)
+    const auto why = [](PerformanceDatalessReason _reason)
     {
-      std::vector<std::string> names;
-      for (const auto &sensor : this->datalessSensors)
-      {
-        if (sensor.reason == reason)
-          names.push_back(sensor.name);
-      }
-      if (names.empty())
-        continue;
-
-      out << "    " << label << ": ";
-      const size_t shown = std::min(kMaxDatalessNames, names.size());
-      for (size_t i = 0; i < shown; ++i)
-        out << (i > 0u ? ", " : "") << names[i];
-      if (names.size() > shown)
-        out << " and " << names.size() - shown << " more";
-      out << "\n";
+      if (_reason == PerformanceDatalessReason::kInfoOnly)
+        return "only camera_info subscribed, not rendered";
+      if (_reason == PerformanceDatalessReason::kNotUpdated)
+        return "subscribed, but not updated";
+      return "no subscribers";
+    };
+    const size_t dataless =
+        std::min(kMaxDatalessRows, this->datalessSensors.size());
+    for (size_t i = 0; i < dataless; ++i)
+    {
+      const auto &sensor = this->datalessSensors[i];
+      out << "    " << sensor.name << ": no data, " << why(sensor.reason)
+          << "\n";
+    }
+    if (this->datalessSensors.size() > dataless)
+    {
+      out << "    and " << this->datalessSensors.size() - dataless
+          << " more without data\n";
     }
   }
 

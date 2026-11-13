@@ -399,7 +399,8 @@ namespace gz
       /// \brief Sensors that produced data, biggest first
       std::vector<PerformanceSensorSample> sensors;
 
-      /// \brief Sensors that produced no data, by name
+      /// \brief Sensors that produced no data: the ones with subscribers
+      /// first, then by reason and name
       std::vector<PerformanceDatalessSensor> datalessSensors;
 
       /// \brief Models, biggest load first

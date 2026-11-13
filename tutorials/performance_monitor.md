@@ -62,14 +62,17 @@ The bottleneck line has a resource and a location:
 | `system` | A system other than physics and sensors, it is named in the report. |
 | `engine` | The simulation loop, outside of any system. |
 
-Sensors that produced no data in the interval are listed apart, after the
-sensors that did, grouped by the reason:
+Sensors that produced no data in the interval follow the others in the list
+of sensors, with the reason. The ones that something subscribes to come first,
+and at most 10 are listed:
 
 ```
-  Sensors without data, they only work for subscribers:
-    no subscribers: robot::left::camera, robot::base::imu
-    only camera_info subscribed, not rendered: robot::right::camera
-    subscribed, but not updated: robot::wrist::triggered_camera
+  Sensors, slowest first:
+    robot::head::camera: 4.10 ms/update x 150 (outside GPU wait 2.05 ms, GPU wait 2.05 ms)
+    robot::right::camera: no data, only camera_info subscribed, not rendered
+    robot::wrist::triggered_camera: no data, subscribed, but not updated
+    robot::base::imu: no data, no subscribers
+    robot::left::camera: no data, no subscribers
 ```
 
 | Reason | Meaning |

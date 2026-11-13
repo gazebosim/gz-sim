@@ -864,16 +864,17 @@ TEST(PerformanceMonitorTest, SensorsWithoutDataAreListedApart)
   ASSERT_EQ(1u, report.sensors.size());
   EXPECT_EQ("a::l::cam", report.sensors.front().name);
 
+  // The subscribed ones first: something waits for their data.
   ASSERT_EQ(3u, report.datalessSensors.size());
-  EXPECT_EQ("c::l::unwatched", report.datalessSensors[0].name);
-  EXPECT_EQ("c", report.datalessSensors[0].model);
-  EXPECT_EQ(PerformanceDatalessReason::kNoSubscribers,
-      report.datalessSensors[0].reason);
-  EXPECT_EQ("d::l::info_only", report.datalessSensors[1].name);
+  EXPECT_EQ("d::l::info_only", report.datalessSensors[0].name);
+  EXPECT_EQ("d", report.datalessSensors[0].model);
   EXPECT_EQ(PerformanceDatalessReason::kInfoOnly,
-      report.datalessSensors[1].reason);
-  EXPECT_EQ("e::l::triggered", report.datalessSensors[2].name);
+      report.datalessSensors[0].reason);
+  EXPECT_EQ("e::l::triggered", report.datalessSensors[1].name);
   EXPECT_EQ(PerformanceDatalessReason::kNotUpdated,
+      report.datalessSensors[1].reason);
+  EXPECT_EQ("c::l::unwatched", report.datalessSensors[2].name);
+  EXPECT_EQ(PerformanceDatalessReason::kNoSubscribers,
       report.datalessSensors[2].reason);
 
   for (const auto &model : report.models)
@@ -908,15 +909,18 @@ TEST(PerformanceMonitorTest, UpdatedSensorThatDoesNotRenderProducesData)
 }
 
 /////////////////////////////////////////////////
-TEST(PerformanceMonitorTest, TextListsTheSensorsWithoutData)
+TEST(PerformanceMonitorTest, TextListsTheSensorsWithoutDataAfterTheOthers)
 {
   const auto text = AnalyzePerformance(windowWithDatalessSensors()).ToString();
   EXPECT_NE(std::string::npos, text.find(
-      "  Sensors without data, they only work for subscribers:\n"
-      "    no subscribers: c::l::unwatched\n"
-      "    only camera_info subscribed, not rendered: d::l::info_only\n"
-      "    subscribed, but not updated: e::l::triggered\n")) << text;
-  EXPECT_EQ(std::string::npos, text.find("c::l::unwatched: ")) << text;
+      "  Sensors, slowest first:\n    a::l::cam: ")) << text;
+  EXPECT_NE(std::string::npos, text.find(" ms)\n"
+      "    d::l::info_only: no data, only camera_info subscribed, "
+      "not rendered\n"
+      "    e::l::triggered: no data, subscribed, but not updated\n"
+      "    c::l::unwatched: no data, no subscribers\n"
+      "  Models")) << text;
+  EXPECT_EQ(std::string::npos, text.find("without data")) << text;
 }
 
 /////////////////////////////////////////////////
@@ -929,9 +933,13 @@ TEST(PerformanceMonitorTest, TextShortensLongListsOfSensorsWithoutData)
         sensors::SensorSubscribers::NONE));
   }
   const auto text = AnalyzePerformance(window).ToString();
-  EXPECT_NE(std::string::npos, text.find("    no subscribers: m::l::s10, "
-      "m::l::s11, m::l::s12, m::l::s13, m::l::s14, m::l::s15, m::l::s16, "
-      "m::l::s17, m::l::s18, m::l::s19 and 2 more\n")) << text;
+  EXPECT_NE(std::string::npos, text.find(
+      "  Sensors, slowest first:\n"
+      "    m::l::s10: no data, no subscribers\n")) << text;
+  EXPECT_NE(std::string::npos, text.find(
+      "    m::l::s19: no data, no subscribers\n"
+      "    and 2 more without data\n")) << text;
+  EXPECT_EQ(std::string::npos, text.find("m::l::s20")) << text;
 }
 
 /////////////////////////////////////////////////

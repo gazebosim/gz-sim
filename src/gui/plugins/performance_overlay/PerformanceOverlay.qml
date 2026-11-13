@@ -366,16 +366,56 @@ Rectangle {
       }
     }
 
-    // The sensors
+    // The sensors, with a mark for the ones that produced no data
     ColumnLayout {
       spacing: 2
-      visible: overlay.hasReport && overlay.report.sensors.length > 0
+      visible: overlay.hasReport && (overlay.report.sensors.length > 0 ||
+          overlay.report.datalessCount > 0)
       Layout.fillWidth: true
 
-      Label {
-        text: "Sensors"
-        color: overlay.mutedColor
-        font.pixelSize: 11
+      RowLayout {
+        spacing: 12
+        Layout.fillWidth: true
+
+        Label {
+          text: "Sensors"
+          color: overlay.mutedColor
+          font.pixelSize: 11
+          Layout.fillWidth: true
+        }
+
+        Row {
+          spacing: 4
+          visible: overlay.hasReport && overlay.report.datalessCount > 0
+
+          HoverHandler {
+            id: datalessHover
+          }
+          ToolTip.visible: datalessHover.hovered
+          ToolTip.delay: 300
+          ToolTip.text: !overlay.hasReport ? "" :
+              "Sensors only produce data while something subscribes to " +
+              "them.\nSubscribe like your application does to measure " +
+              "their cost.\n\n" + overlay.report.datalessDetail
+
+          // Hollow, unlike the filled marks of the measured parts
+          Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width: 8
+            height: 8
+            radius: 4
+            color: "transparent"
+            border.width: 1.5
+            border.color: overlay.mutedColor
+          }
+
+          Label {
+            text: !overlay.hasReport ? "" :
+                overlay.report.datalessCount + " without data"
+            color: overlay.mutedColor
+            font.pixelSize: 11
+          }
+        }
       }
 
       Repeater {
@@ -400,50 +440,6 @@ Rectangle {
           ]
           onClicked: PerformanceOverlay.SelectModel(modelData.model)
           Layout.fillWidth: true
-        }
-      }
-    }
-
-    // The sensors that produced no data
-    ColumnLayout {
-      spacing: 2
-      visible: overlay.hasReport && overlay.report.dataless.length > 0
-      Layout.fillWidth: true
-
-      Label {
-        text: "Sensors without data"
-        color: overlay.mutedColor
-        font.pixelSize: 11
-
-        HoverHandler {
-          id: datalessHover
-        }
-        ToolTip.visible: datalessHover.hovered
-        ToolTip.delay: 300
-        ToolTip.text: "Sensors only work while something subscribes to " +
-            "their data.\nSubscribe like your application does to measure " +
-            "their cost."
-      }
-
-      Repeater {
-        model: overlay.hasReport ? overlay.report.dataless : []
-
-        Label {
-          required property var modelData
-
-          text: modelData.reason + ": " + modelData.sensors
-          wrapMode: Text.Wrap
-          maximumLineCount: 2
-          elide: Text.ElideRight
-          font.pixelSize: 12
-          Layout.fillWidth: true
-
-          HoverHandler {
-            id: groupHover
-          }
-          ToolTip.visible: groupHover.hovered
-          ToolTip.delay: 300
-          ToolTip.text: modelData.reason + ":\n" + modelData.tooltip
         }
       }
     }
