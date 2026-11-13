@@ -18,6 +18,9 @@
 #define GZ_SIM_SYSTEMS_CONTACT_HH_
 
 #include <memory>
+#include <string>
+#include <unordered_map>
+
 #include <gz/sim/System.hh>
 
 namespace gz
@@ -46,6 +49,17 @@ namespace systems
   /// publishes at every iteration that has contacts. A message is stamped
   /// with its publication time; each contact keeps the time of its own
   /// iteration.
+  ///
+  /// # Topic resolution
+  ///
+  /// The contact sensor topic resolves according to the parent model's
+  /// namespace when set:
+  /// * Relative `<contact><topic>` values use the model namespace `{ns}` as
+  ///   their prefix.
+  /// * Absolute `<contact><topic>` values (starting with `/`) remain unchanged.
+  /// * Default topics use `{ns}/contact` when a namespace is set, or fall
+  ///   back to `scopedName(_entity, _ecm, "/") + "/contact"` when no
+  ///   namespace is set.
   class Contact final:
     public System,
     public ISystemPreUpdate,
@@ -56,7 +70,7 @@ namespace systems
     public: Contact();
 
     /// \brief Destructor
-    public: ~Contact() final = default;
+    public: ~Contact() final;
 
     /// Documentation inherited
     public: void PreUpdate(const UpdateInfo &_info,
@@ -69,6 +83,10 @@ namespace systems
     /// Documentation inherited
     public: void Reset(const UpdateInfo &_info,
                        EntityComponentManager &_ecm) final;
+
+    /// \brief Get the resolved topic names
+    /// \return A map of sensor entity to its resolved topic name.
+    public: std::unordered_map<Entity, std::string> ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ContactPrivate> dataPtr;
