@@ -43,6 +43,9 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
   /// \brief Rows below this share of the wall time would all read 0%.
   constexpr double kPerformanceOverlayMinShare{0.005};
 
+  /// \brief Sensors without data listed in the detail of the overlay.
+  constexpr std::size_t kPerformanceOverlayDatalessLines{10u};
+
   /// \brief Below this share of the wall time, the render thread is too idle
   /// for its split between CPU and GPU to mean anything.
   constexpr double kPerformanceOverlayMinRender{0.05};
@@ -107,30 +110,6 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Why it produced no data: no_subscribers, info_only or
     /// not_updated
     std::string reason;
-
-    /// \brief Model the sensor belongs to, empty if the name has no scope.
-    /// \return The top level model name
-    public: std::string Model() const
-    {
-      return performance_overlay::SensorModel(this->name);
-    }
-
-    /// \brief Short name for display, model::sensor
-    /// \return The name without the link
-    public: std::string Label() const
-    {
-      return performance_overlay::SensorLabel(this->name);
-    }
-  };
-
-  /// \brief Sensors that produced no data for the same reason
-  struct PerformanceOverlayDatalessGroup
-  {
-    /// \brief The reason, in words
-    std::string reason;
-
-    /// \brief Short names of the sensors
-    std::vector<std::string> labels;
   };
 
   /// \brief What a top level model costs. Shares are fractions of the wall
@@ -226,7 +205,7 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Slowest sensors first
     std::vector<PerformanceOverlaySensor> sensors;
 
-    /// \brief Sensors that produced no data, by name
+    /// \brief Sensors that produced no data, in the order of the report
     std::vector<PerformanceOverlayDatalessSensor> datalessSensors;
 
     /// \brief Most expensive models first
@@ -278,29 +257,34 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
       return detail;
     }
 
-    /// \brief The sensors that produced no data, grouped by reason in the
-    /// order of the console report
-    /// \return Groups that have sensors
-    public: std::vector<PerformanceOverlayDatalessGroup> DatalessGroups() const
+    /// \brief The sensors that produced no data, one line per sensor with
+    /// the reason, in the order of the report. At most
+    /// kPerformanceOverlayDatalessLines are listed.
+    /// \return The lines, empty if every sensor produced data
+    public: std::string DatalessDetail() const
     {
-      const std::pair<const char *, const char *> reasons[] = {
-        {"no_subscribers", "No subscribers"},
-        {"info_only", "Only camera_info subscribed"},
-        {"not_updated", "Subscribed, not updated"}};
-      std::vector<PerformanceOverlayDatalessGroup> groups;
-      for (const auto &[reason, words] : reasons)
+      const std::map<std::string, std::string> words{
+        {"no_subscribers", "no subscribers"},
+        {"info_only", "only camera_info subscribed, not rendered"},
+        {"not_updated", "subscribed, but not updated"}};
+      const std::size_t shown = std::min(kPerformanceOverlayDatalessLines,
+          this->datalessSensors.size());
+      std::string detail;
+      for (std::size_t i = 0; i < shown; ++i)
       {
-        PerformanceOverlayDatalessGroup group;
-        group.reason = words;
-        for (const auto &sensor : this->datalessSensors)
-        {
-          if (sensor.reason == reason)
-            group.labels.push_back(sensor.Label());
-        }
-        if (!group.labels.empty())
-          groups.push_back(std::move(group));
+        const auto &sensor = this->datalessSensors[i];
+        const auto word = words.find(sensor.reason);
+        if (!detail.empty())
+          detail += "\n";
+        detail += sensor.name + ": " +
+            (word == words.end() ? sensor.reason : word->second);
       }
-      return groups;
+      if (this->datalessSensors.size() > shown)
+      {
+        detail += "\nand " +
+            std::to_string(this->datalessSensors.size() - shown) + " more";
+      }
+      return detail;
     }
 
     /// \brief Share of the render thread blocked on the GPU

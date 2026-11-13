@@ -96,19 +96,8 @@ QVariantMap toVariant(const PerformanceOverlayReport &_report)
   }
   map["sensors"] = sensors;
 
-  QVariantList dataless;
-  for (const auto &group : _report.DatalessGroups())
-  {
-    QStringList labels;
-    for (const auto &label : group.labels)
-      labels.append(QString::fromStdString(label));
-    QVariantMap row;
-    row["reason"] = QString::fromStdString(group.reason);
-    row["sensors"] = labels.join(", ");
-    row["tooltip"] = labels.join("\n");
-    dataless.append(row);
-  }
-  map["dataless"] = dataless;
+  map["datalessCount"] = static_cast<int>(_report.datalessSensors.size());
+  map["datalessDetail"] = QString::fromStdString(_report.DatalessDetail());
 
   QVariantList models;
   for (const auto &model : _report.models)
