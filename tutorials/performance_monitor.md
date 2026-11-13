@@ -48,9 +48,9 @@ The bottleneck line has a resource and a location:
 
 | Resource | Meaning |
 |---|---|
-| `CPU` | Computation is the limit. Software rasterizers such as llvmpipe count here and the report says so. |
+| `CPU` | Computation is the limit. Software rasterizers such as llvmpipe count here and the report says so. A high resolution camera in a simple scene can end up here too: copying and publishing its images is CPU work. |
 | `GPU` | The render thread spends most of its time (65% or more) blocked on the GPU, which includes waiting for the GPU to transfer images out of its memory. |
-| `CPU and GPU` | The render thread spends comparable time computing and blocked on the GPU, so improving only one of them gains little. High resolution cameras in simple scenes usually end up here. |
+| `CPU and GPU` | The render thread spends comparable time computing and blocked on the GPU, so improving only one of them gains little. |
 | not computing | A system is blocked waiting for something outside of the simulation, like a socket or a lock-step partner. |
 | unknown | Rendering is the limit, but the render engine does not report its GPU waits. |
 
