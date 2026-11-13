@@ -48,6 +48,40 @@ release will remove the deprecated code.
     base pointer is no longer supported.
 
 * **Deprecations**
+  * **AckermannSteering**: The `<sub_topic>` SDF parameter originally prefixes
+    the specified value with `/model/{model_name}/`.
+
+    With the new model namespace support, `<sub_topic>` uses the model namespace
+    as the prefix when one is specified, while preserving the original behavior
+    otherwise.
+
+    The `<sub_topic>` parameter is now deprecated. Users are encouraged to use
+    `<topic>` together with the model namespace instead. Relative topics are
+    prefixed with the model namespace when specified, while absolute topics
+    (starting with `/`) remain unchanged.
+
+    For example, the following configuration:
+
+    ```xml
+    <model name="robot1">
+      <plugin ...>
+        <sub_topic>cmd_vel</sub_topic>
+      </plugin>
+    </model>
+    ```
+
+    Can be replaced with:
+
+    ```xml
+    <model name="robot1" namespace="model/{name}">
+      <plugin ...>
+        <topic>cmd_vel</topic>
+      </plugin>
+    </model>
+    ```
+
+  Both configurations resolve to `/model/robot1/cmd_vel`.
+
   * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
     `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
     cross terms `<*Dot*>`) is deprecated **when using the DART physics
