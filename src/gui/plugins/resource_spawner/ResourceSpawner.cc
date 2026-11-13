@@ -103,6 +103,16 @@ namespace {
 
 // Default owner to be fetched from Fuel. This owner cannot be removed.
 constexpr const char *kDefaultOwner = "openrobotics";
+
+/////////////////////////////////////////////////
+std::string modelSdfPath(const std::string &_modelPath)
+{
+  auto sdfPath = sdf::getModelFilePath(_modelPath);
+  if (sdfPath.empty()) {
+    sdfPath = gz::common::joinPaths(_modelPath, "model.sdf");
+  }
+  return sdfPath;
+}
 }
 using namespace gz;
 using namespace sim;
@@ -577,7 +587,7 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
     std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
     this->SetThumbnail(thumbnailPath, modelResource);
     modelResource.isDownloaded = true;
-    modelResource.sdfPath = common::joinPaths(localPath, "model.sdf");
+    modelResource.sdfPath = modelSdfPath(localPath);
     modelResource.isFuel = true;
     // Update the current grid of resources
     this->dataPtr->resourceModel.UpdateResourceModel(index, modelResource);
@@ -677,7 +687,7 @@ void ResourceSpawner::UpdateOwnerListModel(Resource _resource)
         common::URI(_resource.sdfPath), path))
   {
     _resource.isDownloaded = true;
-    _resource.sdfPath = common::joinPaths(path, "model.sdf");
+    _resource.sdfPath = modelSdfPath(path);
     std::string thumbnailPath = common::joinPaths(path, "thumbnails");
     this->SetThumbnail(thumbnailPath, _resource);
   }
