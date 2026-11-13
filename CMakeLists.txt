@@ -108,7 +108,7 @@ gz_find_package(gz-msgs VERSION 12 REQUIRED)
 #--------------------------------------
 # Find gz-common
 # Always use the profiler component to get the headers, regardless of status.
-gz_find_package(gz-common VERSION 7
+gz_find_package(gz-common VERSION 7.4
   COMPONENTS
     av
     events
@@ -192,7 +192,7 @@ gz_find_package(gz-rendering VERSION 10 REQUIRED)
 
 #--------------------------------------
 # Find gz-math
-gz_find_package(gz-math VERSION 9 REQUIRED COMPONENTS eigen3)
+gz_find_package(gz-math VERSION 9.3 REQUIRED COMPONENTS eigen3)
 
 #--------------------------------------
 # Find if gz command is available
