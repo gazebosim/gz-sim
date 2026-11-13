@@ -19,6 +19,9 @@
 
 #include <gz/msgs/logical_camera_image.pb.h>
 
+#include <cstddef>
+#include <string>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -29,11 +32,11 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -80,75 +83,6 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  const std::string sensorName1 = "logical_camera-1";
-  auto topic1 = "world/logical_camera_sensor/model/logical_camera-1/link/"
-      "logical_camera_link/sensor/logical_camera-1/logical_camera";
-
-  const std::string sensorName2 = "logical_camera-2";
-  auto topic2 = "world/logical_camera_sensor/model/logical_camera-2/link/"
-      "logical_camera_link/sensor/logical_camera-2/logical_camera";
-
-  bool update1Checked{false};
-  bool update2Checked{false};
-
-  // Create a system that checks sensor topics
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::LogicalCamera, components::Name>(
-            [&](const Entity &_entity,
-                const components::LogicalCamera *,
-                const components::Name *_name) -> bool
-            {
-              // Sensor 1
-              if (_name->Data() == sensorName1)
-              {
-                auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-                EXPECT_NE(nullptr, sensorComp);
-
-                if (_info.iterations != 1)
-                {
-                  auto topicComp =
-                      _ecm.Component<components::SensorTopic>(_entity);
-                  EXPECT_NE(nullptr, topicComp);
-                  if (topicComp)
-                  {
-                    EXPECT_EQ(topic1, topicComp->Data());
-                  }
-                }
-                update1Checked = true;
-              }
-              // Sensor 2
-              else if (_name->Data() == sensorName2)
-              {
-                auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-                EXPECT_NE(nullptr, sensorComp);
-
-                if (_info.iterations != 1)
-                {
-                  auto topicComp =
-                      _ecm.Component<components::SensorTopic>(_entity);
-                  EXPECT_NE(nullptr, topicComp);
-                  if (topicComp)
-                  {
-                    EXPECT_EQ(topic2, topicComp->Data());
-                  }
-                }
-                update2Checked = true;
-              }
-              else
-              {
-                // We should not hit this, as it implies an unknown
-                // sensor name.
-                EXPECT_TRUE(false) << "Unknown sensor name.";
-              }
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
-
   // subscribe to logical camera topic
   transport::Node node;
   node.Subscribe(std::string("/world/logical_camera_sensor/") +
@@ -162,8 +96,43 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   // Run server and verify that we are receiving messages
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
-  EXPECT_TRUE(update1Checked);
-  EXPECT_TRUE(update2Checked);
+
+  // Check both sensor entities. Each camera's model has the same name as its
+  // sensor, so the lookup also asks for the Sensor component.
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+
+    // The world has exactly these two logical cameras
+    std::size_t cameraCount{0};
+    ecm->Each<components::LogicalCamera>(
+        [&cameraCount](const Entity &, const components::LogicalCamera *)
+        {
+          ++cameraCount;
+          return true;
+        });
+    EXPECT_EQ(2u, cameraCount);
+
+    auto checkSensor = [&ecm](const std::string &_name,
+                              const std::string &_topic)
+    {
+      const Entity sensor = ecm->EntityByComponents(
+          components::Sensor(), components::Name(_name));
+      ASSERT_NE(kNullEntity, sensor) << _name;
+      EXPECT_NE(nullptr, ecm->Component<components::LogicalCamera>(sensor));
+
+      const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
+      ASSERT_NE(nullptr, topicComp) << _name;
+      EXPECT_EQ(_topic, topicComp->Data());
+    };
+    checkSensor("logical_camera-1",
+        "world/logical_camera_sensor/model/logical_camera-1/link/"
+        "logical_camera_link/sensor/logical_camera-1/logical_camera");
+    checkSensor("logical_camera-2",
+        "world/logical_camera_sensor/model/logical_camera-2/link/"
+        "logical_camera_link/sensor/logical_camera-2/logical_camera");
+  }
+
   mutex.lock();
   EXPECT_GT(logicalCamera1Msgs.size(), 0u);
   mutex.unlock();
