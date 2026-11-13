@@ -97,6 +97,9 @@ class gz::sim::systems::OdometryPublisherPrivate
   /// \brief Pose vector (TF) message publisher.
   public: transport::Node::Publisher tfPub;
 
+  /// \brief Resolved topic names
+  public: OdometryPublisher::TopicNames resolvedTopicNames;
+
   /// \brief Rolling mean accumulators for the linear velocity
   public: std::tuple<math::RollingMean, math::RollingMean, math::RollingMean>
     linearMean;
@@ -139,6 +142,9 @@ OdometryPublisher::OdometryPublisher()
     std::get<1>(this->dataPtr->angularMean).SetWindowSize(10);
   }
 }
+
+//////////////////////////////////////////////////
+OdometryPublisher::~OdometryPublisher() = default;
 
 //////////////////////////////////////////////////
 //! [Configure]
@@ -237,64 +243,85 @@ void OdometryPublisher::Configure(const Entity &_entity,
       std::chrono::duration_cast<std::chrono::steady_clock::duration>(period);
   }
 
+  // Generate namespace
+  const std::string ns =
+    scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  const std::string defaultPrefix =
+    "/model/" + this->dataPtr->model.Name(_ecm);
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+
   // Setup odometry
-  std::string odomTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/odometry"};
-  std::string odomCovTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/odometry_with_covariance"};
-
-  if (_sdf->HasElement("odom_topic"))
-    odomTopic = _sdf->Get<std::string>("odom_topic");
-  if (_sdf->HasElement("odom_covariance_topic"))
-    odomCovTopic = _sdf->Get<std::string>("odom_covariance_topic");
-
-  std::string odomTopicValid {transport::TopicUtils::AsValidTopic(odomTopic)};
-  if (odomTopicValid.empty())
+  TopicNameOptions odomTopicOptions;
+  odomTopicOptions.sdfElementName = "odom_topic";
+  odomTopicOptions.topicNamespace = ns;
+  odomTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomTopicOptions.defaultTopicSuffix = "odometry";
+  resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
+  if (resolvedTopicNames.odomTopic.empty())
   {
-    gzerr << "Failed to generate odom topic ["
-           << odomTopic << "]" << std::endl;
+    gzerr << "OdometryPublisher failed to find a valid topic name for "
+          << "odometry messages. Check the <odom_topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
   }
   else
   {
     //! [definePub]
     this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-        odomTopicValid);
+        resolvedTopicNames.odomTopic);
     //! [definePub]
-    gzmsg << "OdometryPublisher publishing odometry on [" << odomTopicValid
-           << "]" << std::endl;
+    gzmsg << "OdometryPublisher publishing odometry on ["
+          << resolvedTopicNames.odomTopic << "]" << std::endl;
   }
 
-  std::string odomCovTopicValid {
-    transport::TopicUtils::AsValidTopic(odomCovTopic)};
-  if (odomCovTopicValid.empty())
+  // Setup odometry with covariance
+  TopicNameOptions odomCovTopicOptions;
+  odomCovTopicOptions.sdfElementName = "odom_covariance_topic";
+  odomCovTopicOptions.topicNamespace = ns;
+  odomCovTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomCovTopicOptions.defaultTopicSuffix = "odometry_with_covariance";
+  resolvedTopicNames.odomCovTopic =
+    resolvedTopicName(_sdf, odomCovTopicOptions);
+  if (resolvedTopicNames.odomCovTopic.empty())
   {
-    gzerr << "Failed to generate odom topic ["
-           << odomCovTopic << "]" << std::endl;
+    gzerr << "OdometryPublisher failed to find a valid topic name for "
+          << "odometry with covariance messages. Check the "
+          << "<odom_covariance_topic> and the namespace attribute in the SDF."
+          << std::endl;
   }
   else
   {
     this->dataPtr->odomCovPub = this->dataPtr->node.Advertise<
-        msgs::OdometryWithCovariance>(odomCovTopicValid);
+        msgs::OdometryWithCovariance>(resolvedTopicNames.odomCovTopic);
     gzmsg << "OdometryPublisher publishing odometry with covariance on ["
-           << odomCovTopicValid << "]" << std::endl;
+          << resolvedTopicNames.odomCovTopic << "]" << std::endl;
   }
 
-  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) + "/pose"};
-  if (_sdf->HasElement("tf_topic"))
-    tfTopic = _sdf->Get<std::string>("tf_topic");
-  std::string tfTopicValid {transport::TopicUtils::AsValidTopic(tfTopic)};
-  if (tfTopicValid.empty())
+  // Setup TF
+  TopicNameOptions tfTopicOptions;
+  tfTopicOptions.sdfElementName = "tf_topic";
+  tfTopicOptions.topicNamespace = ns;
+  tfTopicOptions.defaultTopicPrefix = defaultPrefix;
+  tfTopicOptions.defaultTopicSuffix = "pose";
+  resolvedTopicNames.tfTopic = resolvedTopicName(_sdf, tfTopicOptions);
+  if (resolvedTopicNames.tfTopic.empty())
   {
-    gzerr << "Failed to generate valid TF topic from [" << tfTopic << "]"
-           << std::endl;
+    gzerr << "OdometryPublisher failed to find a valid topic name for "
+          << "Pose_V (TF) messages. Check the <tf_topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
   }
   else
   {
     this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-        tfTopicValid);
+        resolvedTopicNames.tfTopic);
     gzmsg << "OdometryPublisher publishing Pose_V (TF) on ["
-           << tfTopicValid << "]" << std::endl;
+          << resolvedTopicNames.tfTopic << "]" << std::endl;
   }
+}
+
+//////////////////////////////////////////////////
+OdometryPublisher::TopicNames OdometryPublisher::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
