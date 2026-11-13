@@ -28,6 +28,7 @@
 #include <vector>
 
 #include <gz/msgs/diagnostics.pb.h>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
@@ -143,6 +144,46 @@ namespace gz
 
       /// \brief Part of the total spent blocked on the GPU
       std::chrono::steady_clock::duration gpuWait{0};
+
+      /// \brief True for a sensor that renders
+      bool rendering{false};
+
+      /// \brief Number of the updates that rendered
+      uint64_t renders{0};
+
+      /// \brief Whether it had subscribers, the last time it was checked
+      sensors::SensorSubscribers subscribers{
+          sensors::SensorSubscribers::UNKNOWN};
+    };
+
+    /// \brief Why a sensor produced no data in a report interval.
+    enum class PerformanceDatalessReason
+    {
+      /// \brief Nothing subscribes to it, so it is not updated
+      kNoSubscribers,
+
+      /// \brief Only the information about its data is subscribed, like the
+      /// camera_info of a camera, so it updates without rendering
+      kInfoOnly,
+
+      /// \brief It has subscribers but it was not updated, like a triggered
+      /// sensor that was not triggered, a sensor that was switched off, or one
+      /// that updates less often than the reports
+      kNotUpdated
+    };
+
+    /// \brief A sensor that produced no data in a report interval.
+    struct PerformanceDatalessSensor
+    {
+      /// \brief Scoped name of the sensor
+      std::string name;
+
+      /// \brief Top level model the sensor belongs to
+      std::string model;
+
+      /// \brief Why it produced no data
+      PerformanceDatalessReason reason{
+          PerformanceDatalessReason::kNoSubscribers};
     };
 
     /// \brief Properties of a top level model that drive its cost.
@@ -217,7 +258,7 @@ namespace gz
       /// \brief Systems that were updated
       std::vector<PerformanceSystemSample> systems;
 
-      /// \brief Sensors that generated data
+      /// \brief Sensors that were updated, or whose subscribers were checked
       std::vector<PerformanceSensorSample> sensors;
 
       /// \brief Top level models
@@ -355,8 +396,11 @@ namespace gz
       /// \brief Systems, biggest first
       std::vector<PerformanceSystemSample> systems;
 
-      /// \brief Sensors, biggest first
+      /// \brief Sensors that produced data, biggest first
       std::vector<PerformanceSensorSample> sensors;
+
+      /// \brief Sensors that produced no data, by name
+      std::vector<PerformanceDatalessSensor> datalessSensors;
 
       /// \brief Models, biggest load first
       std::vector<PerformanceModelLoad> models;

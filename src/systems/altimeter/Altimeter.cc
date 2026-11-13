@@ -34,6 +34,7 @@
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/AltimeterSensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/LinearVelocity.hh"
@@ -150,7 +151,7 @@ void Altimeter::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+          sensors::SensorHasConnections(*it.second))
       {
         needsUpdate = true;
         break;

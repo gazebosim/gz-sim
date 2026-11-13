@@ -30,6 +30,7 @@
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/ImuSensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/World.hh"
 #include "gz/sim/components/AngularVelocity.hh"
@@ -154,7 +155,7 @@ void Imu::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+          sensors::SensorHasConnections(*it.second))
       {
         needsUpdate = true;
         break;

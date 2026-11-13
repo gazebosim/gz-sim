@@ -96,6 +96,9 @@ constexpr auto kWarmUpTime = 2s;
 /// \brief Number of entries of each table of the console report.
 constexpr size_t kMaxReportRows = 5u;
 
+/// \brief Names of the sensors without data given in the text, per reason
+constexpr size_t kMaxDatalessNames = 10u;
+
 /// \brief Cost of the contacts of a model, which is this weight times the
 /// square of its contact points, in equivalent degrees of freedom. The contacts
 /// of a model are solved together so their cost grows faster than their count.
@@ -533,7 +536,32 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
         return _a.critical > _b.critical;
       });
 
-  report.sensors = _window.sensors;
+  // Sensors produce data only while something subscribes to it, and the
+  // ones that did not are listed apart.
+  for (const auto &sensor : _window.sensors)
+  {
+    if (sensor.updates > 0u && (!sensor.rendering || sensor.renders > 0u))
+    {
+      report.sensors.push_back(sensor);
+      continue;
+    }
+
+    PerformanceDatalessSensor dataless;
+    dataless.name = sensor.name;
+    dataless.model = sensor.model;
+    if (sensor.subscribers == sensors::SensorSubscribers::NONE)
+      dataless.reason = PerformanceDatalessReason::kNoSubscribers;
+    else if (sensor.updates == 0u)
+      dataless.reason = PerformanceDatalessReason::kNotUpdated;
+    else
+      dataless.reason = PerformanceDatalessReason::kInfoOnly;
+    report.datalessSensors.push_back(std::move(dataless));
+  }
+  std::sort(report.datalessSensors.begin(), report.datalessSensors.end(),
+      [](const auto &_a, const auto &_b)
+      {
+        return _a.name < _b.name;
+      });
   std::sort(report.sensors.begin(), report.sensors.end(),
       [](const auto &_a, const auto &_b)
       {
@@ -981,6 +1009,36 @@ std::string PerformanceReport::ToString() const
     }
   }
 
+  if (!this->datalessSensors.empty())
+  {
+    out << "  Sensors without data, they only work for subscribers:\n";
+    const std::pair<PerformanceDatalessReason, const char *> reasons[] = {
+      {PerformanceDatalessReason::kNoSubscribers, "no subscribers"},
+      {PerformanceDatalessReason::kInfoOnly,
+          "only camera_info subscribed, not rendered"},
+      {PerformanceDatalessReason::kNotUpdated,
+          "subscribed, but not updated"}};
+    for (const auto &[reason, label] : reasons)
+    {
+      std::vector<std::string> names;
+      for (const auto &sensor : this->datalessSensors)
+      {
+        if (sensor.reason == reason)
+          names.push_back(sensor.name);
+      }
+      if (names.empty())
+        continue;
+
+      out << "    " << label << ": ";
+      const size_t shown = std::min(kMaxDatalessNames, names.size());
+      for (size_t i = 0; i < shown; ++i)
+        out << (i > 0u ? ", " : "") << names[i];
+      if (names.size() > shown)
+        out << " and " << names.size() - shown << " more";
+      out << "\n";
+    }
+  }
+
   if (!this->models.empty())
   {
     out << "  Models, biggest load first (physics and scene are estimated):\n";
@@ -1057,6 +1115,15 @@ msgs::Diagnostics PerformanceReport::ToMsg() const
     addTime(msg, "sensor/" + sensor.name, sensor.total, this->wall);
     addTime(msg, "sensor/" + sensor.name + "/gpu_wait", sensor.gpuWait,
         this->wall);
+  }
+  for (const auto &sensor : this->datalessSensors)
+  {
+    std::string reason{"no_subscribers"};
+    if (sensor.reason == PerformanceDatalessReason::kInfoOnly)
+      reason = "info_only";
+    else if (sensor.reason == PerformanceDatalessReason::kNotUpdated)
+      reason = "not_updated";
+    addData(msg, "dataless_sensor/" + sensor.name, reason);
   }
   for (const auto &system : this->systems)
   {
@@ -1383,6 +1450,9 @@ PerformanceReport PerformanceMonitor::TakeReport(
     sample.updates = timing.updates;
     sample.total = std::chrono::duration_cast<Duration>(timing.total);
     sample.gpuWait = std::chrono::duration_cast<Duration>(timing.gpuWait);
+    sample.rendering = timing.rendering;
+    sample.renders = timing.renders;
+    sample.subscribers = timing.subscribers;
     window.sensors.push_back(std::move(sample));
   }
 

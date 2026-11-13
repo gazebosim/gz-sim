@@ -32,9 +32,11 @@
 #include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/sensors/Sensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 #include <sdf/Collision.hh>
 #include <sdf/Geometry.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/Sensor.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/SystemLoader.hh"
@@ -111,6 +113,42 @@ events::RenderFrameTimes renderTimes(
   // By default the simulation thread was blocked for all of the render time
   times.simThreadWait = _sensors;
   return times;
+}
+
+/// \brief Create the sample of a sensor that produced no data
+/// \param[in] _name Scoped name, model::link::sensor
+/// \param[in] _updates Number of updates
+/// \param[in] _subscribers Whether it had subscribers
+PerformanceSensorSample dataless(const std::string &_name,
+    uint64_t _updates, sensors::SensorSubscribers _subscribers)
+{
+  PerformanceSensorSample sample;
+  sample.name = _name;
+  sample.model = _name.substr(0, _name.find("::"));
+  sample.updates = _updates;
+  sample.total = std::chrono::microseconds(10) * _updates;
+  sample.rendering = true;
+  sample.subscribers = _subscribers;
+  return sample;
+}
+
+/// \brief A window limited by a camera, with sensors that produced no data:
+/// one without subscribers, one with only camera_info subscribed, and one
+/// subscribed but not updated.
+PerformanceWindow windowWithDatalessSensors()
+{
+  PerformanceWindow window = slowWindow();
+  window.systems.push_back(system(kSensors, 8s));
+  window.renderFrames = 300;
+  window.render = renderTimes(9s, 8s);
+  window.sensors.push_back(sensor("a::l::cam", "a", 9s, 8s));
+  window.sensors.push_back(dataless("c::l::unwatched", 0,
+      sensors::SensorSubscribers::NONE));
+  window.sensors.push_back(dataless("d::l::info_only", 300,
+      sensors::SensorSubscribers::SOME));
+  window.sensors.push_back(dataless("e::l::triggered", 0,
+      sensors::SensorSubscribers::SOME));
+  return window;
 }
 }
 
@@ -819,6 +857,111 @@ TEST(PerformanceMonitorTest, TextNamesTheBottleneck)
 }
 
 /////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, SensorsWithoutDataAreListedApart)
+{
+  const auto report = AnalyzePerformance(windowWithDatalessSensors());
+  EXPECT_EQ("a::l::cam", report.culprit);
+  ASSERT_EQ(1u, report.sensors.size());
+  EXPECT_EQ("a::l::cam", report.sensors.front().name);
+
+  ASSERT_EQ(3u, report.datalessSensors.size());
+  EXPECT_EQ("c::l::unwatched", report.datalessSensors[0].name);
+  EXPECT_EQ("c", report.datalessSensors[0].model);
+  EXPECT_EQ(PerformanceDatalessReason::kNoSubscribers,
+      report.datalessSensors[0].reason);
+  EXPECT_EQ("d::l::info_only", report.datalessSensors[1].name);
+  EXPECT_EQ(PerformanceDatalessReason::kInfoOnly,
+      report.datalessSensors[1].reason);
+  EXPECT_EQ("e::l::triggered", report.datalessSensors[2].name);
+  EXPECT_EQ(PerformanceDatalessReason::kNotUpdated,
+      report.datalessSensors[2].reason);
+
+  for (const auto &model : report.models)
+    EXPECT_EQ("a", model.name);
+}
+
+/////////////////////////////////////////////////
+// A sensor that is not rendered is never the one named for rendering, even if
+// its updates take more time than those of the sensor that renders.
+TEST(PerformanceMonitorTest, SensorThatDoesNotRenderIsNotTheCulprit)
+{
+  PerformanceWindow window = windowWithDatalessSensors();
+  window.sensors[0].total = 1ms;
+  window.sensors[2].total = 2ms;
+  EXPECT_EQ("a::l::cam", AnalyzePerformance(window).culprit);
+}
+
+/////////////////////////////////////////////////
+// A sensor that does not render computes and publishes its data whenever it is
+// updated, whether something subscribes to it or not.
+TEST(PerformanceMonitorTest, UpdatedSensorThatDoesNotRenderProducesData)
+{
+  PerformanceWindow window = windowWithDatalessSensors();
+  auto imu = dataless("f::l::imu", 1000, sensors::SensorSubscribers::NONE);
+  imu.rendering = false;
+  window.sensors.push_back(imu);
+
+  const auto report = AnalyzePerformance(window);
+  ASSERT_EQ(2u, report.sensors.size());
+  EXPECT_EQ("f::l::imu", report.sensors[1].name);
+  EXPECT_EQ(3u, report.datalessSensors.size());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, TextListsTheSensorsWithoutData)
+{
+  const auto text = AnalyzePerformance(windowWithDatalessSensors()).ToString();
+  EXPECT_NE(std::string::npos, text.find(
+      "  Sensors without data, they only work for subscribers:\n"
+      "    no subscribers: c::l::unwatched\n"
+      "    only camera_info subscribed, not rendered: d::l::info_only\n"
+      "    subscribed, but not updated: e::l::triggered\n")) << text;
+  EXPECT_EQ(std::string::npos, text.find("c::l::unwatched: ")) << text;
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, TextShortensLongListsOfSensorsWithoutData)
+{
+  PerformanceWindow window = slowWindow();
+  for (int i = 0; i < 12; ++i)
+  {
+    window.sensors.push_back(dataless("m::l::s" + std::to_string(i + 10), 0,
+        sensors::SensorSubscribers::NONE));
+  }
+  const auto text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos, text.find("    no subscribers: m::l::s10, "
+      "m::l::s11, m::l::s12, m::l::s13, m::l::s14, m::l::s15, m::l::s16, "
+      "m::l::s17, m::l::s18, m::l::s19 and 2 more\n")) << text;
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, MessageListsTheSensorsWithoutData)
+{
+  const auto msg = AnalyzePerformance(windowWithDatalessSensors()).ToMsg();
+
+  std::map<std::string, std::string> dataless;
+  for (const auto &data : msg.header().data())
+  {
+    ASSERT_EQ(1, data.value_size());
+    if (data.key().rfind("dataless_sensor/", 0) == 0)
+      dataless[data.key()] = data.value(0);
+  }
+  const std::map<std::string, std::string> expected{
+    {"dataless_sensor/c::l::unwatched", "no_subscribers"},
+    {"dataless_sensor/d::l::info_only", "info_only"},
+    {"dataless_sensor/e::l::triggered", "not_updated"}};
+  EXPECT_EQ(expected, dataless);
+
+  for (const auto &time : msg.time())
+  {
+    EXPECT_EQ(std::string::npos, time.name().find("::unwatched"))
+        << time.name();
+    EXPECT_EQ(std::string::npos, time.name().find("::info_only"))
+        << time.name();
+  }
+}
+
+/////////////////////////////////////////////////
 namespace
 {
 /// \brief Run an iteration of the monitor
@@ -1252,4 +1395,41 @@ TEST(PerformanceMonitorTest, SensorUpdatesArrivingDuringAReportAreKept)
 
   EXPECT_LT(0u, sent);
   EXPECT_EQ(sent, received);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief A sensor that nothing subscribes to
+class UnwatchedSensor : public IdleSensor
+{
+  // Documentation inherited
+  public: bool HasConnections() const override
+  {
+    return false;
+  }
+};
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, SensorWithoutSubscribersIsReported)
+{
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+
+  UnwatchedSensor sensor;
+  sdf::Sensor sdfSensor;
+  sdfSensor.SetName("bot::link::camera");
+  ASSERT_TRUE(sensor.Load(sdfSensor));
+  EXPECT_FALSE(sensors::SensorHasConnections(sensor));
+
+  const auto report = monitor->TakeReport(systemMgr, ecm);
+  EXPECT_TRUE(report.sensors.empty());
+  ASSERT_EQ(1u, report.datalessSensors.size());
+  EXPECT_EQ("bot::link::camera", report.datalessSensors[0].name);
+  EXPECT_EQ("bot", report.datalessSensors[0].model);
+  EXPECT_EQ(PerformanceDatalessReason::kNoSubscribers,
+      report.datalessSensors[0].reason);
 }

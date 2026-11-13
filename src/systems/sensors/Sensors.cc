@@ -43,6 +43,7 @@
 #include <gz/sensors/Sensor.hh>
 #include <gz/sensors/WideAngleCameraSensor.hh>
 #include <gz/sensors/Manager.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/Atmosphere.hh"
 #include "gz/sim/components/BatterySoC.hh"
@@ -512,7 +513,7 @@ void SensorsPrivate::RunOnce()
     {
       sensors::Sensor *s = this->sensorManager.Sensor(id);
       auto rs = dynamic_cast<sensors::RenderingSensor *>(s);
-      if (rs->IsActive() && !rs->HasConnections())
+      if (rs->IsActive() && !sensors::SensorHasConnections(*rs))
       {
         rs->SetActive(false);
         tmpDisabledSensors.insert(rs);
@@ -1353,7 +1354,7 @@ std::chrono::steady_clock::duration SensorsPrivate::NextUpdateTime(
       continue;
     }
 
-    if (!rs->HasConnections())
+    if (!sensors::SensorHasConnections(*rs))
     {
       continue;
     }
@@ -1406,7 +1407,7 @@ bool SensorsPrivate::SensorsHaveConnections()
       continue;
     }
 
-    if (rs->HasConnections())
+    if (sensors::SensorHasConnections(*rs))
     {
       return true;
     }

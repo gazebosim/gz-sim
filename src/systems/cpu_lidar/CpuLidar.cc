@@ -28,6 +28,7 @@
 #include <sdf/Element.hh>
 
 #include <gz/common/Profiler.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
@@ -90,7 +91,7 @@ void CpuLidar::PreUpdate(const UpdateInfo &_info,
       {
         needsRaycast->Data() =
           (it.second->NextDataUpdateTime() <= _info.simTime &&
-           it.second->HasConnections());
+           sensors::SensorHasConnections(*it.second));
       }
     }
   }
@@ -117,7 +118,7 @@ void CpuLidar::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+          sensors::SensorHasConnections(*it.second))
       {
         needsUpdate = true;
         break;

@@ -34,6 +34,7 @@
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/AirSpeedSensor.hh>
+#include <gz/sensors/SensorTiming.hh>
 
 #include "gz/sim/components/AirSpeedSensor.hh"
 #include "gz/sim/components/Name.hh"
@@ -168,7 +169,7 @@ void AirSpeed::PostUpdate(const UpdateInfo &_info,
     for (auto &it : this->dataPtr->entitySensorMap)
     {
       if (it.second->NextDataUpdateTime() <= _info.simTime &&
-          it.second->HasConnections())
+          sensors::SensorHasConnections(*it.second))
       {
         needsUpdate = true;
         break;
