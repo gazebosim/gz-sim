@@ -1,6 +1,8 @@
 gz_add_system(free-space-explorer
   SOURCES
   FreeSpaceExplorer.cc
+  TEST_SOURCES
+    FreeSpaceExplorer_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-math::gz-math

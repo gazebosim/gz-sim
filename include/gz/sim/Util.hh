@@ -29,6 +29,7 @@
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Pose3.hh>
 #include <sdf/Mesh.hh>
+#include <sdf/config.hh>
 
 #include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
@@ -37,11 +38,36 @@
 #include "gz/sim/Export.hh"
 #include "gz/sim/Types.hh"
 
+namespace sdf
+{
+  inline namespace SDF_VERSION_NAMESPACE
+  {
+    class Element;
+  }
+}
 
 namespace gz
 {
   namespace sim
   {
+    /// \brief Options for resolving a topic name
+    struct TopicNameOptions
+    {
+      /// \brief Name of the SDF child element containing the
+      /// topic name
+      std::string sdfElementName;
+
+      /// \brief Topic namespace to prepend to relative topic name
+      std::string topicNamespace;
+
+      /// \brief Default topic prefix to use when no topic namespace is
+      /// specified
+      std::string defaultTopicPrefix;
+
+      /// \brief Topic to use when no custom topic is specified
+      std::string defaultTopicSuffix;
+    };
+
     // Inline bracket to help doxygen filtering.
     inline namespace GZ_SIM_VERSION_NAMESPACE {
     //
@@ -77,6 +103,18 @@ namespace gz
     /// \return Scoped namespace, or empty string if no namespace is found.
     std::string GZ_SIM_VISIBLE scopedNamespace(
         const EntityComponentManager &_ecm, const Entity &_entity);
+
+    /// \brief Helper function to resolve a topic name from the SDF element.
+    /// If the SDF element exists and contains a non-empty topic name, that
+    /// topic is preferred. Relative topic names are prefixed with the provided
+    /// namespace, while absolute topic names are left unchanged. If no custom
+    /// topic is available, the default topic is used.
+    /// \param[in] _sdf SDF to read the topic name from.
+    /// \param[in] _options Options specifying the SDF element name, topic
+    /// namespace, and default topic.
+    std::string GZ_SIM_VISIBLE resolvedTopicName(
+        const std::shared_ptr<const sdf::Element> &_sdf,
+        const TopicNameOptions &_options);
 
     /// \brief Helper function to get an entity given its scoped name.
     /// The scope may start at any level by default. For example, in this

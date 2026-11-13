@@ -551,7 +551,7 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
 
       // Get available links for the model.
       this->dataPtr->modelLinks.clear();
-      _ecm.EachNoCache<
+      _ecm.Each<
         components::Name,
         components::Link,
         components::ParentEntity>([&](const gz::sim::Entity &,

@@ -309,6 +309,90 @@ TEST_F(UtilTest, ScopedNamespace)
 }
 
 /////////////////////////////////////////////////
+TEST_F(UtilTest, ResolvedTopicName)
+{
+  std::string sdfString = R"(
+    <sdf version='1.10'>
+      <plugin name='test' filename='test'>
+        <relative_topic>test_relative_topic</relative_topic>
+        <absolute_topic>/test_absolute_topic</absolute_topic>
+        <empty_topic></empty_topic>
+      </plugin>
+    </sdf>)";
+
+  auto sdf = std::make_shared<sdf::Element>();
+  sdf::initFile("plugin.sdf", sdf);
+  sdf::readString(sdfString, sdf);
+
+  EXPECT_EQ("test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "", "", "/default_relative_topic"}));
+  EXPECT_EQ("/ns/test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "/ns", "", "/default_relative_topic"}));
+  EXPECT_EQ("test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "", "/default_prefix", "/default_relative_topic"}));
+  EXPECT_EQ("/ns/test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "/ns", "/default_prefix", "/default_relative_topic"}));
+
+  EXPECT_EQ("/test_absolute_topic",
+    resolvedTopicName(sdf,
+      {"absolute_topic", "", "", "/default_absolute_topic"}));
+  EXPECT_EQ("/test_absolute_topic",
+    resolvedTopicName(sdf,
+      {"absolute_topic", "/ns", "", "/default_absolute_topic"}));
+  EXPECT_EQ("/test_absolute_topic",
+    resolvedTopicName(sdf,
+      {"absolute_topic", "", "/default_prefix", "/default_absolute_topic"}));
+  EXPECT_EQ("/test_absolute_topic",
+    resolvedTopicName(sdf,
+      {"absolute_topic", "/ns", "/default_prefix", "/default_absolute_topic"}));
+
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "", "/absolute_default_empty_topic"}));
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "", "/absolute_default_empty_topic"}));
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "/default_prefix", "/absolute_default_empty_topic"}));
+  EXPECT_EQ("/absolute_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "/default_prefix",
+       "/absolute_default_empty_topic"}));
+
+  EXPECT_EQ("relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "", "relative_default_empty_topic"}));
+  EXPECT_EQ("/ns/relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "", "relative_default_empty_topic"}));
+  EXPECT_EQ("/default_prefix/relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "", "/default_prefix", "relative_default_empty_topic"}));
+  EXPECT_EQ("/ns/relative_default_empty_topic",
+    resolvedTopicName(sdf,
+      {"empty_topic", "/ns", "/default_prefix",
+       "relative_default_empty_topic"}));
+
+  EXPECT_EQ("/ns/test_relative_topic",
+    resolvedTopicName(sdf,
+      {"relative_topic", "/ns/", "", "/default_relative_topic"}));
+  EXPECT_EQ("/default_missing_topic",
+    resolvedTopicName(sdf,
+      {"missing_topic", "", "", "/default_missing_topic"}));
+  EXPECT_EQ("/ns/default_missing_topic",
+    resolvedTopicName(sdf,
+      {"missing_topic", "/ns/", "", "default_missing_topic"}));
+  EXPECT_EQ("/default_prefix/default_missing_topic",
+    resolvedTopicName(sdf,
+      {"missing_topic", "", "/default_prefix/", "default_missing_topic"}));
+}
+
+/////////////////////////////////////////////////
 TEST_F(UtilTest, EntitiesFromScopedName)
 {
   EntityComponentManager ecm;

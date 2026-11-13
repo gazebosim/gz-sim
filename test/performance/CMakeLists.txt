@@ -1,7 +1,6 @@
 set(TEST_TYPE "PERFORMANCE")
 
 set(tests
-  each.cc
   level_manager.cc
 )
 
@@ -43,6 +42,7 @@ gz_build_tests(TYPE PERFORMANCE
     ${EXTRA_TEST_LIB_DEPS}
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 add_executable(

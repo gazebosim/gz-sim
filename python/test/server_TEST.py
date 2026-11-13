@@ -15,6 +15,7 @@
 
 import datetime
 import unittest
+import os
 
 from gz.sim import EntityComponentManager, Server, ServerConfig, UpdateInfo
 
@@ -94,6 +95,34 @@ class ServerTest(unittest.TestCase):
         self.assertIsInstance(info_after, UpdateInfo)
         self.assertEqual(10, info_after.iterations)
         self.assertGreater(info_after.sim_time, datetime.timedelta(0))
+
+
+class ServerConfigTest(unittest.TestCase):
+
+    def test_set_sdf_file(self):
+        config = ServerConfig()
+        file_path = os.path.dirname(os.path.realpath(__file__))
+        sdf_file_path = (os.path.join(file_path, 'gravity.sdf'))
+        config.set_sdf_file(sdf_file_path)
+        self.assertEqual(sdf_file_path, config.sdf_file())
+        self.assertEqual(config.sdf_string(), '')
+        server = Server(config)
+        server.run(True, 1, False)
+        self.assertTrue(server.has_entity("gravity", 0))
+
+    def test_set_sdf_string(self):
+        config = ServerConfig()
+        sdf_string = '''\
+            <sdf version="1.6">
+                <world name="empty_world"/>
+            </sdf>
+            '''
+        config.set_sdf_string(sdf_string)
+        self.assertEqual(sdf_string, config.sdf_string())
+        self.assertEqual(config.sdf_file(), '')
+        server = Server(config)
+        server.run(True, 1, False)
+        self.assertTrue(server.has_entity("empty_world", 0))
 
 if __name__ == '__main__':
     unittest.main()

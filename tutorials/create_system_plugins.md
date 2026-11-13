@@ -89,7 +89,6 @@ find_package(gz-plugin REQUIRED COMPONENTS register)
 
 # Add sources for each plugin to be registered.
 add_library(SampleSystem SHARED SampleSystem.cc SampleSystem2.cc)
-set_property(TARGET SampleSystem PROPERTY CXX_STANDARD 17)
 target_link_libraries(SampleSystem
   PRIVATE gz-plugin::gz-plugin
   PRIVATE gz-sim::gz-sim)

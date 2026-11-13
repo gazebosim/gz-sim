@@ -44,10 +44,10 @@ struct entt_traits<std::uint64_t> {
     using value_type = std::uint64_t;
 
     using entity_type = std::uint64_t;
-    using version_type = std::uint32_t;
+    using version_type = std::uint8_t;
 
-    static constexpr entity_type entity_mask = 0xFFFFFFFF;
-    static constexpr entity_type version_mask = 0xFFFFFFFF;
+    static constexpr entity_type entity_mask = 0xFFFFFFFFFFFFFF;
+    static constexpr entity_type version_mask = 0xFF;
 };
 
 } // namespace internal

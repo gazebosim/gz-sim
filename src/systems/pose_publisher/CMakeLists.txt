@@ -1,6 +1,8 @@
 gz_add_system(pose-publisher
   SOURCES
     PosePublisher.cc
+  TEST_SOURCES
+    PosePublisher_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
 )

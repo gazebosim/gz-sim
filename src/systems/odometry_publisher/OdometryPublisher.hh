@@ -73,6 +73,12 @@ namespace systems
   /// default value is 0 0 0. This offset will be added to the odometry
   /// message.
   ///
+  /// - `<xyz_global_offset>`: Position offset of the odometry frame relative
+  /// to the world frame, the default value is 0 0 0.
+  ///
+  /// - `<rpy_global_offset>`: Rotation offset of the odometry frame relative
+  /// to the world frame, the default value is 0 0 0.
+  ///
   /// - `<gaussian_noise>`: Standard deviation of the Gaussian noise to be added
   /// to pose and twist messages. This element is optional, and the default
   /// value is 0.

@@ -25,6 +25,7 @@
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Entity.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/components/Name.hh"
@@ -33,7 +34,6 @@
 #include "test_config.hh"
 
 #include "helpers/EnvTestFixture.hh"
-#include "helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -62,44 +62,27 @@ class ProjectorTest : public InternalFixture<::testing::Test>
 // See https://github.com/gazebosim/gz-sim/issues/1175
 TEST_F(ProjectorTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SDFLoad))
 {
-  bool projectorChecked{false};
-
   this->LoadWorld(common::joinPaths("test", "worlds", "projector.sdf"));
-
-  // Create a system that checks a projector.
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
-                              const sim::EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::Projector,
-                  components::Name,
-                  components::Pose>(
-            [&](const gz::sim::Entity &,
-                const components::Projector *_projector,
-                const components::Name *_name,
-                const components::Pose *_pose) -> bool
-            {
-              if (_name->Data() == "projector")
-              {
-                projectorChecked = true;
-
-                EXPECT_EQ("projector", _name->Data());
-                EXPECT_EQ(_name->Data(), _projector->Data().Name());
-                EXPECT_EQ(math::Pose3d(0, 1, 0, 0, 0, 0), _pose->Data());
-                EXPECT_EQ(_pose->Data(), _projector->Data().RawPose());
-                EXPECT_DOUBLE_EQ(2.0, _projector->Data().NearClip());
-                EXPECT_DOUBLE_EQ(7.0, _projector->Data().FarClip());
-                EXPECT_EQ(math::Angle(0.5), _projector->Data().HorizontalFov());
-                EXPECT_EQ(0x01, _projector->Data().VisibilityFlags());
-                EXPECT_EQ(common::joinPaths("path", "to", "dummy_image.png"),
-                    _projector->Data().Texture());
-              }
-              return true;
-            });
-      });
-
-  this->server->AddSystem(testSystem.systemPtr);
   this->server->Run(true, 1, false);
 
-  EXPECT_TRUE(projectorChecked);
+  auto ecm = this->server->EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+
+  const Entity entity = ecm->EntityByComponents(components::Name("projector"));
+  ASSERT_NE(kNullEntity, entity);
+
+  const auto *projector = ecm->Component<components::Projector>(entity);
+  ASSERT_NE(nullptr, projector);
+  const auto *pose = ecm->Component<components::Pose>(entity);
+  ASSERT_NE(nullptr, pose);
+
+  EXPECT_EQ("projector", projector->Data().Name());
+  EXPECT_EQ(math::Pose3d(0, 1, 0, 0, 0, 0), pose->Data());
+  EXPECT_EQ(pose->Data(), projector->Data().RawPose());
+  EXPECT_DOUBLE_EQ(2.0, projector->Data().NearClip());
+  EXPECT_DOUBLE_EQ(7.0, projector->Data().FarClip());
+  EXPECT_EQ(math::Angle(0.5), projector->Data().HorizontalFov());
+  EXPECT_EQ(0x01, projector->Data().VisibilityFlags());
+  EXPECT_EQ(common::joinPaths("path", "to", "dummy_image.png"),
+      projector->Data().Texture());
 }

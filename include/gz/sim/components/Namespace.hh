@@ -34,7 +34,7 @@ namespace components
   /// \brief This component holds an entity's namespace.
   using Namespace = Component<std::string, class NamespaceTag,
       serializers::StringSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Namespace", Namespace)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Namespace", Namespace)
 }
 }
 }
