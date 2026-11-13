@@ -1,6 +1,8 @@
 gz_add_system(apply-joint-force
   SOURCES
-  ApplyJointForce.cc
+    ApplyJointForce.cc
+  TEST_SOURCES
+    ApplyJointForce_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-transport::gz-transport
