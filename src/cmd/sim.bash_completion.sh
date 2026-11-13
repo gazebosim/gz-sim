@@ -35,6 +35,7 @@ GZ_SIM_COMPLETION_LIST="
   --log-compress
   --playback
   --headless-rendering
+  --exit-on-plugin-error
   -r
   -s
   -v --verbose
