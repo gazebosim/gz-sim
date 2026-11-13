@@ -18,6 +18,9 @@
 #include <gtest/gtest.h>
 #include <tinyxml2.h>
 
+#include <chrono>
+#include <future>
+
 #include <gz/msgs/clock.pb.h>
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/sdf_generator_config.pb.h>
@@ -1741,6 +1744,48 @@ TEST_P(SimulationRunnerTest, ParallelPostUpdatesPolicy)
 
     EXPECT_FALSE(runner.ParallelPostUpdates());
   }
+}
+
+/////////////////////////////////////////////////
+// A stop request arriving before Run() starts executing must not be lost,
+// otherwise Run() loops forever and Server's destructor blocks joining the
+// run thread (issues #2609 and #3829).
+TEST_P(SimulationRunnerTest, StopBeforeRun)
+{
+  // Load SDF file
+  sdf::Root root;
+  root.Load(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "shapes.sdf"));
+
+  ASSERT_EQ(1u, root.WorldCount());
+
+  // Create simulation runner
+  auto systemLoader = std::make_shared<SystemLoader>();
+  SimulationRunner runner(*root.WorldByIndex(0), systemLoader);
+
+  // Emit the stop request before Run, mimicking Server teardown racing the
+  // run thread's startup.
+  runner.Stop();
+
+  // Run on another thread with a bounded wait: with the stop lost this
+  // would never return.
+  auto run = std::async(std::launch::async, [&runner]()
+  {
+    return runner.Run(0);
+  });
+  const bool returned =
+    run.wait_for(std::chrono::seconds(10)) == std::future_status::ready;
+  EXPECT_TRUE(returned) << "Run() did not return: the stop request was lost";
+
+  // On regression a second stop lets the run loop exit so the thread joins.
+  if (!returned)
+    runner.Stop();
+
+  // The stop must prevent any stepping and be reported as failure.
+  EXPECT_FALSE(run.get());
+  EXPECT_FALSE(runner.Running());
+  EXPECT_TRUE(runner.StopReceived());
+  EXPECT_EQ(0u, runner.IterationCount());
 }
 
 // Run multiple times. We want to make sure that static globals don't cause

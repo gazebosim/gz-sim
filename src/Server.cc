@@ -251,7 +251,8 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
   for (std::unique_ptr<SimulationRunner> &runner : this->dataPtr->simRunners)
     runner->SetPaused(_paused);
 
-  // Check the current state, and return early if preconditions are not met.
+  // Check the preconditions and mark the server as running under one lock, so
+  // that a Stop() can't land between the checks and the start of the run.
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->runMutex);
     if (!this->dataPtr->sigHandler.Initialized())
@@ -266,28 +267,36 @@ bool Server::Run(const bool _blocking, const uint64_t _iterations,
       gzwarn << "The server is already runnnng.\n";
       return false;
     }
+
+    // Set by Stop(), which signals and /server_control stop requests call.
+    if (this->dataPtr->stopped)
+    {
+      gzwarn << "The server has been stopped and won't run again.\n";
+      return false;
+    }
+
+    // Make sure two threads are not created
+    if (!_blocking &&
+        this->dataPtr->runThread.get_id() != std::thread::id())
+    {
+      return false;
+    }
+
+    // Set `running` here, before the run starts, and never from the run
+    // itself. Run() then doesn't need to wait for the run thread to start,
+    // and a Stop() that lands before that thread is scheduled clears the
+    // flag for good.
+    this->dataPtr->running = true;
+
+    if (!_blocking)
+    {
+      this->dataPtr->runThread =
+        std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations);
+      return true;
+    }
   }
 
-  if (_blocking)
-    return this->dataPtr->Run(_iterations);
-
-  // Make sure two threads are not created
-  std::unique_lock<std::mutex> lock(this->dataPtr->runMutex);
-  if (this->dataPtr->runThread.get_id() == std::thread::id())
-  {
-    std::condition_variable cond;
-    this->dataPtr->runThread =
-      std::thread(&ServerPrivate::Run, this->dataPtr.get(), _iterations, &cond);
-
-    // Wait for the thread to start. We do this to guarantee that the
-    // running variable gets updated before this function returns. With
-    // a small number of iterations it is possible that the run thread
-    // successfully completes before this function returns.
-    cond.wait(lock, [this]() -> bool {return this->dataPtr->running;});
-    return true;
-  }
-
-  return false;
+  return this->dataPtr->Run(_iterations);
 }
 
 /////////////////////////////////////////////////
