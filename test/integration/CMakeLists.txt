@@ -67,6 +67,7 @@ set(tests
   perfect_comms.cc
   performer_detector.cc
   physics_system.cc
+  performance_monitor.cc
   play_pause.cc
   pose_publisher_system.cc
   projector.cc

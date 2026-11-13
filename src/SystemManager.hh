@@ -154,6 +154,10 @@ namespace gz
       /// \return Vector of systems.
       public: std::vector<SystemInternal> TotalByEntity(Entity _entity);
 
+      /// \brief Get all the systems that have been activated.
+      /// \return The systems
+      public: const std::vector<SystemInternal> &Systems() const;
+
       /// \brief Process system messages and add systems to entities
       public: void ProcessPendingEntitySystems();
 

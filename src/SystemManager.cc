@@ -102,6 +102,12 @@ size_t SystemManager::PendingCount() const
 }
 
 //////////////////////////////////////////////////
+const std::vector<SystemInternal> &SystemManager::Systems() const
+{
+  return this->systems;
+}
+
+//////////////////////////////////////////////////
 size_t SystemManager::ActivatePendingSystems()
 {
   std::lock_guard<std::mutex> lock(this->pendingSystemsMutex);

@@ -87,6 +87,7 @@ set (sources
   Server.cc
   ServerConfig.cc
   ServerPrivate.cc
+  PerformanceMonitor.cc
   SimulationRunner.cc
   SystemLoader.cc
   SystemManager.cc
@@ -124,6 +125,7 @@ set (gtest_sources
   Server_TEST.cc
   SimulationRunner_TEST.cc
   SystemLoader_TEST.cc
+  PerformanceMonitor_TEST.cc
   SystemManager_TEST.cc
   TestFixture_TEST.cc
   Util_TEST.cc
@@ -227,6 +229,7 @@ target_link_libraries(${PROJECT_LIBRARY_TARGET_NAME}
   protobuf::libprotobuf
   PRIVATE
   gz-plugin${GZ_PLUGIN_VER}::loader
+  gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
 )
 
 if (pybind11_FOUND)

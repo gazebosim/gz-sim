@@ -63,6 +63,7 @@ Gazebo @GZ_DESIGNATION_CAP@ library and how to use the library effectively.
 * \subpage entity_creation "Entity creation": Insert models or lights using services.
 * \subpage erbtemplate "ERB Template": Use ERB, a templating language, to generate SDF files for simulation worlds.
 * \subpage distributedsimulation "Distributed Simulation": Spread simulation across several processes.
+* \subpage performance_monitor "Performance monitor": Find what limits the real time factor.
 
 ## Developers
 
