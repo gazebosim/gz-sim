@@ -38,7 +38,7 @@ Performance report, last 5.0 s, 2417 steps: RTF 0.48 (target 1.00)
   Step time 2.05 ms: rendering wait 1.74 ms (85%), physics 0.05 ms (2%), ...
   Render thread 8.12 ms/frame (1201 frames): GPU wait 7.32 ms (90%), ...
   Sensors, slowest first:
-    big_cam::link::camera: 8.01 ms/update x 1201 (CPU 0.71 ms, GPU wait 7.30 ms)
+    big_cam::link::camera: 8.01 ms/update x 1201 (outside GPU wait 0.71 ms, GPU wait 7.30 ms)
   Models, biggest load first (physics and scene are estimated):
     big_cam: sensors 1.99 ms/step, plugins 0.00 ms/step, physics ~0.00 ms/step, scene ~0.00 ms/step (0 DOF, 0 contacts, 0 visuals)
   ...
@@ -48,9 +48,9 @@ The bottleneck line has a resource and a location:
 
 | Resource | Meaning |
 |---|---|
-| `CPU` | Computation is the limit. Software rasterizers such as llvmpipe count here and the report says so. |
-| `GPU` | The render thread spends most of its time (65% or more) blocked on the GPU, which includes copying images out of GPU memory. |
-| `CPU and GPU` | The render thread spends comparable time computing and blocked on the GPU, so improving only one of them gains little. High resolution cameras in simple scenes usually end up here. |
+| `CPU` | Computation is the limit. Software rasterizers such as llvmpipe count here and the report says so. A high resolution camera in a simple scene can end up here too: copying and publishing its images is CPU work. |
+| `GPU` | The render thread spends most of its time (65% or more) blocked on the GPU, which includes waiting for the GPU to transfer images out of its memory. |
+| `CPU and GPU` | The render thread spends comparable time computing and blocked on the GPU, so improving only one of them gains little. |
 | not computing | A system is blocked waiting for something outside of the simulation, like a socket or a lock-step partner. |
 | unknown | Rendering is the limit, but the render engine does not report its GPU waits. |
 
@@ -74,11 +74,41 @@ The monitor discards the first seconds, then accumulates over each interval:
   has to wait for the GPU, like reading back a rendered image. GPU work that
   completes while the CPU is still busy isn't counted because it isn't limiting
   anything, so a GPU at 100% utilization that keeps up is not reported as the
-  bottleneck.
+  bottleneck. With ogre2, copying an image on the CPU once the GPU has
+  transferred it is not counted as waiting either. The `ogre` engine counts it,
+  since Ogre 1 transfers and copies the image in one call.
+  The sensor lines give the rest of the time of each update as
+  `outside GPU wait`. That is mostly CPU work, but it is wall time, so it also
+  holds any other time that the render thread is blocked.
 
 The simulation counts as limited when it runs below 97% of its target real time
 factor. A simulation with a target of 0 runs as fast as it can, so it always
 has a bottleneck.
+
+With a target real time factor, each step has a slot of wall time, the step
+size divided by the target. A step that fits in its slot costs no real time:
+the loop sleeps the rest of the slot away. A step that runs past its slot puts
+the loop behind its schedule, and faster steps after it can make up for that.
+Only when the loop falls more than a slot behind does it give up on the
+schedule and start a new one, and the time that it was behind is lost for
+good. That lost time is what lowers the RTF, so a limited simulation with a
+target is blamed on it, and the report adds a `Time past the slot` line that
+splits it among the systems that put the loop behind.
+This matters when the load is bursty: physics that takes 0.45 ms of every
+1 ms slot is the biggest part of the step time but costs nothing, while a
+render stall of 11 ms in a few steps per second costs all of the lost time.
+Likewise a system that runs 0.5 ms past the slot every other step costs
+nothing if the step after it is fast enough to make up for it.
+Without a target the two measures are the same.
+
+The render thread updates all of the sensors in one pass, so the time that
+rendering runs past the slot can't be split among them. The sensor named is the
+one with the most render time, and when there is more than one sensor the
+report gives its share, as in `(largest render load, 73% of the sensor time)`.
+With a low share, look at the other sensors too: one that renders rarely but
+for long can be what puts the loop behind. Whether rendering is limited by the
+CPU or the GPU is likewise taken from all of the frames, not only the ones that
+put the loop behind.
 
 ## What is an estimate
 
@@ -86,11 +116,16 @@ Sensor, system and render thread times are measured. The share of each model in
 the physics step is not: the physics engines step the whole world at once. It is
 estimated from the degrees of freedom of the parts of the model that can move,
 its collision shapes, how many contact points the moving parts have, and the
-triangles of the moving meshes that are touching something. The report marks it
-as such. Treat it as a pointer on where to look first. The weights were measured
-on DART, one of them on a single case, and the contacts of a model are assumed to
-be solved together, so a pile of many separate models that touch each other is
-underestimated.
+triangles of the moving meshes that are touching something. Contacts are
+sampled ten times a second. Their cost is taken as the average of the square of
+the contact points of the model in each sample, since a model that touches
+something only now and then pays for all of those contacts at once, and a mesh
+counts for the share of the samples in which it touches something. The report
+marks it as such. Treat it as a pointer on where to look first, a share of the
+physics time and not the time that removing the model would save. The weights
+were measured on DART, one of them on a single case, and the contacts of a model
+are assumed to be solved together, so a pile of many separate models that touch
+each other is underestimated.
 
 A model is only named as the physics bottleneck when it holds more than half of
 the estimate. Otherwise the report says that no model dominates and gives the

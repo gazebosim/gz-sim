@@ -17,10 +17,27 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <atomic>
 #include <chrono>
+#include <cstdint>
+#include <map>
+#include <memory>
 #include <string>
+#include <thread>
+#include <vector>
+
+#include <gz/common/Mesh.hh>
+#include <gz/common/MeshManager.hh>
+#include <gz/math/Vector2.hh>
+#include <gz/math/Vector3.hh>
+#include <gz/sensors/Sensor.hh>
+#include <sdf/Collision.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Mesh.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Joint.hh"
@@ -34,6 +51,7 @@
 #include "gz/sim/components/World.hh"
 
 #include "PerformanceMonitor.hh"
+#include "SystemManager.hh"
 
 using namespace gz;
 using namespace sim;
@@ -278,6 +296,7 @@ TEST(PerformanceMonitorTest, PhysicsNamesTheCostliestModel)
   pile.dof = 600;
   pile.collisions = 100;
   pile.contacts = 400.0;
+  pile.contactsSquared = 400.0 * 400.0;
   window.models.push_back(pile);
 
   const auto report = AnalyzePerformance(window);
@@ -345,7 +364,7 @@ TEST(PerformanceMonitorTest, NestedStaticModelDoesNotMove)
   ecm.CreateComponent(fixedCollision, components::Collision());
 
   const auto models = CollectPerformanceModels(ecm,
-      {{freeCollision, 3.0}, {fixedCollision, 40.0}});
+      {{{freeCollision, 3u}, {fixedCollision, 40u}}});
   ASSERT_EQ(1u, models.size());
   EXPECT_EQ("conveyor", models[0].name);
   EXPECT_EQ(6u, models[0].dof);
@@ -382,11 +401,113 @@ TEST(PerformanceMonitorTest, LinkWeldedToTheWorldDoesNotMove)
   ecm.CreateComponent(joint, components::ParentLinkName("world"));
   ecm.CreateComponent(joint, components::ChildLinkName("base"));
 
-  const auto models = CollectPerformanceModels(ecm, {{collision, 48.0}});
+  const auto models = CollectPerformanceModels(ecm, {{{collision, 48u}}});
   ASSERT_EQ(1u, models.size());
   EXPECT_EQ(0u, models[0].dof);
   EXPECT_EQ(1u, models[0].collisions);
   EXPECT_DOUBLE_EQ(0.0, models[0].contacts);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Add a model with one free link to a world.
+/// \param[in, out] _ecm Entities
+/// \param[in] _world The world
+/// \param[in] _name Name of the model
+/// \param[in] _collisions Number of collisions of its link
+/// \return The collisions
+std::vector<Entity> addFreeModel(EntityComponentManager &_ecm, Entity _world,
+    const std::string &_name, unsigned int _collisions = 1u)
+{
+  const auto addChild = [&_ecm](Entity _parent)
+  {
+    const Entity entity = _ecm.CreateEntity();
+    _ecm.SetParentEntity(entity, _parent);
+    _ecm.CreateComponent(entity, components::ParentEntity(_parent));
+    return entity;
+  };
+  const Entity model = addChild(_world);
+  _ecm.CreateComponent(model, components::Model());
+  _ecm.CreateComponent(model, components::Name(_name));
+  const Entity link = addChild(model);
+  _ecm.CreateComponent(link, components::Link());
+  std::vector<Entity> collisions;
+  for (unsigned int i = 0; i < _collisions; ++i)
+  {
+    collisions.push_back(addChild(link));
+    _ecm.CreateComponent(collisions.back(), components::Collision());
+  }
+  return collisions;
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+// Solving contacts costs about the square of their number in each step, so
+// 30 contacts in one sample of 10 cost more than 3 in all of them.
+TEST(PerformanceMonitorTest, IntermittentContactsCostTheMeanOfTheirSquare)
+{
+  EntityComponentManager ecm;
+  const Entity world = ecm.CreateEntity();
+  ecm.CreateComponent(world, components::World());
+  const auto collisions = addFreeModel(ecm, world, "gripper");
+
+  PerformanceContactSamples samples(10);
+  samples[0][collisions[0]] = 30u;
+  const auto models = CollectPerformanceModels(ecm, samples);
+  ASSERT_EQ(1u, models.size());
+  EXPECT_DOUBLE_EQ(3.0, models[0].contacts);
+  EXPECT_DOUBLE_EQ(90.0, models[0].contactsSquared);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, ContactsOfAModelAreAddedBeforeSquaring)
+{
+  EntityComponentManager ecm;
+  const Entity world = ecm.CreateEntity();
+  ecm.CreateComponent(world, components::World());
+  const auto collisions = addFreeModel(ecm, world, "hand", 2u);
+
+  PerformanceContactSamples samples(2);
+  samples[0][collisions[0]] = 4u;
+  samples[0][collisions[1]] = 4u;
+  const auto models = CollectPerformanceModels(ecm, samples);
+  ASSERT_EQ(1u, models.size());
+  EXPECT_DOUBLE_EQ(4.0, models[0].contacts);
+  EXPECT_DOUBLE_EQ(32.0, models[0].contactsSquared);
+}
+
+/////////////////////////////////////////////////
+// A mesh collision is only checked triangle by triangle while it touches
+// something.
+TEST(PerformanceMonitorTest, MeshThatTouchesBrieflyWeighsItsShareOfTheTime)
+{
+  const std::string meshName = "PerformanceMonitorTest_box";
+  common::MeshManager::Instance()->CreateBox(meshName,
+      math::Vector3d::One, math::Vector2d::One);
+  const auto *mesh = common::MeshManager::Instance()->MeshByName(meshName);
+  ASSERT_NE(nullptr, mesh);
+  const uint64_t triangles = mesh->IndexCount() / 3u;
+  ASSERT_LT(0u, triangles);
+
+  EntityComponentManager ecm;
+  const Entity world = ecm.CreateEntity();
+  ecm.CreateComponent(world, components::World());
+  const auto collisions = addFreeModel(ecm, world, "spinner");
+  sdf::Mesh meshShape;
+  meshShape.SetUri(meshName);
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::MESH);
+  geometry.SetMeshShape(meshShape);
+  sdf::Collision collision;
+  collision.SetGeom(geometry);
+  ecm.CreateComponent(collisions[0], components::CollisionElement(collision));
+
+  PerformanceContactSamples samples(4);
+  samples[0][collisions[0]] = 2u;
+  const auto models = CollectPerformanceModels(ecm, samples);
+  ASSERT_EQ(1u, models.size());
+  EXPECT_EQ(triangles / 4u, models[0].contactingMeshTriangles);
 }
 
 /////////////////////////////////////////////////
@@ -400,6 +521,7 @@ TEST(PerformanceMonitorTest, MovingMeshInContactOutweighsStaticGeometry)
   spinner.dof = 1;
   spinner.collisions = 5;
   spinner.contacts = 4.0;
+  spinner.contactsSquared = 16.0;
   spinner.contactingMeshTriangles = 7724;
   window.models.push_back(spinner);
 
@@ -469,6 +591,182 @@ TEST(PerformanceMonitorTest, UnthrottledAlwaysHasABottleneck)
   EXPECT_TRUE(report.limited);
   EXPECT_EQ(PerformanceResource::kCpu, report.resource);
   EXPECT_EQ(PerformanceLocation::kPhysics, report.location);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief An interval at real time target 1 with 1 ms steps, measured on a
+/// robot with many cameras, all of them subscribed: physics takes
+/// 0.45 ms of every step, which fits in the slot, while about 20 render
+/// stalls per second of 11 ms each make those steps late.
+PerformanceWindow renderStallWindow()
+{
+  PerformanceWindow window;
+  window.wall = 5s;
+  window.simTime = 4077ms;
+  window.iterations = 4077;
+  window.desiredRtf = 1.0;
+  window.period = 1ms;
+  window.sleep = 1942ms;
+
+  auto physics = system(kPhysics, 1835ms);
+  physics.late = 41ms;
+  window.systems.push_back(physics);
+
+  auto sensors = system(kSensors, 1060ms);
+  sensors.late = 840ms;
+  window.systems.push_back(sensors);
+
+  window.systems.push_back(system("other", 120ms));
+  window.lateLoop = 42ms;
+
+  window.renderFrames = 102;
+  window.render = renderTimes(3822ms, 1530ms);
+  window.render.simThreadWait = 938ms;
+  window.sensors.push_back(
+      sensor("bot::shoulder::rgbd", "bot", 731ms, 292ms));
+  return window;
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, RenderStallsBeatPhysicsThatFitsItsSlot)
+{
+  const auto report = AnalyzePerformance(renderStallWindow());
+  EXPECT_TRUE(report.limited);
+  EXPECT_TRUE(report.rankedByLateTime);
+  // Physics is the biggest share of the step, but it never makes a step late.
+  EXPECT_GT(report.physics, report.renderWait);
+  EXPECT_EQ(PerformanceLocation::kRendering, report.location);
+  EXPECT_EQ("bot::shoulder::rgbd", report.culprit);
+  EXPECT_EQ(840ms, report.late.rendering);
+  EXPECT_EQ(41ms, report.late.physics);
+  EXPECT_EQ(42ms, report.late.loop);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, PhysicsPastItsSlotIsPhysics)
+{
+  // Every step takes 2 ms of physics at a 1 ms slot, with a 10 ms render
+  // stall every 100 steps.
+  PerformanceWindow window = slowWindow();
+  window.period = 1ms;
+  window.iterations = 3000;
+  window.simTime = 3000ms;
+  window.wall = 6300ms;
+
+  auto physics = system(kPhysics, 6000ms);
+  physics.late = 3000ms;
+  window.systems.push_back(physics);
+
+  auto sensors = system(kSensors, 300ms);
+  sensors.late = 300ms;
+  window.systems.push_back(sensors);
+  window.render = renderTimes(300ms, 200ms);
+  window.renderFrames = 30;
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_TRUE(report.limited);
+  EXPECT_TRUE(report.rankedByLateTime);
+  EXPECT_EQ(PerformanceLocation::kPhysics, report.location);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, LateSystemIsNamedOverABusierOne)
+{
+  // A system that fits in the slot of every step against one that makes a
+  // few steps very late.
+  PerformanceWindow window = slowWindow();
+  window.period = 1ms;
+  window.iterations = 3000;
+  window.simTime = 3000ms;
+  window.wall = 4200ms;
+  window.sleep = 1500ms;
+
+  auto steady = system("steady", 1800ms, "box");
+  steady.late = 20ms;
+  window.systems.push_back(steady);
+
+  auto bursty = system("bursty", 900ms, "sphere");
+  bursty.late = 1150ms;
+  window.systems.push_back(bursty);
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_TRUE(report.limited);
+  EXPECT_EQ(PerformanceLocation::kSystem, report.location);
+  EXPECT_EQ("bursty on model sphere", report.culprit);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, KeepingUpRanksByStepTime)
+{
+  // Late steps that the following ones make up for don't lower the RTF.
+  PerformanceWindow window = renderStallWindow();
+  window.simTime = window.wall;
+  window.iterations = 5000;
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_FALSE(report.limited);
+  EXPECT_FALSE(report.rankedByLateTime);
+  EXPECT_EQ(PerformanceLocation::kPhysics, report.location);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, TextShowsTheTimePastTheSlot)
+{
+  const auto text = AnalyzePerformance(renderStallWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find("in rendering")) << text;
+  EXPECT_NE(std::string::npos, text.find("past the 1.00 ms slot")) << text;
+}
+
+/////////////////////////////////////////////////
+// Two decimals would show any RTF below 0.005 as 0.00.
+TEST(PerformanceMonitorTest, TextShowsTheRtfOfAVerySlowRun)
+{
+  PerformanceWindow window = slowWindow();
+  window.systems.push_back(system(kPhysics, 9s));
+  window.simTime = 16ms;
+  window.iterations = 16;
+  auto text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos, text.find("RTF 0.0016 ")) << text;
+
+  window.simTime = 500ms;
+  window.iterations = 500;
+  text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos, text.find("RTF 0.050 ")) << text;
+
+  text = AnalyzePerformance(slowWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find("RTF 0.50 ")) << text;
+}
+
+/////////////////////////////////////////////////
+// The render thread updates the sensors together, so the time that rendering
+// runs past the slot can't be split among them. The sensor named is the one
+// with the most render time, and the text says so when there is a choice.
+TEST(PerformanceMonitorTest, TextQualifiesTheSensorNamedForRenderStalls)
+{
+  PerformanceWindow window = renderStallWindow();
+  auto text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos,
+      text.find("in rendering: bot::shoulder::rgbd\n")) << text;
+
+  window.sensors.push_back(sensor("bot::wrist::camera", "bot", 269ms, 100ms));
+  const auto report = AnalyzePerformance(window);
+  EXPECT_EQ("bot::shoulder::rgbd", report.culprit);
+  text = report.ToString();
+  EXPECT_NE(std::string::npos, text.find("in rendering: bot::shoulder::rgbd "
+      "(largest render load, 73% of the sensor time)\n")) << text;
+}
+
+/////////////////////////////////////////////////
+// What a sensor update spends outside of the GPU wait is not all CPU work, it
+// can be blocked on other things too, so it isn't called CPU.
+TEST(PerformanceMonitorTest, TextNamesTheSensorTimeOutsideTheGpuWait)
+{
+  const auto text = AnalyzePerformance(renderStallWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find("bot::shoulder::rgbd: 7.31 ms/update "
+      "x 100 (outside GPU wait 4.39 ms, GPU wait 2.92 ms)")) << text;
 }
 
 /////////////////////////////////////////////////
@@ -599,4 +897,359 @@ TEST(PerformanceMonitorTest, TimeBetweenRunsIsNotCounted)
   // Running does.
   iterate(*monitor, start + 101s, 4100ms);
   EXPECT_TRUE(monitor->ReportDue());
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Keys of the systems in the schedule tests
+const char kSystemA{'a'};
+const char kSystemB{'b'};
+const char kSystemC{'c'};
+
+/// \brief Time lost per system
+using Lost = std::map<const void *, std::chrono::steady_clock::duration>;
+
+/// \brief Run a step of a schedule.
+/// \param[in, out] _schedule The schedule
+/// \param[in, out] _lost Adds the time lost in the step
+/// \param[in] _busy Wall time of the step
+/// \param[in] _shares Time of the systems in the step
+/// \param[in] _period Wall time slot of a step
+void step(PerformanceSchedule &_schedule, Lost &_lost,
+    std::chrono::steady_clock::duration _busy,
+    const PerformanceSchedule::Shares &_shares,
+    std::chrono::steady_clock::duration _period = 1ms)
+{
+  for (const auto &[system, time] : _schedule.Step(_busy, _period, _shares))
+    _lost[system] += time;
+}
+
+/// \brief Get the milliseconds lost by a system.
+/// \param[in] _lost Time lost per system
+/// \param[in] _system The system, nullptr for outside of any system
+/// \return The milliseconds
+double lostMs(const Lost &_lost, const void *_system)
+{
+  const auto it = _lost.find(_system);
+  if (it == _lost.end())
+    return 0.0;
+  return std::chrono::duration<double, std::milli>(it->second).count();
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+// The loop keeps its schedule when a step runs past its slot by less than a
+// slot, so the next step can make up for it.
+TEST(PerformanceScheduleTest, NextStepMakesUpForAnOverrunShorterThanASlot)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+  EXPECT_EQ(500us, schedule.Debt());
+  step(schedule, lost, 500us, {{&kSystemB, 500us}});
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), schedule.Debt());
+  EXPECT_TRUE(lost.empty());
+}
+
+/////////////////////////////////////////////////
+// When the loop falls more than a slot behind it starts a new schedule from
+// there, and the time it was behind is lost, split among who spent it.
+TEST(PerformanceScheduleTest, DebtIsLostWhenTheLoopFallsASlotBehind)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+  step(schedule, lost, 10500us, {{&kSystemB, 10500us}});
+  EXPECT_NEAR(0.5, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(9.5, lostMs(lost, &kSystemB), 1e-3);
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), schedule.Debt());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, SlackPaysBackTheDebtOfEachInProportion)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  // 0.6 ms owed by A, then 0.2 ms more by B
+  step(schedule, lost, 1600us, {{&kSystemA, 1600us}});
+  step(schedule, lost, 1200us, {{&kSystemB, 1200us}});
+  // 0.4 ms of slack pays back half of the 0.8 ms
+  step(schedule, lost, 600us, {});
+  EXPECT_EQ(400us, schedule.Debt());
+  // 2 ms more puts the loop more than a slot behind
+  step(schedule, lost, 3ms, {{&kSystemC, 3ms}});
+  EXPECT_NEAR(0.3, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(0.1, lostMs(lost, &kSystemB), 1e-3);
+  EXPECT_NEAR(2.0, lostMs(lost, &kSystemC), 1e-3);
+  EXPECT_NEAR(0.0, lostMs(lost, nullptr), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, OverrunIsSplitLikeTheStepTime)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 3ms, {{&kSystemA, 2ms}, {&kSystemB, 500us}});
+  EXPECT_NEAR(4.0 / 3.0, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(1.0 / 3.0, lostMs(lost, &kSystemB), 1e-3);
+  EXPECT_NEAR(1.0 / 3.0, lostMs(lost, nullptr), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, WithoutATargetAllOfTheStepIsLost)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 2ms, {{&kSystemA, 1500us}}, 0ms);
+  EXPECT_NEAR(1.5, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(0.5, lostMs(lost, nullptr), 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceScheduleTest, ClearForgetsTheDebt)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+  schedule.Clear();
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), schedule.Debt());
+  step(schedule, lost, 10500us, {{&kSystemB, 10500us}});
+  EXPECT_NEAR(0.0, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(9.5, lostMs(lost, &kSystemB), 1e-3);
+}
+
+/////////////////////////////////////////////////
+// A runs 0.5 ms past the slot in every other step, and the step after it
+// makes up for it. B stalls once every 100 steps. Removing A would save 5 ms
+// and removing B 100 ms, while A ran past its slot for 250 ms in total.
+TEST(PerformanceScheduleTest, StallsAreBlamedNotOverrunsThatTheLoopMadeUpFor)
+{
+  PerformanceSchedule schedule;
+  Lost lost;
+  for (int i = 0; i < 1000; ++i)
+  {
+    if (i % 2 == 0)
+      step(schedule, lost, 1500us, {{&kSystemA, 1500us}});
+    else if (i % 100 == 1)
+      step(schedule, lost, 10500us, {{&kSystemB, 10500us}});
+    else
+      step(schedule, lost, 500us, {{&kSystemB, 500us}});
+  }
+  EXPECT_NEAR(5.0, lostMs(lost, &kSystemA), 1e-3);
+  EXPECT_NEAR(95.0, lostMs(lost, &kSystemB), 1e-3);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Runs iterations of a monitor paced like the simulation loop at a
+/// real time target with 1 ms steps. The loop sleeps until the end of the
+/// slot of a step that fits, and starts a new schedule when it falls more
+/// than a slot behind.
+class PacedLoop
+{
+  /// \brief Constructor
+  /// \param[in, out] _monitor The monitor
+  /// \param[in] _start Wall time of the start
+  public: PacedLoop(PerformanceMonitor &_monitor,
+              const std::chrono::steady_clock::time_point &_start)
+      : monitor(_monitor), now(_start), deadline(_start + 1ms)
+  {
+  }
+
+  /// \brief Run a step.
+  /// \param[in] _busy Wall time of the step outside of any system
+  public: void Step(std::chrono::steady_clock::duration _busy)
+  {
+    const auto paceStart = this->now + _busy;
+    this->now = std::max(paceStart, this->deadline);
+    this->deadline += 1ms;
+    if (this->deadline < this->now)
+      this->deadline = this->now + 1ms;
+
+    this->simTime += 1ms;
+    UpdateInfo info;
+    info.simTime = this->simTime;
+    info.dt = 1ms;
+    info.paused = false;
+    this->monitor.EndIteration(paceStart, this->now, info, 1.0);
+  }
+
+  /// \brief Stop running, and run again later with a new schedule.
+  /// \param[in] _stopped Wall time without running
+  public: void Resume(std::chrono::steady_clock::duration _stopped)
+  {
+    this->now += _stopped;
+    this->deadline = this->now + 1ms;
+    this->monitor.StartRun(this->now);
+  }
+
+  /// \brief The monitor
+  private: PerformanceMonitor &monitor;
+
+  /// \brief Wall time
+  private: std::chrono::steady_clock::time_point now;
+
+  /// \brief End of the slot of the next step
+  private: std::chrono::steady_clock::time_point deadline;
+
+  /// \brief Simulation time
+  private: std::chrono::steady_clock::duration simTime{0};
+};
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, LateTimeIsTheWallTimeThatTheScheduleLoses)
+{
+  const auto start = std::chrono::steady_clock::now();
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  PacedLoop loop(*monitor, start);
+
+  // Past the warm up
+  for (int i = 0; i < 2100; ++i)
+    loop.Step(0ms);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+  monitor->TakeReport(systemMgr, ecm);
+
+  // Steps 0.5 ms past the slot that the next step makes up for, and 10 ms
+  // stalls
+  for (int i = 0; i < 1000; ++i)
+  {
+    if (i % 2 == 0)
+      loop.Step(1500us);
+    else if (i % 100 == 1)
+      loop.Step(10500us);
+    else
+      loop.Step(500us);
+  }
+
+  const auto report = monitor->TakeReport(systemMgr, ecm);
+  ASSERT_EQ(1000u, report.iterations);
+  const auto lost = report.wall - 1000 * 1ms;
+  EXPECT_EQ(100ms, lost);
+  const double lateMs = std::chrono::duration<double, std::milli>(
+      report.late.Total()).count();
+  EXPECT_NEAR(100.0, lateMs, 1e-3);
+}
+
+/////////////////////////////////////////////////
+// The loop starts a new schedule when it runs again, so what it was behind
+// before doesn't count.
+TEST(PerformanceMonitorTest, NewRunStartsANewSchedule)
+{
+  const auto start = std::chrono::steady_clock::now();
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  PacedLoop loop(*monitor, start);
+  for (int i = 0; i < 2100; ++i)
+    loop.Step(0ms);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+  monitor->TakeReport(systemMgr, ecm);
+
+  // 0.5 ms behind when it stops, 0.6 ms behind after the first step of the
+  // next run, which the next steps make up for
+  loop.Step(1500us);
+  loop.Resume(1s);
+  loop.Step(1600us);
+  loop.Step(0ms);
+  loop.Step(0ms);
+
+  const auto report = monitor->TakeReport(systemMgr, ecm);
+  EXPECT_EQ(std::chrono::steady_clock::duration::zero(), report.late.Total());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, RenderFramesArrivingDuringAReportAreKept)
+{
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+
+  std::atomic<bool> stop{false};
+  std::atomic<uint64_t> sent{0};
+  std::thread renderThread([&]
+      {
+        events::RenderFrameTimes times;
+        times.sensors = 1ms;
+        while (!stop)
+        {
+          monitor->OnRenderFrame(times);
+          ++sent;
+        }
+      });
+
+  // Report while the frames arrive
+  while (sent == 0u)
+    std::this_thread::yield();
+  uint64_t received{0};
+  for (int i = 0; i < 2000; ++i)
+    received += monitor->TakeReport(systemMgr, ecm).renderFrames;
+  stop = true;
+  renderThread.join();
+  received += monitor->TakeReport(systemMgr, ecm).renderFrames;
+
+  EXPECT_LT(0u, sent);
+  EXPECT_EQ(sent, received);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief A sensor that has nothing to do when it updates
+class IdleSensor : public sensors::Sensor
+{
+  public: using sensors::Sensor::Update;
+
+  // Documentation inherited
+  public: bool Update(const std::chrono::steady_clock::duration &) override
+  {
+    return true;
+  }
+};
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, SensorUpdatesArrivingDuringAReportAreKept)
+{
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  EntityComponentManager ecm;
+  SystemManager systemMgr(std::make_shared<SystemLoader>());
+
+  std::atomic<bool> stop{false};
+  std::atomic<uint64_t> sent{0};
+  std::thread renderThread([&]
+      {
+        IdleSensor sensor;
+        while (!stop)
+        {
+          if (sensor.Update(0s, true))
+            ++sent;
+        }
+      });
+
+  const auto updates = [](const PerformanceReport &_report)
+  {
+    uint64_t count{0};
+    for (const auto &sensor : _report.sensors)
+      count += sensor.updates;
+    return count;
+  };
+  // Report while the updates arrive
+  while (sent == 0u)
+    std::this_thread::yield();
+  uint64_t received{0};
+  for (int i = 0; i < 2000; ++i)
+    received += updates(monitor->TakeReport(systemMgr, ecm));
+  stop = true;
+  renderThread.join();
+  received += updates(monitor->TakeReport(systemMgr, ecm));
+
+  EXPECT_LT(0u, sent);
+  EXPECT_EQ(sent, received);
 }

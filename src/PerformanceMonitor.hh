@@ -115,6 +115,10 @@ namespace gz
       /// the slowest system of each step delays it.
       std::chrono::steady_clock::duration critical{0};
 
+      /// \brief Its part of the wall time that the steps lost to their
+      /// schedule at the target real time factor, see PerformanceSchedule.
+      std::chrono::steady_clock::duration late{0};
+
       /// \brief Wall time of the updates for which CPU time was measured.
       std::chrono::steady_clock::duration sampledWall{0};
 
@@ -153,8 +157,9 @@ namespace gz
       /// \brief Number of collision shapes
       unsigned int collisions{0};
 
-      /// \brief Triangles of the mesh collisions that move and are touching
-      /// something, which are the ones checked triangle by triangle.
+      /// \brief Triangles of the mesh collisions that move, times the share of
+      /// the contact samples in which they touch something. A mesh is checked
+      /// triangle by triangle while it touches something.
       uint64_t contactingMeshTriangles{0};
 
       /// \brief Number of visuals
@@ -165,7 +170,16 @@ namespace gz
 
       /// \brief Average number of contact points of its collisions
       double contacts{0.0};
+
+      /// \brief Average of the square of the number of contact points of its
+      /// collisions, which is what solving them costs
+      double contactsSquared{0.0};
     };
+
+    /// \brief Samples of the contact points of each collision, one map per
+    /// sample. A collision without contacts may be left out of a sample.
+    using PerformanceContactSamples =
+        std::vector<std::unordered_map<Entity, unsigned int>>;
 
     /// \brief Everything measured in one report interval.
     struct PerformanceWindow
@@ -185,6 +199,14 @@ namespace gz
 
       /// \brief Target real time factor, zero means as fast as possible
       double desiredRtf{1.0};
+
+      /// \brief Wall time slot of a step at the target real time factor, zero
+      /// if running as fast as possible
+      std::chrono::steady_clock::duration period{0};
+
+      /// \brief Part of the wall time lost to the schedule that was spent
+      /// outside of any system, see PerformanceSystemSample::late
+      std::chrono::steady_clock::duration lateLoop{0};
 
       /// \brief Sum of the render thread passes
       events::RenderFrameTimes render;
@@ -242,6 +264,31 @@ namespace gz
       }
     };
 
+    /// \brief Wall time that the steps lost to their schedule, split by where
+    /// it went.
+    struct PerformanceLateTime
+    {
+      /// \brief In the physics system
+      std::chrono::steady_clock::duration physics{0};
+
+      /// \brief In the sensors system: waiting for the render thread, or
+      /// copying the entity changes for it
+      std::chrono::steady_clock::duration rendering{0};
+
+      /// \brief In the other systems
+      std::chrono::steady_clock::duration otherSystems{0};
+
+      /// \brief Outside of any system
+      std::chrono::steady_clock::duration loop{0};
+
+      /// \brief Sum of all
+      std::chrono::steady_clock::duration Total() const
+      {
+        return this->physics + this->rendering + this->otherSystems +
+            this->loop;
+      }
+    };
+
     /// \brief The outcome of analyzing an interval.
     struct GZ_SIM_VISIBLE PerformanceReport
     {
@@ -286,6 +333,19 @@ namespace gz
       /// \brief Step time outside of any system
       std::chrono::steady_clock::duration engine{0};
 
+      /// \brief Wall time slot of a step at the target real time factor, zero
+      /// if running as fast as possible
+      std::chrono::steady_clock::duration period{0};
+
+      /// \brief Wall time that the steps lost to their schedule. At a target
+      /// real time factor this is what lowers the RTF, see
+      /// PerformanceSchedule.
+      PerformanceLateTime late;
+
+      /// \brief True if the location was chosen by the time past the slot
+      /// rather than by the step time
+      bool rankedByLateTime{false};
+
       /// \brief Sum of the render thread passes
       events::RenderFrameTimes render;
 
@@ -327,18 +387,62 @@ namespace gz
 
     /// \brief Collect the properties of all the top level models.
     /// \param[in] _ecm Entities of the simulation
-    /// \param[in] _contacts Average contact points per collision
+    /// \param[in] _contacts Samples of the contact points per collision
     /// \return The models
     GZ_SIM_VISIBLE
     std::vector<PerformanceModelSample> CollectPerformanceModels(
         const EntityComponentManager &_ecm,
-        const std::unordered_map<Entity, double> &_contacts);
+        const PerformanceContactSamples &_contacts);
 
     /// \brief Measures where the wall time of the simulation goes, finds what
     /// limits the real time factor and reports it periodically.
     ///
     /// The simulation loop creates this object only if monitoring was
     /// requested, the cost otherwise is a null check per system update.
+    /// \brief Finds the wall time that the steps of the simulation loop lose
+    /// at a target real time factor, and who spent it.
+    ///
+    /// It follows the pacing of SimulationRunner::Run. The loop sleeps away
+    /// the rest of the slot of a step that fits. A step that runs past its
+    /// slot leaves the loop behind its schedule, and faster steps after it
+    /// can make up for that. Only when the loop falls more than a slot behind
+    /// does it start a new schedule from where it is, and the time that it
+    /// was behind is lost for good. That time is split among the systems that
+    /// ran past their slots, in proportion to what each one still owed.
+    class GZ_SIM_VISIBLE PerformanceSchedule
+    {
+      /// \brief Time spent by each system interface, nullptr for the time
+      /// outside of any system
+      public: using Shares = std::vector<std::pair<const void *,
+                  std::chrono::steady_clock::duration>>;
+
+      /// \brief Add a step.
+      /// \param[in] _busy Wall time of the step, from the end of the pacing
+      /// of the previous one to the start of its own
+      /// \param[in] _period Wall time slot of a step, zero if running as fast
+      /// as possible
+      /// \param[in] _shares Time of the step in each system interface. The
+      /// rest of the step was outside of any system.
+      /// \return The wall time lost in this step, split among who spent it
+      public: Shares Step(std::chrono::steady_clock::duration _busy,
+                  std::chrono::steady_clock::duration _period,
+                  const Shares &_shares);
+
+      /// \brief Forget the debt, as the loop does when it stops pacing.
+      public: void Clear();
+
+      /// \brief Get the time that the loop is behind its schedule.
+      /// \return The time
+      public: std::chrono::steady_clock::duration Debt() const;
+
+      /// \brief Time that the loop is behind its schedule
+      private: std::chrono::steady_clock::duration debt{0};
+
+      /// \brief Part of the debt owed by each system interface, nullptr for
+      /// outside of any system
+      private: Shares owed;
+    };
+
     class GZ_SIM_VISIBLE PerformanceMonitor
     {
       /// \brief Measures one update of one system, if there is a monitor.
@@ -456,6 +560,10 @@ namespace gz
       /// \brief Discard what was collected and start a new interval.
       private: void Restart();
 
+      /// \brief Start a new interval at the last iteration seen. Only resets
+      /// what the simulation thread collects.
+      private: void StartInterval();
+
       /// \brief Wall time between reports
       private: std::chrono::steady_clock::duration reportPeriod;
 
@@ -470,6 +578,7 @@ namespace gz
       {
         std::chrono::steady_clock::duration wall{0};
         std::chrono::steady_clock::duration critical{0};
+        std::chrono::steady_clock::duration late{0};
         std::chrono::steady_clock::duration sampledWall{0};
         std::chrono::steady_clock::duration sampledCpu{0};
       };
@@ -485,17 +594,27 @@ namespace gz
       private: std::vector<std::pair<const void *,
                   std::chrono::steady_clock::duration>> stepPostUpdates;
 
+      /// \brief Critical time of each system interface in the current step,
+      /// used to split the time that the step puts the loop behind
+      private: PerformanceSchedule::Shares stepCritical;
+
+      /// \brief Follows the schedule of the simulation loop
+      private: PerformanceSchedule schedule;
+
+      /// \brief Time past the slot of the steps spent outside of any system
+      private: std::chrono::steady_clock::duration lateLoop{0};
+
+      /// \brief Wall time slot of a step at the target real time factor
+      private: std::chrono::steady_clock::duration period{0};
+
       /// \brief Sum of the render thread passes
       private: events::RenderFrameTimes render;
 
       /// \brief Number of render thread passes
       private: uint64_t renderFrames{0};
 
-      /// \brief Sum of the contact samples per collision
-      private: std::unordered_map<Entity, uint64_t> contacts;
-
-      /// \brief Number of contact samples
-      private: uint64_t contactSamples{0};
+      /// \brief Contact samples of the current interval
+      private: PerformanceContactSamples contactSamples;
 
       /// \brief Start of the current interval
       private: std::chrono::steady_clock::time_point windowStart;

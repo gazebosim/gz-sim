@@ -22,6 +22,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <map>
 #include <sstream>
@@ -117,6 +118,17 @@ constexpr double kContactingKiloTriangleWeight = 1250.0;
 /// \brief Whether a monitor is collecting, see PerformanceMonitorEnabled.
 std::atomic<bool> performanceMonitorEnabled{false};
 
+/// \brief Get the number of decimals to print a real time factor with.
+/// \param[in] _rtf The real time factor
+/// \return Two, or enough for two significant digits below 0.1, which two
+/// decimals would round to nothing in a very slow simulation
+int rtfDecimals(double _rtf)
+{
+  if (_rtf >= 0.1 || _rtf <= 0.0)
+    return 2;
+  return 1 + static_cast<int>(std::ceil(-std::log10(_rtf)));
+}
+
 /// \brief Convert a duration to milliseconds.
 /// \param[in] _time The duration
 /// \return The milliseconds
@@ -189,7 +201,7 @@ double physicsCost(const PerformanceModelSample &_model)
 {
   return static_cast<double>(_model.dof) +
       kCollisionWeight * _model.collisions +
-      kContactWeight * _model.contacts * _model.contacts +
+      kContactWeight * _model.contactsSquared +
       kContactingKiloTriangleWeight *
       (_model.contactingMeshTriangles / 1000.0);
 }
@@ -281,10 +293,91 @@ void addData(msgs::Diagnostics &_msg, const std::string &_key,
 }  // namespace
 
 /////////////////////////////////////////////////
+PerformanceSchedule::Shares PerformanceSchedule::Step(Duration _busy,
+    Duration _period, const Shares &_shares)
+{
+  const auto owe = [this](const void *_system, Duration _time)
+  {
+    if (_time <= Duration::zero())
+      return;
+    auto it = std::find_if(this->owed.begin(), this->owed.end(),
+        [_system](const auto &_owed) { return _owed.first == _system; });
+    if (it == this->owed.end())
+      this->owed.emplace_back(_system, _time);
+    else
+      it->second += _time;
+  };
+
+  const Duration overrun = _busy - _period;
+  if (overrun > Duration::zero())
+  {
+    // The step puts the loop further behind, split like the step time.
+    Duration accounted{0};
+    for (const auto &[system, time] : _shares)
+    {
+      owe(system, scale(overrun, ratio(time, _busy)));
+      accounted += time;
+    }
+    owe(nullptr, scale(overrun,
+        ratio(std::max(_busy - accounted, Duration::zero()), _busy)));
+    this->debt += overrun;
+  }
+  else if (this->debt > Duration::zero())
+  {
+    // The slack of the step makes up for as much as it can, of what each
+    // one owes in proportion.
+    const Duration left = std::max(this->debt + overrun, Duration::zero());
+    const double keep = ratio(left, this->debt);
+    for (auto &share : this->owed)
+      share.second = scale(share.second, keep);
+    this->debt = left;
+  }
+
+  Shares lost;
+  if (this->debt > _period)
+  {
+    // The loop starts a new schedule, the time behind the old one is lost.
+    lost = std::move(this->owed);
+    this->Clear();
+  }
+  else if (this->debt <= Duration::zero())
+  {
+    this->Clear();
+  }
+  return lost;
+}
+
+/////////////////////////////////////////////////
+void PerformanceSchedule::Clear()
+{
+  this->debt = Duration::zero();
+  this->owed.clear();
+}
+
+/////////////////////////////////////////////////
+Duration PerformanceSchedule::Debt() const
+{
+  return this->debt;
+}
+
+/////////////////////////////////////////////////
 std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
     const EntityComponentManager &_ecm,
-    const std::unordered_map<Entity, double> &_contacts)
+    const PerformanceContactSamples &_samples)
 {
+  // The contact points of each collision in each sample
+  const size_t sampleCount = _samples.size();
+  std::unordered_map<Entity, std::vector<unsigned int>> contactSeries;
+  for (size_t i = 0; i < sampleCount; ++i)
+  {
+    for (const auto &[entity, count] : _samples[i])
+    {
+      auto &series = contactSeries[entity];
+      series.resize(sampleCount, 0u);
+      series[i] = count;
+    }
+  }
+
   std::vector<PerformanceModelSample> models;
   _ecm.Each<components::Model, components::Name, components::ParentEntity>(
       [&](const Entity &_entity, const components::Model *,
@@ -333,6 +426,10 @@ std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
         int links = 0;
         int joints = 0;
         unsigned int jointsDof = 0u;
+        // The contact points of all the collisions of the model, per sample.
+        // They are solved together, so their cost is about the square of the
+        // total in each step.
+        std::vector<double> modelContacts;
         for (const Entity entity : descendants)
         {
           const bool isFixed = fixedEntities.count(entity) > 0u;
@@ -354,19 +451,31 @@ std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
             ++model.collisions;
             // Solving a contact is work for the body that can move, not for
             // the floor under it.
-            auto contactsIt = _contacts.find(entity);
-            if (!isFixed && contactsIt != _contacts.end() &&
-                contactsIt->second > 0.0)
+            auto seriesIt = contactSeries.find(entity);
+            if (isFixed || seriesIt == contactSeries.end())
+              continue;
+            const auto &series = seriesIt->second;
+            const auto touching = std::count_if(series.begin(), series.end(),
+                [](unsigned int _count) { return _count > 0u; });
+            if (touching == 0)
+              continue;
+
+            modelContacts.resize(sampleCount, 0.0);
+            for (size_t i = 0; i < sampleCount; ++i)
+              modelContacts[i] += static_cast<double>(series[i]);
+
+            // A mesh is checked triangle by triangle only while it touches
+            // something.
+            auto *element =
+                _ecm.Component<components::CollisionElement>(entity);
+            if (element && element->Data().Geom() &&
+                element->Data().Geom()->MeshShape())
             {
-              model.contacts += contactsIt->second;
-              auto *element =
-                  _ecm.Component<components::CollisionElement>(entity);
-              if (element && element->Data().Geom() &&
-                  element->Data().Geom()->MeshShape())
-              {
-                model.contactingMeshTriangles +=
-                    meshTriangles(*element->Data().Geom()->MeshShape());
-              }
+              model.contactingMeshTriangles += static_cast<uint64_t>(
+                  std::llround(static_cast<double>(
+                    meshTriangles(*element->Data().Geom()->MeshShape())) *
+                    static_cast<double>(touching) /
+                    static_cast<double>(sampleCount)));
             }
           }
           else if (_ecm.Component<components::Visual>(entity))
@@ -384,6 +493,12 @@ std::vector<PerformanceModelSample> sim::CollectPerformanceModels(
         // Each kinematic tree that isn't attached to the world floats.
         model.dof = jointsDof + 6u * static_cast<unsigned int>(
             std::max(links - joints, 0));
+        for (const double contacts : modelContacts)
+        {
+          model.contacts += contacts / static_cast<double>(sampleCount);
+          model.contactsSquared +=
+              contacts * contacts / static_cast<double>(sampleCount);
+        }
         models.push_back(std::move(model));
         return true;
       });
@@ -404,6 +519,7 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
   report.busy = std::max(_window.wall - _window.sleep, Duration::zero());
   report.iterations = _window.iterations;
   report.desiredRtf = _window.desiredRtf;
+  report.period = _window.period;
   report.rtf = ratio(_window.simTime, _window.wall);
   report.render = _window.render;
   report.renderFrames = _window.renderFrames;
@@ -424,8 +540,8 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
         return _a.total > _b.total;
       });
 
-  // Split the time that the simulation thread was busy.
-  const PerformanceSystemSample *slowestOther = nullptr;
+  // Split the time that the simulation thread was busy, and the part of it
+  // that the steps lost to their schedule.
   Duration accounted{0};
   Duration sceneCopy{0};
   for (const auto &system : report.systems)
@@ -435,6 +551,7 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
     if (name == "Physics")
     {
       report.physics += system.critical;
+      report.late.physics += system.late;
     }
     else if (name == "Sensors")
     {
@@ -443,16 +560,42 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
           _window.render.simThreadWait);
       sceneCopy += std::max(system.critical - _window.render.simThreadWait,
           Duration::zero());
+      report.late.rendering += system.late;
     }
     else
     {
       report.otherSystems += system.critical;
-      if (!slowestOther)
-        slowestOther = &system;
+      report.late.otherSystems += system.late;
     }
   }
   report.otherSystems += sceneCopy;
   report.engine = std::max(report.busy - accounted, Duration::zero());
+  report.late.loop = _window.lateLoop;
+
+  // At a target real time factor the loop sleeps away the rest of the slot of
+  // a step that fits in it, so that step costs no real time however long it
+  // is. Only the time past the slot lowers the RTF, and the loop doesn't make
+  // up for a step that falls a whole slot behind. Bursty work that makes a
+  // few steps very late (render stalls) costs the RTF, steady work that fits
+  // (physics well under the slot) doesn't. Rank by that time then. As fast as
+  // possible, all of the step is past its zero slot and both rankings agree.
+  report.rankedByLateTime = report.limited && _window.desiredRtf > 0.0 &&
+      report.late.Total() > Duration::zero();
+  const auto rankTime = [&report](const PerformanceSystemSample &_system)
+  {
+    return report.rankedByLateTime ? _system.late : _system.critical;
+  };
+
+  const PerformanceSystemSample *slowestOther = nullptr;
+  for (const auto &system : report.systems)
+  {
+    const std::string name = shortSystemName(system.name);
+    if (name != "Physics" && name != "Sensors" &&
+        (!slowestOther || rankTime(system) > rankTime(*slowestOther)))
+    {
+      slowestOther = &system;
+    }
+  }
 
   // Attribute load to the models.
   std::map<std::string, PerformanceModelLoad> loads;
@@ -505,14 +648,18 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
         return _a.Total() > _b.Total();
       });
 
-  // Find the location: the biggest consumer of the step time.
+  // Find the location: the biggest consumer of the step time, or of the time
+  // past the slot.
   const Duration slowestOtherTime =
-      slowestOther ? slowestOther->critical : Duration::zero();
-  Duration biggest = report.physics;
+      slowestOther ? rankTime(*slowestOther) : Duration::zero();
+  Duration biggest = report.rankedByLateTime ? report.late.physics :
+      report.physics;
   report.location = PerformanceLocation::kPhysics;
-  if (report.renderWait + sceneCopy > biggest)
+  const Duration renderingTime = report.rankedByLateTime ?
+      report.late.rendering : report.renderWait + sceneCopy;
+  if (renderingTime > biggest)
   {
-    biggest = report.renderWait + sceneCopy;
+    biggest = renderingTime;
     report.location = PerformanceLocation::kRendering;
   }
   if (slowestOtherTime > biggest)
@@ -520,9 +667,11 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
     biggest = slowestOtherTime;
     report.location = PerformanceLocation::kSystem;
   }
-  if (report.engine > biggest)
+  const Duration loopTime = report.rankedByLateTime ? report.late.loop :
+      report.engine;
+  if (loopTime > biggest)
   {
-    biggest = report.engine;
+    biggest = loopTime;
     report.location = PerformanceLocation::kEngine;
   }
   if (biggest <= Duration::zero())
@@ -701,8 +850,9 @@ std::string PerformanceReport::ToString() const
 
   out << "Performance report, last " << std::setprecision(1)
       << std::chrono::duration<double>(this->wall).count() << " s, "
-      << this->iterations << " steps: RTF " << std::setprecision(2)
-      << this->rtf;
+      << this->iterations << " steps: RTF "
+      << std::setprecision(rtfDecimals(this->rtf)) << this->rtf
+      << std::setprecision(2);
   if (this->desiredRtf > 0.0)
     out << " (target " << this->desiredRtf << ")";
   else
@@ -743,7 +893,23 @@ std::string PerformanceReport::ToString() const
     {
       out << ": " << this->culprit;
       if (this->location == PerformanceLocation::kPhysics)
+      {
         out << " (estimated)";
+      }
+      // The render thread updates the sensors together, so the time that it
+      // runs past the slot can't be split among them. The sensor named is the
+      // one with the most render time, which needn't be the one that stalls.
+      else if (this->location == PerformanceLocation::kRendering &&
+          this->rankedByLateTime && this->sensors.size() > 1u &&
+          this->culprit == this->sensors.front().name)
+      {
+        Duration sensorsTotal{0};
+        for (const auto &sensor : this->sensors)
+          sensorsTotal += sensor.total;
+        out << " (largest render load, " << static_cast<int>(100.0 *
+            ratio(this->sensors.front().total, sensorsTotal) + 0.5)
+            << "% of the sensor time)";
+      }
     }
     out << "\n";
   }
@@ -765,6 +931,26 @@ std::string PerformanceReport::ToString() const
       << percent(this->otherSystems) << "%), loop "
       << perStep(this->engine) << " ms ("
       << percent(this->engine) << "%)\n";
+
+  if (this->rankedByLateTime)
+  {
+    const Duration lateTotal = this->late.Total();
+    const auto latePercent = [lateTotal](Duration _time)
+    {
+      return static_cast<int>(100.0 * ratio(_time, lateTotal) + 0.5);
+    };
+    out << "  Time past the " << ms(this->period) << " ms slot "
+        << perStep(lateTotal)
+        << " ms/step, which is what lowers the RTF: rendering "
+        << perStep(this->late.rendering) << " ms ("
+        << latePercent(this->late.rendering) << "%), physics "
+        << perStep(this->late.physics) << " ms ("
+        << latePercent(this->late.physics) << "%), other systems "
+        << perStep(this->late.otherSystems) << " ms ("
+        << latePercent(this->late.otherSystems) << "%), loop "
+        << perStep(this->late.loop) << " ms ("
+        << latePercent(this->late.loop) << "%)\n";
+  }
 
   if (this->renderFrames > 0u)
   {
@@ -789,7 +975,7 @@ std::string PerformanceReport::ToString() const
       const auto &sensor = this->sensors[i];
       const double updates = static_cast<double>(sensor.updates);
       out << "    " << sensor.name << ": " << ms(sensor.total) / updates
-          << " ms/update x " << sensor.updates << " (CPU "
+          << " ms/update x " << sensor.updates << " (outside GPU wait "
           << ms(sensor.total - sensor.gpuWait) / updates << " ms, GPU wait "
           << ms(sensor.gpuWait) / updates << " ms)\n";
     }
@@ -851,6 +1037,13 @@ msgs::Diagnostics PerformanceReport::ToMsg() const
   addTime(msg, "step/render_wait", this->renderWait, this->wall);
   addTime(msg, "step/other_systems", this->otherSystems, this->wall);
   addTime(msg, "step/loop", this->engine, this->wall);
+
+  addData(msg, "ranked_by_late_time",
+      this->rankedByLateTime ? "true" : "false");
+  addTime(msg, "late/physics", this->late.physics, this->wall);
+  addTime(msg, "late/rendering", this->late.rendering, this->wall);
+  addTime(msg, "late/other_systems", this->late.otherSystems, this->wall);
+  addTime(msg, "late/loop", this->late.loop, this->wall);
 
   addTime(msg, "render/total", renderTotal(this->render), this->wall);
   addTime(msg, "render/gpu_wait", this->render.gpuWait, this->wall);
@@ -960,6 +1153,7 @@ void PerformanceMonitor::Record(const void *_system,
   else
   {
     accumulator.critical += _wall;
+    this->stepCritical.emplace_back(_system, _wall);
   }
 
   if (_cpu.count() >= 0)
@@ -984,6 +1178,7 @@ void PerformanceMonitor::EndPostUpdate()
         return _a.second < _b.second;
       });
   this->systems[slowest->first].critical += slowest->second;
+  this->stepCritical.push_back(*slowest);
   this->stepPostUpdates.clear();
 }
 
@@ -1006,9 +1201,7 @@ void PerformanceMonitor::OnContactSample(
     const std::unordered_map<Entity, unsigned int> &_contacts)
 {
   std::lock_guard<std::mutex> lock(this->mutex);
-  for (const auto &[entity, count] : _contacts)
-    this->contacts[entity] += count;
-  ++this->contactSamples;
+  this->contactSamples.push_back(_contacts);
 }
 
 //////////////////////////////////////////////////
@@ -1018,12 +1211,18 @@ void PerformanceMonitor::Restart()
     std::lock_guard<std::mutex> lock(this->mutex);
     this->systems.clear();
     this->stepPostUpdates.clear();
+    this->lateLoop = Duration::zero();
     this->render = {};
     this->renderFrames = 0u;
-    this->contacts.clear();
-    this->contactSamples = 0u;
+    this->contactSamples.clear();
   }
   sensors::TakeSensorTimings();
+  this->StartInterval();
+}
+
+//////////////////////////////////////////////////
+void PerformanceMonitor::StartInterval()
+{
   this->windowStart = this->now;
   this->windowSimStart = this->simTime;
   this->sleep = Duration::zero();
@@ -1038,10 +1237,39 @@ void PerformanceMonitor::EndIteration(
 {
   // A world reset takes the simulation time back to the start.
   const bool rewound = _info.simTime < this->simTime;
+  const auto stepStart = this->now;
 
   this->now = _paceEnd;
   this->simTime = _info.simTime;
   this->desiredRtf = _desiredRtf;
+
+  // The time that the loop lost to its schedule in this step, split among who
+  // spent it. Steps that aren't part of an interval are discarded with the
+  // rest of their measurements by Restart.
+  this->period = _desiredRtf > 0.0 ?
+      scale(_info.dt, 1.0 / _desiredRtf) : Duration::zero();
+  {
+    std::lock_guard<std::mutex> lock(this->mutex);
+    if (_info.paused)
+    {
+      // The loop doesn't keep a schedule while paused, it starts a new one
+      // when it resumes.
+      this->schedule.Clear();
+    }
+    else
+    {
+      const Duration busy = _paceStart - stepStart;
+      for (const auto &[system, time] :
+          this->schedule.Step(busy, this->period, this->stepCritical))
+      {
+        if (nullptr != system)
+          this->systems[system].late += time;
+        else
+          this->lateLoop += time;
+      }
+    }
+    this->stepCritical.clear();
+  }
 
   // Time paused says nothing about performance, and there is nothing to
   // measure against. Start over when the simulation resumes.
@@ -1080,6 +1308,8 @@ void PerformanceMonitor::StartRun(
 {
   this->windowStart += _now - this->now;
   this->now = _now;
+  // The loop starts a new schedule when it runs again.
+  this->schedule.Clear();
 }
 
 //////////////////////////////////////////////////
@@ -1099,23 +1329,22 @@ PerformanceReport PerformanceMonitor::TakeReport(
   window.simTime = this->simTime - this->windowSimStart;
   window.iterations = this->iterations;
   window.desiredRtf = this->desiredRtf;
+  window.period = this->period;
 
+  // Take what was collected and start the next interval at once, so that what
+  // the render thread adds meanwhile goes to the next interval, not lost.
   std::unordered_map<const void *, SystemAccumulator> systemTimes;
-  std::unordered_map<Entity, double> averageContacts;
+  PerformanceContactSamples contacts;
   {
     std::lock_guard<std::mutex> lock(this->mutex);
-    systemTimes = this->systems;
-    window.render = this->render;
-    window.renderFrames = this->renderFrames;
-    if (this->contactSamples > 0u)
-    {
-      for (const auto &[entity, count] : this->contacts)
-      {
-        averageContacts[entity] = static_cast<double>(count) /
-            static_cast<double>(this->contactSamples);
-      }
-    }
+    systemTimes = std::exchange(this->systems, {});
+    window.lateLoop = std::exchange(this->lateLoop, Duration::zero());
+    window.render = std::exchange(this->render, {});
+    window.renderFrames = std::exchange(this->renderFrames, 0u);
+    contacts = std::exchange(this->contactSamples, {});
   }
+  auto sensorTimings = sensors::TakeSensorTimings();
+  this->StartInterval();
 
   // One system may implement several phases through different interfaces.
   for (const auto &system : _systemMgr.Systems())
@@ -1135,6 +1364,7 @@ PerformanceReport PerformanceMonitor::TakeReport(
       found = true;
       sample.wall += it->second.wall;
       sample.critical += it->second.critical;
+      sample.late += it->second.late;
       sample.sampledWall += it->second.sampledWall;
       sample.sampledCpu += it->second.sampledCpu;
     }
@@ -1142,7 +1372,7 @@ PerformanceReport PerformanceMonitor::TakeReport(
       window.systems.push_back(std::move(sample));
   }
 
-  for (auto &timing : sensors::TakeSensorTimings())
+  for (auto &timing : sensorTimings)
   {
     PerformanceSensorSample sample;
     // The simulation names the sensors model::link::sensor.
@@ -1156,8 +1386,6 @@ PerformanceReport PerformanceMonitor::TakeReport(
     window.sensors.push_back(std::move(sample));
   }
 
-  window.models = CollectPerformanceModels(_ecm, averageContacts);
-
-  this->Restart();
+  window.models = CollectPerformanceModels(_ecm, contacts);
   return AnalyzePerformance(window);
 }

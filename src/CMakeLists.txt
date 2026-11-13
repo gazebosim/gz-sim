@@ -262,6 +262,13 @@ gz_build_tests(TYPE UNIT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
+# The performance monitor test updates a sensor.
+if (TARGET UNIT_PerformanceMonitor_TEST)
+  target_link_libraries(UNIT_PerformanceMonitor_TEST
+    gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
+  )
+endif()
+
 # Some server unit tests require rendering.
 if (TARGET UNIT_Server_Rendering_TEST)
  target_link_libraries(UNIT_Server_Rendering_TEST
