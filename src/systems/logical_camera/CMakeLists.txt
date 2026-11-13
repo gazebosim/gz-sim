@@ -1,6 +1,8 @@
 gz_add_system(logical-camera
   SOURCES
     LogicalCamera.cc
+  TEST_SOURCES
+    LogicalCamera_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-sensors::gz-sensors

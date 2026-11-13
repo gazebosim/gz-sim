@@ -1,6 +1,8 @@
 gz_add_system(navsat
   SOURCES
     NavSat.cc
+  TEST_SOURCES
+    NavSat_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
   PRIVATE_LINK_LIBS
