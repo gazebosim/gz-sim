@@ -399,6 +399,12 @@ void Hydrodynamics::Configure(
     return;
   }
 
+  // The link's components this system reads. The world pose comes first:
+  // the fluid added mass below can only be read once it exists.
+  AddWorldPose(this->dataPtr->linkEntity, _ecm);
+  AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
+  AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
+
   // Cache the fluid added mass matrix if present on this link.
   // This is used for the Coriolis current-velocity correction.
   {
@@ -469,11 +475,6 @@ void Hydrodynamics::Configure(
     this->dataPtr->axisComponents[2] =
       _sdf->Get<std::string>("lookup_current_z");
   }
-
-
-  AddWorldPose(this->dataPtr->linkEntity, _ecm);
-  AddAngularVelocityComponent(this->dataPtr->linkEntity, _ecm);
-  AddWorldLinearVelocity(this->dataPtr->linkEntity, _ecm);
 }
 
 /////////////////////////////////////////////////
@@ -572,10 +573,16 @@ void Hydrodynamics::PreUpdate(
   // diagonal terms here. Have yet to add the cross terms here. Also note, since
   // $M_a(0,0) = \dot X_u $ , $M_a(1,1) = \dot Y_v $ and so forth, we simply
   // load the stability derivatives from $M_a$.
-  if (!this->dataPtr->disableCoriolis)
+  //
+  // A link with <fluid_added_mass> gets these terms from the physics engine,
+  // so the plugin's own would count them twice.
+  if (!this->dataPtr->disableCoriolis && !this->dataPtr->hasFluidAddedMass)
   {
+    // kTotalWrench gathers the left hand side of Fossen's equation,
+    // M_A * dv/dt + C_A(v) * v + D(v) * v, and is applied negated below,
+    // so C_A * v enters it with a plus sign like the other two terms.
     Cmat = hydro::buildCoriolisMatrix(this->dataPtr->Ma, state);
-    const Eigen::Matrix<double, 6, 1> kCmatVec = - Cmat * state;
+    const Eigen::Matrix<double, 6, 1> kCmatVec = Cmat * state;
     kTotalWrench += kCmatVec;
   }
 

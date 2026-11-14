@@ -45,10 +45,10 @@ static Mat6 DiagMa(double m0, double m1, double m2,
 /// Ma = diag(-1, -2, -3, -4, -5, -6)  (Fossen convention: negative)
 /// state = [1, 2, 3, 4, 5, 6]
 ///
-/// The code builds Cmat = -C_A. Using a_i = -Ma(i,i)*state(i):
+/// The code builds Cmat = C_A. Using a_i = -Ma(i,i)*state(i):
 ///   a0=1, a1=4, a2=9, b0=16, b1=25, b2=36
 ///
-/// Expected -C_A:
+/// Expected C_A:
 ///   | 0   0   0   0   a2  -a1 |     | 0  0  0   0   9  -4 |
 ///   | 0   0   0  -a2  0    a0 |  =  | 0  0  0  -9   0   1 |
 ///   | 0   0   0   a1 -a0   0  |     | 0  0  0   4  -1   0 |
@@ -505,7 +505,8 @@ TEST(HydrodynamicsUtils, CoriolisForceDirection)
 
   Mat6 C = hydro::buildCoriolisMatrix(Ma, state);
 
-  // The Coriolis force vector is -C * state (as applied in the plugin)
+  // The Coriolis force vector is -C * state. The plugin adds C * state to
+  // the wrench it then applies negated.
   Vec6 coriolisForce = -C * state;
 
   // Yaw moment (index 5):
@@ -558,8 +559,7 @@ TEST(HydrodynamicsUtils, CoriolisMatrixTethysValues)
 /// Verify that buildFullCoriolisMatrix (positive M_A) is consistent
 /// with buildCoriolisMatrix (negative Fossen M_A) for diagonal matrices.
 ///
-/// buildCoriolisMatrix(neg_Ma, v) returns -C_A(neg convention)
-///   = C_A(positive convention)
+/// buildCoriolisMatrix(neg_Ma, v) returns C_A
 ///   = buildFullCoriolisMatrix(pos_Ma, v)
 TEST(HydrodynamicsUtils, FullCoriolisMatrixDiagonalEquivalence)
 {
