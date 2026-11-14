@@ -14,6 +14,25 @@ release will remove the deprecated code.
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
 
+* **Hydrodynamics**
+  * The Coriolis terms of the plugin's added mass (`<xDotU>` and the other
+    added mass parameters) had the wrong sign and now follow Fossen's
+    equation. A body with more added mass in sway than in surge is now
+    turned broadside to its motion (the Munk moment), as it is with the
+    physics engine's `<fluid_added_mass>`; it used to be turned nose on.
+    Models that set these parameters and were tuned around the old
+    behavior may need retuning, or `<disable_coriolis>true</disable_coriolis>`
+    to switch the term off. The LRAUV example worlds now set that flag, as
+    the LRAUV project's own model does: with its coefficients the Munk
+    moment makes the vehicle directionally unstable.
+  * A link's `<fluid_added_mass>` is now found even when no other system
+    has created the link's world pose component. The Coriolis correction
+    in an ocean current and the error for added mass given both in the
+    link and in the plugin now always apply to such a link.
+  * The plugin no longer applies its own Coriolis force, from its added
+    mass parameters, to a link with `<fluid_added_mass>`: the physics
+    engine already applies it.
+
 * **Buoyancy**
   * The buoyant force now acts at the collision geometry's centroid instead
     of the collision origin. This changes behavior for cone collisions

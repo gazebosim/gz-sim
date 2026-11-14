@@ -17,6 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <cmath>
+#include <map>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/double.pb.h>
 
 #include <gz/common/Console.hh>
@@ -37,6 +42,44 @@
 
 using namespace gz;
 using namespace sim;
+
+namespace
+{
+/// \brief Run a world and return the pose at the end of the link named
+/// "link" of each of the given models.
+/// \param[in] _world World file name, in test/worlds.
+/// \param[in] _steps Number of steps to run the server.
+/// \param[in] _models Model names.
+/// \return Link pose by model name.
+std::map<std::string, math::Pose3d> AddedMassFinalPoses(
+    const std::string &_world, unsigned int _steps,
+    const std::vector<std::string> &_models)
+{
+  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", _world));
+
+  std::map<std::string, math::Pose3d> poses;
+  fixture.
+  OnPostUpdate([&](const UpdateInfo &/*_info*/,
+                   const EntityComponentManager &_ecm)
+    {
+      World world(worldEntity(_ecm));
+      for (const auto &name : _models)
+      {
+        Model model(world.ModelByName(_ecm, name));
+        ASSERT_NE(kNullEntity, model.Entity());
+        auto link = model.LinkByName(_ecm, "link");
+        ASSERT_NE(kNullEntity, link);
+        poses[name] = worldPose(link, _ecm);
+      }
+    }).
+  Finalize();
+
+  fixture.Server()->Run(true, _steps, false);
+  EXPECT_EQ(_models.size(), poses.size());
+  return poses;
+}
+}  // namespace
 
 class HydrodynamicsTest : public InternalFixture<::testing::Test>
 {
@@ -200,4 +243,87 @@ TEST_F(HydrodynamicsTest,
     EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
+}
+
+/////////////////////////////////////////////////
+/// The Coriolis terms of the plugin's added mass turn a body that moves
+/// diagonally broadside to its motion, the Munk moment. The body has more
+/// added mass in sway than in surge and is pushed along +x and +y from rest,
+/// so it turns clockwise. Kirchhoff's equations give
+/// (Izz + A66) dr/dt = (A11 - A22) u v, with u and v growing as
+/// g m t / (m + A).
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AddedMassCoriolisTurnsBroadside))
+{
+  const double m{10}, a11{1}, a22{6}, a66{0.02}, izz{0.25}, gx{1}, gy{0.5};
+  const double t{0.2};
+  // The yaw rate integrates u v, which grows as t^2; the yaw integrates
+  // that once more.
+  const double uvOverT2 = gx * gy * m * m / ((m + a11) * (m + a22));
+  const double yaw = (a11 - a22) * uvOverT2 * std::pow(t, 4) / 12 /
+      (izz + a66);
+
+  auto poses = AddedMassFinalPoses("hydrodynamics_added_mass.sdf", 200,
+                                   {"plugin"});
+  EXPECT_LT(poses["plugin"].Rot().Yaw(), 0.0);
+  EXPECT_NEAR(yaw, poses["plugin"].Rot().Yaw(), 0.05 * std::abs(yaw));
+}
+
+/////////////////////////////////////////////////
+/// In still water the plugin's added mass and the physics engine's
+/// <fluid_added_mass> are the same model, so the two bodies move alike.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(AddedMassMatchesFluidAddedMass))
+{
+  auto poses = AddedMassFinalPoses("hydrodynamics_added_mass.sdf", 2000,
+                                   {"plugin", "native"});
+  // The "native" model starts 5 m to the left of the "plugin" model.
+  const math::Vector3d offset(0, 5, 0);
+
+  // Both moved and turned well away from where they started.
+  EXPECT_GT(poses["native"].Pos().Distance(offset), 1.0);
+  EXPECT_GT(std::abs(poses["native"].Rot().Yaw()), 0.2);
+
+  EXPECT_LT(poses["plugin"].Pos().Distance(
+      poses["native"].Pos() - offset), 5e-3);
+  EXPECT_LT((poses["plugin"].Rot().Inverse() *
+             poses["native"].Rot()).Euler().Length(), 5e-3);
+}
+
+/////////////////////////////////////////////////
+/// A link with <fluid_added_mass> gets its Coriolis terms from the physics
+/// engine. When the plugin is also given the added mass parameters, with
+/// its added mass force disabled, it must not apply those terms a second
+/// time: the body moves like the one with <fluid_added_mass> alone.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(FluidAddedMassCoriolisNotCountedTwice))
+{
+  auto poses = AddedMassFinalPoses("hydrodynamics_added_mass.sdf", 2000,
+                                   {"native", "both"});
+  // The "both" model starts 5 m to the left of the "native" model.
+  const math::Vector3d offset(0, 5, 0);
+
+  EXPECT_GT(std::abs(poses["native"].Rot().Yaw()), 0.2);
+  EXPECT_LT(poses["native"].Pos().Distance(
+      poses["both"].Pos() - offset), 1e-6);
+  EXPECT_LT((poses["native"].Rot().Inverse() *
+             poses["both"].Rot()).Euler().Length(), 1e-6);
+}
+
+/////////////////////////////////////////////////
+/// In a current the physics engine's added mass takes its Coriolis terms
+/// against the ground. The plugin corrects them, so the body ends within
+/// centimeters of the one whose added mass is in the plugin; without the
+/// correction they end a quarter of a meter apart. What is left is the
+/// current's turning in the body frame, which the correction leaves out.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(FluidAddedMassCorrectedInCurrent))
+{
+  auto poses = AddedMassFinalPoses(
+      "hydrodynamics_added_mass_current.sdf", 4000, {"plugin", "native"});
+  const math::Vector3d offset(0, 5, 0);
+
+  EXPECT_GT(poses["native"].Pos().Distance(offset), 1.0);
+  EXPECT_LT(poses["plugin"].Pos().Distance(
+      poses["native"].Pos() - offset), 0.03);
 }

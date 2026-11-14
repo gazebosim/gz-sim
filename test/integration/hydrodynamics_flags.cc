@@ -117,8 +117,14 @@ void HydrodynamicsFlagsTest::TestWorld(const std::string &_world,
 }
 
 /////////////////////////////////////////////////
-/// This test makes sure that the linear velocity is reduced
-/// disabling the coriolis force and also when disabling the added mass.
+/// This test makes sure that the Coriolis force and the added mass act in
+/// the right direction when each is enabled on its own. The bodies point
+/// along the world's y axis and get a kick along y and z, so they move
+/// ahead and up at once. The Coriolis terms of the added mass then pitch
+/// the body broadside to its motion (the Munk moment): the nose goes down,
+/// a negative rotation about the world's x axis. That direction is what
+/// tells the sign of the Coriolis term. The turning takes energy from the
+/// translation, so the body also slows down along y, whatever the sign.
 TEST_F(HydrodynamicsFlagsTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(AddedMassCoriolisFlags))
 {
@@ -142,7 +148,7 @@ TEST_F(HydrodynamicsFlagsTest,
   unsigned int starts_moving = 0;
   for (starts_moving = 0; starts_moving < numsteps; ++starts_moving)
   {
-    if (linearCoriolisVels[starts_moving].Z() < linearVels[starts_moving].Z())
+    if (linearCoriolisVels[starts_moving].Y() < linearVels[starts_moving].Y())
     {
       break;
     }
@@ -153,11 +159,11 @@ TEST_F(HydrodynamicsFlagsTest,
 
   for (unsigned int i = starts_moving; i < numsteps; ++i)
   {
-    // Linear velocity should be lower with the produced coriolis.
-    // The angular velocity effect is negligible in this configuration
-    // because the Coriolis surge-yaw coupling terms are small relative
-    // to the applied torque.
-    EXPECT_LT(linearCoriolisVels[i].Z(), linearVels[i].Z());
+    // The Coriolis force slows the body down along its heading and turns
+    // its nose down, broadside to the motion.
+    EXPECT_LT(linearCoriolisVels[i].Y(), linearVels[i].Y());
+    EXPECT_LT(angularCoriolisVels[i].X(), angularVels[i].X());
+    // The added mass makes the body slower to push and to turn.
     EXPECT_LT(angularAddedMassVels[i].Z(), angularVels[i].Z());
     EXPECT_LT(linearAddedMassVels[i].Z(), linearVels[i].Z());
   }
