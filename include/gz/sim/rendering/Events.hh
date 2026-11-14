@@ -32,7 +32,7 @@ namespace gz
     /// more information about events.
     namespace events
     {
-      /// \brief The render event is emitted when the the scene manager is
+      /// \brief The render event is emitted when the scene manager is
       /// updated with contents from the ECM. This event is emitted
       /// before the PreRender event on the server side in the rendering
       /// thread. It is also accessible on the GUI side.

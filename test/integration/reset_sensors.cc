@@ -90,7 +90,7 @@ common::Image toImage(const msgs::Image &_msg)
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that air-pressure and camera sensor systems
+/// This test checks that air-pressure and camera sensor systems
 /// handle Reset events
 TEST_F(ResetFixture, HandleReset)
 {
