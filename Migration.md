@@ -150,7 +150,7 @@ release will remove the deprecated code.
     ```
 
     Both configurations resolve to `/motor/cmd`.
-  
+
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
