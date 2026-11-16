@@ -117,7 +117,7 @@ class gz::sim::systems::SceneBroadcasterPrivate
   public: bool SceneInfoService(msgs::Scene &_res);
 
   /// \brief Callback for scene graph service.
-  /// \param[out] _res Response containing the the scene graph in DOT format.
+  /// \param[out] _res Response containing the scene graph in DOT format.
   /// \return True if successful.
   public: bool SceneGraphService(msgs::StringMsg &_res);
 
