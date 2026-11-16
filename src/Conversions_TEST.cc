@@ -496,10 +496,57 @@ TEST(Conversions, GeometryMesh)
   EXPECT_EQ("grape", newGeometry.MeshShape()->Submesh());
   EXPECT_TRUE(newGeometry.MeshShape()->CenterSubmesh());
   EXPECT_EQ("convex_decomposition", newGeometry.MeshShape()->OptimizationStr());
+  EXPECT_EQ(sdf::ConvexAssertion::NONE,
+      newGeometry.MeshShape()->AssertConvex());
   auto newConvexDecomp = newGeometry.MeshShape()->ConvexDecomposition();
   ASSERT_NE(nullptr, newConvexDecomp);
   EXPECT_EQ(4, newConvexDecomp->MaxConvexHulls());
   EXPECT_EQ(10000, newConvexDecomp->VoxelResolution());
+}
+
+/////////////////////////////////////////////////
+TEST(Conversions, GeometryMeshAssertConvex)
+{
+  sdf::Geometry geometry;
+  geometry.SetType(sdf::GeometryType::MESH);
+
+  sdf::Mesh meshShape;
+  meshShape.SetUri("file://watermelon");
+  meshShape.SetOptimization("convex_hull");
+  meshShape.SetAssertConvex("warn");
+  geometry.SetMeshShape(meshShape);
+
+  auto geometryMsg = convert<msgs::Geometry>(geometry);
+  EXPECT_EQ(msgs::Geometry::MESH, geometryMsg.type());
+  ASSERT_EQ(2, geometryMsg.header().data_size());
+  auto header = geometryMsg.header().data(0);
+  EXPECT_EQ("optimization", header.key());
+  EXPECT_EQ("convex_hull", header.value(0));
+  header = geometryMsg.header().data(1);
+  EXPECT_EQ("assert_convex", header.key());
+  EXPECT_EQ("warn", header.value(0));
+
+  auto newGeometry = convert<sdf::Geometry>(geometryMsg);
+  ASSERT_NE(nullptr, newGeometry.MeshShape());
+  EXPECT_EQ("convex_hull", newGeometry.MeshShape()->OptimizationStr());
+  EXPECT_EQ("warn", newGeometry.MeshShape()->AssertConvexStr());
+  EXPECT_EQ(sdf::ConvexAssertion::WARN,
+      newGeometry.MeshShape()->AssertConvex());
+
+  // No optimization
+  meshShape.SetOptimization(sdf::MeshOptimization::NONE);
+  meshShape.SetAssertConvex(sdf::ConvexAssertion::FAIL);
+  geometry.SetMeshShape(meshShape);
+  geometryMsg = convert<msgs::Geometry>(geometry);
+  ASSERT_EQ(1, geometryMsg.header().data_size());
+  EXPECT_EQ("assert_convex", geometryMsg.header().data(0).key());
+  EXPECT_EQ("error", geometryMsg.header().data(0).value(0));
+  newGeometry = convert<sdf::Geometry>(geometryMsg);
+  ASSERT_NE(nullptr, newGeometry.MeshShape());
+  EXPECT_EQ(sdf::MeshOptimization::NONE,
+      newGeometry.MeshShape()->Optimization());
+  EXPECT_EQ(sdf::ConvexAssertion::FAIL,
+      newGeometry.MeshShape()->AssertConvex());
 }
 
 /////////////////////////////////////////////////

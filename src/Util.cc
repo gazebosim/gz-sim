@@ -1076,13 +1076,21 @@ const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
     return nullptr;
   }
 
-  if (mesh && _meshSdf.Optimization() != sdf::MeshOptimization::NONE)
+  if (mesh && (_meshSdf.Optimization() != sdf::MeshOptimization::NONE ||
+      _meshSdf.AssertConvex() != sdf::ConvexAssertion::NONE))
   {
     const common::Mesh *optimizedMesh = optimizeMesh(_meshSdf, *mesh);
     if (optimizedMesh && optimizedMesh->SubMeshCount() > 0u)
       return optimizedMesh;
-    else
-      gzwarn << "Failed to optimize Mesh " << mesh->Name() << std::endl;
+
+    // A mesh asserted to be convex with an error on failure must not fall
+    // back to the unoptimized mesh. The error was printed by optimizeMesh.
+    if (_meshSdf.AssertConvex() == sdf::ConvexAssertion::FAIL &&
+        _meshSdf.Optimization() != sdf::MeshOptimization::CONVEX_DECOMPOSITION)
+    {
+      return nullptr;
+    }
+    gzwarn << "Failed to optimize Mesh " << mesh->Name() << std::endl;
   }
 
   return mesh;
@@ -1091,87 +1099,55 @@ const common::Mesh *loadMesh(const sdf::Mesh &_meshSdf)
 const common::Mesh *optimizeMesh(const sdf::Mesh &_meshSdf,
     const common::Mesh &_mesh)
 {
-  if (_meshSdf.Optimization() !=
-      sdf::MeshOptimization::CONVEX_DECOMPOSITION &&
-      _meshSdf.Optimization() !=
-      sdf::MeshOptimization::CONVEX_HULL)
+  const bool decomposition = _meshSdf.Optimization() ==
+      sdf::MeshOptimization::CONVEX_DECOMPOSITION;
+  const bool hull = _meshSdf.Optimization() ==
+      sdf::MeshOptimization::CONVEX_HULL;
+  // The convex assertion is ignored with convex decomposition
+  const sdf::ConvexAssertion assertion = decomposition ?
+      sdf::ConvexAssertion::NONE : _meshSdf.AssertConvex();
+  const bool asserted = assertion != sdf::ConvexAssertion::NONE;
+  if (!decomposition && !hull && !asserted)
     return nullptr;
 
-  auto &meshManager = *common::MeshManager::Instance();
-  std::size_t maxConvexHulls = 16u;
-  std::size_t voxelResolution = 200000u;
+  // Verify the convexity of a mesh asserted to be convex, as requested by the
+  // SDF. The convex hull of the mesh is used either way, unless the SDF asks
+  // for an error.
+  if (asserted && assertion != sdf::ConvexAssertion::NOCHECK &&
+      !common::MeshManager::IsConvex(_mesh, _meshSdf.Submesh()))
+  {
+    if (assertion == sdf::ConvexAssertion::FAIL)
+    {
+      gzerr << "Mesh [" << _mesh.Name() << "] is asserted to be convex but "
+            << "it is not." << std::endl;
+      return nullptr;
+    }
+    gzwarn << "Mesh [" << _mesh.Name() << "] is asserted to be convex but "
+           << "it is not. Using its convex hull instead." << std::endl;
+  }
+
+  common::ConvexDecompositionDescriptor desc;
+  desc.mesh = &_mesh;
+  desc.submesh = _meshSdf.Submesh();
+  desc.centerSubmesh = _meshSdf.CenterSubmesh();
   if (_meshSdf.ConvexDecomposition())
   {
     // limit max number of convex hulls to generate
-    maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
-    voxelResolution = _meshSdf.ConvexDecomposition()->VoxelResolution();
+    desc.maxConvexHulls = _meshSdf.ConvexDecomposition()->MaxConvexHulls();
+    desc.voxelResolution = _meshSdf.ConvexDecomposition()->VoxelResolution();
   }
-  if (_meshSdf.Optimization() == sdf::MeshOptimization::CONVEX_HULL)
+  if (hull)
   {
     /// create 1 convex hull for the whole submesh
-    maxConvexHulls = 1u;
+    desc.maxConvexHulls = 1u;
   }
+  // A mesh asserted to be convex is its own convex hull, which is much
+  // cheaper to compute than a convex decomposition.
+  desc.assumeConvex = asserted;
 
-  // Check if MeshManager contains the decomposed mesh already. If not
-  // add it to the MeshManager so we do not need to decompose it again.
-  const std::string convexMeshName =
-      _mesh.Name() + "_" + _meshSdf.Submesh() + "_CONVEX_" +
-      std::to_string(maxConvexHulls) + "_" + std::to_string(voxelResolution);
-  auto *optimizedMesh = meshManager.MeshByName(convexMeshName);
-  if (!optimizedMesh)
-  {
-    std::unique_ptr<common::Mesh> meshToDecompose =
-        std::make_unique<common::Mesh>();
-    // check if a particular submesh is requested
-    if (!_meshSdf.Submesh().empty())
-    {
-      for (unsigned int submeshIdx = 0;
-           submeshIdx < _mesh.SubMeshCount();
-           ++submeshIdx)
-      {
-        auto submesh = _mesh.SubMeshByIndex(submeshIdx).lock();
-        if (submesh->Name() == _meshSdf.Submesh())
-        {
-          if (_meshSdf.CenterSubmesh())
-            submesh->Center(math::Vector3d::Zero);
-          meshToDecompose->AddSubMesh(*submesh.get());
-          break;
-        }
-      }
-    }
-    else
-    {
-      // Merge meshes before convex decomposition
-      meshToDecompose =
-           gz::common::MeshManager::MergeSubMeshes(_mesh);
-    }
-
-    if (meshToDecompose && meshToDecompose->SubMeshCount() == 1u)
-    {
-      // Decompose and add mesh to MeshManager
-      auto mergedSubmesh = meshToDecompose->SubMeshByIndex(0u).lock();
-      std::vector<common::SubMesh> decomposed =
-        gz::common::MeshManager::ConvexDecomposition(
-        *mergedSubmesh.get(), maxConvexHulls, voxelResolution);
-      gzdbg << "Optimizing mesh (" << _meshSdf.OptimizationStr() << "): "
-            <<  _mesh.Name() << std::endl;
-
-      common::Mesh *convexMesh = meshManager.CreateMesh(convexMeshName);
-      for (const auto & submesh : decomposed)
-        convexMesh->AddSubMesh(submesh);
-
-      if (decomposed.empty())
-      {
-        // Print an error if convex decomposition returned empty submeshes
-        // but still keep it in the MeshManager to avoid going through the
-        // expensive convex decomposition process for the same mesh again
-        gzerr << "Convex decomposition generated zero meshes: "
-               << _mesh.Name() << std::endl;
-      }
-      optimizedMesh = convexMesh;
-    }
-  }
-  return optimizedMesh;
+  // The decomposed mesh is cached by the MeshManager, so the mesh is only
+  // decomposed if it was not decomposed already.
+  return common::MeshManager::Instance()->ConvexDecomposition(desc);
 }
 
 std::optional<math::AxisAlignedBox> meshAxisAlignedBox(
