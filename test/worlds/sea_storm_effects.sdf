@@ -21,7 +21,7 @@
       name="gz::sim::systems::WindEffects">
       <force_approximation_scaling_factor>
         <!-- No wind below sea level -->
-        <when zgt="0" zlt="5">0.2</when>  <!-- Transition layer -->
+        <when zgt="0" zlt="5">0.04</when>  <!-- Transition layer -->
         <when zge="5">  <!-- Vortex-like winds that worsen with height -->
           <k>0.5</k>
           <px>0 0.01 0 0</px>
