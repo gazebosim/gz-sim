@@ -39,25 +39,37 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// - `<publish_link_pose>`: Set to true to publish link pose
-  /// - `<publish_visual_pose>`: Set to true to publish visual pose
-  /// - `<publish_collision_pose>`: Set to true to publish collision pose
-  /// - `<publish_sensor_pose>`: Set to true to publish sensor pose
-  /// - `<publish_model_pose>`: Set to true to publish model pose.
+  /// - `<publish_link_pose>`: Set to true to publish link pose. This element
+  ///   is optional, and the default value is true.
+  /// - `<publish_visual_pose>`: Set to true to publish visual pose. This
+  ///   element is optional, and the default value is false.
+  /// - `<publish_collision_pose>`: Set to true to publish collision pose.
+  ///   This element is optional, and the default value is false.
+  /// - `<publish_sensor_pose>`: Set to true to publish sensor pose. This
+  ///   element is optional, and the default value is false.
+  /// - `<publish_model_pose>`: Set to true to publish model pose. This
+  ///   element is optional. If it is not set, it takes the value of
+  ///   `<publish_nested_model_pose>`.
   /// - `<publish_nested_model_pose>`: Set to true to publish nested model
   ///   pose. The pose of the model that contains this system is also published
-  ///   unless publish_model_pose is set to false
+  ///   unless `<publish_model_pose>` is set to false. This element is
+  ///   optional, and the default value is false.
   /// - `<use_pose_vector_msg>`: Set to true to publish a gz::msgs::Pose_V
-  ///   message instead of mulitple gz::msgs::Pose messages.
-  /// - `<update_frequency>`: Frequency of pose publications in Hz. A negative
-  ///   frequency publishes as fast as possible (i.e, at the rate of the
-  ///   simulation step)
+  ///   message instead of multiple gz::msgs::Pose messages. This element is
+  ///   optional, and the default value is false.
+  /// - `<update_frequency>`: Frequency of pose publications in Hz. A
+  ///   frequency of zero or less publishes as fast as possible (i.e., at the
+  ///   rate of the simulation step). This element is optional, and the
+  ///   default value is -1.
   /// - `<static_publisher>`: Set to true to publish static poses on a
   ///   "<scoped_entity_name>/pose_static" topic. This will cause only dynamic
-  ///   poses to be published on the "<scoped_entity_name>/pose" topic.
+  ///   poses to be published on the "<scoped_entity_name>/pose" topic. This
+  ///   element is optional, and the default value is false.
   /// - `<static_update_frequency>`: Frequency of static pose publications in
-  ///   Hz. A negative frequency publishes as fast as possible (i.e, at the
-  ///   rate of the simulation step).
+  ///   Hz. A frequency of zero or less publishes as fast as possible (i.e.,
+  ///   at the rate of the simulation step). Only used when
+  ///   `<static_publisher>` is true. This element is optional. If it is not
+  ///   set, it takes the value of `<update_frequency>`.
   /// - `<topic>`: Set a custom topic instead of default value
   class PosePublisher
       : public System,
