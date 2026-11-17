@@ -110,8 +110,7 @@ namespace systems
   /// 1. \ref gz::sim::ServerConfig::SetPhysicsEngine, also set by the
   ///    `--physics-engine` command line option.
   /// 2. The `<engine><filename>` system parameter.
-  /// 3. The `GZ_SIM_PHYSICS_ENGINE` environment variable.
-  /// 4. `gz-physics-dartsim-plugin`.
+  /// 3. `gz-physics-dartsim-plugin`.
   ///
   /// ## Example
   ///

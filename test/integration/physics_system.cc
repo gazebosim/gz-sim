@@ -3797,13 +3797,13 @@ TEST_F(PhysicsSystemFixture, EngineSelectionPrecedence)
       "</engine>";
 
   {
-    ScopedEnv engineEnv("GZ_SIM_PHYSICS_ENGINE", std::nullopt);
+    ScopedEnv engineEnv("_GZ_SIM_TEST_PHYSICS_ENGINE", std::nullopt);
 
     // DART is the default
     EXPECT_EQ("gz-physics-dartsim-plugin", chosenPhysicsEngine("", ""));
   }
 
-  ScopedEnv engineEnv("GZ_SIM_PHYSICS_ENGINE", "gz-physics-tpe-plugin");
+  ScopedEnv engineEnv("_GZ_SIM_TEST_PHYSICS_ENGINE", "gz-physics-tpe-plugin");
 
   // The environment variable replaces the default
   EXPECT_EQ("gz-physics-tpe-plugin", chosenPhysicsEngine("", ""));

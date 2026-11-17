@@ -421,7 +421,7 @@ foreach(test_source ${tests})
     endif()
 
     set_property(TEST ${engine_test} APPEND PROPERTY
-      ENVIRONMENT "GZ_SIM_PHYSICS_ENGINE=gz-physics-${engine}-plugin")
+      ENVIRONMENT "_GZ_SIM_TEST_PHYSICS_ENGINE=gz-physics-${engine}-plugin")
     set_property(TEST ${engine_test} APPEND PROPERTY LABELS ${engine})
   endforeach()
 endforeach()

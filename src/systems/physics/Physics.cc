@@ -489,8 +489,10 @@ class gz::sim::systems::PhysicsPrivate
   public: std::string pluginPathEnv = "GZ_SIM_PHYSICS_ENGINE_PATH";
 
   /// \brief Environment variable which holds the engine plugin to load when
-  /// neither the server configuration nor the SDF chooses one
-  public: std::string pluginEnv = "GZ_SIM_PHYSICS_ENGINE";
+  /// neither the server configuration nor the SDF chooses one.
+  /// For internal testing only, see test/helpers/PhysicsEngines.hh. It isn't
+  /// a supported interface and may change or be removed without notice.
+  public: std::string testPluginEnv = "_GZ_SIM_TEST_PHYSICS_ENGINE";
 
   //////////////////////////////////////////////////
   ////////////// Optional Features /////////////////
@@ -1008,10 +1010,21 @@ void Physics::Configure(const Entity &_entity,
     pluginLib = engineElem->Get<std::string>("filename", pluginLib).first;
   }
 
-  // 3. Engine from environment variable
-  if (pluginLib.empty())
+  // 3. Engine from the test-only environment variable
+  std::string testPluginLib;
+  if (common::env(this->dataPtr->testPluginEnv, testPluginLib) &&
+      !testPluginLib.empty())
   {
-    common::env(this->dataPtr->pluginEnv, pluginLib);
+    if (pluginLib.empty())
+    {
+      pluginLib = testPluginLib;
+    }
+    else if (pluginLib != testPluginLib)
+    {
+      gzmsg << "Ignoring [" << this->dataPtr->testPluginEnv << "="
+            << testPluginLib << "] because the server configuration or SDF "
+            << "chooses [" << pluginLib << "]" << std::endl;
+    }
   }
 
   // 4. Use DART by default
