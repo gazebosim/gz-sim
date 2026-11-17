@@ -210,13 +210,9 @@ void PosePublisher::Configure(const Entity &_entity,
     _sdf->Get<bool>("publish_nested_model_pose",
         this->dataPtr->publishNestedModelPose).first;
 
-  // for backward compatibility, publish_model_pose will be set to the
-  // same value as publish_nested_model_pose if it is not specified.
-  // todo(iche033) Remove backward compatibility and decouple model and
-  // nested model pose parameter value in gz-sim10
   this->dataPtr->publishModelPose =
     _sdf->Get<bool>("publish_model_pose",
-        this->dataPtr->publishNestedModelPose).first;
+        this->dataPtr->publishModelPose).first;
 
   this->dataPtr->publishVisualPose =
     _sdf->Get<bool>("publish_visual_pose",

@@ -48,12 +48,11 @@ namespace systems
   ///   This element is optional, and the default value is false.
   /// - `<publish_sensor_pose>`: Set to true to publish sensor pose. This
   ///   element is optional, and the default value is false.
-  /// - `<publish_model_pose>`: Set to true to publish model pose. This
-  ///   element is optional. If it is not set, it takes the value of
-  ///   `<publish_nested_model_pose>`.
-  /// - `<publish_nested_model_pose>`: Set to true to publish nested model
-  ///   pose. The pose of the model that contains this system is also published
-  ///   unless `<publish_model_pose>` is set to false. This element is
+  /// - `<publish_model_pose>`: Set to true to publish the pose of a
+  ///   top-level model, i.e. one that is not nested inside another model.
+  ///   This element is optional, and the default value is false.
+  /// - `<publish_nested_model_pose>`: Set to true to publish the poses of
+  ///   nested models, i.e. models inside another model. This element is
   ///   optional, and the default value is false.
   /// - `<use_pose_vector_msg>`: Set to true to publish a gz::msgs::Pose_V
   ///   message instead of multiple gz::msgs::Pose messages. This element is
