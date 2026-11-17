@@ -265,12 +265,10 @@ Rectangle {
         Layout.fillWidth: true
 
         Label {
-          text: !overlay.hasReport ? "" : overlay.report.softwareRenderer ?
-              "Render thread: software rasterizer" :
-              "Render thread: " + overlay.report.renderFrames + " frames"
+          text: !overlay.hasReport ? "" : overlay.report.renderThreadText
           color: overlay.mutedColor
           font.pixelSize: 11
-          elide: Text.ElideRight
+          wrapMode: Text.WordWrap
           Layout.fillWidth: true
         }
 
@@ -356,6 +354,27 @@ Rectangle {
           anchors.right: parent.right
           text: "GPU limits"
           color: overlay.mutedColor
+          font.pixelSize: 11
+        }
+      }
+
+      // Frames that no sensor needed, which the simulation still waits for
+      Rectangle {
+        visible: overlay.hasReport && overlay.report.forcedFramesNote !== ""
+        color: Qt.rgba(overlay.renderColor.r, overlay.renderColor.g,
+            overlay.renderColor.b, 0.15)
+        border.color: overlay.renderColor
+        radius: 4
+        implicitHeight: forcedNote.implicitHeight + 8
+        Layout.fillWidth: true
+        Layout.topMargin: 2
+
+        Label {
+          id: forcedNote
+          anchors.fill: parent
+          anchors.margins: 4
+          text: !overlay.hasReport ? "" : overlay.report.forcedFramesNote
+          wrapMode: Text.WrapAtWordBoundaryOrAnywhere
           font.pixelSize: 11
         }
       }

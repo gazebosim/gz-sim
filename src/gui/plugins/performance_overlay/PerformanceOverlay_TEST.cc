@@ -340,6 +340,55 @@ TEST(PerformanceOverlayData, SurvivesAnEmptyMessage)
 }
 
 /////////////////////////////////////////////////
+TEST(PerformanceOverlayData, CountsTheFramesAgainstTheSteps)
+{
+  const auto report = ParsePerformanceReport(physicsReport());
+  EXPECT_EQ("Render thread: 60 frames for 1550 steps",
+      report.RenderThreadText());
+  EXPECT_FALSE(report.framesForcedEveryStep);
+  EXPECT_EQ("", report.ForcedFramesNote());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceOverlayData, NamesWhoForcesFramesEveryStep)
+{
+  auto msg = physicsReport();
+  addData(msg, "iterations", "557");
+  addData(msg, "render_frames", "557");
+  addData(msg, "render_frames/sensors", "150");
+  addData(msg, "render_frames/forced", "407");
+  addData(msg, "render_frames/scene_only", "0");
+  addData(msg, "render/forced_every_step", "true");
+  addData(msg, "render/forced_by", "DopplerVelocityLogSystem");
+
+  const auto report = ParsePerformanceReport(msg);
+  EXPECT_EQ(407u, report.forcedFrames);
+  EXPECT_TRUE(report.framesForcedEveryStep);
+  EXPECT_EQ("Render thread: 557 frames for 557 steps",
+      report.RenderThreadText());
+  EXPECT_EQ("Frames forced every step by DopplerVelocityLogSystem: 407 of 557 "
+      "frames. The simulation waits for each frame.",
+      report.ForcedFramesNote());
+
+  // Systems that connected after being configured are not known by name
+  auto unnamed = physicsReport();
+  addData(unnamed, "render_frames/forced", "50");
+  addData(unnamed, "render/forced_every_step", "true");
+  EXPECT_EQ("Frames forced every step by render-event connections: 50 of 60 "
+      "frames. The simulation waits for each frame.",
+      ParsePerformanceReport(unnamed).ForcedFramesNote());
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceOverlayData, SoftwareRasterizerKeepsItsLine)
+{
+  auto msg = physicsReport();
+  addData(msg, "software_renderer", "true");
+  EXPECT_EQ("Render thread: software rasterizer",
+      ParsePerformanceReport(msg).RenderThreadText());
+}
+
+/////////////////////////////////////////////////
 class PerformanceOverlayGui : public InternalFixture<::testing::Test>
 {
 };

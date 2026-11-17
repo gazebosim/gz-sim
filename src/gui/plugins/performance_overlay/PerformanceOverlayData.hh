@@ -184,6 +184,17 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
     /// \brief Frames rendered in the report
     uint64_t renderFrames{0u};
 
+    /// \brief Frames drawn although no sensor was due
+    uint64_t forcedFrames{0u};
+
+    /// \brief True if the render thread drew on (nearly) every step, mostly
+    /// without any sensor due
+    bool framesForcedEveryStep{false};
+
+    /// \brief Systems connected to the render events, which force the frames,
+    /// separated by commas. Empty if they are not known.
+    std::string forcedBy;
+
     /// \brief Share of the wall time on physics
     double physics{0.0};
 
@@ -285,6 +296,32 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
             std::to_string(this->datalessSensors.size() - shown) + " more";
       }
       return detail;
+    }
+
+    /// \brief The frames that the render thread drew
+    /// \return Text to display
+    public: std::string RenderThreadText() const
+    {
+      if (this->softwareRenderer)
+        return "Render thread: software rasterizer";
+      std::string text = "Render thread: " +
+          std::to_string(this->renderFrames) + " frames";
+      if (this->iterations > 0u)
+        text += " for " + std::to_string(this->iterations) + " steps";
+      return text;
+    }
+
+    /// \brief Who makes the render thread draw on every step
+    /// \return Text to display, empty unless it does
+    public: std::string ForcedFramesNote() const
+    {
+      if (!this->framesForcedEveryStep)
+        return "";
+      return "Frames forced every step by " +
+          (this->forcedBy.empty() ? std::string("render-event connections") :
+           this->forcedBy) + ": " + std::to_string(this->forcedFrames) +
+          " of " + std::to_string(this->renderFrames) +
+          " frames. The simulation waits for each frame.";
     }
 
     /// \brief Share of the render thread blocked on the GPU
@@ -446,6 +483,12 @@ inline namespace GZ_SIM_VERSION_NAMESPACE
         report.iterations = std::strtoull(value.c_str(), nullptr, 10);
       else if (data.key() == "render_frames")
         report.renderFrames = std::strtoull(value.c_str(), nullptr, 10);
+      else if (data.key() == "render_frames/forced")
+        report.forcedFrames = std::strtoull(value.c_str(), nullptr, 10);
+      else if (data.key() == "render/forced_every_step")
+        report.framesForcedEveryStep = value == "true";
+      else if (data.key() == "render/forced_by")
+        report.forcedBy = value;
     }
 
     const std::map<std::string, double PerformanceOverlayReport::*> fields{

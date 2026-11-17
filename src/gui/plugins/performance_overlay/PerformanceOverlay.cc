@@ -75,6 +75,8 @@ QVariantMap toVariant(const PerformanceOverlayReport &_report)
   map["iterations"] = static_cast<qulonglong>(_report.iterations);
   map["renderFrames"] = static_cast<qulonglong>(_report.renderFrames);
   map["softwareRenderer"] = _report.softwareRenderer;
+  map["renderThreadText"] = QString::fromStdString(_report.RenderThreadText());
+  map["forcedFramesNote"] = QString::fromStdString(_report.ForcedFramesNote());
   map["physics"] = _report.physics;
   map["renderWait"] = _report.renderWait;
   map["otherSystems"] = _report.otherSystems;
