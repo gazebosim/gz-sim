@@ -39,7 +39,6 @@
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -51,27 +50,22 @@ class MaterialTest : public InternalFixture<::testing::Test>
     const gz::sim::ServerConfig &_serverConfig =
       gz::sim::ServerConfig())
   {
-    this->relay = std::make_unique<test::Relay>();
     this->server = std::make_unique<Server>(_serverConfig);
     using namespace std::chrono_literals;
     this->server->SetUpdatePeriod(0ns);
 
     EXPECT_FALSE(this->server->Running());
     EXPECT_FALSE(*this->server->Running(0));
-    // A pointer to the ecm. This will be valid once we run the mock system
-    relay->OnPreUpdate(
-        [this](const UpdateInfo &, EntityComponentManager &_ecm)
-        {
-          this->ecm = &_ecm;
-        });
 
-    this->server->AddSystem(this->relay->systemPtr);
     this->server->Run(true, 1, false);
-    if (nullptr == this->ecm)
+
+    this->ecmGuard = this->server->EcmScope();
+    if (!this->ecmGuard.Valid())
     {
       return ::testing::AssertionFailure()
         << "Failed to create EntityComponentManager";
     }
+    this->ecm = &*this->ecmGuard;
 
     this->creator =
         std::make_unique<SdfEntityCreator>(*this->ecm, this->dummyEventMgr);
@@ -99,8 +93,8 @@ class MaterialTest : public InternalFixture<::testing::Test>
         components::Model(), components::Name(_name)));
   }
 
-  public: std::unique_ptr<test::Relay> relay;
   public: std::unique_ptr<Server> server;
+  public: Server::EcmGuard ecmGuard;
   public: EntityComponentManager *ecm {nullptr};
   public: EventManager dummyEventMgr;
   public: std::unique_ptr<SdfEntityCreator> creator;

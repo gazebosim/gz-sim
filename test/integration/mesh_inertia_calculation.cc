@@ -44,7 +44,6 @@
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -96,21 +95,12 @@ void cylinderColladaMeshInertiaCalculation(
   // Start server and run.
   gz::sim::Server server(_serverConfig);
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm;
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(
-    [&](const UpdateInfo &, EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    }
-  );
-  server.AddSystem(testSystem.systemPtr);
-
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
-  ASSERT_NE(nullptr, ecm);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
   // Get link of collada cylinder
   gz::sim::Entity modelEntity = ecm->EntityByComponents(
@@ -186,21 +176,12 @@ void cylinderColladaMeshWithNonCenterOriginInertiaCalculation(
   // Start server and run.
   gz::sim::Server server(_serverConfig);
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm;
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(
-    [&](const UpdateInfo &, EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    }
-  );
-  server.AddSystem(testSystem.systemPtr);
-
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
-  ASSERT_NE(nullptr, ecm);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
   // Get link of collada cylinder
   gz::sim::Entity modelEntity = ecm->EntityByComponents(
@@ -282,21 +263,12 @@ void cylinderColladaOptimizedMeshInertiaCalculation(
   // Start server and run.
   gz::sim::Server server(_serverConfig);
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm;
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(
-    [&](const UpdateInfo &, EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    }
-  );
-  server.AddSystem(testSystem.systemPtr);
-
   ASSERT_FALSE(server.Running());
   ASSERT_FALSE(*server.Running(0));
   ASSERT_TRUE(server.Run(true, kIter, false));
-  ASSERT_NE(nullptr, ecm);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
   // Get link of collada cylinder
   gz::sim::Entity modelEntity = ecm->EntityByComponents(
