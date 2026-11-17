@@ -26,6 +26,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -66,11 +67,12 @@ class Subscription
     // not wait for a callback that is already running, so capturing `this`
     // would let such a callback write to a destroyed Subscription.
     auto callbackState = this->state;
-    this->subscriber = _node.CreateSubscriber(_topicName,
+    std::function<void(const MessageT &)> callback =
         [callbackState](const MessageT &_message)
         {
           OnMessage(*callbackState, _message);
-        });
+        };
+    this->subscriber = _node.CreateSubscriber(_topicName, callback);
     if (!this->subscriber)
     {
       throw std::runtime_error("Cannot subscribe to " + _topicName);
