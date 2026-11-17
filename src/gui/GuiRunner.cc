@@ -263,12 +263,8 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
-<<<<<<< HEAD
-                            Q_ARG(msgs::SerializedStepMap, _res));
-=======
-                            Q_ARG(gz::msgs::SerializedStepMap, _res),
+                            Q_ARG(msgs::SerializedStepMap, _res),
                             Q_ARG(bool, true));
->>>>>>> 3d7359ad (fix: Fixed data race for UI updates (#3751))
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
@@ -289,12 +285,8 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
-<<<<<<< HEAD
-                            Q_ARG(msgs::SerializedStepMap, _msg));
-=======
-                            Q_ARG(gz::msgs::SerializedStepMap, _msg),
+                            Q_ARG(msgs::SerializedStepMap, _msg),
                             Q_ARG(bool, false));
->>>>>>> 3d7359ad (fix: Fixed data race for UI updates (#3751))
 }
 
 /////////////////////////////////////////////////
