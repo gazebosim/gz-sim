@@ -28,6 +28,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <functional>
 #include <limits>
 #include <map>
@@ -115,6 +116,19 @@ struct Verdict
 
   /// \brief Why each sensor without data had none, by sensor name
   std::map<std::string, std::string> dataless;
+
+  /// \brief All of the header data, by key
+  std::map<std::string, std::string> data;
+
+  /// \brief Get a number from the header data
+  /// \param[in] _key Key of the data
+  /// \return The number, 0 if missing
+  uint64_t Count(const std::string &_key) const
+  {
+    const auto it = this->data.find(_key);
+    return it == this->data.end() ? 0u :
+        std::strtoull(it->second.c_str(), nullptr, 10);
+  }
 };
 
 /// \brief Collects reports from the performance topic.
@@ -194,6 +208,7 @@ class ReportListener
     this->last.limited = data["limited"] == "true";
     this->last.rtf = _msg.real_time_factor();
     this->last.dataless = std::move(dataless);
+    this->last.data = std::move(data);
     this->minRtf = std::min(this->minRtf, this->last.rtf);
     ++this->count;
   }
@@ -247,6 +262,42 @@ ServerConfig sensorsConfig()
         <sensor name="imu" type="imu">
           <update_rate>100</update_rate>
           <topic>/performance_test/imu</topic>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>)");
+  return config;
+}
+
+/// \brief Get a configuration that loads a world with a camera at 5 Hz and
+/// steps of 10 ms, like an underwater vehicle with a camera.
+/// \param[in] _plugins Extra world plugins
+ServerConfig cameraConfig(const std::string &_plugins)
+{
+  ServerConfig config;
+  config.SetSdfString(R"(<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="default">
+    <physics name="10ms" type="ode">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-sensors-system"
+        name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>)" + _plugins + R"(
+    <model name="bot">
+      <static>true</static>
+      <link name="link">
+        <sensor name="camera" type="camera">
+          <update_rate>5</update_rate>
+          <topic>/performance_test/forced/image</topic>
+          <camera>
+            <horizontal_fov>1.0</horizontal_fov>
+            <image><width>64</width><height>48</height></image>
+            <clip><near>0.1</near><far>10</far></clip>
+          </camera>
         </sensor>
       </link>
     </model>
@@ -549,4 +600,76 @@ TEST_F(PerformanceMonitorTest,
   EXPECT_LT(0, images.load());
   EXPECT_TRUE(verdict.dataless.empty());
   server.Stop();
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief Run a world with the camera subscribed and get its second report.
+/// \param[in] _config The world
+/// \return The report
+Verdict cameraVerdict(const ServerConfig &_config)
+{
+  common::setenv("GZ_SIM_PERFORMANCE_MONITOR", "1");
+  ReportListener listener;
+
+  transport::Node node;
+  std::atomic<int> images{0};
+  std::function<void(const msgs::Image &)> onImage =
+      [&images](const msgs::Image &) { ++images; };
+  EXPECT_TRUE(node.Subscribe("/performance_test/forced/image", onImage));
+
+  Server server(_config);
+  EXPECT_TRUE(server.Run(false, 0, false));
+
+  // The first report can start before the camera has subscribers
+  const auto end = std::chrono::steady_clock::now() + 60s;
+  while (listener.Count() < 2 && std::chrono::steady_clock::now() < end)
+    std::this_thread::sleep_for(100ms);
+  Verdict verdict;
+  EXPECT_LE(2, listener.Count());
+  EXPECT_TRUE(listener.Wait(1s, verdict));
+  server.Stop();
+  EXPECT_LT(0, images.load());
+  return verdict;
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+// Rendering sensors make the render thread draw a frame only when they are
+// due.
+TEST_F(PerformanceMonitorTest,
+    GZ_UTILS_TEST_DISABLED_ON_MAC(SensorFramesAreNotForced))
+{
+  Verdict verdict = cameraVerdict(cameraConfig(""));
+  const uint64_t steps = verdict.Count("iterations");
+  const uint64_t frames = verdict.Count("render_frames");
+  ASSERT_LT(50u, steps);
+  EXPECT_LT(0u, frames);
+  // 5 frames per second, at 100 steps per second
+  EXPECT_LT(frames, steps / 4u);
+  EXPECT_EQ(0u, verdict.Count("render_frames/forced"));
+  EXPECT_EQ("false", verdict.data["render/forced_every_step"]);
+  EXPECT_EQ(0u, verdict.data.count("render/forced_by"));
+}
+
+/////////////////////////////////////////////////
+// A system connected to the render events makes the render thread draw a frame
+// on every step, which the simulation waits for. The DVL system is one: it
+// connects whether or not there are DVL sensors.
+TEST_F(PerformanceMonitorTest,
+    GZ_UTILS_TEST_DISABLED_ON_MAC(FramesForcedEveryStepAreReported))
+{
+  Verdict verdict = cameraVerdict(cameraConfig(R"(
+    <plugin filename="gz-sim-dvl-system"
+        name="gz::sim::systems::DopplerVelocityLogSystem"/>)"));
+  const uint64_t steps = verdict.Count("iterations");
+  const uint64_t frames = verdict.Count("render_frames");
+  ASSERT_LT(50u, steps);
+  EXPECT_GE(frames * 10u, steps * 9u) << frames << " frames, " << steps
+      << " steps";
+  EXPECT_LT(verdict.Count("render_frames/sensors"),
+      verdict.Count("render_frames/forced"));
+  EXPECT_EQ("true", verdict.data["render/forced_every_step"]);
+  EXPECT_EQ("DopplerVelocityLogSystem", verdict.data["render/forced_by"]);
 }

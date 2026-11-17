@@ -26,6 +26,8 @@
 #include "SystemInternal.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"
 #include "gz/sim/Conversions.hh"
+#include "gz/sim/EventManager.hh"
+#include "gz/sim/rendering/Events.hh"
 #include "gz/sim/System.hh"
 #include "gz/sim/Util.hh"
 #include "SystemManager.hh"
@@ -294,9 +296,22 @@ void SystemManager::AddSystemImpl(
   // Configure the system, if necessary
   if (_system.configure && this->entityCompMgr && this->eventMgr)
   {
+    // Note who connects to the render events, which make the Sensors system
+    // draw a frame on every step. The performance monitor names them.
+    const auto renderConnections = [this]()
+    {
+      return this->eventMgr->ConnectionCount<events::PreRender>() +
+          this->eventMgr->ConnectionCount<events::Render>() +
+          this->eventMgr->ConnectionCount<events::PostRender>();
+    };
+    const unsigned int renderConnectionsBefore = renderConnections();
+
     _system.configure->Configure(_system.parentEntity, _sdf,
                                  *this->entityCompMgr,
                                  *this->eventMgr);
+
+    _system.connectsRenderEvents =
+        renderConnections() > renderConnectionsBefore;
   }
 
   // Configure the system parameters, if necessary

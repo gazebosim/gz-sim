@@ -136,6 +136,12 @@ namespace gz
       /// Useful for if a system needs to be reconfigured at runtime
       public: std::shared_ptr<const sdf::Element> configureSdf = nullptr;
 
+      /// \brief True if the system connected to the PreRender, Render or
+      /// PostRender events in `Configure`. While anything is connected to
+      /// them the Sensors system draws a frame on every simulation step.
+      /// Connections made later are not seen.
+      public: bool connectsRenderEvents = false;
+
       /// \brief Vector of queries and callbacks
       public: std::vector<EntityQueryCallback> updates;
     };

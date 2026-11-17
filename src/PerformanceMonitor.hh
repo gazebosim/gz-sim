@@ -222,6 +222,23 @@ namespace gz
     using PerformanceContactSamples =
         std::vector<std::unordered_map<Entity, unsigned int>>;
 
+    /// \brief Passes of the render thread by why they drew, see
+    /// events::RenderFrameKind.
+    struct PerformanceRenderFrameKinds
+    {
+      /// \brief Passes with sensors due
+      uint64_t sensors{0};
+
+      /// \brief Passes that drew without any sensor due
+      uint64_t forced{0};
+
+      /// \brief Passes that only updated the scene
+      uint64_t sceneOnly{0};
+
+      /// \brief Wall time of the forced passes
+      std::chrono::steady_clock::duration forcedTotal{0};
+    };
+
     /// \brief Everything measured in one report interval.
     struct PerformanceWindow
     {
@@ -254,6 +271,13 @@ namespace gz
 
       /// \brief Number of render thread passes
       uint64_t renderFrames{0};
+
+      /// \brief The render thread passes by kind
+      PerformanceRenderFrameKinds frameKinds;
+
+      /// \brief Short names of the systems that connected to the render
+      /// events when they were configured, which forces a frame every step
+      std::vector<std::string> renderEventSystems;
 
       /// \brief Systems that were updated
       std::vector<PerformanceSystemSample> systems;
@@ -392,6 +416,19 @@ namespace gz
 
       /// \brief Number of render thread passes
       uint64_t renderFrames{0};
+
+      /// \brief The render thread passes by kind
+      PerformanceRenderFrameKinds frameKinds;
+
+      /// \brief True if the render thread drew on (nearly) every step, mostly
+      /// without any sensor due. The simulation thread waits for each frame,
+      /// so the step rate can't exceed the frame rate.
+      bool framesForcedEveryStep{false};
+
+      /// \brief Short names of the systems connected to the render events,
+      /// which is what forces the frames. Empty if none is known: they may
+      /// have connected after being configured.
+      std::vector<std::string> forcedBy;
 
       /// \brief Systems, biggest first
       std::vector<PerformanceSystemSample> systems;
@@ -657,6 +694,9 @@ namespace gz
 
       /// \brief Number of render thread passes
       private: uint64_t renderFrames{0};
+
+      /// \brief The render thread passes by kind
+      private: PerformanceRenderFrameKinds frameKinds;
 
       /// \brief Contact samples of the current interval
       private: PerformanceContactSamples contactSamples;

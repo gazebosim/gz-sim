@@ -39,7 +39,9 @@
 #include <sdf/Sensor.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/EventManager.hh"
 #include "gz/sim/SystemLoader.hh"
+#include "gz/sim/rendering/Events.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Joint.hh"
@@ -289,6 +291,185 @@ TEST(PerformanceMonitorTest, SensorsSystemComputingIsCpu)
   EXPECT_EQ(PerformanceResource::kCpu, report.resource);
   EXPECT_EQ(PerformanceLocation::kRendering, report.location);
   EXPECT_EQ("scene update", report.culprit);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief A window limited by a render thread that drew on every step,
+/// mostly without any sensor due: 500 frames for the camera and 4500 forced
+/// ones, which cost most of its time in pre and post render.
+PerformanceWindow forcedFramesWindow()
+{
+  PerformanceWindow window = slowWindow();
+  window.systems.push_back(system(kSensors, 8s));
+  window.renderFrames = 5000;
+  window.frameKinds.sensors = 500;
+  window.frameKinds.forced = 4500;
+  window.frameKinds.forcedTotal = 7s;
+  window.render = renderTimes(1s, 100ms);
+  window.render.preRender = 4s;
+  window.render.postRender = 3s;
+  window.render.simThreadWait = 8s;
+  window.sensors.push_back(sensor("auv::l::cam", "auv", 1s, 100ms));
+  window.renderEventSystems = {"DopplerVelocityLogSystem"};
+
+  PerformanceModelSample auv;
+  auv.name = "auv";
+  auv.visuals = 50u;
+  PerformanceModelSample ground;
+  ground.name = "ground";
+  ground.visuals = 1u;
+  window.models = {auv, ground};
+  return window;
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, FramesForcedEveryStepNameWhoForcesThem)
+{
+  const auto report = AnalyzePerformance(forcedFramesWindow());
+  EXPECT_TRUE(report.framesForcedEveryStep);
+  EXPECT_EQ(std::vector<std::string>{"DopplerVelocityLogSystem"},
+      report.forcedBy);
+  EXPECT_EQ(PerformanceResource::kCpu, report.resource);
+  EXPECT_EQ(PerformanceLocation::kRendering, report.location);
+  EXPECT_EQ("frames forced every step by DopplerVelocityLogSystem",
+      report.culprit);
+  // The model loads are still estimated
+  ASSERT_FALSE(report.models.empty());
+  EXPECT_EQ("auv", report.models.front().name);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, FramesForcedByAnUnknownSystem)
+{
+  PerformanceWindow window = forcedFramesWindow();
+  window.renderEventSystems.clear();
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_TRUE(report.framesForcedEveryStep);
+  EXPECT_TRUE(report.forcedBy.empty());
+  EXPECT_EQ("frames forced every step by render-event connections",
+      report.culprit);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, SensorFramesOnEveryStepKeepTheVerdict)
+{
+  // The same frames, all of them for sensors due on every step
+  PerformanceWindow window = forcedFramesWindow();
+  window.frameKinds = {};
+  window.frameKinds.sensors = 5000;
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_FALSE(report.framesForcedEveryStep);
+  EXPECT_TRUE(report.forcedBy.empty());
+  EXPECT_EQ(PerformanceResource::kCpu, report.resource);
+  EXPECT_EQ("scene update, mostly model auv", report.culprit);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, ForcedFramesOnFewStepsAreNoFinding)
+{
+  // One step in five draws, mostly forced
+  PerformanceWindow window = forcedFramesWindow();
+  window.renderFrames = 1000;
+  window.frameKinds.sensors = 100;
+  window.frameKinds.forced = 900;
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_FALSE(report.framesForcedEveryStep);
+  EXPECT_TRUE(report.forcedBy.empty());
+  EXPECT_EQ("scene update, mostly model auv", report.culprit);
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, CheapForcedFramesAreNotTheCulprit)
+{
+  // Forced on every step, but the camera takes most of the render thread
+  PerformanceWindow window = forcedFramesWindow();
+  window.frameKinds.forcedTotal = 1s;
+  window.render.sensors = 6s;
+  window.render.preRender = 1s;
+  window.render.postRender = 1s;
+  window.sensors = {sensor("auv::l::cam", "auv", 6s, 100ms)};
+
+  const auto report = AnalyzePerformance(window);
+  EXPECT_TRUE(report.framesForcedEveryStep);
+  EXPECT_EQ("auv::l::cam", report.culprit);
+  const auto text = report.ToString();
+  EXPECT_NE(std::string::npos, text.find(
+      "Frames forced every step by DopplerVelocityLogSystem")) << text;
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, TextShowsTheFramesForcedEveryStep)
+{
+  const auto text = AnalyzePerformance(forcedFramesWindow()).ToString();
+  EXPECT_NE(std::string::npos, text.find(
+      "(5000 frames for 5000 steps: sensors 500, forced 4500)")) << text;
+  EXPECT_NE(std::string::npos, text.find(
+      "Frames forced every step by DopplerVelocityLogSystem: 4500 of 5000 "
+      "frames, 1.56 ms each (88% of the render thread)"))
+      << text;
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, TextLeavesOutTheKindsOfSensorFrames)
+{
+  PerformanceWindow window = forcedFramesWindow();
+  window.frameKinds = {};
+  window.frameKinds.sensors = 5000;
+
+  const auto text = AnalyzePerformance(window).ToString();
+  EXPECT_NE(std::string::npos, text.find("(5000 frames for 5000 steps)"))
+      << text;
+  EXPECT_EQ(std::string::npos, text.find("forced")) << text;
+}
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, MessageCarriesTheFramesForcedEveryStep)
+{
+  const auto msg = AnalyzePerformance(forcedFramesWindow()).ToMsg();
+
+  std::map<std::string, std::string> data;
+  for (const auto &entry : msg.header().data())
+  {
+    ASSERT_EQ(1, entry.value_size());
+    data[entry.key()] = entry.value(0);
+  }
+  EXPECT_EQ("5000", data["render_frames"]);
+  EXPECT_EQ("500", data["render_frames/sensors"]);
+  EXPECT_EQ("4500", data["render_frames/forced"]);
+  EXPECT_EQ("0", data["render_frames/scene_only"]);
+  EXPECT_EQ("true", data["render/forced_every_step"]);
+  EXPECT_EQ("DopplerVelocityLogSystem", data["render/forced_by"]);
+
+  bool forcedTotal = false;
+  for (const auto &time : msg.time())
+  {
+    if (time.name() == "render/forced_total")
+    {
+      forcedTotal = true;
+      EXPECT_EQ(7, time.elapsed().sec());
+    }
+  }
+  EXPECT_TRUE(forcedTotal);
+
+  // Without the finding nobody is named
+  PerformanceWindow window = forcedFramesWindow();
+  window.frameKinds = {};
+  window.frameKinds.sensors = 5000;
+  const auto plain = AnalyzePerformance(window).ToMsg();
+  for (const auto &entry : plain.header().data())
+  {
+    EXPECT_NE("render/forced_by", entry.key());
+    if (entry.key() == "render/forced_every_step")
+    {
+      EXPECT_EQ("false", entry.value(0));
+    }
+  }
 }
 
 /////////////////////////////////////////////////
@@ -1440,4 +1621,93 @@ TEST(PerformanceMonitorTest, SensorWithoutSubscribersIsReported)
   EXPECT_EQ("bot", report.datalessSensors[0].model);
   EXPECT_EQ(PerformanceDatalessReason::kNoSubscribers,
       report.datalessSensors[0].reason);
+}
+
+/////////////////////////////////////////////////
+namespace
+{
+/// \brief A system that connects to the Render event when it is configured,
+/// which makes the Sensors system draw a frame on every step.
+class RenderEventSystem : public System, public ISystemConfigure
+{
+  // Documentation inherited
+  public: void Configure(const Entity &,
+              const std::shared_ptr<const sdf::Element> &,
+              EntityComponentManager &, EventManager &_eventMgr) override
+  {
+    this->renderConn = _eventMgr.Connect<events::Render>([]() {});
+  }
+
+  /// \brief Connection to the Render event
+  private: common::ConnectionPtr renderConn;
+};
+
+/// \brief A system that is configured but doesn't connect to any event.
+class QuietSystem : public System, public ISystemConfigure
+{
+  // Documentation inherited
+  public: void Configure(const Entity &,
+              const std::shared_ptr<const sdf::Element> &,
+              EntityComponentManager &, EventManager &) override
+  {
+  }
+};
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST(PerformanceMonitorTest, SystemsConnectedToTheRenderEventsAreNamed)
+{
+  const auto start = std::chrono::steady_clock::now();
+  auto monitor = PerformanceMonitor::Create(1h, false);
+  ASSERT_NE(nullptr, monitor);
+  PacedLoop loop(*monitor, start);
+  for (int i = 0; i < 2100; ++i)
+    loop.Step(0ms);
+
+  EntityComponentManager ecm;
+  EventManager eventMgr;
+  SystemManager systemMgr(std::make_shared<SystemLoader>(), &ecm, &eventMgr);
+  systemMgr.AddSystem(std::make_shared<QuietSystem>(), kNullEntity, nullptr);
+  systemMgr.AddSystem(std::make_shared<RenderEventSystem>(), kNullEntity,
+      nullptr);
+  systemMgr.ActivatePendingSystems();
+  ASSERT_EQ(2u, systemMgr.Systems().size());
+  EXPECT_FALSE(systemMgr.Systems()[0].connectsRenderEvents);
+  EXPECT_TRUE(systemMgr.Systems()[1].connectsRenderEvents);
+  monitor->TakeReport(systemMgr, ecm);
+
+  // A frame on every step, one in ten for a sensor
+  events::RenderFrameTimes sensorFrame;
+  sensorFrame.kind = events::RenderFrameKind::kSensors;
+  sensorFrame.sensors = 3ms;
+  events::RenderFrameTimes forcedFrame;
+  forcedFrame.kind = events::RenderFrameKind::kForced;
+  forcedFrame.preRender = 1ms;
+  forcedFrame.postRender = 1ms;
+  events::RenderFrameTimes sceneOnlyFrame;
+  sceneOnlyFrame.kind = events::RenderFrameKind::kSceneOnly;
+  sceneOnlyFrame.sceneUpdate = 1ms;
+  for (int i = 0; i < 100; ++i)
+  {
+    loop.Step(0ms);
+    monitor->OnRenderFrame(i % 10 == 0 ? sensorFrame : forcedFrame);
+  }
+  monitor->OnRenderFrame(sceneOnlyFrame);
+
+  const auto report = monitor->TakeReport(systemMgr, ecm);
+  EXPECT_EQ(100u, report.iterations);
+  EXPECT_EQ(101u, report.renderFrames);
+  EXPECT_EQ(10u, report.frameKinds.sensors);
+  EXPECT_EQ(90u, report.frameKinds.forced);
+  EXPECT_EQ(1u, report.frameKinds.sceneOnly);
+  EXPECT_EQ(180ms, report.frameKinds.forcedTotal);
+  EXPECT_TRUE(report.framesForcedEveryStep);
+  // Systems added in-process have no name
+  EXPECT_EQ(std::vector<std::string>{"unnamed system"}, report.forcedBy);
+
+  // The next interval starts from zero
+  loop.Step(0ms);
+  const auto next = monitor->TakeReport(systemMgr, ecm);
+  EXPECT_EQ(0u, next.frameKinds.forced);
+  EXPECT_FALSE(next.framesForcedEveryStep);
 }

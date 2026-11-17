@@ -39,6 +39,21 @@ namespace gz
 
     namespace events
     {
+      /// \brief Why the render thread of the Sensors system drew a frame.
+      enum class RenderFrameKind
+      {
+        /// \brief Some sensors of the Sensors system were due or triggered.
+        kSensors,
+
+        /// \brief No sensor was due, but the frame was drawn anyway: a system
+        /// is connected to the PreRender, Render or PostRender events, sensors
+        /// were being created, or ForceRender was emitted.
+        kForced,
+
+        /// \brief Nothing was drawn, only the rendering scene was updated.
+        kSceneOnly
+      };
+
       /// \brief Wall time of one pass of the render thread of the Sensors
       /// system. All fields except for gpuWait are consecutive stages.
       struct RenderFrameTimes
@@ -67,6 +82,9 @@ namespace gz
         /// \brief True if the render engine is running on a software
         /// rasterizer, in which case GPU waits are really CPU work.
         bool softwareRenderer{false};
+
+        /// \brief Why the pass drew a frame, if it did
+        RenderFrameKind kind{RenderFrameKind::kSensors};
       };
 
       /// \brief Emitted from the render thread after each pass that updated

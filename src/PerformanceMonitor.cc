@@ -26,8 +26,10 @@
 #include <iomanip>
 #include <map>
 #include <sstream>
+#include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
 #include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
@@ -82,6 +84,10 @@ constexpr double kGpuLimitedRatio = 0.65;
 /// \brief Fraction of the render thread time blocked on the GPU below which
 /// the CPU is the limit.
 constexpr double kCpuLimitedRatio = 0.35;
+
+/// \brief The render thread draws on every step if it draws at least this
+/// fraction of the steps. A pass can draw a frame only after a step.
+constexpr double kEveryStepFrameRatio = 0.9;
 
 /// \brief CPU time is measured only once in this many iterations, since
 /// reading it is a system call. It is a prime number so that it doesn't alias
@@ -266,6 +272,20 @@ std::string shortSystemName(const std::string &_name)
 {
   const auto pos = _name.rfind("::");
   return pos == std::string::npos ? _name : _name.substr(pos + 2);
+}
+
+/// \brief Name what forces the render thread to draw on every step.
+/// \param[in] _systems Short names of the systems connected to the render
+/// events
+/// \return Comma separated names, or a generic description if none is known
+std::string forcedByText(const std::vector<std::string> &_systems)
+{
+  if (_systems.empty())
+    return "render-event connections";
+  std::string text;
+  for (const auto &name : _systems)
+    text += (text.empty() ? "" : ", ") + name;
+  return text;
 }
 
 /// \brief Add a time to a message.
@@ -526,6 +546,15 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
   report.rtf = ratio(_window.simTime, _window.wall);
   report.render = _window.render;
   report.renderFrames = _window.renderFrames;
+  report.frameKinds = _window.frameKinds;
+  // A sensor that is due every step draws every step too, which is expected.
+  // Frames that no sensor needed are not.
+  report.framesForcedEveryStep = _window.iterations > 0u &&
+      static_cast<double>(_window.renderFrames) >=
+        kEveryStepFrameRatio * static_cast<double>(_window.iterations) &&
+      2u * _window.frameKinds.forced > _window.renderFrames;
+  if (report.framesForcedEveryStep)
+    report.forcedBy = _window.renderEventSystems;
   report.limited = _window.desiredRtf <= 0.0 ||
       report.rtf < _window.desiredRtf * kLimitedRtfRatio;
 
@@ -795,6 +824,14 @@ PerformanceReport gz::sim::AnalyzePerformance(const PerformanceWindow &_window)
         report.culprit = report.sensors.front().name;
       }
 
+      // Most of the render thread time goes to frames that no sensor needed.
+      if (report.framesForcedEveryStep &&
+          2 * _window.frameKinds.forcedTotal > renderTime)
+      {
+        report.culprit = "frames forced every step by " +
+            forcedByText(report.forcedBy);
+      }
+
       // Not waiting for the render thread at all, the time goes to copying
       // the entity changes for it in the simulation thread.
       if (sceneCopy > report.renderWait)
@@ -994,7 +1031,17 @@ std::string PerformanceReport::ToString() const
     const double frames = static_cast<double>(this->renderFrames);
     const Duration total = renderTotal(this->render);
     out << "  Render thread " << ms(total) / frames << " ms/frame ("
-        << this->renderFrames << " frames): GPU wait "
+        << this->renderFrames << " frames for " << this->iterations
+        << " steps";
+    // Frames are normally drawn for the sensors, say so only otherwise.
+    if (this->frameKinds.forced > 0u || this->frameKinds.sceneOnly > 0u)
+    {
+      out << ": sensors " << this->frameKinds.sensors << ", forced "
+          << this->frameKinds.forced;
+      if (this->frameKinds.sceneOnly > 0u)
+        out << ", scene only " << this->frameKinds.sceneOnly;
+    }
+    out << "): GPU wait "
         << ms(this->render.gpuWait) / frames << " ms ("
         << static_cast<int>(100.0 * ratio(this->render.gpuWait, total) + 0.5)
         << "%), scene update " << ms(this->render.sceneUpdate) / frames
@@ -1002,6 +1049,18 @@ std::string PerformanceReport::ToString() const
         << " ms, sensors " << ms(this->render.sensors) / frames
         << " ms, post render " << ms(this->render.postRender) / frames
         << " ms\n";
+  }
+
+  if (this->framesForcedEveryStep)
+  {
+    const double forced = static_cast<double>(this->frameKinds.forced);
+    out << "  Frames forced every step by " << forcedByText(this->forcedBy)
+        << ": " << this->frameKinds.forced << " of " << this->renderFrames
+        << " frames, " << ms(this->frameKinds.forcedTotal) /
+          forced << " ms each ("
+        << static_cast<int>(100.0 * ratio(this->frameKinds.forcedTotal,
+              renderTotal(this->render)) + 0.5)
+        << "% of the render thread). The simulation waits for each frame.\n";
   }
 
   // The sensors that produced no data follow the others.
@@ -1089,6 +1148,15 @@ msgs::Diagnostics PerformanceReport::ToMsg() const
   addData(msg, "desired_rtf", std::to_string(this->desiredRtf));
   addData(msg, "iterations", std::to_string(this->iterations));
   addData(msg, "render_frames", std::to_string(this->renderFrames));
+  addData(msg, "render_frames/sensors",
+      std::to_string(this->frameKinds.sensors));
+  addData(msg, "render_frames/forced", std::to_string(this->frameKinds.forced));
+  addData(msg, "render_frames/scene_only",
+      std::to_string(this->frameKinds.sceneOnly));
+  addData(msg, "render/forced_every_step",
+      this->framesForcedEveryStep ? "true" : "false");
+  if (!this->forcedBy.empty())
+    addData(msg, "render/forced_by", forcedByText(this->forcedBy));
   addData(msg, "software_renderer",
       this->render.softwareRenderer ? "true" : "false");
 
@@ -1111,6 +1179,8 @@ msgs::Diagnostics PerformanceReport::ToMsg() const
   addTime(msg, "render/pre_render", this->render.preRender, this->wall);
   addTime(msg, "render/sensors", this->render.sensors, this->wall);
   addTime(msg, "render/post_render", this->render.postRender, this->wall);
+  addTime(msg, "render/forced_total", this->frameKinds.forcedTotal,
+      this->wall);
 
   for (const auto &sensor : this->sensors)
   {
@@ -1263,6 +1333,19 @@ void PerformanceMonitor::OnRenderFrame(const events::RenderFrameTimes &_times)
   this->render.simThreadWait += _times.simThreadWait;
   this->render.softwareRenderer = _times.softwareRenderer;
   ++this->renderFrames;
+  if (_times.kind == events::RenderFrameKind::kForced)
+  {
+    ++this->frameKinds.forced;
+    this->frameKinds.forcedTotal += renderTotal(_times);
+  }
+  else if (_times.kind == events::RenderFrameKind::kSceneOnly)
+  {
+    ++this->frameKinds.sceneOnly;
+  }
+  else
+  {
+    ++this->frameKinds.sensors;
+  }
 }
 
 //////////////////////////////////////////////////
@@ -1283,6 +1366,7 @@ void PerformanceMonitor::Restart()
     this->lateLoop = Duration::zero();
     this->render = {};
     this->renderFrames = 0u;
+    this->frameKinds = {};
     this->contactSamples.clear();
   }
   sensors::TakeSensorTimings();
@@ -1410,6 +1494,7 @@ PerformanceReport PerformanceMonitor::TakeReport(
     window.lateLoop = std::exchange(this->lateLoop, Duration::zero());
     window.render = std::exchange(this->render, {});
     window.renderFrames = std::exchange(this->renderFrames, 0u);
+    window.frameKinds = std::exchange(this->frameKinds, {});
     contacts = std::exchange(this->contactSamples, {});
   }
   auto sensorTimings = sensors::TakeSensorTimings();
@@ -1418,6 +1503,20 @@ PerformanceReport PerformanceMonitor::TakeReport(
   // One system may implement several phases through different interfaces.
   for (const auto &system : _systemMgr.Systems())
   {
+    if (system.connectsRenderEvents)
+    {
+      // Systems added in-process have no name.
+      std::string name = !system.name.empty() ?
+          shortSystemName(system.name) :
+          !system.fname.empty() ? system.fname : "unnamed system";
+      if (std::find(window.renderEventSystems.begin(),
+            window.renderEventSystems.end(), name) ==
+          window.renderEventSystems.end())
+      {
+        window.renderEventSystems.push_back(std::move(name));
+      }
+    }
+
     PerformanceSystemSample sample;
     sample.name = system.name.empty() ? "unnamed system" : system.name;
     sample.model = topLevelModelName(system.parentEntity, _ecm);

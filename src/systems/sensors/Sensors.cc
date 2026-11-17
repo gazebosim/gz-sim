@@ -196,6 +196,12 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Flag to signal if a rendering update must be done
   public: std::atomic<bool> forceUpdate { false };
 
+  /// \brief True if the pending rendering update is for sensors that are due
+  /// or triggered. Only used to tell the performance monitor why a frame was
+  /// drawn: when woken up for the render events, activeSensors holds the
+  /// sensors that will be due next, not now.
+  public: std::atomic<bool> sensorsDue { false };
+
   /// \brief Nanoseconds that PostUpdate has been blocked waiting for the
   /// render thread since the last render pass. Only used while the performance
   /// is being monitored.
@@ -461,7 +467,15 @@ void SensorsPrivate::RunOnce()
     activeSensorsEmpty = this->activeSensors.empty();
   }
 
-  if (!activeSensorsEmpty || this->forceUpdate)
+  const bool forced = this->forceUpdate;
+  if (activeSensorsEmpty && !forced)
+    frameTimes.kind = events::RenderFrameKind::kSceneOnly;
+  else if (this->sensorsDue)
+    frameTimes.kind = events::RenderFrameKind::kSensors;
+  else
+    frameTimes.kind = events::RenderFrameKind::kForced;
+
+  if (!activeSensorsEmpty || forced)
   {
     // disable sensors that are out of battery or re-enable sensors that are
     // being charged
@@ -1073,6 +1087,10 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     std::unordered_set<sensors::SensorId> sensorsWithPendingTriggers =
         this->dataPtr->SensorsWithPendingTrigger();
 
+    const bool sensorsDue =
+        this->dataPtr->nextUpdateTime <= _info.simTime ||
+        !sensorsWithPendingTriggers.empty();
+
     // notify the render thread if updates are available
     if (hasRenderConnections ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
@@ -1114,6 +1132,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->forceUpdate =
           (this->dataPtr->renderUtil.PendingSensors() > 0) ||
           hasRenderConnections;
+      this->dataPtr->sensorsDue = sensorsDue;
 
       {
         std::unique_lock<std::mutex> timeLock(this->dataPtr->renderUtilMutex);

@@ -37,7 +37,7 @@ as `gz.msgs.Diagnostics` on `/world/<world name>/performance/report`.
 Performance report, last 5.0 s, 2417 steps: RTF 0.48 (target 1.00)
   Bottleneck: GPU, in rendering: big_cam::link::camera
   Step time 2.05 ms: rendering wait 1.74 ms (85%), physics 0.05 ms (2%), ...
-  Render thread 8.12 ms/frame (1201 frames): GPU wait 7.32 ms (90%), ...
+  Render thread 8.12 ms/frame (1201 frames for 2417 steps): GPU wait 7.32 ms (90%), ...
   Sensors, slowest first:
     big_cam::link::camera: 8.01 ms/update x 1201 (outside GPU wait 0.71 ms, GPU wait 7.30 ms)
   Models, biggest load first (physics and scene are estimated):
@@ -85,6 +85,48 @@ The message has one header entry per sensor without data, with the key
 `dataless_sensor/<sensor name>` and the value `no_subscribers`, `info_only` or
 `not_updated`. The sensors of the systems in Gazebo report why they produced
 no data. A sensor updated by another plugin is listed only when it was updated.
+
+### Frames forced on every step
+
+The render thread normally draws a frame only when a rendering sensor is due.
+While any system is connected to the `PreRender`, `Render` or `PostRender`
+events, the Sensors system draws a frame on every simulation step instead,
+whether or not a sensor is due, and each step waits for the frame of the
+previous step to finish. The step rate then can't be higher than the
+frame rate, even when each frame is cheap. Systems that render something of
+their own connect to these events, like the Doppler velocity log system, which
+does so even when the world has no DVL sensor.
+
+The render thread line then splits the frames, and a line names the systems.
+Here a vehicle with a 10 Hz camera and a DVL, stepping at 1 ms as fast as
+possible:
+
+```
+Performance report, last 5.0 s, 46739 steps: RTF 9.35 (as fast as possible)
+  Bottleneck: CPU, in rendering: frames forced every step by DopplerVelocityLogSystem
+  Step time 0.11 ms: rendering wait 0.08 ms (77%), physics 0.01 ms (8%), other systems 0.01 ms (13%), loop 0.00 ms (3%)
+  Render thread 0.10 ms/frame (46739 frames for 46739 steps: sensors 467, forced 46272): GPU wait 0.01 ms (6%), ...
+  Frames forced every step by DopplerVelocityLogSystem: 46272 of 46739 frames, 0.07 ms each (72% of the render thread). The simulation waits for each frame.
+```
+
+That line shows when the render thread drew on at least 90% of the steps and
+most of its frames had no sensor due. If rendering is the bottleneck and the
+forced frames take most of the render thread time, the bottleneck is
+`frames forced every step by <systems>` rather than the scene or a sensor. The
+systems are the ones that connected to the events when they were configured.
+A system that connects later is not known by name, and the report says
+`render-event connections` instead.
+
+Removing what forces the frames can gain more than their share of the render
+thread: the step no longer waits for a render pass every time, so the frames of
+the sensors overlap with the steps that follow. In the example above, the run
+without the DVL system reached an RTF of 50.
+
+The message has the header entries `render_frames/sensors`,
+`render_frames/forced` and `render_frames/scene_only` (passes that only updated
+the scene), `render/forced_every_step` (`true` or `false`) and, when known,
+`render/forced_by` with the system names separated by commas. The time
+`render/forced_total` is the render thread time of the forced frames.
 
 ## How it measures
 
