@@ -13,7 +13,15 @@ current pose/configuration. To achieve reattachment at a specific pose, the
 child model can be positioned accordingly through a set_pose service call prior
 to reattaching the joint.
 
+<<<<<<< HEAD
 For example, [detachable_joint.sdf](https://github.com/gazebosim/gz-sim/blob/ign-gazebo2/examples/worlds/detachable_joint.sdf)
+=======
+Use `DetachableJoint` when the child model and link are known in the SDF. Use
+\ref dynamicdetachablejoints "DynamicDetachableJoint" when the child model and
+link are chosen at runtime through a service request.
+
+For example, [detachable_joint.sdf](https://github.com/gazebosim/gz-sim/blob/main/examples/worlds/detachable_joint.sdf)
+>>>>>>> 07adc5b (doc: fix detachable joints tutorial parameters and model command formatting (#4216))
 demonstrates a four wheel vehicle that holds three objects that are later
 detached from the vehicle. As seen in this example, the parent model is the
 vehicle. The kinematic topology is the following.
@@ -61,18 +69,18 @@ as the child link in the detachable joint.
 `<detach_topic>` is preferred. If empty, a default topic will be created with a
 pattern `/model/<model_name>/detachable_joint/detach`.
 
-* `detach_topic` (optional): Topic name to be used for detaching connections.
+* `<detach_topic>` (optional): Topic name to be used for detaching connections.
  If empty, a default topic will be created with a pattern
-`/model/<model_name>/detachable_joint/detach`. If multiple detachable plugin is
+`/model/<model_name>/detachable_joint/detach`. If multiple detachable plugins are
 used in one model, `detach_topic` is REQUIRED to detach child models individually.
 
-* `attach_topic` (optional): Topic name to be used for re-attaching connections.
+* `<attach_topic>` (optional): Topic name to be used for re-attaching connections.
  If empty, a default topic will be created with a pattern
-`/model/<model_name>/detachable_joint/attach`. If multiple detachable plugin is
+`/model/<model_name>/detachable_joint/attach`. If multiple detachable plugins are
 used in one model, `attach_topic` is REQUIRED to attach child models individually.
 
-* `output_topic` (optional): Topic name to be used for publishing the state of
+* `<output_topic>` (optional): Topic name to be used for publishing the state of
 the detachment. If empty, a default topic will be created with a pattern
-`/model/<child_model_name>/detachable_joint/state`. If multiple detachable plugin is
-used in one model, `output_topic` is REQUIRED to publish child models state
+`/model/<child_model_name>/detachable_joint/state`. If multiple detachable plugins are
+used in one model, `output_topic` is REQUIRED to publish child models' state
 individually.

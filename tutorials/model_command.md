@@ -145,14 +145,9 @@ Once you get the name of the model you want to see, you may run the following co
 ```
 
 
-To get the information of **all the model links** enter
+`gz model -m <model_name> --link` to get the information of **all the model links**. e.g.
 
-    gz model -m <model_name> --link
-
-
-Or you can get the information of a **single link** by adding the name as argument. e.g.
-
-    gz model -m vehicle_blue --link caster
+    gz model -m vehicle_blue --link
 
 ```
       Requesting state for world [diff_drive]...
@@ -173,13 +168,9 @@ Or you can get the information of a **single link** by adding the name as argume
 ```
 
 
-To get the information of **all the model joints** enter
+`gz model -m <model_name> --joint` to get the information of **all the model joints**. e.g.
 
-    gz model -m <model_name> --joint
-
-Or you can get the information of a **single joint** by adding the name as argument. e.g.
-
-    gz model -m vehicle_blue --joint caster_wheel
+    gz model -m vehicle_blue --joint
 
 ```
       Requesting state for world [diff_drive]...
