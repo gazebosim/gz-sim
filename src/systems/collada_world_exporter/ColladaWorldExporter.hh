@@ -35,7 +35,7 @@ namespace systems
   /// \brief A plugin that exports a world to a mesh.
   /// When loaded the plugin will dump a mesh containing all the models in
   /// the world to the current directory.
-  class ColladaWorldExporter:
+  class ColladaWorldExporter final:
     public System,
     public ISystemPostUpdate
   {

@@ -50,7 +50,7 @@ namespace systems
   /// When recording is finished. An `end` string will be published to the
   /// `/log_video_recorder/status` topic and the videos are saved to a
   /// timestamped directory
-  class LogVideoRecorder:
+  class LogVideoRecorder final:
     public System,
     public ISystemConfigure,
     public ISystemPostUpdate
