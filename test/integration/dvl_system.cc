@@ -27,9 +27,11 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
@@ -140,14 +142,25 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdatesWhenDue))
   fixture.Step(10s);
   ASSERT_TRUE(velocitySubscription.WaitForMessages(10, 10s));
 
-  // After the first update, when the sensor is created, one every second
-  for (const auto &message : velocitySubscription.ReadMessages())
+  // The first update is when the sensor is created. The simulation does not
+  // wait for rendering to start, so that may be after the first due time,
+  // and then the next update catches up right away. From then on, one
+  // every second, at whole seconds.
+  const auto messages = velocitySubscription.ReadMessages();
+  const auto onSchedule = [](const msgs::DVLVelocityTracking &_message)
   {
-    const auto &stamp = message.header().stamp();
-    if (stamp.sec() > 0)
-    {
-      EXPECT_EQ(0, stamp.nsec())
-          << "Update at " << stamp.sec() << " s " << stamp.nsec() << " ns";
-    }
+    const auto &stamp = _message.header().stamp();
+    return stamp.sec() > 0 && stamp.nsec() == 0;
+  };
+  const auto first =
+      std::find_if(messages.begin(), messages.end(), onSchedule);
+  ASSERT_NE(messages.end(), first) << "No update at a whole second";
+  EXPECT_LE(std::distance(messages.begin(), first), 2);
+  EXPECT_GE(std::distance(first, messages.end()), 5);
+  for (auto it = first; it != messages.end(); ++it)
+  {
+    const auto &stamp = it->header().stamp();
+    EXPECT_EQ(0, stamp.nsec())
+        << "Update at " << stamp.sec() << " s " << stamp.nsec() << " ns";
   }
 }
