@@ -240,7 +240,7 @@ TEST_F(WindEffectsTest , GZ_UTILS_TEST_DISABLED_ON_WIN32(WindForce))
   // Computing the exact motion of the link, without reimplementing the wind
   // effects system here, is difficult. So, here, we simply check that the
   // acceleration monotonically decreases as the velocity of the link
-  // approaches the wind velocity. The complimentary filter should stabilize
+  // approaches the wind velocity. The complementary filter should stabilize
   // after it has run for 3 seconds.
   const std::size_t nIters{3000};
   this->server->Run(true, nIters, false);
