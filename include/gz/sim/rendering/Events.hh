@@ -102,6 +102,29 @@ namespace gz
       /// \endcode
       using ForceRender = gz::common::EventT<void(void),
           struct ForceRenderTag>;
+
+      /// \brief While anything is connected to the PreRender, Render or
+      /// PostRender events, the Sensors system renders a frame on every
+      /// iteration, because the callbacks may need to be called on every
+      /// iteration. A system that only needs the frames that it requests
+      /// with ForceRender can connect to this event and add to the count
+      /// the number of its connections to those three events. When all of
+      /// them are counted this way, the Sensors system renders only when a
+      /// sensor is due or a frame is requested with ForceRender. The
+      /// callbacks are still called in every frame that is rendered.
+      ///
+      /// The Sensors system emits this event in the simulation thread, on
+      /// every iteration in which something is connected to the render
+      /// events.
+      ///
+      /// For example, for a system connected to PreRender and PostRender:
+      /// \code
+      /// this->onDemandConn =
+      ///     _eventMgr.Connect<gz::sim::events::OnDemandRenderConnections>(
+      ///     [](unsigned int &_count) { _count += 2u; });
+      /// \endcode
+      using OnDemandRenderConnections = gz::common::EventT<
+          void(unsigned int &), struct OnDemandRenderConnectionsTag>;
       }
     }  // namespace events
   }  // namespace sim

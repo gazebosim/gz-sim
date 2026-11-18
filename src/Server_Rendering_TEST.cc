@@ -16,12 +16,20 @@
  */
 
 #include <gtest/gtest.h>
+
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <thread>
+
 #include <gz/rendering/RenderEngine.hh>
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/sim/rendering/Events.hh>
 #include <gz/rendering/Scene.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/EventManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/System.hh"
 
@@ -177,4 +185,156 @@ TEST_F(ServerFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(LoadSdfModelRelativeUri))
   EXPECT_FALSE(server2.HasEntity("L1"));
   EXPECT_FALSE(server2.HasEntity("V1"));
   EXPECT_FALSE(server2.HasEntity("V2"));
+}
+
+namespace
+{
+/// \brief Counts the frames rendered by the Sensors system through the
+/// render events, and asks for a frame with ForceRender every few iterations.
+class FrameCounter:
+  public System,
+  public ISystemConfigure,
+  public ISystemPreUpdate
+{
+  /// \brief Constructor
+  /// \param[in] _onDemand Count the connections to the render events as
+  /// on-demand connections
+  /// \param[in] _requestPeriod Ask for a frame on the iterations that are
+  /// multiples of this, or never if 0.
+  public: FrameCounter(bool _onDemand, uint64_t _requestPeriod)
+    : onDemand(_onDemand), requestPeriod(_requestPeriod)
+  {
+  }
+
+  public: void Configure(const Entity &,
+      const std::shared_ptr<const sdf::Element> &,
+      EntityComponentManager &, EventManager &_eventMgr) override
+  {
+    this->eventMgr = &_eventMgr;
+    this->preRenderConn = _eventMgr.Connect<events::PreRender>([] {});
+    this->renderConn = _eventMgr.Connect<events::Render>([] {});
+    this->postRenderConn = _eventMgr.Connect<events::PostRender>(
+        [this] { ++this->frames; });
+    if (this->onDemand)
+    {
+      this->onDemandConn =
+          _eventMgr.Connect<events::OnDemandRenderConnections>(
+          [](unsigned int &_count) { _count += 3u; });
+    }
+  }
+
+  public: void PreUpdate(const UpdateInfo &_info,
+      EntityComponentManager &) override
+  {
+    if (this->requestPeriod > 0u &&
+        _info.iterations % this->requestPeriod == 0u)
+    {
+      this->eventMgr->Emit<events::ForceRender>();
+    }
+  }
+
+  /// \brief Frames rendered so far
+  public: std::atomic<uint64_t> frames{0u};
+
+  private: bool onDemand;
+  private: uint64_t requestPeriod;
+  private: EventManager *eventMgr{nullptr};
+  private: common::ConnectionPtr preRenderConn;
+  private: common::ConnectionPtr renderConn;
+  private: common::ConnectionPtr postRenderConn;
+  private: common::ConnectionPtr onDemandConn;
+};
+
+/// \brief Server with the Sensors system on an empty world
+std::unique_ptr<sim::Server> emptyWorldWithSensors()
+{
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH,
+      "test", "worlds", "empty.sdf"));
+  serverConfig.AddPlugin(ServerConfig::PluginInfo("empty", "world",
+      sdf::Plugin("gz-sim-sensors-system", "gz::sim::systems::Sensors",
+      "<render_engine>ogre2</render_engine>")));
+  return std::make_unique<sim::Server>(serverConfig);
+}
+
+/// \brief Wait until the counter stops changing
+/// \return The final count
+uint64_t settledFrames(const FrameCounter &_counter)
+{
+  uint64_t last = _counter.frames;
+  for (int i = 0; i < 50; ++i)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    const uint64_t now = _counter.frames;
+    if (now == last && i >= 5)
+      break;
+    last = now;
+  }
+  return last;
+}
+
+/// \brief Run the server until the counter sees a frame, which means that
+/// rendering is initialized, and let the frames in progress finish.
+/// \return The frames rendered so far
+uint64_t warmUp(sim::Server &_server, const FrameCounter &_counter)
+{
+  for (int i = 0; i < 1000 && _counter.frames == 0u; ++i)
+  {
+    _server.RunOnce(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  return settledFrames(_counter);
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+// Systems connected to the render events get a frame on every iteration.
+TEST_F(ServerFixture,
+    GZ_UTILS_TEST_DISABLED_ON_MAC(RenderEventsRenderEveryIteration))
+{
+  auto server = emptyWorldWithSensors();
+  auto counter = std::make_shared<FrameCounter>(false, 10u);
+  ASSERT_TRUE(server->AddSystem(counter).value_or(false));
+
+  const uint64_t before = warmUp(*server, *counter);
+  ASSERT_GT(before, 0u) << "Rendering did not start";
+
+  ASSERT_TRUE(server->Run(true, 100, false));
+  EXPECT_EQ(before + 100u, settledFrames(*counter));
+}
+
+/////////////////////////////////////////////////
+// Systems that count their connections as on-demand only get the frames
+// that they ask for, even if no sensor is due.
+TEST_F(ServerFixture,
+    GZ_UTILS_TEST_DISABLED_ON_MAC(OnDemandRenderEventsRenderWhenRequested))
+{
+  auto server = emptyWorldWithSensors();
+  auto counter = std::make_shared<FrameCounter>(true, 10u);
+  ASSERT_TRUE(server->AddSystem(counter).value_or(false));
+
+  const uint64_t before = warmUp(*server, *counter);
+  ASSERT_GT(before, 0u) << "Rendering did not start";
+
+  ASSERT_TRUE(server->Run(true, 100, false));
+  EXPECT_EQ(before + 10u, settledFrames(*counter));
+}
+
+/////////////////////////////////////////////////
+// On-demand connections don't stop other connections from getting a frame
+// on every iteration.
+TEST_F(ServerFixture,
+    GZ_UTILS_TEST_DISABLED_ON_MAC(OnDemandRenderEventsKeepOtherConnections))
+{
+  auto server = emptyWorldWithSensors();
+  auto onDemand = std::make_shared<FrameCounter>(true, 10u);
+  auto everyIteration = std::make_shared<FrameCounter>(false, 0u);
+  ASSERT_TRUE(server->AddSystem(onDemand).value_or(false));
+  ASSERT_TRUE(server->AddSystem(everyIteration).value_or(false));
+
+  const uint64_t before = warmUp(*server, *onDemand);
+  ASSERT_GT(before, 0u) << "Rendering did not start";
+
+  ASSERT_TRUE(server->Run(true, 100, false));
+  EXPECT_EQ(before + 100u, settledFrames(*onDemand));
 }

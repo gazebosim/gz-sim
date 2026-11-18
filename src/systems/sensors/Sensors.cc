@@ -192,6 +192,11 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Flag to signal if a rendering update must be done
   public: std::atomic<bool> forceUpdate { false };
 
+  /// \brief A frame was requested with the ForceRender event and the
+  /// render thread has not been told yet. Unlike forceUpdate, it is only
+  /// cleared when the render thread is woken up for it.
+  public: std::atomic<bool> renderRequested { false };
+
   /// \brief Thread that rendering will occur in
   public: std::thread renderThread;
 
@@ -584,7 +589,7 @@ void SensorsPrivate::Stop()
 //////////////////////////////////////////////////
 void SensorsPrivate::ForceRender()
 {
-  this->forceUpdate = true;
+  this->renderRequested = true;
 }
 
 //////////////////////////////////////////////////
@@ -939,7 +944,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
   GZ_PROFILE("Sensors::PostUpdate");
   {
     if (!this->dataPtr->initialized &&
-        (this->dataPtr->forceUpdate ||
+        (this->dataPtr->renderRequested ||
          _ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
          _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
@@ -981,10 +986,19 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     // \todo(anyone) This currently forces scene tree updates at the sim update
     // rate which can be too frequent and causes a performance hit.
     // We should look into throttling render updates
-    bool hasRenderConnections =
-      (this->dataPtr->eventManager->ConnectionCount<events::PreRender>() > 0u ||
-      this->dataPtr->eventManager->ConnectionCount<events::Render>() > 0u ||
-      this->dataPtr->eventManager->ConnectionCount<events::PostRender>() > 0u);
+    // Systems that ask for their frames with ForceRender count their
+    // connections as on-demand, and those don't force an update.
+    const unsigned int renderConnections =
+      this->dataPtr->eventManager->ConnectionCount<events::PreRender>() +
+      this->dataPtr->eventManager->ConnectionCount<events::Render>() +
+      this->dataPtr->eventManager->ConnectionCount<events::PostRender>();
+    unsigned int onDemandConnections = 0u;
+    if (renderConnections > 0u)
+    {
+      this->dataPtr->eventManager->Emit<events::OnDemandRenderConnections>(
+          onDemandConnections);
+    }
+    const bool hasRenderConnections = renderConnections > onDemandConnections;
 
     // if nextUpdateTime is max, it probably means there are previously
     // no active sensors or sensors with connections.
@@ -1001,11 +1015,13 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     std::unordered_set<sensors::SensorId> sensorsWithPendingTriggers =
         this->dataPtr->SensorsWithPendingTrigger();
 
+    const bool renderRequested = this->dataPtr->renderRequested.exchange(false);
+
     // notify the render thread if updates are available
     if (hasRenderConnections ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
         this->dataPtr->renderUtil.PendingSensors() > 0 ||
-        this->dataPtr->forceUpdate ||
+        renderRequested ||
         !sensorsWithPendingTriggers.empty())
     {
       if (this->dataPtr->disableOnDrainedBattery)
@@ -1034,10 +1050,11 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
       this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
           this->dataPtr->sensorsToUpdate, _info.simTime);
 
-      // Force scene tree update if there are sensors to be created or
-      // subscribes to the render events. This does not necessary force
-      // sensors to update. Only active sensors will be updated
-      this->dataPtr->forceUpdate =
+      // Force scene tree update if there are sensors to be created,
+      // subscribers to the render events or a frame requested with
+      // ForceRender. This does not necessary force sensors to update. Only
+      // active sensors will be updated
+      this->dataPtr->forceUpdate = renderRequested ||
           (this->dataPtr->renderUtil.PendingSensors() > 0) ||
           hasRenderConnections;
 
