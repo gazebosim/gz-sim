@@ -1189,8 +1189,8 @@ rendering::LightPtr SceneManager::CreateLight(Entity _id,
 
   if (this->HasEntity(_id))
   {
-    gzerr << "Light with Id: [" << _id << "] can not be create there is "
-              "another entity with the same entity number" << std::endl;
+    gzerr << "Light with Id: [" << _id << "] cannot be created because "
+              "another entity has the same entity number" << std::endl;
     return nullptr;
   }
 
@@ -1653,7 +1653,12 @@ rendering::ParticleEmitterPtr SceneManager::UpdateParticleEmitter(Entity _id,
     emitter->SetLocalPose(msgs::Convert(_emitter.pose()));
 
   // particle scatter ratio
-  if (_emitter.has_header())
+  if (_emitter.has_particle_scatter_ratio())
+  {
+    emitter->SetParticleScatterRatio(_emitter.particle_scatter_ratio().data());
+  }
+  // Older messages carry the ratio in the header instead.
+  else if (_emitter.has_header())
   {
     for (int i = 0; i < _emitter.header().data_size(); ++i)
     {
@@ -2378,7 +2383,7 @@ SceneManager::LoadAnimations(const sdf::Actor &_actor)
       }
       mapAnimNameId[animName] = numAnims++;
     }
-    else if (extension == "dae")
+    else if (extension == "dae" || extension == "gltf" || extension == "glb")
     {
       // Load the mesh if it has not been loaded before
       const common::Mesh *animMesh = nullptr;

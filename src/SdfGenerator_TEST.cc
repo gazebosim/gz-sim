@@ -574,7 +574,7 @@ TEST_F(ElementUpdateFixture, WorldComponentUpdate)
 
   ASSERT_TRUE(elem->HasElement("model"));
   auto modelElem = elem->GetElement("model");
-  for (; modelElem; modelElem->GetNextElement("model"))
+  for (; modelElem; modelElem = modelElem->GetNextElement("model"))
   {
     if (modelName == modelElem->Get<std::string>("name"))
       break;

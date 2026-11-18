@@ -85,6 +85,7 @@ set(tests
   sensor.cc
   spherical_coordinates.cc
   thruster.cc
+  timeline_publisher.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
   triggered_publisher.cc
@@ -121,6 +122,7 @@ set(tests_needing_display
   optical_tactile_plugin.cc
   reset_sensors.cc
   rgbd_camera.cc
+  scene_manager.cc
   sensors_system.cc
   sensors_system_battery.cc
   sensors_system_update_rate.cc
