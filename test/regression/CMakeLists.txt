@@ -1,6 +1,7 @@
 set(TEST_TYPE "REGRESSION")
 
 set(tests
+  3830_odometry_angular_velocity_continuity.cc
 )
 
 link_directories(${PROJECT_BINARY_DIR}/test)
@@ -21,4 +22,5 @@ gz_build_tests(TYPE REGRESSION
     ${EXTRA_TEST_LIB_DEPS}
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
