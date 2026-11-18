@@ -254,7 +254,7 @@ void DopplerVelocityLogSystem::Implementation::DoConfigure(
           std::bind(&Implementation::OnRenderTeardown, this));
 
   // DVL sensors ask for the frames that they need with ForceRender in
-  // DoPostUpdate, so the three connections above must not make the
+  // DoPreUpdate, so the three connections above must not make the
   // Sensors system render on every iteration.
   this->onDemandRenderConn =
       _eventMgr.Connect<gz::sim::events::OnDemandRenderConnections>(
@@ -265,7 +265,7 @@ void DopplerVelocityLogSystem::Implementation::DoConfigure(
 
 //////////////////////////////////////////////////
 void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
-  const gz::sim::UpdateInfo &,
+  const gz::sim::UpdateInfo &_info,
   gz::sim::EntityComponentManager &_ecm)
 {
   _ecm.EachNew<gz::sim::components::Environment>(
@@ -342,6 +342,25 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
       this->knownSensorEntities.insert(_entity);
       return true;
     });
+
+  // Ask for a frame here and not in DoPostUpdate: the Sensors system
+  // decides whether to render in this iteration in its PostUpdate, which may
+  // run in parallel with ours, while all PreUpdate calls are done by then.
+  std::lock_guard<std::mutex> timeLock(this->timeMutex);
+  const bool sensorsDue =
+      !_info.paused && this->nextUpdateTime <= _info.simTime;
+  // Until the sensors are created and updated once, which can take a while,
+  // ask for a frame on every iteration, like the Sensors system does for its
+  // own sensors, so that the simulation waits for them.
+  const bool sensorsPending = !this->knownSensorEntities.empty() &&
+      this->nextUpdateTime == std::chrono::steady_clock::duration::max();
+  if (sensorsDue || sensorsPending || !this->perStepRequests.empty() ||
+      this->pendingRequests)
+  {
+    // this is a non-blocking call that force render to occur in the next
+    // render iteration in the render thread
+    this->eventMgr->Emit<gz::sim::events::ForceRender>();
+  }
 }
 
 //////////////////////////////////////////////////
@@ -411,18 +430,6 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
 
     this->pendingRequests = true;
     this->pendingSetWorldRequests = true;
-
-    // this is a non-blocking call that force render to occur in the next
-    // render iteration in the render thread
-    this->eventMgr->Emit<gz::sim::events::ForceRender>();
-  }
-  else if (!this->knownSensorEntities.empty() &&
-           this->nextUpdateTime == std::chrono::steady_clock::duration::max())
-  {
-    // The sensors are not created and updated yet, which can take a while.
-    // Ask for a frame on every iteration until then, like the Sensors system
-    // does for its own sensors, so that the simulation waits for them.
-    this->eventMgr->Emit<gz::sim::events::ForceRender>();
   }
 }
 

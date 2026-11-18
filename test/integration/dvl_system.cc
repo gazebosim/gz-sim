@@ -122,3 +122,32 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RendersOnlyWhenDue))
   EXPECT_LT(frames, kIterations / 10u)
       << "The DVL system makes the Sensors system render on every iteration";
 }
+
+//////////////////////////////////////////////////
+// The DVL updates in the iteration in which it is due, not in a later one.
+TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(UpdatesWhenDue))
+{
+  const std::string worldFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test",
+      "worlds", "bottomless_pit.sdf");
+  TestFixtureWithModel fixture(worldFile, "tethys");
+
+  transport::Node node;
+  Subscription<msgs::DVLVelocityTracking> velocitySubscription;
+  velocitySubscription.Subscribe(node, "/dvl/velocity");
+
+  // 10 s in steps of 20 ms, with the DVL updating at 1 Hz
+  fixture.Step(10s);
+  ASSERT_TRUE(velocitySubscription.WaitForMessages(10, 10s));
+
+  // After the first update, when the sensor is created, one every second
+  for (const auto &message : velocitySubscription.ReadMessages())
+  {
+    const auto &stamp = message.header().stamp();
+    if (stamp.sec() > 0)
+    {
+      EXPECT_EQ(0, stamp.nsec())
+          << "Update at " << stamp.sec() << " s " << stamp.nsec() << " ns";
+    }
+  }
+}
