@@ -117,6 +117,9 @@ class gz::sim::systems::DiffDrivePrivate
   /// \brief The model's canonical link.
   public: Link canonicalLink{kNullEntity};
 
+  /// \brief Resolved topic names
+  public: DiffDrive::TopicNames resolvedTopicNames;
+
   /// \brief Update period calculated from <odom__publish_frequency>.
   public: std::chrono::steady_clock::duration odomPubPeriod{0};
 
@@ -165,6 +168,9 @@ DiffDrive::DiffDrive()
   : dataPtr(std::make_unique<DiffDrivePrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+DiffDrive::~DiffDrive() = default;
 
 //////////////////////////////////////////////////
 void DiffDrive::Configure(const Entity &_entity,
@@ -332,58 +338,104 @@ void DiffDrive::Configure(const Entity &_entity,
   this->dataPtr->odom.SetWheelParams(this->dataPtr->wheelSeparation,
       this->dataPtr->wheelRadius, this->dataPtr->wheelRadius);
 
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+
   // Subscribe to commands
-  std::vector<std::string> topics;
-  if (_sdf->HasElement("topic"))
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "topic";
+  cmdVelTopicOptions.topicNamespace = ns;
+  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+  resolvedTopicNames.cmdVelTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
+  if (resolvedTopicNames.cmdVelTopic.empty())
   {
-    topics.push_back(_sdf->Get<std::string>("topic"));
+    gzerr << "DiffDrive failed to find a valid topic name for "
+          << "twist messages. Check the <topic> and the namespace attribute "
+          << "in the SDF." << std::endl;
+    return;
   }
-  topics.push_back("/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
-  auto topic = validTopic(topics);
-
-  this->dataPtr->node.Subscribe(topic, &DiffDrivePrivate::OnCmdVel,
-      this->dataPtr.get());
-
-  // Subscribe to enable/disable
-  std::vector<std::string> enableTopics;
-  enableTopics.push_back(
-    "/model/" + this->dataPtr->model.Name(_ecm) + "/enable");
-  auto enableTopic = validTopic(enableTopics);
-
-  if (!enableTopic.empty())
+  else
   {
-    this->dataPtr->node.Subscribe(enableTopic, &DiffDrivePrivate::OnEnable,
-        this->dataPtr.get());
+    gzmsg << "DiffDrive subscribing to twist messages on ["
+          << resolvedTopicNames.cmdVelTopic << "]" << std::endl;
+    this->dataPtr->node.Subscribe(resolvedTopicNames.cmdVelTopic,
+      &DiffDrivePrivate::OnCmdVel, this->dataPtr.get());
+  }
+
+  // Subscribe to enable
+  TopicNameOptions enableTopicOptions;
+  enableTopicOptions.sdfElementName = "enable_topic";
+  enableTopicOptions.topicNamespace = ns;
+  enableTopicOptions.defaultTopicPrefix = defaultPrefix;
+  enableTopicOptions.defaultTopicSuffix = "enable";
+  resolvedTopicNames.enableTopic = resolvedTopicName(_sdf, enableTopicOptions);
+  if (resolvedTopicNames.enableTopic.empty())
+  {
+    gzerr << "DiffDrive failed to find a valid topic name for "
+          << "enable messages. Check the namespace attribute in the SDF."
+          << "in the SDF." << std::endl;
+  }
+  else
+  {
+    gzmsg << "DiffDrive subscribing to enable messages on ["
+          << resolvedTopicNames.enableTopic << "]" << std::endl;
+    this->dataPtr->node.Subscribe(resolvedTopicNames.enableTopic,
+      &DiffDrivePrivate::OnEnable, this->dataPtr.get());
   }
   this->dataPtr->enabled = true;
 
-  std::vector<std::string> odomTopics;
-  if (_sdf->HasElement("odom_topic"))
+  // Publish odometry
+  TopicNameOptions odomTopicOptions;
+  odomTopicOptions.sdfElementName = "odom_topic";
+  odomTopicOptions.topicNamespace = ns;
+  odomTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomTopicOptions.defaultTopicSuffix = "odometry";
+  resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
+  if (resolvedTopicNames.odomTopic.empty())
   {
-    odomTopics.push_back(_sdf->Get<std::string>("odom_topic"));
+    gzerr << "DiffDrive failed to find a valid topic name for "
+          << "odometry messages. Check the <odom_topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
+    return;
   }
-  odomTopics.push_back("/model/" + this->dataPtr->model.Name(_ecm) +
-      "/odometry");
-  auto odomTopic = validTopic(odomTopics);
+  else
+  {
+    gzmsg << "DiffDrive publishing odometry messages on ["
+          << resolvedTopicNames.odomTopic << "]" << std::endl;
+    this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
+      resolvedTopicNames.odomTopic);
+  }
 
-  this->dataPtr->odomPub = this->dataPtr->node.Advertise<msgs::Odometry>(
-      odomTopic);
-
-  std::string tfTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-    "/tf"};
-  if (_sdf->HasElement("tf_topic"))
-    tfTopic = _sdf->Get<std::string>("tf_topic");
-  this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
-      tfTopic);
+  // Publish tf
+  TopicNameOptions tfTopicOptions;
+  tfTopicOptions.sdfElementName = "tf_topic";
+  tfTopicOptions.topicNamespace = ns;
+  tfTopicOptions.defaultTopicPrefix = defaultPrefix;
+  tfTopicOptions.defaultTopicSuffix = "tf";
+  resolvedTopicNames.tfTopic = resolvedTopicName(_sdf, tfTopicOptions);
+  if (resolvedTopicNames.tfTopic.empty())
+  {
+    gzerr << "DiffDrive failed to find a valid topic name for "
+          << "tf messages. Check the <tf_topic> and the namespace attribute"
+          << "in the SDF." << std::endl;
+    return;
+  }
+  else
+  {
+    gzmsg << "DiffDrive publishing tf messages on ["
+          << resolvedTopicNames.tfTopic << "]" << std::endl;
+    this->dataPtr->tfPub = this->dataPtr->node.Advertise<msgs::Pose_V>(
+      resolvedTopicNames.tfTopic);
+  }
 
   if (_sdf->HasElement("frame_id"))
     this->dataPtr->sdfFrameId = _sdf->Get<std::string>("frame_id");
 
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
-
-  gzmsg << "DiffDrive subscribing to twist messages on [" << topic << "]"
-         << std::endl;
 }
 
 //////////////////////////////////////////////////
@@ -504,6 +556,12 @@ void DiffDrive::PostUpdate(const UpdateInfo &_info,
 
   this->dataPtr->UpdateVelocity(_info, _ecm);
   this->dataPtr->UpdateOdometry(_info, _ecm);
+}
+
+//////////////////////////////////////////////////
+DiffDrive::TopicNames DiffDrive::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////

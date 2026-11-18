@@ -120,7 +120,9 @@ function(gz_add_gui_plugin plugin_name)
           # Used to make test_config.h visible to the unit tests
           ${PROJECT_BINARY_DIR}
         ENVIRONMENT
-          GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
+          GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+          GZ_IP=127.0.0.1
+      )
     endif()
   endif()
 

@@ -19,6 +19,7 @@
 #include <chrono>
 #include <list>
 #include <mutex>
+#include <set>
 
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/pose.pb.h>
@@ -894,6 +895,89 @@ TEST_F(PosePublisherTest,
     auto p = msgs::Convert(poseMsgs[0]);
     EXPECT_EQ(expectedEntityPose, p);
   }
+}
+
+/////////////////////////////////////////////////
+TEST_F(PosePublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedModelPoseOnly))
+{
+  // Setting only <publish_nested_model_pose> publishes the nested model's
+  // pose, but not the pose of the top-level model that contains it.
+
+  // Start server
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/pose_publisher.sdf");
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(*server.Running(0));
+
+  std::string modelSdf = R"EOF(
+  <?xml version="1.0" ?>
+  <sdf version="1.9">
+      <model name="outer">
+        <static>1</static>
+        <pose>0 0 0.5 0 0 0</pose>
+        <link name="link"/>
+        <model name="inner">
+          <pose>1 0 0 0 0 0</pose>
+          <link name="link"/>
+        </model>
+        <plugin
+           filename="gz-sim-pose-publisher-system"
+           name="gz::sim::systems::PosePublisher">
+          <publish_link_pose>false</publish_link_pose>
+          <publish_nested_model_pose>true</publish_nested_model_pose>
+        </plugin>
+      </model>
+  </sdf>)EOF";
+
+  // Request entity spawn
+  msgs::EntityFactory req;
+  unsigned int timeout = 5000;
+  std::string service{"/world/pose_publisher/create"};
+  msgs::Boolean res;
+  bool result;
+  req.set_sdf(modelSdf);
+
+  transport::Node node;
+  EXPECT_TRUE(node.Request(service, req, timeout, res, result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  // Run the server to actually create the entities
+  server.Run(true, 100u, false);
+
+  poseMsgs.clear();
+
+  // Subscribe to the pose publisher
+  node.Subscribe(std::string("/model/outer/pose"), &poseCb);
+
+  // Run server
+  server.Run(true, 1000u, false);
+
+  // Wait for messages to be received
+  int sleep = 0;
+  while (poseMsgs.empty() && sleep++ < 30)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+
+  ASSERT_FALSE(poseMsgs.empty());
+
+  std::set<std::string> childFrameIds;
+  {
+    const std::lock_guard<std::mutex> lock(mutex);
+    for (const auto &msg : poseMsgs)
+    {
+      ASSERT_LT(1, msg.header().data_size());
+      ASSERT_LT(0, msg.header().data(1).value_size());
+      childFrameIds.insert(msg.header().data(1).value(0));
+    }
+  }
+  EXPECT_EQ(1u, childFrameIds.count("outer::inner"));
+  EXPECT_EQ(0u, childFrameIds.count("outer"));
 }
 
 /////////////////////////////////////////////////

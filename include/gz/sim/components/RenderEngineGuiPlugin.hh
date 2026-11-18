@@ -34,7 +34,7 @@ namespace components
   /// \brief Holds the render engine gui shared library.
   using RenderEngineGuiPlugin = Component<std::string,
       class RenderEngineGuiPluginTag, serializers::StringSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.RenderEngineGuiPlugin",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.RenderEngineGuiPlugin",
       RenderEngineGuiPlugin)
 }
 }

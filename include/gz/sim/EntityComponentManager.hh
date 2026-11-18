@@ -20,6 +20,7 @@
 #include <gz/msgs/serialized.pb.h>
 #include <gz/msgs/serialized_map.pb.h>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -148,6 +149,20 @@ namespace gz
       /// \sa Clone
       public: Entity Clone(Entity _entity, Entity _parent,
                   const std::string &_name, bool _allowRename);
+
+      /// \brief Overload of Clone that accepts a namespace override.
+      /// \param[in] _entity The entity to clone.
+      /// \param[in] _parent The parent of the cloned entity.
+      /// \param[in] _name The name that should be given to the cloned entity.
+      /// \param[in] _allowRename Whether _name can be modified to make it
+      /// unique.
+      /// \param[in] _namespace The namespace that should be given to the
+      /// cloned entity.
+      /// \return The cloned entity, or kNullEntity if cloning failed.
+      /// \sa Clone
+      public: Entity Clone(Entity _entity, Entity _parent,
+                  const std::string &_name, bool _allowRename,
+                  const std::string &_namespace);
 
       /// \brief Get the number of entities on the server.
       /// \return Entity count.
@@ -394,10 +409,13 @@ namespace gz
       /// \param[in] _allowRename True if _name can be modified to be a unique
       /// name if it isn't already a unique name. False if _name cannot be
       /// modified to be a unique name.
+      /// \param[in] _namespace The namespace that should be given to the
+      /// cloned entity.
       /// \return The cloned entity. kNullEntity is returned if cloning failed.
       /// \sa Clone
       private: Entity CloneImpl(Entity _entity, Entity _parent,
-                  const std::string &_name, bool _allowRename);
+                  const std::string &_name, bool _allowRename,
+                  const std::string &_namespace = "");
 
       /// \brief A version of Each() that doesn't use a cache. The cached
       /// version, Each(), is preferred.
@@ -513,6 +531,75 @@ namespace gz
       /// PostUpdate callback.
       public: template<typename ...ComponentTypeTs, typename Func>
               void EachRemoved(Func &&_f) const;
+
+      /// \brief Runtime-typed counterpart of Each<ComponentTypeTs...>().
+      ///
+      /// Use this when component types are not known at compile time, e.g.
+      /// when they come from a script, a GUI, or a serialized query
+      /// description. For compile-time-known types prefer
+      /// Each<ComponentTypeTs...>(), which can use cached groups and is
+      /// faster.
+      ///
+      /// \param[in] _types Component types that every matched entity must
+      /// have. Each id must name a component type registered with
+      /// components::Factory; the ECM also stores internal book-keeping
+      /// types in the same id space, and passing one of those is an error.
+      /// If empty, every entity matches and _components is empty.
+      /// \param[in] _f Callback invoked once per matching entity.
+      /// _components holds exactly one non-null pointer per entry in _types,
+      /// in the same order. Return false to stop iteration, true to continue.
+      ///
+      /// \warning _components and the pointers it holds are owned by the ECM,
+      /// are reused between invocations, and are valid only for the duration
+      /// of the callback. Do not retain them.
+      ///
+      /// \warning Users must not rely on the iteration order of entities. The
+      /// order follows the storage order of entities in internal data
+      /// structures which is subject to change.
+      ///
+      /// \note The callback _f is allowed to remove components from the entity
+      /// that is associated with the current iteration. Removing components
+      /// from other entities may lead to undefined behavior.
+      ///
+      /// \note Like Each<ComponentTypeTs...>(), entities that are marked for
+      /// removal but not yet processed are included.
+      ///
+      /// \note If any id in _types is not a registered component type, an
+      /// error is logged and the callback is not invoked at all.
+      /// \return True if all ids in _types are registered component types,
+      /// false otherwise.
+      public: bool Each(
+          const std::vector<ComponentTypeId> &_types,
+          const std::function<bool(Entity,
+              const std::vector<const components::BaseComponent *> &)> &_f)
+          const;
+
+      /// \brief Runtime-typed counterpart of EachNew<ComponentTypeTs...>().
+      /// \param[in] _types Component types that every matched entity must
+      /// have.
+      /// \param[in] _f Callback invoked once per matching entity.
+      /// \return True if all ids in _types are registered component types,
+      /// false otherwise.
+      /// \sa Each
+      public: bool EachNew(
+          const std::vector<ComponentTypeId> &_types,
+          const std::function<bool(Entity,
+              const std::vector<const components::BaseComponent *> &)> &_f)
+          const;
+
+      /// \brief Runtime-typed counterpart of
+      /// EachRemoved<ComponentTypeTs...>().
+      /// \param[in] _types Component types that every matched entity must
+      /// have.
+      /// \param[in] _f Callback invoked once per matching entity.
+      /// \return True if all ids in _types are registered component types,
+      /// false otherwise.
+      /// \sa Each
+      public: bool EachRemoved(
+          const std::vector<ComponentTypeId> &_types,
+          const std::function<bool(Entity,
+              const std::vector<const components::BaseComponent *> &)> &_f)
+          const;
 
       /// \brief Get a graph with all the entities. Entities are vertices and
       /// edges point from parent to children.

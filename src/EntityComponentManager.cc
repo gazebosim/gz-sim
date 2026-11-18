@@ -18,12 +18,14 @@
 #include "gz/sim/EntityComponentManager.hh"
 #include "EntityComponentManagerDiff.hh"
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -39,12 +41,14 @@
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Namespace.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include "gz/sim/components/Recreate.hh"
 #include "gz/sim/components/World.hh"
 
 #include "gz/sim/detail/vendor/entt/entity/handle.hpp"
+#include "gz/sim/detail/vendor/entt/entity/runtime_view.hpp"
 
 using namespace gz;
 using namespace sim;
@@ -341,13 +345,21 @@ Entity EntityComponentManagerPrivate::CreateEntityImplementation(Entity _entity)
 Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
     const std::string &_name, bool _allowRename)
 {
+  return this->Clone(_entity, _parent, _name, _allowRename, "");
+}
+
+/////////////////////////////////////////////////
+Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
+    const std::string &_name, bool _allowRename, const std::string &_namespace)
+{
   // Clear maps so they're populated for the entity being cloned
   this->dataPtr->oldToClonedCanonicalLink.clear();
   this->dataPtr->oldModelCanonicalLink.clear();
   this->dataPtr->originalToClonedLink.clear();
   this->dataPtr->clonedToOriginalJointLinks.clear();
 
-  auto clonedEntity = this->CloneImpl(_entity, _parent, _name, _allowRename);
+  auto clonedEntity =
+    this->CloneImpl(_entity, _parent, _name, _allowRename, _namespace);
 
   if (kNullEntity != clonedEntity)
   {
@@ -400,7 +412,7 @@ Entity EntityComponentManager::Clone(Entity _entity, Entity _parent,
 
 /////////////////////////////////////////////////
 Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
-    const std::string &_name, bool _allowRename)
+    const std::string &_name, bool _allowRename, const std::string &_namespace)
 {
   auto uniqueNameGenerated = false;
 
@@ -473,13 +485,25 @@ Entity EntityComponentManager::CloneImpl(Entity _entity, Entity _parent,
   }
   this->CreateComponent(clonedEntity, components::Name(clonedName));
 
+  if (!_namespace.empty())
+  {
+    this->CreateComponent(clonedEntity, components::Namespace(_namespace));
+  }
+  else if (auto originalNsComp =
+    this->Component<components::Namespace>(_entity))
+  {
+    this->CreateComponent(clonedEntity,
+      components::Namespace(originalNsComp->Data()));
+  }
+
   // copy all components from _entity to clonedEntity
   for (const auto &type : this->ComponentTypes(_entity))
   {
-    // skip the Name and ParentEntity components since those were already
-    // handled above
+    // skip the Name, Namespace and ParentEntity components since those were
+    // already handled above
     if ((type == components::Name::typeId) ||
-        (type == components::ParentEntity::typeId))
+        (type == components::ParentEntity::typeId) ||
+        (type == components::Namespace::typeId))
       continue;
 
     auto originalComp = this->ComponentImplementation(_entity, type);
@@ -997,6 +1021,155 @@ components::BaseComponent *EntityComponentManager::ComponentImplementation(
   return const_cast<components::BaseComponent *>(
       static_cast<const EntityComponentManager &>(
       *this).ComponentImplementation(_entity, _type));
+}
+
+namespace
+{
+  /// \brief Shared implementation of the runtime-typed Each / EachNew /
+  /// EachRemoved queries.
+  /// \tparam TagType Scope of the query: `void` for every entity, or a
+  /// marker component type (NewEntity, RemoveEntity) to restrict the query
+  /// to entities carrying that marker.
+  /// \param[in] _registry Registry to query.
+  /// \param[in] _types Component types every matched entity must have.
+  /// \param[in] _f Callback invoked once per matching entity. Returning
+  /// false stops the iteration.
+  /// \return True if all ids in _types are registered component types,
+  /// false otherwise.
+  template <typename TagType, typename RegistryT, typename FuncT>
+  bool EachRuntimeImpl(const RegistryT &_registry,
+                       const std::vector<ComponentTypeId> &_types,
+                       const FuncT &_f)
+  {
+    // The sparse set type must be deduced from the registry. The ECM uses
+    // basic_registry<Entity> with Entity = uint64_t, whose storage type is
+    // not entt::sparse_set (which is basic_sparse_set<entt::entity>).
+    using ConstSparseSet =
+        std::remove_pointer_t<decltype(_registry.storage(0u))>;
+    using ConstRuntimeView =
+        entt::basic_runtime_view<ConstSparseSet,
+                                 std::allocator<ConstSparseSet *>>;
+
+    for (const auto typeId : _types)
+    {
+      // Reject ids that do not name a registered component. The ECM stores
+      // its internal book-keeping types (NewEntity, RemoveEntity, Children,
+      // ...) in the same registry, and therefore the same id space, as
+      // components. Those types do not derive from BaseComponent, so
+      // static_cast-ing their storage values below would be undefined
+      // behaviour. This is the same guard ComponentTypes() applies, and it
+      // cannot reject a legitimate component: every component storage is
+      // created through Factory::RegisterToEntt.
+      if (!components::Factory::Instance()->HasType(typeId))
+      {
+        gzerr << "Cannot iterate over component type [" << typeId
+              << "]: it is not a registered component type.\n";
+        return false;
+      }
+    }
+
+    const ConstSparseSet *tagStorage = nullptr;
+    if constexpr (!std::is_same_v<TagType, void>)
+    {
+      tagStorage = _registry.template storage<TagType>();
+      if (!tagStorage || tagStorage->empty())
+        return true;
+    }
+
+    // 0-type query: every entity in scope, with no components.
+    if (_types.empty())
+    {
+      const std::vector<const components::BaseComponent *> none;
+      if constexpr (std::is_same_v<TagType, void>)
+      {
+        for (const auto entity : _registry.template view<Entity>())
+        {
+          if (!_f(entity, none))
+            return true;
+        }
+      }
+      else
+      {
+        for (const auto entity : *tagStorage)
+        {
+          if (!_f(entity, none))
+            return true;
+        }
+      }
+      return true;
+    }
+
+    ConstRuntimeView view;
+    if constexpr (!std::is_same_v<TagType, void>)
+    {
+      view.iterate(*tagStorage);
+    }
+
+    std::vector<const ConstSparseSet *> storages;
+    storages.reserve(_types.size());
+    for (const auto typeId : _types)
+    {
+      const auto *storage = _registry.storage(typeId);
+
+      // A missing or empty pool means no entity can satisfy the query, since
+      // a match requires every requested component.
+      if (!storage || storage->empty())
+        return true;
+
+      view.iterate(*storage);
+      storages.push_back(storage);
+    }
+
+    // Reused across iterations -- no per-entity allocation.
+    std::vector<const components::BaseComponent *> comps(
+        _types.size(), nullptr);
+    for (const auto entity : view)
+    {
+      for (size_t i = 0; i < storages.size(); ++i)
+      {
+        // Safe for the same reason as in ComponentImplementation: every
+        // component derives publicly and non-virtually from BaseComponent,
+        // and the guard above established that each type really is a
+        // component. The runtime view already guarantees membership, so no
+        // contains() check is needed here.
+        comps[i] = static_cast<const components::BaseComponent *>(
+            storages[i]->value(entity));
+      }
+      if (!_f(entity, comps))
+        return true;
+    }
+    return true;
+  }
+}  // namespace
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::Each(
+    const std::vector<ComponentTypeId> &_types,
+    const std::function<bool(Entity,
+        const std::vector<const components::BaseComponent *> &)> &_f) const
+{
+  GZ_PROFILE("EntityComponentManager::Each(runtime)");
+  return EachRuntimeImpl<void>(this->Registry(), _types, _f);
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::EachNew(
+    const std::vector<ComponentTypeId> &_types,
+    const std::function<bool(Entity,
+        const std::vector<const components::BaseComponent *> &)> &_f) const
+{
+  GZ_PROFILE("EntityComponentManager::EachNew(runtime)");
+  return EachRuntimeImpl<NewEntity>(this->Registry(), _types, _f);
+}
+
+/////////////////////////////////////////////////
+bool EntityComponentManager::EachRemoved(
+    const std::vector<ComponentTypeId> &_types,
+    const std::function<bool(Entity,
+        const std::vector<const components::BaseComponent *> &)> &_f) const
+{
+  GZ_PROFILE("EntityComponentManager::EachRemoved(runtime)");
+  return EachRuntimeImpl<RemoveEntity>(this->Registry(), _types, _f);
 }
 
 /////////////////////////////////////////////////

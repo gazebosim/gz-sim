@@ -5,7 +5,7 @@
   <version>11.0.0</version>
   <description>Gazebo Sim : A Robotic Simulator</description>
   <maintainer email="mjcarroll@intrinsic.ai">Michael Carroll</maintainer>
-  <license>Apache License 2.0</license>
+  <license>Apache-2.0</license>
   <url type="website">https://github.com/gazebosim/gz-sim</url>
 
   <buildtool_depend>cmake</buildtool_depend>

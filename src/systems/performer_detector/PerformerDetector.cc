@@ -116,16 +116,38 @@ void PerformerDetector::Configure(const Entity &_entity,
     }
   }
 
-  std::string defaultTopic{"/model/" + this->model.Name(_ecm) +
-                             "/performer_detector/status"};
-  auto topic = _sdf->Get<std::string>("topic", defaultTopic).first;
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, _entity);
+
+  // Resolve the status topic
+  TopicNameOptions topicOptions;
+  topicOptions.sdfElementName = "topic";
+  topicOptions.topicNamespace = ns;
+  topicOptions.defaultTopicPrefix = "/model/" + this->model.Name(_ecm);
+  topicOptions.defaultTopicSuffix = "performer_detector/status";
+  this->resolvedTopicNames.statusTopic =
+      resolvedTopicName(_sdf, topicOptions);
+  if (this->resolvedTopicNames.statusTopic.empty())
+  {
+    gzerr << "PerformerDetector failed to find a valid status topic. "
+           << "Check the <topic> and the namespace attribute in the SDF."
+           << std::endl;
+    return;
+  }
 
   gzmsg << "PerformerDetector publishing messages on "
-         << "[" << topic << "]" << std::endl;
+         << "[" << this->resolvedTopicNames.statusTopic << "]" << std::endl;
 
   transport::Node node;
-  this->pub = node.Advertise<msgs::Pose>(topic);
+  this->pub = node.Advertise<msgs::Pose>(
+      this->resolvedTopicNames.statusTopic);
   this->initialized = true;
+}
+
+/////////////////////////////////////////////////
+PerformerDetector::TopicNames PerformerDetector::ResolvedTopicNames() const
+{
+  return this->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////
