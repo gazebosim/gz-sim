@@ -275,6 +275,39 @@ namespace gz
       public: std::optional<Model> ParentModel(
           const EntityComponentManager &_ecm) const;
 
+      /// \brief Get joint effort limits.
+      /// \details For each axis, returns the maximum absolute effort limit.
+      /// The size of the returned vector corresponds to the joint's degrees
+      /// of freedom. For multi-axis joints, limits are returned for each axis
+      /// in order (for example, including both JointAxis and JointAxis2 when
+      /// applicable).
+      /// \param[in] _ecm Entity component manager.
+      /// \return Effort limits if available.
+      public: std::optional<std::vector<double>> EffortLimits(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get joint position limits.
+      /// \details For each axis, returns min / max position limits. The size
+      /// of the returned vector corresponds to the joint's degrees of freedom.
+      /// For multi-axis joints, limits are returned for each axis in order
+      /// (for example, including both JointAxis and JointAxis2 when
+      /// applicable).
+      /// \param[in] _ecm Entity component manager.
+      /// \return Position limits if available.
+      public: std::optional<std::vector<math::Vector2d>> PositionLimits(
+          const EntityComponentManager &_ecm) const;
+
+      /// \brief Get joint velocity limits.
+      /// \details For each axis, returns the maximum absolute velocity limit.
+      /// The size of the returned vector corresponds to the joint's degrees
+      /// of freedom. For multi-axis joints, limits are returned for each axis
+      /// in order (for example, including both JointAxis and JointAxis2
+      /// when applicable).
+      /// \param[in] _ecm Entity component manager.
+      /// \return Velocity limits if available.
+      public: std::optional<std::vector<double>> MaxVelocityLimits(
+          const EntityComponentManager &_ecm) const;
+
       /// \brief Private data pointer.
       GZ_UTILS_IMPL_PTR(dataPtr)
     };

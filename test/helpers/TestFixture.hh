@@ -37,6 +37,8 @@
 
 #include "helpers/ModelManipulator.hh"
 #include "helpers/ModelObserver.hh"
+#include "helpers/Util.hh"
+#include "helpers/ResetUtils.hh"
 
 using namespace gz;
 
@@ -127,11 +129,49 @@ class TestFixture
       const double stepSize =
           std::chrono::duration<double>(deadline - this->info.simTime).count();
       uint64_t previous_iterations = this->Iterations();
-      simulator->Run(
-          blocking, std::ceil(stepSize / this->maxStepSize), this->paused);
+      simulator->Run(blocking,
+          static_cast<uint64_t>(std::ceil(stepSize / this->maxStepSize)),
+          this->paused);
       iterations += this->Iterations() - previous_iterations;
     } while (this->info.simTime < deadline);
     return iterations;
+  }
+
+  /// Request a world reset over transport.
+  /// \param[in] _worldName Name of the world to reset.
+  public: void RequestWorldReset(const std::string &_worldName)
+  {
+    sim::test::reset::RequestWorldReset(_worldName);
+  }
+
+  /// Run one step so the server consumes the reset request.
+  public: void ConsumeResetRequest()
+  {
+    sim::test::reset::ConsumeResetRequest(*this->Simulator());
+  }
+
+  /// Run one step so the simulation runner applies the reset.
+  public: void ApplyWorldReset()
+  {
+    sim::test::reset::ApplyWorldReset(*this->Simulator());
+  }
+
+  /// Request and apply a world reset using the standard two-step flow.
+  /// \param[in] _worldName Name of the world to reset.
+  public: void RequestAndApplyWorldReset(const std::string &_worldName)
+  {
+    sim::test::reset::RequestAndApplyWorldReset(
+        *this->Simulator(), _worldName);
+  }
+
+  /// Step until a predicate becomes true.
+  /// \param[in] _maxSteps Maximum number of single steps.
+  /// \param[in] _predicate Predicate to evaluate before and after each step.
+  /// \return True when the predicate became true.
+  public: template <typename Predicate>
+  bool StepUntil(uint64_t _maxSteps, Predicate _predicate)
+  {
+    return sim::test::StepUntil(*this->Simulator(), _maxSteps, _predicate);
   }
 
   /// Returns the total number of simulation iterations so far.

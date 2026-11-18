@@ -20,7 +20,7 @@ jobs:
     name: Ubuntu Jammy CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.0
         with:
@@ -32,14 +32,13 @@ jobs:
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
           codecov-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev
 
   noble-ci:
     runs-on: ubuntu-latest
     name: Ubuntu Noble CI
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - uses: actions/setup-python@v3
       - uses: pre-commit/action@v3.0.0
         with:
@@ -52,4 +51,3 @@ jobs:
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
           cppcheck-enabled: true
           cpplint-enabled: true
-          apt-dependencies: libdwarf-dev libdw-dev binutils-dev

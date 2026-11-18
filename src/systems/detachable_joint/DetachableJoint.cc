@@ -95,6 +95,10 @@ void DetachableJoint::Configure(const Entity &_entity,
     return;
   }
 
+  // Control whether the joint starts attached (default true)
+  const bool initialAttach = _sdf->Get<bool>("initial_attach", true).first;
+  this->attachRequested = initialAttach;
+
   // Setup detach topic
   std::vector<std::string> detachTopics;
   if (_sdf->HasElement("detach_topic"))
@@ -343,7 +347,7 @@ void DetachableJoint::PreUpdate(
       gzdbg << "Attaching entity: " << this->detachableJointEntity
               << std::endl;
     }
-    else
+    else if (!this->suppressChildWarning)
     {
       gzwarn << "Child Link " << this->childLinkName
               << " could not be found.\n";

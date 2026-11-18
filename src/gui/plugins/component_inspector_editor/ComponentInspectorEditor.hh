@@ -281,7 +281,7 @@ namespace sim
     public: Q_INVOKABLE void OnPhysics(double _stepSize,
         double _realTimeFactor);
 
-    // \brief Callback in Qt thread when material color changes for a visual
+    /// \brief Callback in Qt thread when material color changes for a visual
     /// \param[in] _rAmbient ambient red
     /// \param[in] _gAmbient ambient green
     /// \param[in] _bAmbient ambient blue

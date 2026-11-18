@@ -1,5 +1,4 @@
-load("@rules_cc//cc:cc_library.bzl", "cc_library")
-load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_gazebo//gazebo:headers.bzl", "gz_configure_header")
 
 package(
@@ -66,6 +65,7 @@ cc_library(
         "@gz-common",
         "@gz-common//testing",
         "@gz-math",
+        "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-transport",
     ],
 )
@@ -170,8 +170,8 @@ cc_test(
     deps = [
         ":Helpers",
         ":MockSystem",
-        "//:gz-sim-physics-system-static",
         "//:gz-sim",
+        "//:gz-sim-physics-system-static",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
         "@gz-math//:gz-math",

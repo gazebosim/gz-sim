@@ -44,11 +44,11 @@ namespace systems
   /// `/model/{name_of_model}/steer_angle`. Automatically set True when
   /// `<use_actuator_msg>` is True, uses defaults topic name "/actuators".
   ///
-  /// - `<use_actuator_msg>` True to enable the use of actutor message
+  /// - `<use_actuator_msg>` True to enable the use of actuator message
   /// for steering angle command. Relies on `<actuator_number>` for the
   /// index of the position actuator and defaults to topic "/actuators".
   ///
-  /// - `<actuator_number>` used with `<use_actuator_commands>` to set
+  /// - `<actuator_number>` used with `<use_actuator_msg>` to set
   /// the index of the steering angle position actuator.
   ///
   /// - `<steer_p_gain>`: Float used to control the steering angle P gain.

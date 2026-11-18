@@ -27,6 +27,32 @@
 
 using namespace gz::sim;
 
+namespace {
+  void WaitForNumPeers(const PeerTracker& _tracker,
+                size_t _expected, int _timeoutMs = 2000)
+  {
+
+    int elapsed = 0;
+    while (_tracker.NumPeers() != _expected && elapsed < _timeoutMs) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      elapsed += 10;
+    }
+    EXPECT_EQ(_expected, _tracker.NumPeers());
+  }
+
+  void WaitForPeersCount(const std::atomic<int>& _peers,
+                  int _expected, int _timeoutMs = 2000)
+  {
+
+    int elapsed = 0;
+    while (_peers != _expected && elapsed < _timeoutMs) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      elapsed += 10;
+    }
+    EXPECT_EQ(_expected, _peers);
+  }
+}
+
 //////////////////////////////////////////////////
 TEST(PeerTracker, PeerTracker)
 {
@@ -52,28 +78,23 @@ TEST(PeerTracker, PeerTracker)
 
   auto tracker2 = std::make_shared<PeerTracker>(
     PeerInfo(NetworkRole::SimulationSecondary));
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  EXPECT_EQ(1, peers);
+  WaitForPeersCount(peers, 1);
 
   auto tracker3 = std::make_shared<PeerTracker>(
     PeerInfo(NetworkRole::SimulationSecondary));
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  EXPECT_EQ(2, peers);
+  WaitForPeersCount(peers, 2);
 
   auto tracker4 = std::make_shared<PeerTracker>(
     PeerInfo(NetworkRole::ReadOnly));
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  EXPECT_EQ(3, peers);
+  WaitForPeersCount(peers, 3);
 
   auto tracker5 = std::make_shared<PeerTracker>(
     PeerInfo(NetworkRole::ReadOnly));
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  EXPECT_EQ(4, peers);
+  WaitForPeersCount(peers, 4);
 
   auto tracker6 = std::make_shared<PeerTracker>(
     PeerInfo(NetworkRole::None));
-  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  EXPECT_EQ(5, peers);
+  WaitForPeersCount(peers, 5);
 
   // Allow all the heartbeats to propagate
   int maxSleep{100};
@@ -121,24 +142,19 @@ TEST(PeerTracker, PeerTracker)
   EXPECT_EQ(1u, tracker5->NumPeers(NetworkRole::None));
 
   tracker6.reset();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  EXPECT_EQ(4, peers);
+  WaitForPeersCount(peers, 4);
 
   tracker5.reset();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  EXPECT_EQ(3, peers);
+  WaitForPeersCount(peers, 3);
 
   tracker4.reset();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  EXPECT_EQ(2, peers);
+  WaitForPeersCount(peers, 2);
 
   tracker3.reset();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  EXPECT_EQ(1, peers);
+  WaitForPeersCount(peers, 1);
 
   tracker2.reset();
-  std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  EXPECT_EQ(0, peers);
+  WaitForPeersCount(peers, 0);
 
   tracker1.reset();
 }
@@ -266,13 +282,10 @@ TEST(PeerTracker, Namespaced)
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
-  std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-  // Trackers should detect peers in the same partition.
-  EXPECT_EQ(1u, tracker1.NumPeers());
-  EXPECT_EQ(1u, tracker2.NumPeers());
-  EXPECT_EQ(1u, tracker3.NumPeers());
-  EXPECT_EQ(1u, tracker4.NumPeers());
+  WaitForNumPeers(tracker1, 1);
+  WaitForNumPeers(tracker2, 1);
+  WaitForNumPeers(tracker3, 1);
+  WaitForNumPeers(tracker4, 1);
 }
 
 //////////////////////////////////////////////////
@@ -308,13 +321,10 @@ TEST(PeerTracker, PartitionedEnv)
 
   // Allow some time for heartbeats to propagate
   // TODO(mjcarroll): Send heartbeats on announce
-  std::this_thread::sleep_for(std::chrono::milliseconds(110));
-
-  // Trackers should detect peers in the same partition.
-  EXPECT_EQ(1u, tracker1.NumPeers());
-  EXPECT_EQ(1u, tracker2.NumPeers());
-  EXPECT_EQ(1u, tracker3.NumPeers());
-  EXPECT_EQ(1u, tracker4.NumPeers());
+  WaitForNumPeers(tracker1, 1);
+  WaitForNumPeers(tracker2, 1);
+  WaitForNumPeers(tracker3, 1);
+  WaitForNumPeers(tracker4, 1);
 
   gz::common::unsetenv("GZ_PARTITION");
 }

@@ -17,13 +17,26 @@
 
 #include <gtest/gtest.h>
 #include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/details/entity_factory.pb.h>
+#include <gz/msgs/details/sdf_generator_config.pb.h>
 #include <gz/msgs/entity_factory.pb.h>
 #include <gz/msgs/sdf_generator_config.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
-
-#include <sstream>
 #include <tinyxml2.h>
 
+#include <cstddef>
+#include <exception>
+#include <future>
+#include <optional>
+#include <sstream>
+
+#include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/Util.hh>
+#include <gz/common/testing/TestPaths.hh>
+#include <gz/math/Pose3.hh>
+#include <gz/transport/Node.hh>
+#include <gz/utils/ExtraTestMacros.hh>
 #include <sdf/AirPressure.hh>
 #include <sdf/Altimeter.hh>
 #include <sdf/Camera.hh>
@@ -32,30 +45,22 @@
 #include <sdf/Imu.hh>
 #include <sdf/Joint.hh>
 #include <sdf/JointAxis.hh>
-#include <sdf/Magnetometer.hh>
-#include <sdf/Model.hh>
 #include <sdf/Lidar.hh>
 #include <sdf/Light.hh>
 #include <sdf/Link.hh>
+#include <sdf/Magnetometer.hh>
+#include <sdf/Model.hh>
 #include <sdf/Root.hh>
 #include <sdf/Sensor.hh>
 #include <sdf/Visual.hh>
 #include <sdf/World.hh>
 
-#include <gz/common/Console.hh>
-#include <gz/common/Filesystem.hh>
-#include <gz/common/Util.hh>
-#include <gz/math/Pose3.hh>
-#include <gz/transport/Node.hh>
-#include <gz/utils/ExtraTestMacros.hh>
-
+#include "helpers/EnvTestFixture.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/SystemLoader.hh"
-#include "test_config.hh"
-
+#include "gz/sim/ServerConfig.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
-#include "plugins/MockSystem.hh"
-#include "../helpers/EnvTestFixture.hh"
+#include "helpers/Util.hh"
+#include "test_config.hh"
 
 using namespace gz;
 using namespace sim;
@@ -65,16 +70,39 @@ class SdfGeneratorFixture : public InternalFixture<::testing::Test>
 {
   public: void LoadWorld(const std::string &_path)
   {
-    ServerConfig serverConfig;
-    serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
+    auto serverConfig = this->CreateConfig();
     serverConfig.SetSdfFile(common::joinPaths(PROJECT_SOURCE_PATH, _path));
+    this->LoadFromConfig(serverConfig);
+  }
 
-    std::cout << "Loading: " << serverConfig.SdfFile() << std::endl;
-    this->server = std::make_unique<Server>(serverConfig);
+  public: void LoadTestWorld(const std::string &_worldFileName)
+  {
+    this->LoadWorld(common::joinPaths("test", "worlds", _worldFileName));
+  }
+
+  public: void LoadWorldFromString(const std::string &_sdfString)
+  {
+    auto serverConfig = this->CreateConfig();
+    serverConfig.SetSdfString(_sdfString);
+    this->LoadFromConfig(serverConfig);
+  }
+
+  public: void LoadFromConfig(const ServerConfig &_config)
+  {
+    this->server = std::make_unique<Server>(_config);
     EXPECT_FALSE(server->Running());
   }
-  public: std::string RequestGeneratedSdf(const std::string &_worldName,
-              const msgs::SdfGeneratorConfig &_req = msgs::SdfGeneratorConfig())
+
+  public: ServerConfig CreateConfig()
+  {
+    ServerConfig serverConfig;
+    serverConfig.SetResourceCache(test::UniqueTestDirectoryEnv::Path());
+    return serverConfig;
+  }
+
+  public: std::string RequestGeneratedSdf(
+      const std::string &_worldName,
+      const msgs::SdfGeneratorConfig &_req = msgs::SdfGeneratorConfig())
   {
     transport::Node node;
 
@@ -220,8 +248,7 @@ TEST_F(SdfGeneratorFixture,
 
 /////////////////////////////////////////////////
 // Test segfaults on Mac at startup, possible collision with test above?
-TEST_F(SdfGeneratorFixture,
-    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelSpawnedWithNewName))
+TEST_F(SdfGeneratorFixture, ModelSpawnedWithNewName)
 {
   this->LoadWorld("test/worlds/save_world.sdf");
 
@@ -317,7 +344,6 @@ TEST_F(SdfGeneratorFixture, WorldWithNestedModel)
   ASSERT_NE(nullptr, genWorld);
 }
 
-
 /////////////////////////////////////////////////
 TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
 {
@@ -346,8 +372,8 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   EXPECT_NE(kNullEntity, this->server->EntityByName("C"));
 
   msgs::SdfGeneratorConfig req;
-  req.mutable_global_entity_gen_config()
-     ->mutable_save_fuel_version()->set_data(true);
+  req.mutable_global_entity_gen_config()->mutable_save_fuel_version()->set_data(
+      true);
 
   const std::string worldGenSdfRes =
       this->RequestGeneratedSdf("model_nested_include_world", req);
@@ -422,9 +448,8 @@ TEST_F(SdfGeneratorFixture, ModelWithNestedIncludes)
   uri = include->FirstChildElement("uri");
   ASSERT_NE(nullptr, uri);
   ASSERT_NE(nullptr, uri->GetText());
-  EXPECT_EQ(
-    "https://fuel.gazebosim.org/1.0/openrobotics/models/coke can/3",
-     std::string(uri->GetText()));
+  EXPECT_EQ("https://fuel.gazebosim.org/1.0/openrobotics/models/coke can/3",
+            std::string(uri->GetText()));
 
   name = include->FirstChildElement("name");
   ASSERT_NE(nullptr, name);
@@ -500,12 +525,12 @@ TEST_F(SdfGeneratorFixture, WorldWithSensors)
     ASSERT_NE(nullptr, forceTorque);
     EXPECT_EQ(sdf::ForceTorqueFrame::CHILD, forceTorque->Frame());
     EXPECT_EQ(sdf::ForceTorqueMeasureDirection::PARENT_TO_CHILD,
-        forceTorque->MeasureDirection());
+              forceTorque->MeasureDirection());
     const sdf::Noise &forceXNoise = forceTorque->ForceXNoise();
     EXPECT_EQ(sdf::NoiseType::GAUSSIAN_QUANTIZED, forceXNoise.Type());
     EXPECT_DOUBLE_EQ(0.02, forceXNoise.Mean());
     EXPECT_DOUBLE_EQ(0.0005, forceXNoise.StdDev());
-     const sdf::Noise &torqueYNoise = forceTorque->TorqueYNoise();
+    const sdf::Noise &torqueYNoise = forceTorque->TorqueYNoise();
     EXPECT_EQ(sdf::NoiseType::GAUSSIAN, torqueYNoise.Type());
     EXPECT_DOUBLE_EQ(0.009, torqueYNoise.Mean());
     EXPECT_DOUBLE_EQ(0.0000985, torqueYNoise.StdDev());
@@ -619,8 +644,7 @@ TEST_F(SdfGeneratorFixture, WorldWithRenderingSensors)
 {
   this->LoadWorld("test/worlds/sensor.sdf");
 
-  const std::string worldGenSdfRes =
-      this->RequestGeneratedSdf("camera_sensor");
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("camera_sensor");
 
   sdf::Root root;
   sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
@@ -637,9 +661,9 @@ TEST_F(SdfGeneratorFixture, WorldWithRenderingSensors)
 
     auto *link = model->LinkByName("link");
     ASSERT_NE(nullptr, link);
-    math::MassMatrix3d massMatrix(0.1,
-       math::Vector3d( 0.000166667, 0.000166667, 0.000166667),
-       math::Vector3d::Zero);
+    math::MassMatrix3d massMatrix(
+        0.1, math::Vector3d(0.000166667, 0.000166667, 0.000166667),
+        math::Vector3d::Zero);
     math::Inertiald inertial(massMatrix, math::Pose3d::Zero);
     EXPECT_EQ(inertial, link->Inertial());
 
@@ -758,8 +782,7 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
 {
   this->LoadWorld("test/worlds/lights.sdf");
 
-  const std::string worldGenSdfRes =
-      this->RequestGeneratedSdf("lights");
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("lights");
 
   sdf::Root root;
   sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
@@ -772,33 +795,26 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
     const sdf::Light *light = world->LightByIndex(0u);
     EXPECT_EQ("directional", light->Name());
     EXPECT_EQ(sdf::LightType::DIRECTIONAL, light->Type());
-    EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0),
-        light->RawPose());
+    EXPECT_EQ(gz::math::Pose3d(0, 0, 10, 0, 0, 0), light->RawPose());
     EXPECT_EQ(std::string(), light->PoseRelativeTo());
     EXPECT_TRUE(light->CastShadows());
-    EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1),
-        light->Diffuse());
-    EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
-        light->Specular());
+    EXPECT_EQ(gz::math::Color(0.8f, 0.8f, 0.8f, 1), light->Diffuse());
+    EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1), light->Specular());
     EXPECT_DOUBLE_EQ(100, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.9, light->ConstantAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.01, light->LinearAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.001, light->QuadraticAttenuationFactor());
-    EXPECT_EQ(gz::math::Vector3d(0.5, 0.2, -0.9),
-        light->Direction());
+    EXPECT_EQ(gz::math::Vector3d(0.5, 0.2, -0.9), light->Direction());
   }
   // point light in the world
   {
     const sdf::Light *light = world->LightByIndex(1u);
     EXPECT_EQ("point", light->Name());
     EXPECT_EQ(sdf::LightType::POINT, light->Type());
-    EXPECT_EQ(gz::math::Pose3d(0, -1.5, 3, 0, 0, 0),
-        light->RawPose());
+    EXPECT_EQ(gz::math::Pose3d(0, -1.5, 3, 0, 0, 0), light->RawPose());
     EXPECT_FALSE(light->CastShadows());
-    EXPECT_EQ(gz::math::Color(1.0f, 0.0f, 0.0f, 1),
-        light->Diffuse());
-    EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
-        light->Specular());
+    EXPECT_EQ(gz::math::Color(1.0f, 0.0f, 0.0f, 1), light->Diffuse());
+    EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1), light->Specular());
     EXPECT_DOUBLE_EQ(4, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.2, light->ConstantAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.5, light->LinearAttenuationFactor());
@@ -809,20 +825,16 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
     const sdf::Light *light = world->LightByIndex(2u);
     EXPECT_EQ("spot", light->Name());
     EXPECT_EQ(sdf::LightType::SPOT, light->Type());
-    EXPECT_EQ(gz::math::Pose3d(0, 1.5, 3, 0, 0, 0),
-        light->RawPose());
+    EXPECT_EQ(gz::math::Pose3d(0, 1.5, 3, 0, 0, 0), light->RawPose());
     EXPECT_EQ(std::string(), light->PoseRelativeTo());
     EXPECT_FALSE(light->CastShadows());
-    EXPECT_EQ(gz::math::Color(0.0f, 1.0f, 0.0f, 1),
-        light->Diffuse());
-    EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1),
-        light->Specular());
+    EXPECT_EQ(gz::math::Color(0.0f, 1.0f, 0.0f, 1), light->Diffuse());
+    EXPECT_EQ(gz::math::Color(0.2f, 0.2f, 0.2f, 1), light->Specular());
     EXPECT_DOUBLE_EQ(5, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.3, light->ConstantAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.4, light->LinearAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.001, light->QuadraticAttenuationFactor());
-    EXPECT_EQ(gz::math::Vector3d(0.0, 0.0, -1.0),
-        light->Direction());
+    EXPECT_EQ(gz::math::Vector3d(0.0, 0.0, -1.0), light->Direction());
     EXPECT_DOUBLE_EQ(0.1, light->SpotInnerAngle().Radian());
     EXPECT_DOUBLE_EQ(0.5, light->SpotOuterAngle().Radian());
     EXPECT_DOUBLE_EQ(0.8, light->SpotFalloff());
@@ -842,14 +854,11 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
   {
     const sdf::Light *light = link->LightByName("link_light_point");
     EXPECT_EQ("link_light_point", light->Name());
-    EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0),
-        light->RawPose());
+    EXPECT_EQ(gz::math::Pose3d(0.0, 0.0, 1.0, 0, 0, 0), light->RawPose());
     EXPECT_EQ(sdf::LightType::POINT, light->Type());
     EXPECT_FALSE(light->CastShadows());
-    EXPECT_EQ(gz::math::Color(0.0f, 0.0f, 1.0f, 1),
-        light->Diffuse());
-    EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1),
-        light->Specular());
+    EXPECT_EQ(gz::math::Color(0.0f, 0.0f, 1.0f, 1), light->Diffuse());
+    EXPECT_EQ(gz::math::Color(0.1f, 0.1f, 0.1f, 1), light->Specular());
     EXPECT_DOUBLE_EQ(2, light->AttenuationRange());
     EXPECT_DOUBLE_EQ(0.05, light->ConstantAttenuationFactor());
     EXPECT_DOUBLE_EQ(0.02, light->LinearAttenuationFactor());
@@ -866,11 +875,9 @@ TEST_F(SdfGeneratorFixture, WorldWithLights)
 /////////////////////////////////////////////////
 TEST_F(SdfGeneratorFixture, ModelWithJoints)
 {
-  this->LoadWorld(gz::common::joinPaths("test", "worlds",
-      "joint_sensor.sdf"));
+  this->LoadWorld(gz::common::joinPaths("test", "worlds", "joint_sensor.sdf"));
 
-  const std::string worldGenSdfRes =
-      this->RequestGeneratedSdf("joint_sensor");
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("joint_sensor");
 
   sdf::Root root;
   sdf::Errors err = root.LoadSdfString(worldGenSdfRes);
@@ -935,17 +942,17 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
 
   // sensor
   const sdf::Sensor *forceTorqueSensor =
-    joint->SensorByName("force_torque_sensor");
+      joint->SensorByName("force_torque_sensor");
   ASSERT_NE(nullptr, forceTorqueSensor);
   EXPECT_EQ("force_torque_sensor", forceTorqueSensor->Name());
   EXPECT_EQ(sdf::SensorType::FORCE_TORQUE, forceTorqueSensor->Type());
   EXPECT_EQ(gz::math::Pose3d(10, 11, 12, 0, 0, 0),
-      forceTorqueSensor->RawPose());
+            forceTorqueSensor->RawPose());
   auto forceTorqueSensorObj = forceTorqueSensor->ForceTorqueSensor();
   ASSERT_NE(nullptr, forceTorqueSensorObj);
   EXPECT_EQ(sdf::ForceTorqueFrame::PARENT, forceTorqueSensorObj->Frame());
   EXPECT_EQ(sdf::ForceTorqueMeasureDirection::PARENT_TO_CHILD,
-      forceTorqueSensorObj->MeasureDirection());
+            forceTorqueSensorObj->MeasureDirection());
 
   EXPECT_DOUBLE_EQ(0.0, forceTorqueSensorObj->ForceXNoise().Mean());
   EXPECT_DOUBLE_EQ(0.1, forceTorqueSensorObj->ForceXNoise().StdDev());
@@ -960,6 +967,323 @@ TEST_F(SdfGeneratorFixture, ModelWithJoints)
   EXPECT_DOUBLE_EQ(4.1, forceTorqueSensorObj->TorqueYNoise().StdDev());
   EXPECT_DOUBLE_EQ(5.0, forceTorqueSensorObj->TorqueZNoise().Mean());
   EXPECT_DOUBLE_EQ(5.1, forceTorqueSensorObj->TorqueZNoise().StdDev());
+}
+
+namespace
+{
+sdf::ElementPtr FindElementByPath(const sdf::ElementPtr &_input,
+                                  const std::vector<std::string> &_path)
+{
+  auto elem = _input;
+  for (const auto &name : _path)
+  {
+    elem = elem->FindElement(name);
+    if (!elem)
+      break;
+  }
+  return elem;
+}
+}  // namespace
+//
+
+struct SchemedResourceURIs : public SdfGeneratorFixture
+{
+  void SetUp() override
+  {
+    SdfGeneratorFixture::SetUp();
+    common::setenv("GZ_SIM_RESOURCE_PATH", modelPath.c_str());
+  }
+
+  void LoadEmptyWorld()
+  {
+    auto worldStr = R"(
+      <?xml version="1.0" ?>
+      <sdf version='1.6'>
+      <world name='default'>
+      </world>
+      </sdf>)";
+    this->LoadWorldFromString(worldStr);
+  }
+
+  void LoadFromFileAsString(const std::string &_filePath)
+  {
+    auto sdfString = test::readFileContents(_filePath);
+    ASSERT_TRUE(sdfString);
+    this->LoadWorldFromString(*sdfString);
+  }
+
+  void SpawnFromFile(const std::string &_modelPath)
+  {
+    msgs::EntityFactory entityFactoryReq;
+    entityFactoryReq.set_sdf_filename(_modelPath);
+    this->CallCreate(entityFactoryReq);
+  }
+
+  void SpawnFromFileAsString(const std::string &_modelPath)
+  {
+    auto sdfString = test::readFileContents(_modelPath);
+    ASSERT_TRUE(sdfString);
+    this->SpawnFromString(*sdfString);
+  }
+
+  void SpawnFromString(const std::string &_modelString)
+  {
+    msgs::EntityFactory entityFactoryReq;
+    entityFactoryReq.set_sdf(_modelString);
+    this->CallCreate(entityFactoryReq);
+  }
+
+  void CallCreate(const msgs::EntityFactory &_msg)
+  {
+    msgs::Boolean res;
+    bool result;
+    unsigned int timeout = 5000;
+    std::string service{"/world/default/create/blocking"};
+
+    // Because we are calling the blocking "create" service, we need the server
+    // to be running in the background. However, calling
+    // Server::Run(blocking=false) does not work because Server::Stop() does not
+    // guarantee that the server has stopped when it returns. What's reliable is
+    // that Server::Run only returns after the server has stopped.
+    //
+    // So here, we call Server::Run(blocking=true) from a separate thread, call
+    // the service, call Server::Stop and finally wait for the Server::Run to
+    // return.
+    auto run = std::async(std::launch::async,
+                          [&]() -> void { this->server->Run(true, 0, true); });
+    EXPECT_TRUE(node.Request(service, _msg, timeout, res, result));
+    EXPECT_TRUE(result);
+    EXPECT_TRUE(res.data());
+    this->server->Stop();
+    run.wait();
+  }
+
+  sdf::SDFPtr ReadSdfString(const std::string &_generatedSdf)
+  {
+    auto sdfPtr = std::make_shared<sdf::SDF>();
+    if (!sdf::init(sdfPtr))
+    {
+      return nullptr;
+    }
+    if (!sdf::readString(_generatedSdf.data(), sdfPtr))
+    {
+      return nullptr;
+    }
+    return sdfPtr;
+  }
+
+  void VerifyURIs(const std::string &_generatedSdf)
+  {
+    auto sdfPtr = this->ReadSdfString(_generatedSdf);
+    ASSERT_NE(nullptr, sdfPtr);
+    auto visMeshUri =
+        FindElementByPath(sdfPtr->Root(), {"world", "model", "link", "visual",
+                                           "geometry", "mesh", "uri"});
+    ASSERT_NE(nullptr, visMeshUri);
+    auto expectedPath =
+        "file://" + common::joinPaths(modelPath, "scheme_resource_uri",
+                                      "meshes", "box.dae");
+    EXPECT_EQ(expectedPath, visMeshUri->Get<std::string>());
+  }
+
+  msgs::SdfGeneratorConfig ExpandIncludeTagsConfig()
+  {
+    msgs::SdfGeneratorConfig req;
+    req.mutable_global_entity_gen_config()
+        ->mutable_expand_include_tags()
+        ->set_data(true);
+    return req;
+  }
+
+  std::string modelPath = common::testing::TestFile("worlds", "models");
+  transport::Node node;
+};
+
+/////////////////////////////////////////////////
+// Tests:
+// - Spawned models (from file and from string) containing asset URIs are
+// properly expanded
+//  - The assets can have Fuel URIs or file:/// URIs
+//  - They can also be relative paths
+// - Models spawned from string are expanded regardless of the expand includes
+// flag Test schemed URIs such as file://, model://, package://, and http(s)://
+
+// TestConfig:
+//  - world: file
+//  - model: included from world file
+//  - resource URI: model://
+//  - expand_include_tags: true
+TEST_F(SchemedResourceURIs, ModelFromFile)
+{
+  SCOPED_TRACE("");
+  this->LoadTestWorld("resource_paths.sdf");
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("default", this->ExpandIncludeTagsConfig());
+
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: string
+//  - model: included from world string
+//  - resource URI: model://
+//  - expand_include_tags: true
+TEST_F(SchemedResourceURIs, ModelFromString)
+{
+  SCOPED_TRACE("");
+  this->LoadFromFileAsString(
+      common::testing::TestFile("worlds", "resource_paths.sdf"));
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("default", this->ExpandIncludeTagsConfig());
+
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: string
+//  - model: spawned from file
+//  - resource URI: model://
+//  - expand_include_tags: true
+TEST_F(SchemedResourceURIs, ModelSpawnedFromFile)
+{
+  SCOPED_TRACE("");
+  this->LoadEmptyWorld();
+  this->SpawnFromFile(common::joinPaths(modelPath, "scheme_resource_uri"));
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("default", this->ExpandIncludeTagsConfig());
+
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: string
+//  - model: spawned from string
+//  - resource URI: model://
+//  - expand_include_tags: true
+TEST_F(SchemedResourceURIs, ModelSpawnedFromString)
+{
+  SCOPED_TRACE("");
+  this->LoadEmptyWorld();
+  this->SpawnFromFileAsString(
+      common::joinPaths(modelPath, "scheme_resource_uri", "model.sdf"));
+
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("default", this->ExpandIncludeTagsConfig());
+
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: string
+//  - model: spawned from URDF file
+//  - resource URI: package://
+//  - expand_include_tags: true
+TEST_F(SchemedResourceURIs, ModelSpawnedFromURDFFile)
+{
+  SCOPED_TRACE("");
+  this->LoadEmptyWorld();
+  this->SpawnFromFile(common::joinPaths(modelPath, "scheme_resource_uri",
+                                        "scheme_resource_uri.urdf"));
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("default", this->ExpandIncludeTagsConfig());
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: string
+//  - model: spawned from URDF string
+//  - resource URI: package://
+//  - expand_include_tags: true
+TEST_F(SchemedResourceURIs, ModelSpawnedFromURDFString)
+{
+  SCOPED_TRACE("");
+  this->LoadEmptyWorld();
+  this->SpawnFromFileAsString(common::joinPaths(
+      modelPath, "scheme_resource_uri", "scheme_resource_uri.urdf"));
+  const std::string worldGenSdfRes =
+      this->RequestGeneratedSdf("default", this->ExpandIncludeTagsConfig());
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: string
+//  - model: spawned from string
+//  - resource URI: model://
+//  - expand_include_tags: false
+TEST_F(SchemedResourceURIs, ModelSpawnedFromStringNoExpandIncludeTags)
+{
+  SCOPED_TRACE("");
+  this->LoadEmptyWorld();
+  this->SpawnFromFileAsString(
+      common::joinPaths(modelPath, "scheme_resource_uri", "model.sdf"));
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("default");
+
+  this->VerifyURIs(worldGenSdfRes);
+}
+
+// TestConfig:
+//  - world: file
+//  - resource URI: file://
+//  - expand_include_tags: n/a
+TEST_F(SchemedResourceURIs, WorldFromFileWithFileSchemeURI)
+{
+  SCOPED_TRACE("");
+  auto serverConfig = this->CreateConfig();
+  serverConfig.SetSdfFile(
+      common::joinPaths(PROJECT_BINARY_PATH, "test", "worlds", "mesh.sdf"));
+  this->LoadFromConfig(serverConfig);
+
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("shapes");
+
+  auto sdfPtr = this->ReadSdfString(worldGenSdfRes );
+  ASSERT_NE(nullptr, sdfPtr);
+  auto modelElem = FindElementByPath(sdfPtr->Root(), {"world", "model"});
+  ASSERT_NE(nullptr, modelElem);
+  auto duck1ModelElem = modelElem->GetNextElement("model");
+  ASSERT_NE(nullptr, duck1ModelElem);
+  EXPECT_EQ(duck1ModelElem->Get<std::string>("name"), "duck1");
+
+  auto visMeshUri = FindElementByPath(
+      duck1ModelElem, {"link", "visual", "geometry", "mesh", "uri"});
+  ASSERT_NE(nullptr, visMeshUri);
+  auto expectedPath =
+    "file://" + common::testing::TestFile("media", "duck.dae");
+  EXPECT_EQ(expectedPath, visMeshUri->Get<std::string>());
+}
+
+// TestConfig:
+//  - world: string
+//  - model: spawned from string
+//  - resource URI: file://
+//  - expand_include_tags: n/a
+TEST_F(SchemedResourceURIs, ModelSpawnedFromStringWithFileSchemeURI)
+{
+  SCOPED_TRACE("");
+  this->LoadEmptyWorld();
+  std::string meshFile = common::testing::TestFile(
+      "worlds", "models", "scheme_resource_uri", "meshes", "box.dae");
+  auto modelSdf = std::string(R"(
+    <sdf version="1.6">
+      <model name="scheme_resource_uri">
+        <link name="link">
+          <visual name="visual">
+            <geometry>
+              <mesh>
+                <uri>file://)") + meshFile + R"(</uri>
+              </mesh>
+            </geometry>
+          </visual>
+        </link>
+      </model>
+    </sdf>
+  )";
+  this->SpawnFromString(modelSdf);
+
+  const std::string worldGenSdfRes = this->RequestGeneratedSdf("default");
+  this->VerifyURIs(worldGenSdfRes);
 }
 
 /////////////////////////////////////////////////

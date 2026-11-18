@@ -58,6 +58,7 @@ namespace systems
   /// - `<static_update_frequency>`: Frequency of static pose publications in
   ///   Hz. A negative frequency publishes as fast as possible (i.e, at the
   ///   rate of the simulation step).
+  /// - `<topic>`: Set a custom topic instead of default value
   class PosePublisher
       : public System,
         public ISystemConfigure,

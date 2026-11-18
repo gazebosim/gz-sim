@@ -16,6 +16,7 @@
  */
 
 #include <future>
+#include <gz/msgs/details/vector3d.pb.h>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -37,6 +38,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Light.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Material.hh"
@@ -1584,14 +1586,29 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   auto worldEntity = ecm->EntityByComponents(components::World());
   EXPECT_NE(kNullEntity, worldEntity);
   auto physicsComp = ecm->Component<components::Physics>(worldEntity);
+  auto gravityComp = ecm->Component<components::Gravity>(worldEntity);
   ASSERT_NE(nullptr, physicsComp);
+  ASSERT_NE(nullptr, gravityComp);
   EXPECT_DOUBLE_EQ(0.001, physicsComp->Data().MaxStepSize());
   EXPECT_DOUBLE_EQ(0.0, physicsComp->Data().RealTimeFactor());
+
+  auto gravity = gravityComp->Data();
+  EXPECT_DOUBLE_EQ(0.0, gravity.X());
+  EXPECT_DOUBLE_EQ(0.0, gravity.Y());
+  EXPECT_DOUBLE_EQ(-9.8, gravity.Z());
 
   // Set physics properties
   msgs::Physics req;
   req.set_max_step_size(0.123);
   req.set_real_time_factor(4.567);
+
+  gz::msgs::Vector3d new_gravity;
+  new_gravity.set_x(1.0);
+  new_gravity.set_y(3.0);
+  new_gravity.set_z(5.0);
+  req.mutable_gravity()->set_x(new_gravity.x());
+  req.mutable_gravity()->set_y(new_gravity.y());
+  req.mutable_gravity()->set_z(new_gravity.z());
 
   msgs::Boolean res;
   bool result;
@@ -1606,6 +1623,13 @@ TEST_F(UserCommandsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Physics))
   // Run two iterations, in the first one the PhysicsCmd component is created
   // in the second one it is processed
   server.Run(true, 2, false);
+
+  // Check updated gravity
+  gravityComp = ecm->Component<components::Gravity>(worldEntity);
+  gravity = gravityComp->Data();
+  EXPECT_DOUBLE_EQ(new_gravity.x(), gravity.X());
+  EXPECT_DOUBLE_EQ(new_gravity.y(), gravity.Y());
+  EXPECT_DOUBLE_EQ(new_gravity.z(), gravity.Z());
 
   // Check updated physics properties
   physicsComp = ecm->Component<components::Physics>(worldEntity);
