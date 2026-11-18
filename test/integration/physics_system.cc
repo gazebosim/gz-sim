@@ -42,6 +42,7 @@
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Link.hh"
+#include "gz/sim/Model.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
@@ -195,6 +196,97 @@ TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(FallingObject))
   const double zStopped =
       sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
   EXPECT_NEAR(spherePoses.back().Pos().Z(), zStopped, 5e-2);
+}
+
+/////////////////////////////////////////////////
+// Verify that disabling a model's collisions via Model::SetCollisionEnabled
+// (i.e. the CollisionEnabledCmd component) causes the model to no longer
+// collide. The sphere from falling.sdf would normally come to rest on the
+// ground plane, but with collisions disabled it should fall straight through.
+TEST_F(PhysicsSystemFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(DisableCollision))
+{
+  ServerConfig serverConfig;
+
+  const auto sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/falling.sdf";
+  serverConfig.SetSdfFile(sdfFile);
+
+  sdf::Root root;
+  root.Load(sdfFile);
+  const sdf::World *world = root.WorldByIndex(0);
+  const sdf::Model *model = world->ModelByIndex(0);
+
+  Server server(serverConfig);
+
+  server.SetUpdatePeriod(1us);
+
+  const std::string modelName = "sphere";
+  std::vector<math::Pose3d> spherePoses;
+  std::optional<bool> collisionState;
+
+  test::Relay testSystem;
+
+  // Disable the sphere model's collisions on the first iteration.
+  testSystem.OnPreUpdate(
+    [modelName](const UpdateInfo &, EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name>(
+        [&](const Entity &_entity, const components::Model *,
+            const components::Name *_name)->bool
+        {
+          if (_name->Data() == modelName)
+          {
+            Model sphereModel(_entity);
+            // Send the command only once. Once it has been processed by the
+            // physics system, the CollisionEnabled state component will exist.
+            if (!sphereModel.CollisionEnabled(_ecm).has_value())
+            {
+              sphereModel.SetCollisionEnabled(_ecm, false);
+            }
+          }
+          return true;
+        });
+    });
+
+  // Record the sphere pose and its collision-enabled state.
+  testSystem.OnPostUpdate(
+    [modelName, &spherePoses, &collisionState](const UpdateInfo &,
+    const EntityComponentManager &_ecm)
+    {
+      _ecm.Each<components::Model, components::Name, components::Pose>(
+        [&](const Entity &_entity, const components::Model *,
+        const components::Name *_name, const components::Pose *_pose)->bool
+        {
+          if (_name->Data() == modelName)
+          {
+            spherePoses.push_back(_pose->Data());
+            collisionState = Model(_entity).CollisionEnabled(_ecm);
+          }
+          return true;
+        });
+    });
+
+  server.AddSystem(testSystem.systemPtr);
+
+  // Run long enough for the sphere to fall past the ground plane.
+  server.Run(true, 3000, false);
+
+  // The CollisionEnabled state component should reflect the disabled command.
+  ASSERT_TRUE(collisionState.has_value());
+  EXPECT_FALSE(collisionState.value());
+
+  // With collisions enabled, the sphere (radius 1) would come to rest on the
+  // ground plane (at z = 0) with the model stopping at z = radius minus the
+  // link's z offset (see the FallingObject test above).
+  auto geometry = model->LinkByIndex(0)->CollisionByIndex(0)->Geom();
+  auto sphere = geometry->SphereShape();
+  ASSERT_NE(nullptr, sphere);
+  const double zStopped =
+      sphere->Radius() - model->LinkByIndex(0)->RawPose().Pos().Z();
+
+  // With collisions disabled the sphere should keep falling well below that
+  // resting position, confirming it passed through the ground plane.
+  EXPECT_LT(spherePoses.back().Pos().Z(), zStopped - 1.0);
 }
 
 /////////////////////////////////////////////////
