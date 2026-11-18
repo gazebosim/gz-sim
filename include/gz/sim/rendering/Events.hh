@@ -117,6 +117,15 @@ namespace gz
       /// every iteration in which something is connected to the render
       /// events.
       ///
+      /// The Sensors system decides whether to render in its PostUpdate,
+      /// so request the frame with ForceRender in PreUpdate: a request made
+      /// in PostUpdate may come after that decision. The frame may also
+      /// start before the requesting system's PostUpdate of the same
+      /// iteration runs, because PostUpdate calls run in sequence or in
+      /// parallel. Data passed from PostUpdate to the rendering thread
+      /// should carry the simulation time of its iteration, to match it with
+      /// the frame's rendering::Scene::Time() in the render callbacks.
+      ///
       /// For example, for a system connected to PreRender and PostRender:
       /// \code
       /// this->onDemandConn =
