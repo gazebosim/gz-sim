@@ -736,6 +736,81 @@ TEST_P(EntityComponentManagerFixture,
 
 //////////////////////////////////////////////////
 TEST_P(EntityComponentManagerFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsRemoveComponentsWhileIterating))
+{
+  // Create some entities
+  Entity e1 = manager.CreateEntity();
+  Entity e2 = manager.CreateEntity();
+  Entity e3 = manager.CreateEntity();
+  EXPECT_EQ(3u, manager.EntityCount());
+
+  // Add components to each entity
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<IntComponent>(e1, IntComponent(1)));
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(1.0)));
+
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<IntComponent>(e2, IntComponent(2)));
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<DoubleComponent>(e2, DoubleComponent(2.0)));
+
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<IntComponent>(e3, IntComponent(3)));
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<DoubleComponent>(e3, DoubleComponent(3.0)));
+
+  // Remove a component that is part of the view while iterating over the view
+  int count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &_entity, const IntComponent *,
+          const DoubleComponent *) -> bool
+      {
+        EXPECT_TRUE(manager.RemoveComponent<DoubleComponent>(_entity));
+        ++count;
+        return true;
+      });
+  EXPECT_EQ(3, count);
+  EXPECT_FALSE(manager.EntityHasComponentType(e1, DoubleComponent::typeId));
+  EXPECT_FALSE(manager.EntityHasComponentType(e2, DoubleComponent::typeId));
+  EXPECT_FALSE(manager.EntityHasComponentType(e3, DoubleComponent::typeId));
+
+  // Subsequent iteration over the view should find no matching entities
+  count = 0;
+  manager.Each<IntComponent, DoubleComponent>(
+      [&](const Entity &, const IntComponent *,
+          const DoubleComponent *) -> bool
+      {
+        ++count;
+        return true;
+      });
+  EXPECT_EQ(0, count);
+
+  // Also test removing components while iterating with EachNew
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<DoubleComponent>(e1, DoubleComponent(1.0)));
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<DoubleComponent>(e2, DoubleComponent(2.0)));
+  ASSERT_NE(nullptr,
+      manager.CreateComponent<DoubleComponent>(e3, DoubleComponent(3.0)));
+
+  count = 0;
+  manager.EachNew<IntComponent, DoubleComponent>(
+      [&](const Entity &_entity, IntComponent *,
+          DoubleComponent *) -> bool
+      {
+        EXPECT_TRUE(manager.RemoveComponent<DoubleComponent>(_entity));
+        ++count;
+        return true;
+      });
+  EXPECT_EQ(3, count);
+  EXPECT_FALSE(manager.EntityHasComponentType(e1, DoubleComponent::typeId));
+  EXPECT_FALSE(manager.EntityHasComponentType(e2, DoubleComponent::typeId));
+  EXPECT_FALSE(manager.EntityHasComponentType(e3, DoubleComponent::typeId));
+}
+
+//////////////////////////////////////////////////
+TEST_P(EntityComponentManagerFixture,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ViewsRecreateRemovedComponent))
 {
   // Create an entity and initialize it with one component of a two-component
