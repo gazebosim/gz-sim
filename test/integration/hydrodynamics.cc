@@ -34,9 +34,12 @@
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 using namespace gz;
 using namespace sim;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 class HydrodynamicsTest : public InternalFixture<::testing::Test>
 {

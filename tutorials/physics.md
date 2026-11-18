@@ -106,6 +106,15 @@ serverConfig.SetPhysicsEngine("CustomEngine");
 gz::sim::Server server(serverConfig);
 ```
 
+### Precedence
+
+When more than one method is used, Gazebo loads the first engine it finds in
+this order:
+
+1. Command line or C++ API.
+2. SDF.
+3. DART, the default.
+
 ## Engine configuration
 
 Gazebo supports the following physics engine configurations through SDF.
