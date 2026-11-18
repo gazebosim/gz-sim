@@ -21,15 +21,13 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Model.hh"
-<<<<<<< HEAD
-=======
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Gravity.hh"
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
+#include "gz/sim/components/Static.hh"
 
 /////////////////////////////////////////////////
 TEST(ModelTest, Constructor)
@@ -228,8 +226,6 @@ TEST(ModelTest, Models)
   gz::sim::Model modelD(modelDEntity);
   EXPECT_EQ(0u, modelD.Models(ecm).size());
 }
-<<<<<<< HEAD
-=======
 
 /////////////////////////////////////////////////
 TEST(ModelTest, Gravity)
@@ -324,4 +320,3 @@ TEST(ModelTest, CollisionEnabled)
   model.SetCollisionEnabled(ecm, true);
   EXPECT_TRUE(cmd->Data());
 }
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))

@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <deque>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -75,6 +76,8 @@
 #include <gz/physics/sdf/ConstructModel.hh>
 #include <gz/physics/sdf/ConstructNestedModel.hh>
 #include <gz/physics/sdf/ConstructWorld.hh>
+#include <gz/physics/Gravity.hh>
+#include <gz/physics/Model.hh>
 #include <gz/plugin/Loader.hh>
 #include <gz/plugin/PluginPtr.hh>
 #include <gz/plugin/Register.hh>
@@ -107,6 +110,7 @@
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/ChildLinkName.hh"
 #include "gz/sim/components/Collision.hh"
+#include "gz/sim/components/CollisionBitmask.hh"
 #include "gz/sim/components/ContactSensorData.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Gravity.hh"
@@ -261,9 +265,11 @@ class gz::sim::systems::PhysicsPrivate
 
   /// \brief Step the simulation for each world
   /// \param[in] _dt Duration
-  /// \returns Output data from the physics engine (this currently contains
-  /// data for links that experienced a pose change in the physics step)
-  public: gz::physics::ForwardStep::Output Step(
+  /// \returns Optional output data from the physics engine (this currently
+  /// contains data for links that experienced a pose change in the physics
+  /// step).
+  /// The reference remains valid until the next call to Step.
+  public: const std::optional<gz::physics::ForwardStep::Output> &Step(
               const std::chrono::steady_clock::duration &_dt);
 
   /// \brief Get data of links that were updated in the latest physics step.
@@ -278,7 +284,8 @@ class gz::sim::systems::PhysicsPrivate
   /// properly (models must be updated in topological order).
   public: std::map<Entity, physics::FrameData3d> ChangedLinks(
               EntityComponentManager &_ecm,
-              const gz::physics::ForwardStep::Output &_updatedLinks);
+              const std::optional<gz::physics::ForwardStep::Output>
+                &_updatedLinks);
 
   /// \brief Check if a model contains any plane collision geometry.
   /// \param[in] modelEntity The entity of the model to check.
@@ -387,11 +394,17 @@ class gz::sim::systems::PhysicsPrivate
   /// deleted the following iteration.
   public: std::unordered_set<Entity> worldPoseCmdsToRemove;
 
-<<<<<<< HEAD
-=======
   /// \brief Entities whose static commands have been processed and should
   /// be deleted the following iteration.
   public: std::unordered_set<Entity> staticCmdsToRemove;
+
+  /// \brief Entities whose collide bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> collideBitmaskCmdsToRemove;
+
+  /// \brief Entities whose category bitmask commands have been processed
+  /// and should be deleted the following iteration.
+  public: std::unordered_set<Entity> categoryBitmaskCmdsToRemove;
 
   /// \brief Entities whose gravity enabled commands have been processed and
   /// should be deleted the following iteration.
@@ -401,7 +414,6 @@ class gz::sim::systems::PhysicsPrivate
   /// should be deleted the following iteration.
   public: std::unordered_set<Entity> collisionEnabledCmdsToRemove;
 
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
   /// \brief IDs of the ContactSurfaceHandler callbacks registered for worlds
   public: std::unordered_map<Entity, std::string> worldContactCallbackIDs;
 
@@ -641,7 +653,8 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Feature list to filter collisions with bitmasks.
   public: struct CollisionMaskFeatureList : physics::FeatureList<
           CollisionFeatureList,
-          physics::CollisionFilterMaskFeature>{};
+          physics::CollisionFilterMaskFeature,
+          physics::CategoryFilterMaskFeature>{};
 
   //////////////////////////////////////////////////
   // Link force
@@ -658,8 +671,6 @@ class gz::sim::systems::PhysicsPrivate
             physics::GetModelBoundingBox>{};
 
   //////////////////////////////////////////////////
-<<<<<<< HEAD
-=======
   // Static State
   /// \brief Feature list for model static state.
   public: struct StaticStateFeatureList : physics::FeatureList<
@@ -681,7 +692,6 @@ class gz::sim::systems::PhysicsPrivate
             physics::ModelCollisionEnabled>{};
 
   //////////////////////////////////////////////////
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
   // Link Bounding box
   /// \brief Feature list for model bounding box.
   public: struct LinkBoundingBoxFeatureList : physics::FeatureList<
@@ -810,14 +820,10 @@ class gz::sim::systems::PhysicsPrivate
             ModelBoundingBoxFeatureList,
             NestedModelFeatureList,
             ConstructSdfLinkFeatureList,
-<<<<<<< HEAD
-            ConstructSdfJointFeatureList>;
-=======
             ConstructSdfJointFeatureList,
             StaticStateFeatureList,
             GravityEnabledFeatureList,
             ModelCollisionEnabledFeatureList>;
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 
   /// \brief A map between model entity ids in the ECM to Model Entities in
   /// gz-physics.
@@ -832,7 +838,8 @@ class gz::sim::systems::PhysicsPrivate
             HeightmapFeatureList,
             LinkForceFeatureList,
             MeshFeatureList,
-            LinkBoundingBoxFeatureList>;
+            LinkBoundingBoxFeatureList,
+            GravityEnabledFeatureList>;
 
   /// \brief A map between link entity ids in the ECM to Link Entities in
   /// gz-physics.
@@ -905,6 +912,9 @@ class gz::sim::systems::PhysicsPrivate
   /// \brief Flag to store whether the names of colliding entities should
   /// be populated in the contact points.
   public: bool contactsEntityNames = true;
+
+  /// \brief Cached physics output, to reduce allocations / deallocations
+  std::optional<physics::ForwardStep::Output> stepOutput{std::in_place};
 };
 
 //////////////////////////////////////////////////
@@ -1101,12 +1111,9 @@ void Physics::Update(const UpdateInfo &_info, EntityComponentManager &_ecm)
   {
     this->dataPtr->CreatePhysicsEntities(_ecm);
     this->dataPtr->UpdatePhysics(_ecm);
-    gz::physics::ForwardStep::Output stepOutput;
-    // Only step if not paused.
-    if (!_info.paused)
-    {
-      stepOutput = this->dataPtr->Step(_info.dt);
-    }
+    const std::optional<gz::physics::ForwardStep::Output> emptyStepOutput;
+    const auto &stepOutput = _info.paused ? emptyStepOutput :
+        this->dataPtr->Step(_info.dt);
     auto changedLinks = this->dataPtr->ChangedLinks(_ecm, stepOutput);
     this->dataPtr->UpdateSim(_ecm, changedLinks);
 
@@ -1169,9 +1176,18 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           return true;
         }
 
+        auto physicsComp = _ecm.Component<components::Physics>(_entity);
+
         sdf::World world;
         world.SetName(_name->Data());
         world.SetGravity(_gravity->Data());
+        if (physicsComp)
+        {
+          if (auto* physics = world.PhysicsByIndex(0))
+          {
+            *physics = physicsComp->Data();
+          }
+        }
         auto worldPtrPhys = this->engine->ConstructWorld(world);
         this->entityWorldMap.AddEntity(_entity, worldPtrPhys);
 
@@ -1251,8 +1267,6 @@ void PhysicsPrivate::CreateWorldEntities(const EntityComponentManager &_ecm,
           }
         }
 
-        auto physicsComp =
-            _ecm.Component<components::Physics>(_entity);
         if (physicsComp)
         {
           auto maxContactsFeature =
@@ -2326,7 +2340,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
   });
 
-
   // Battery state
   _ecm.Each<components::BatterySoC>(
       [&](const Entity & _entity, const components::BatterySoC *_bat)
@@ -2337,6 +2350,78 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
           entityOffMap[_ecm.ParentEntity(_entity)] = false;
         return true;
       });
+
+  // Update Collision Bitmasks
+  auto olderCollideBitmaskCmdsToRemove =
+      std::move(this->collideBitmaskCmdsToRemove);
+  this->collideBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CollideBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CollideBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->collideBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCollisionFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set collide bitmasks, but the physics "
+                   << "engine doesn't support feature [CollisionFilterMask]. "
+                   << "Collision bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCollideBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CollideBitmaskCmd>(entity);
+  }
+
+  // Update Category Bitmasks
+  auto olderCategoryBitmaskCmdsToRemove =
+      std::move(this->categoryBitmaskCmdsToRemove);
+  this->categoryBitmaskCmdsToRemove.clear();
+
+  _ecm.Each<components::Collision, components::CategoryBitmaskCmd>(
+      [&](const Entity &_entity, const components::Collision *,
+          const components::CategoryBitmaskCmd *_bitmaskCmd) -> bool
+      {
+        this->categoryBitmaskCmdsToRemove.insert(_entity);
+        auto filterMaskFeature =
+            this->entityCollisionMap.EntityCast<CollisionMaskFeatureList>(
+                _entity);
+        if (filterMaskFeature)
+        {
+          filterMaskFeature->SetCategoryFilterMask(_bitmaskCmd->Data());
+        }
+        else
+        {
+          static bool informed{false};
+          if (!informed)
+          {
+            gzdbg << "Attempting to set category bitmasks, but the physics "
+                   << "engine doesn't support feature [CategoryFilterMask]. "
+                   << "Category bitmasks will be ignored." << std::endl;
+            informed = true;
+          }
+        }
+        return true;
+      });
+
+  for (const Entity &entity : olderCategoryBitmaskCmdsToRemove)
+  {
+    _ecm.RemoveComponent<components::CategoryBitmaskCmd>(entity);
+  }
 
   // Handle joint state
   _ecm.Each<components::Joint, components::Name>(
@@ -2637,8 +2722,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
         return true;
       });
 
-<<<<<<< HEAD
-=======
   // update Static State
   auto olderStaticStatesToRemove = std::move(this->staticCmdsToRemove);
   this->staticCmdsToRemove.clear();
@@ -2893,7 +2976,6 @@ void PhysicsPrivate::UpdatePhysics(EntityComponentManager &_ecm)
     _ecm.RemoveComponent<components::CollisionEnabledCmd>(entity);
   }
 
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
   // Update model pose
   auto olderWorldPoseCmdsToRemove = std::move(this->worldPoseCmdsToRemove);
   this->worldPoseCmdsToRemove.clear();
@@ -3351,12 +3433,11 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
   this->canonicalLinkModelTracker = CanonicalLinkModelTracker();
   this->modelWorldPoses.clear();
   this->worldPoseCmdsToRemove.clear();
-<<<<<<< HEAD
-=======
   this->staticCmdsToRemove.clear();
+  this->collideBitmaskCmdsToRemove.clear();
+  this->categoryBitmaskCmdsToRemove.clear();
   this->gravityEnabledCmdsToRemove.clear();
   this->collisionEnabledCmdsToRemove.clear();
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 
   this->RemovePhysicsEntities(_ecm);
   this->CreatePhysicsEntities(_ecm, false);
@@ -3472,22 +3553,21 @@ void PhysicsPrivate::ResetPhysics(EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
-gz::physics::ForwardStep::Output PhysicsPrivate::Step(
+const std::optional<gz::physics::ForwardStep::Output> &PhysicsPrivate::Step(
     const std::chrono::steady_clock::duration &_dt)
 {
   GZ_PROFILE("PhysicsPrivate::Step");
   physics::ForwardStep::Input input;
   physics::ForwardStep::State state;
-  physics::ForwardStep::Output output;
 
   input.Get<std::chrono::steady_clock::duration>() = _dt;
 
   for (const auto &world : this->entityWorldMap.Map())
   {
-    world.second->Step(output, state, input);
+    world.second->Step(*this->stepOutput, state, input);
   }
 
-  return output;
+  return this->stepOutput;
 }
 
 //////////////////////////////////////////////////
@@ -3529,7 +3609,7 @@ math::Pose3d PhysicsPrivate::RelativePose(const Entity &_from,
 //////////////////////////////////////////////////
 std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
     EntityComponentManager &_ecm,
-    const gz::physics::ForwardStep::Output &_updatedLinks)
+    const std::optional<gz::physics::ForwardStep::Output> &_updatedLinks)
 {
   GZ_PROFILE("Links Frame Data");
 
@@ -3537,10 +3617,11 @@ std::map<Entity, physics::FrameData3d> PhysicsPrivate::ChangedLinks(
 
   // Check to see if the physics engine gave a list of changed poses. If not, we
   // will iterate through all of the links via the ECM to see which ones changed
-  if (_updatedLinks.Has<gz::physics::ChangedWorldPoses>())
+  if (_updatedLinks &&
+      _updatedLinks->Has<gz::physics::ChangedWorldPoses>())
   {
     for (const auto &link :
-        _updatedLinks.Query<gz::physics::ChangedWorldPoses>()->entries)
+        _updatedLinks->Query<gz::physics::ChangedWorldPoses>()->entries)
     {
       // get the gazebo entity that matches the updated physics link entity
       const auto linkPhys = this->entityLinkMap.GetPhysicsEntityPtr(link.body);

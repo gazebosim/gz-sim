@@ -220,6 +220,22 @@ SimulationRunner::SimulationRunner(const sdf::World &_world,
   );
   this->currentInfo.simTime = this->simTimeEpoch;
 
+  // Get policies from the world SDF
+  {
+    auto worldElem = _world.Element();
+    if (worldElem)
+    {
+      auto policies = worldElem->FindElement(std::string(kPoliciesTag));
+      if (policies)
+      {
+        this->parallelPostUpdates =
+          policies->Get<bool>("parallel_postupdates",
+          this->parallelPostUpdates).first;
+      }
+    }
+  }
+
+
 #ifdef _WIN32
   HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
     CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
@@ -563,9 +579,16 @@ void SimulationRunner::PublishStats()
   clockMsg.mutable_real()->set_nsec(realTimeSecNsec.second);
   clockMsg.mutable_sim()->set_sec(simTimeSecNsec.first);
   clockMsg.mutable_sim()->set_nsec(simTimeSecNsec.second);
-  clockMsg.mutable_system()->set_sec(GZ_SYSTEM_TIME_S());
+
+  auto curTime = GZ_SYSTEM_TIME();
+  auto seconds = std::chrono::duration_cast<std::chrono::seconds>(
+    curTime.time_since_epoch()).count();
+  auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+    curTime.time_since_epoch()).count();
+  clockMsg.mutable_system()->set_sec(seconds);
   clockMsg.mutable_system()->set_nsec(
-      GZ_SYSTEM_TIME_NS() - GZ_SYSTEM_TIME_S() * GZ_SEC_TO_NANO);
+    ns - seconds * GZ_SEC_TO_NANO);
+
   this->clockPub.Publish(clockMsg);
 
   // Only publish to root topic if no others are.
@@ -611,6 +634,13 @@ void SimulationRunner::ProcessSystemQueue()
 
   if (0 == pending && !this->threadsNeedCleanUp)
     return;
+
+  if (!this->parallelPostUpdates)
+  {
+    this->threadsNeedCleanUp = false;
+    this->systemMgr->ActivatePendingSystems();
+    return;
+  }
 
   // If additional systems are to be added or have been removed,
   // stop the existing threads.
@@ -699,16 +729,26 @@ void SimulationRunner::UpdateSystems()
   {
     GZ_PROFILE("PostUpdate");
     this->entityCompMgr.LockAddingEntitiesToViews(true);
-    // If no systems implementing PostUpdate have been added, then
-    // the barriers will be uninitialized, so guard against that condition.
-    if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+    if (!this->parallelPostUpdates)
     {
-      // Release the GIL from the main thread to run PostUpdate threads which
-      // might be calling into python. The system that does call into python
-      // needs to lock the GIL from its thread.
-      MaybeGilScopedRelease release;
-      this->postUpdateStartBarrier->Wait();
-      this->postUpdateStopBarrier->Wait();
+      for (auto &system : this->systemMgr->SystemsPostUpdate())
+      {
+        system->PostUpdate(this->currentInfo, this->entityCompMgr);
+      }
+    }
+    else
+    {
+      // If no systems implementing PostUpdate have been added, then
+      // the barriers will be uninitialized, so guard against that condition.
+      if (this->postUpdateStartBarrier && this->postUpdateStopBarrier)
+      {
+        // Release the GIL from the main thread to run PostUpdate threads which
+        // might be calling into python. The system that does call into python
+        // needs to lock the GIL from its thread.
+        MaybeGilScopedRelease release;
+        this->postUpdateStartBarrier->Wait();
+        this->postUpdateStopBarrier->Wait();
+      }
     }
     this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
@@ -1209,6 +1249,12 @@ void SimulationRunner::LoadPlugins(const Entity _entity,
 bool SimulationRunner::Running() const
 {
   return this->running;
+}
+
+/////////////////////////////////////////////////
+bool SimulationRunner::ParallelPostUpdates() const
+{
+  return this->parallelPostUpdates;
 }
 
 /////////////////////////////////////////////////

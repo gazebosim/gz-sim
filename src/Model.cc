@@ -16,11 +16,8 @@
 */
 
 #include "gz/sim/components/CanonicalLink.hh"
-<<<<<<< HEAD
-=======
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Gravity.hh"
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 #include "gz/sim/components/Joint.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Model.hh"
@@ -225,8 +222,6 @@ void Model::SetWorldPoseCmd(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
-<<<<<<< HEAD
-=======
 void Model::SetStatic(EntityComponentManager &_ecm,
     bool _state)
 {
@@ -301,7 +296,6 @@ void Model::SetCollisionEnabled(EntityComponentManager &_ecm,
 }
 
 //////////////////////////////////////////////////
->>>>>>> 63b0440e (Enable/Disable collisions (#3618))
 Entity Model::CanonicalLink(const EntityComponentManager &_ecm) const
 {
   return _ecm.EntityByComponents(

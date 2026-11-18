@@ -77,6 +77,7 @@ gz_build_tests(TYPE UNIT
     gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
   ENVIRONMENT
     GZ_SIM_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    GZ_IP=127.0.0.1
 )
 
 if(TARGET UNIT_Gui_clean_exit_TEST)
