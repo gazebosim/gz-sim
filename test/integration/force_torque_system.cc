@@ -271,4 +271,46 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
     EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
     wrenches.clear();
   }
+
+  node.Unsubscribe("/force_torque3");
+
+  msgs::Wrench originWrench;
+  msgs::Wrench rotatedWrench;
+  auto saveWrench = [&wrenchMutex, &cv](msgs::Wrench &_wrench)
+  {
+    return std::function<void(const msgs::Wrench &)>(
+        [&wrenchMutex, &cv, &_wrench](const auto &_msg)
+        {
+          std::lock_guard lock(wrenchMutex);
+          _wrench = _msg;
+          cv.notify_all();
+        });
+  };
+  auto originCb = saveWrench(originWrench);
+  auto rotatedCb = saveWrench(rotatedWrench);
+  transport::Node rigNode;
+  ASSERT_TRUE(rigNode.Subscribe("/force_torque4_origin", originCb));
+  ASSERT_TRUE(rigNode.Subscribe("/force_torque4_offset_rotated", rotatedCb));
+
+  // Collect both readings after the load settled during the earlier runs.
+  server.Run(true, iters, false);
+  ASSERT_EQ(3 * iters, *server.IterationCount());
+
+  std::unique_lock lock(wrenchMutex);
+  ASSERT_TRUE(cv.wait_for(lock, 30s, [&]
+      {
+        return originWrench.has_torque() && rotatedWrench.has_torque();
+      }));
+
+  // The 2 kg load's center of mass is at (0.3, 0.1, 0) in joint axes.
+  const math::Vector3d expectedForce{0, 0, 19.6};
+  EXPECT_EQ(expectedForce, msgs::Convert(originWrench.force()));
+  EXPECT_NEAR(1.96, originWrench.torque().x(), 1e-3);
+  EXPECT_NEAR(-5.88, originWrench.torque().y(), 1e-3);
+  EXPECT_NEAR(0, originWrench.torque().z(), 1e-3);
+
+  EXPECT_EQ(expectedForce, msgs::Convert(rotatedWrench.force()));
+  EXPECT_NEAR(-3.92, rotatedWrench.torque().x(), 1e-3);
+  EXPECT_NEAR(-1.96, rotatedWrench.torque().y(), 1e-3);
+  EXPECT_NEAR(0, rotatedWrench.torque().z(), 1e-3);
 }
