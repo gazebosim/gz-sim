@@ -1,5 +1,29 @@
 ## Gazebo Sim 10.x
 
+### Gazebo Sim 10.7.0 (2026-11-17)
+
+1. doc: fix detachable joints tutorial parameters and model command formatting (backport #4216)
+    * [Pull request #4233](https://github.com/gazebosim/gz-sim/pull/4233)
+
+1. PosePublisher: document default values of system parameters (#4220)
+    * [Pull request #4224](https://github.com/gazebosim/gz-sim/pull/4224)
+
+1. doc: fix wording and duplicate words in headers, tutorials, and tests (#4211)
+    * [Pull request #4218](https://github.com/gazebosim/gz-sim/pull/4218)
+
+1. Sensors: continue without global illumination when the engine has no VCT (#4199)
+    * [Pull request #4204](https://github.com/gazebosim/gz-sim/pull/4204)
+
+1. Apply the particle scatter ratio field in SceneManager
+    * [Pull request #4201](https://github.com/gazebosim/gz-sim/pull/4201)
+
+1. Add component to toggle kinematic property of link (backport #4171)
+    * [Pull request #4176](https://github.com/gazebosim/gz-sim/pull/4176)
+
+1. docs: fix missing direction qualifiers in RFComms params
+    * [Pull request #3443](https://github.com/gazebosim/gz-sim/pull/3443)
+
+
 ### Gazebo Sim 10.6.0 (2026-11-02)
 
 1. Extend Physics system's kinematic mode to support disabling / enabling contacts (backport #4101)
