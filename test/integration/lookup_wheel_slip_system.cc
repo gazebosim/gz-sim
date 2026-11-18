@@ -17,6 +17,10 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>
@@ -108,20 +112,28 @@ TEST_F(LookupWheelSlipTest, DriveForwardSlip)
   server.Run(true, 3000, false);
   ASSERT_EQ(3000u, poses.size());
 
+  // The twist message is delivered asynchronously, so DiffDrive may only
+  // receive it a few iterations into the run. Skip the poses from before the
+  // vehicle started moving, but make sure it starts within the first 0.5 s.
+  constexpr std::size_t kMaxStartIterations = 500u;
+  constexpr double kStartTolerance = 1e-6;
+  std::size_t firstMovingIndex = 1u;
+  while (firstMovingIndex < poses.size() &&
+         poses[firstMovingIndex].Pos().X() <
+         poses[0].Pos().X() + kStartTolerance)
+  {
+    ++firstMovingIndex;
+  }
+  ASSERT_LT(firstMovingIndex, kMaxStartIterations);
+
   // Look through the vehicle poses to verify that the vehicle did slip
   constexpr double kVehiclePoseInSlipRegion = -4.76;
-  math::Pose3d prevPose;
-  for (const auto &pose : poses)
+  for (std::size_t index = firstMovingIndex; index < poses.size(); ++index)
   {
-    if (prevPose == math::Pose3d::Zero)
-    {
-      prevPose = pose;
-      continue;
-    }
+    const auto &pose = poses[index];
 
     // Verify that the vehicle moved forward in +x direction
-    math::Vector3d dir = pose.Pos() - prevPose.Pos();
-    prevPose = pose;
+    math::Vector3d dir = pose.Pos() - poses[index - 1].Pos();
     EXPECT_LT(0, dir.X()) << pose;
     EXPECT_NEAR(0, dir.Z(), 1e-4);
 
