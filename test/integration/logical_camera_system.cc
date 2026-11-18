@@ -83,6 +83,14 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
+  const std::string sensorName1 = "logical_camera-1";
+  const auto topic1 = "world/logical_camera_sensor/model/logical_camera-1/link/"
+      "logical_camera_link/sensor/logical_camera-1/logical_camera";
+
+  const std::string sensorName2 = "logical_camera-2";
+  const auto topic2 = "world/logical_camera_sensor/model/logical_camera-2/link/"
+      "logical_camera_link/sensor/logical_camera-2/logical_camera";
+
   // subscribe to logical camera topic
   transport::Node node;
   node.Subscribe(std::string("/world/logical_camera_sensor/") +
@@ -116,21 +124,18 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
     auto checkSensor = [&ecm](const std::string &_name,
                               const std::string &_topic)
     {
-      const Entity sensor = ecm->EntityByComponents(
+      const auto sensors = ecm->EntitiesByComponents(
           components::Sensor(), components::Name(_name));
-      ASSERT_NE(kNullEntity, sensor) << _name;
+      ASSERT_EQ(1u, sensors.size()) << _name;
+      const Entity sensor = sensors.front();
       EXPECT_NE(nullptr, ecm->Component<components::LogicalCamera>(sensor));
 
       const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
       ASSERT_NE(nullptr, topicComp) << _name;
       EXPECT_EQ(_topic, topicComp->Data());
     };
-    checkSensor("logical_camera-1",
-        "world/logical_camera_sensor/model/logical_camera-1/link/"
-        "logical_camera_link/sensor/logical_camera-1/logical_camera");
-    checkSensor("logical_camera-2",
-        "world/logical_camera_sensor/model/logical_camera-2/link/"
-        "logical_camera_link/sensor/logical_camera-2/logical_camera");
+    checkSensor(sensorName1, topic1);
+    checkSensor(sensorName2, topic2);
   }
 
   mutex.lock();

@@ -88,31 +88,28 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   size_t iters = 200u;
   server.Run(true, iters, false);
 
-  // Get the sensor's world pose. The world shares the sensor's name, so the
-  // lookup also asks for the Sensor component.
-  math::Pose3d sensorPose;
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
+  // Check the sensor and the field it measured. The world shares the sensor's
+  // name, so the lookup also asks for the Sensor component.
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
-    const Entity sensor = ecm->EntityByComponents(
-        components::Sensor(), components::Name(sensorName));
-    ASSERT_NE(kNullEntity, sensor);
-    EXPECT_NE(nullptr, ecm->Component<components::Magnetometer>(sensor));
+  const auto sensors = ecm->EntitiesByComponents(
+      components::Sensor(), components::Name(sensorName));
+  ASSERT_EQ(1u, sensors.size());
+  const Entity sensor = sensors.front();
+  EXPECT_NE(nullptr, ecm->Component<components::Magnetometer>(sensor));
 
-    const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
-    ASSERT_NE(nullptr, topicComp);
-    EXPECT_EQ(topic, topicComp->Data());
+  const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
+  ASSERT_NE(nullptr, topicComp);
+  EXPECT_EQ(topic, topicComp->Data());
 
-    const auto *worldPose = ecm->Component<components::WorldPose>(sensor);
-    ASSERT_NE(nullptr, worldPose);
-    sensorPose = worldPose->Data();
-  }
+  const auto *worldPose = ecm->Component<components::WorldPose>(sensor);
+  ASSERT_NE(nullptr, worldPose);
 
   // Hardcoded SDF values
   math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
 
-  math::Vector3d field = sensorPose.Rot().Inverse().RotateVector(
+  math::Vector3d field = worldPose->Data().Rot().Inverse().RotateVector(
         worldMagneticField);
   mutex.lock();
   EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),
