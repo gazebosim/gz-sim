@@ -176,6 +176,12 @@ release will remove the deprecated code.
     `/<model_name>/pose` to `/model/<model>/pose`. The new topic name is
     is consistent with the topic names for models that already exist in the
     world, i.e. models that are not spawned.
+  * Pose Publisher: `<publish_model_pose>` no longer takes the value of
+    `<publish_nested_model_pose>` when it is not set. It now defaults to
+    false, like the other `publish_*` options. A system that only sets
+    `<publish_nested_model_pose>true</publish_nested_model_pose>` no longer
+    publishes the pose of its top-level model. To keep the old behavior,
+    also set `<publish_model_pose>true</publish_model_pose>`.
   * Component's `typeId` is now `constexpr`. It is not allowed to change it
     at runtime anymore. Furthermore component registration is now only allowed
     through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
