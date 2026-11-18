@@ -171,6 +171,9 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   /// \brief Connection to the render teardown event.
   public: gz::common::ConnectionPtr renderTeardownConn;
 
+  /// \brief Connection to the on-demand render connections event.
+  public: gz::common::ConnectionPtr onDemandRenderConn;
+
   /// \brief Pointer to the event manager
   public: gz::sim::EventManager *eventMgr = nullptr;
 
@@ -249,6 +252,13 @@ void DopplerVelocityLogSystem::Implementation::DoConfigure(
   this->renderTeardownConn =
       _eventMgr.Connect<gz::sim::events::RenderTeardown>(
           std::bind(&Implementation::OnRenderTeardown, this));
+
+  // DVL sensors ask for the frames that they need with ForceRender in
+  // DoPostUpdate, so the three connections above must not make the
+  // Sensors system render on every iteration.
+  this->onDemandRenderConn =
+      _eventMgr.Connect<gz::sim::events::OnDemandRenderConnections>(
+          [](unsigned int &_count) { _count += 3u; });
 
   this->eventMgr = &_eventMgr;
 }
@@ -404,6 +414,14 @@ void DopplerVelocityLogSystem::Implementation::DoPostUpdate(
 
     // this is a non-blocking call that force render to occur in the next
     // render iteration in the render thread
+    this->eventMgr->Emit<gz::sim::events::ForceRender>();
+  }
+  else if (!this->knownSensorEntities.empty() &&
+           this->nextUpdateTime == std::chrono::steady_clock::duration::max())
+  {
+    // The sensors are not created and updated yet, which can take a while.
+    // Ask for a frame on every iteration until then, like the Sensors system
+    // does for its own sensors, so that the simulation waits for them.
     this->eventMgr->Emit<gz::sim::events::ForceRender>();
   }
 }

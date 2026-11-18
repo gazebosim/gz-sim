@@ -27,13 +27,19 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include <gz/msgs/dvl_velocity_tracking.pb.h>
 #include <gz/msgs/dvl_tracking_target.pb.h>
+
+#include <gz/sim/EventManager.hh>
+#include <gz/sim/rendering/Events.hh>
+#include <gz/sim/TestFixture.hh>
 
 #include "helpers/Subscription.hh"
 #include "helpers/TestFixture.hh"
@@ -77,4 +83,42 @@ TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(NoTracking))
     EXPECT_FALSE(message.beams(i).locked())
         << "Beam #" << message.beams(i).id() << " is locked";
   }
+}
+
+//////////////////////////////////////////////////
+// The DVL system asks for the frames that it needs, so it does not make the
+// Sensors system render on every iteration.
+TEST(DVLTest, GZ_UTILS_TEST_DISABLED_ON_MAC(RendersOnlyWhenDue))
+{
+  const std::string worldFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test",
+      "worlds", "bottomless_pit.sdf");
+  sim::TestFixture fixture(worldFile);
+
+  std::atomic<uint64_t> frames{0u};
+  common::ConnectionPtr postRenderConn;
+  common::ConnectionPtr onDemandConn;
+  fixture.OnConfigure(
+      [&](const sim::Entity &, const std::shared_ptr<const sdf::Element> &,
+          sim::EntityComponentManager &, sim::EventManager &_eventMgr)
+      {
+        postRenderConn = _eventMgr.Connect<sim::events::PostRender>(
+            [&frames] { ++frames; });
+        // Count the frames without asking for any
+        onDemandConn =
+            _eventMgr.Connect<sim::events::OnDemandRenderConnections>(
+            [](unsigned int &_count) { ++_count; });
+      }).Finalize();
+
+  transport::Node node;
+  Subscription<msgs::DVLVelocityTracking> velocitySubscription;
+  velocitySubscription.Subscribe(node, "/dvl/velocity", 1);
+
+  // 10 s in steps of 20 ms, with the DVL updating at 1 Hz
+  constexpr uint64_t kIterations{500u};
+  ASSERT_TRUE(fixture.Server()->Run(true, kIterations, false));
+  ASSERT_TRUE(velocitySubscription.WaitForMessages(9, 10s));
+
+  EXPECT_LT(frames, kIterations / 10u)
+      << "The DVL system makes the Sensors system render on every iteration";
 }
