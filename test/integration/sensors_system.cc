@@ -108,8 +108,8 @@ void testSensorTopicComponents(const sim::EntityComponentManager &_ecm,
 
     // verify that the topic string stored in sensor topic component
     // exits in the list of topics
-    // For rendering sensors, they may advertize more than one topics but
-    // the the sensor topic component will only contain one of them, e.g.
+    // For rendering sensors, they may advertise more than one topics but
+    // the sensor topic component will only contain one of them, e.g.
     //   * <topic_prefix>/image - stored in sensor topic component
     //   * <topic_prefix>/camera_info
     bool foundTopic = false;
@@ -181,7 +181,7 @@ void testDefaultTopics(const std::vector<std::string> &_topics)
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that the sensors system handles cases where entities
+/// This test checks that the sensors system handles cases where entities
 /// are removed and then added back
 TEST_F(SensorsFixture, HandleRemovedEntities)
 {

@@ -8,7 +8,7 @@ X server requirement on linux systems. This issue can be resolved through
 installation and proper configuration of X, but the steps can be complex and
 error prone.
 
-An easier solution is through the use of [EGL](https://www.khronos.org/egl), which allows for the the creation of rendering surfaces without an X server. Gazebo has added support for EGL via the `--headless-rendering` command line option. Use of EGL is only available with OGRE2.
+An easier solution is through the use of [EGL](https://www.khronos.org/egl), which allows for the creation of rendering surfaces without an X server. Gazebo has added support for EGL via the `--headless-rendering` command line option. Use of EGL is only available with OGRE2.
 
 Example usage:
 
