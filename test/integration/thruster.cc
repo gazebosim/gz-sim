@@ -19,12 +19,14 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>
+#include <gz/transport/WaitHelpers.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Link.hh"
@@ -35,6 +37,7 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/World.hh"
 
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/Pose.hh"
 
@@ -91,6 +94,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
   math::Pose3d jointPose, linkWorldPose;
   math::Vector3d jointAxis;
   double dt{0.0};
+  // Magnitude of the wrench the thruster applied in the current step.
+  double appliedThrust{0.0};
   fixture.
   OnConfigure(
     [&](const gz::sim::Entity &_worldEntity,
@@ -117,6 +122,18 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propeller = Link(propellerEntity);
       propeller.EnableVelocityChecks(_ecm);
     }).
+  OnPreUpdate([&](const sim::UpdateInfo &/*_info*/,
+                  sim::EntityComponentManager &_ecm)
+    {
+      // The thruster system runs before this hook, so the wrench it added
+      // to the propeller link for this step is still pending here. Physics
+      // clears it afterwards.
+      appliedThrust = 0.0;
+      auto wrench = _ecm.Component<components::ExternalWorldWrenchCmd>(
+          propeller.Entity());
+      if (wrench)
+        appliedThrust = msgs::Convert(wrench->Data().force()).Length();
+    }).
   OnPostUpdate([&](const sim::UpdateInfo &_info,
                             const sim::EntityComponentManager &_ecm)
     {
@@ -134,6 +151,34 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propellerLinVels.push_back(proellerLinVel.value());
     }).
   Finalize();
+
+  // Commands are delivered asynchronously by the transport publish thread,
+  // so stepping right after publishing may run several iterations before
+  // the thruster receives the command. Step one iteration at a time until
+  // the thruster applies the expected thrust, keeping only the last sample
+  // recorded before that, so the checks that follow start from the state
+  // right before the command took effect.
+  auto waitForThrust = [&](double _thrust)
+  {
+    auto keepLast = [](auto &_samples)
+    {
+      if (_samples.size() > 1)
+        _samples.erase(_samples.begin(), _samples.end() - 1);
+    };
+
+    const int maxSteps{5000};
+    int steps{0};
+    for (; !math::equal(appliedThrust, _thrust, 1e-6) && steps < maxSteps;
+         ++steps)
+    {
+      keepLast(modelPoses);
+      keepLast(propellerAngVels);
+      keepLast(propellerLinVels);
+      fixture.Server()->Run(true, 1, false);
+    }
+    EXPECT_LT(steps, maxSteps);
+    EXPECT_NEAR(_thrust, appliedThrust, 1e-6);
+  };
 
   // Check initial position
   fixture.Server()->Run(true, 100, false);
@@ -166,28 +211,11 @@ void ThrusterTest::TestWorld(const std::string &_world,
     db_pub = node.Advertise<msgs::Boolean>(_db_topic);
   }
 
-  int sleep{0};
-  int maxSleep{30};
-  if (_namespace != "deadband")
-  {
-    for (; !pub.HasConnections() && sleep < maxSleep; ++sleep) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-  else
-  {
-    for (;
-         !(pub.HasConnections() && db_pub.HasConnections()) && sleep < maxSleep;
-         ++sleep) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-  EXPECT_LT(sleep, maxSleep);
-  EXPECT_TRUE(pub.HasConnections());
-  if (_namespace == "deadband")
-  {
-    EXPECT_TRUE(db_pub.HasConnections());
-  }
+  EXPECT_TRUE(transport::waitUntil([&]
+    {
+      return pub.HasConnections() &&
+          (_db_topic.empty() || db_pub.HasConnections());
+    }, std::chrono::seconds(3), std::chrono::milliseconds(100)));
 
   // Test the cmd limits specified in the world file. These should be:
   //    if (use_angvel_cmd && thrust_coefficient < 0):
@@ -216,9 +244,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
   EXPECT_EQ(100u, propellerLinVels.size());
-  modelPoses.clear();
-  propellerAngVels.clear();
-  propellerLinVels.clear();
 
   // max allowed force
   double force{300.0};
@@ -241,21 +266,24 @@ void ThrusterTest::TestWorld(const std::string &_world,
     msg.set_data(omega);
   }
   pub.Publish(msg);
+  waitForThrust(force);
+  auto samplesBeforeRun = modelPoses.size();
 
   // Check movement
   if (_namespace != "lowbattery")
   {
-    for (sleep = 0; (modelPoses.empty() || modelPoses.back().Pos().X() < 5.0) &&
-         sleep < maxSleep; ++sleep)
+    const int maxRuns{30};
+    int runs{0};
+    for (; modelPoses.back().Pos().X() < 5.0 && runs < maxRuns; ++runs)
     {
       fixture.Server()->Run(true, 100, false);
     }
-    EXPECT_LT(sleep, maxSleep);
+    EXPECT_LT(runs, maxRuns);
     EXPECT_LT(5.0, modelPoses.back().Pos().X());
 
-    EXPECT_EQ(100u * sleep, modelPoses.size());
-    EXPECT_EQ(100u * sleep, propellerAngVels.size());
-    EXPECT_EQ(100u * sleep, propellerLinVels.size());
+    EXPECT_EQ(100u * runs + samplesBeforeRun, modelPoses.size());
+    EXPECT_EQ(100u * runs + samplesBeforeRun, propellerAngVels.size());
+    EXPECT_EQ(100u * runs + samplesBeforeRun, propellerLinVels.size());
   }
 
   // F = m * a
@@ -346,14 +374,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // And we send a command that is below the deadband threshold
     msg.set_data(force);
     pub.Publish(msg);
+    waitForThrust(force);
+    samplesBeforeRun = modelPoses.size();
     // When the deadband is disabled, any command value
     // (especially values below the deadband threshold) should move the model
     fixture.Server()->Run(true, 1000, false);
 
     // make sure we have run a 1000 times
-    EXPECT_EQ(1000u, modelPoses.size());
-    EXPECT_EQ(1000u, propellerAngVels.size());
-    EXPECT_EQ(1000u, propellerLinVels.size());
+    EXPECT_EQ(1000u + samplesBeforeRun, modelPoses.size());
+    EXPECT_EQ(1000u + samplesBeforeRun, propellerAngVels.size());
+    EXPECT_EQ(1000u + samplesBeforeRun, propellerLinVels.size());
 
     // the model should have moved. Note that the distance moved is small
     // This is because we are sending small forces (deadband/2)

@@ -31,6 +31,7 @@
 
 #include <gz/math/Helpers.hh>
 
+#include <gz/rendering/RenderEngine.hh>
 #include <gz/rendering/Scene.hh>
 #include <gz/sensors/BoundingBoxCameraSensor.hh>
 #include <gz/sensors/CameraSensor.hh>
@@ -364,6 +365,19 @@ void SensorsPrivate::WaitForInit()
       if (this->giVctParameters.enabled)
       {
         this->giVct = this->scene->CreateGlobalIlluminationVct();
+      }
+
+      // Only ogre2 implements VCT; other engines return null.
+      if (this->giVctParameters.enabled && !this->giVct)
+      {
+        gzwarn << "Global illumination (VCT) is not supported by render "
+               << "engine [" << this->scene->Engine()->Name()
+               << "], continuing without it." << std::endl;
+        this->giVctParameters.enabled = false;
+      }
+
+      if (this->giVctParameters.enabled)
+      {
         this->giVct->SetParticipatingVisuals(
             rendering::GlobalIlluminationBase::DYNAMIC_VISUALS |
             rendering::GlobalIlluminationBase::STATIC_VISUALS);
@@ -1238,7 +1252,8 @@ std::string Sensors::CreateSensor(const Entity &_entity,
     auto camSdf = _sdf.CameraSensor();
     double farClip = camSdf->FarClip();
     double angle = camSdf->HorizontalFov().Radian();
-    double aspect = camSdf->ImageWidth() / camSdf->ImageHeight();
+    double aspect = static_cast<double>(camSdf->ImageWidth()) /
+                    static_cast<double>(camSdf->ImageHeight());
     double vfov = 2.0 * atan(tan(angle / 2.0) / aspect);
     double height = tan(vfov / 2.0) * farClip * 2.0;
     double tempRange =
