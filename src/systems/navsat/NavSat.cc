@@ -178,12 +178,16 @@ void NavSat::Implementation::AddSensor(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _navsat->Data();
   data.SetName(sensorScopedName);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/navsat";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
+  topicNameOptions.defaultTopicSuffix = "navsat";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::NavSatSensor> sensor =
       this->sensorFactory.CreateSensor<sensors::NavSatSensor>(data);
   if (nullptr == sensor)
