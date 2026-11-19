@@ -65,10 +65,9 @@ class MaterialTest : public InternalFixture<::testing::Test>
       return ::testing::AssertionFailure()
         << "Failed to create EntityComponentManager";
     }
-    this->ecm = &*this->ecmGuard;
 
     this->creator =
-        std::make_unique<SdfEntityCreator>(*this->ecm, this->dummyEventMgr);
+        std::make_unique<SdfEntityCreator>(*this->ecmGuard, this->dummyEventMgr);
     return ::testing::AssertionSuccess();
   }
 
@@ -83,19 +82,18 @@ class MaterialTest : public InternalFixture<::testing::Test>
     ASSERT_NE(nullptr, root.Model());
 
     Entity modelEntity = this->creator->CreateEntities(root.Model());
-    Entity worldEntity = this->ecm->EntityByComponents(components::World());
+    Entity worldEntity = this->ecmGuard->EntityByComponents(components::World());
     this->creator->SetParent(modelEntity, worldEntity);
   }
 
   public: Model GetModel(const std::string &_name)
   {
-    return Model(this->ecm->EntityByComponents(
+    return Model(this->ecmGuard->EntityByComponents(
         components::Model(), components::Name(_name)));
   }
 
   public: std::unique_ptr<Server> server;
   public: Server::EcmGuard ecmGuard;
-  public: EntityComponentManager *ecm {nullptr};
   public: EventManager dummyEventMgr;
   public: std::unique_ptr<SdfEntityCreator> creator;
 };
@@ -131,14 +129,14 @@ TEST_F(MaterialTest, SolidColor)
   this->SpawnModelSDF(modelSdf);
 
   auto model = this->GetModel("material_shapes");
-  ASSERT_TRUE(model.Valid(*this->ecm));
+  ASSERT_TRUE(model.Valid(*this->ecmGuard));
 
   auto boxVisualEntity =
-   this->ecm->EntityByComponents(components::Name("box_visual"));
+   this->ecmGuard->EntityByComponents(components::Name("box_visual"));
   ASSERT_NE(kNullEntity, boxVisualEntity);
 
   auto boxVisualComp =
-   this->ecm->Component<components::Material>(boxVisualEntity);
+   this->ecmGuard->Component<components::Material>(boxVisualEntity);
   EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1.0f),
             boxVisualComp->Data().Ambient());
   EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1.0f),
@@ -178,15 +176,15 @@ TEST_F(MaterialTest, OtherColor)
   this->SpawnModelSDF(modelSdf);
 
   auto model = this->GetModel("material_shapes");
-  ASSERT_TRUE(model.Valid(*this->ecm));
+  ASSERT_TRUE(model.Valid(*this->ecmGuard));
 
   auto boxVisualEntity =
-    this->ecm->EntityByComponents(components::Name("box_visual"));
+    this->ecmGuard->EntityByComponents(components::Name("box_visual"));
   ASSERT_NE(kNullEntity, boxVisualEntity);
 
   // Default to black color
   auto boxVisualComp =
-    this->ecm->Component<components::Material>(boxVisualEntity);
+    this->ecmGuard->Component<components::Material>(boxVisualEntity);
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
             boxVisualComp->Data().Ambient());
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
@@ -226,15 +224,15 @@ TEST_F(MaterialTest, CustomScript)
   this->SpawnModelSDF(modelSdf);
 
   auto model = this->GetModel("material_shapes");
-  ASSERT_TRUE(model.Valid(*this->ecm));
+  ASSERT_TRUE(model.Valid(*this->ecmGuard));
 
   auto boxVisualEntity =
-    this->ecm->EntityByComponents(components::Name("box_visual"));
+    this->ecmGuard->EntityByComponents(components::Name("box_visual"));
   ASSERT_NE(kNullEntity, boxVisualEntity);
 
   // Default to black color
   auto boxVisualComp =
-    this->ecm->Component<components::Material>(boxVisualEntity);
+    this->ecmGuard->Component<components::Material>(boxVisualEntity);
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
             boxVisualComp->Data().Ambient());
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
@@ -274,15 +272,15 @@ TEST_F(MaterialTest, InvalidColor)
   this->SpawnModelSDF(modelSdf);
 
   auto model = this->GetModel("material_shapes");
-  ASSERT_TRUE(model.Valid(*this->ecm));
+  ASSERT_TRUE(model.Valid(*this->ecmGuard));
 
   auto boxVisualEntity =
-    this->ecm->EntityByComponents(components::Name("box_visual"));
+    this->ecmGuard->EntityByComponents(components::Name("box_visual"));
   ASSERT_NE(kNullEntity, boxVisualEntity);
 
   // Default to black color
   auto boxVisualComp =
-    this->ecm->Component<components::Material>(boxVisualEntity);
+    this->ecmGuard->Component<components::Material>(boxVisualEntity);
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
             boxVisualComp->Data().Ambient());
   EXPECT_EQ(math::Color(0.0f, 0.0f, 0.0f, 1.0f),
@@ -301,15 +299,15 @@ TEST_F(MaterialTest, WorldWithClassicMaterial)
   this->StartServer(serverConfig);
 
   auto model = this->GetModel("box");
-  ASSERT_TRUE(model.Valid(*this->ecm));
+  ASSERT_TRUE(model.Valid(*this->ecmGuard));
 
   auto boxVisualEntity =
-    this->ecm->EntityByComponents(components::Name("box_visual"));
+    this->ecmGuard->EntityByComponents(components::Name("box_visual"));
   ASSERT_NE(kNullEntity, boxVisualEntity);
 
   // Blue color
   auto boxVisualComp =
-    this->ecm->Component<components::Material>(boxVisualEntity);
+    this->ecmGuard->Component<components::Material>(boxVisualEntity);
   EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1.0f),
             boxVisualComp->Data().Ambient());
   EXPECT_EQ(math::Color(0.0f, 0.0f, 1.0f, 1.0f),
