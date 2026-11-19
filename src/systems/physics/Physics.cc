@@ -647,6 +647,11 @@ class gz::sim::systems::PhysicsPrivate
     auto mapIt = _map.begin();
     for (int i = 0; i < _msg.contact_size(); ++i, ++mapIt)
     {
+      if (_msg.contact(i).collision2().id() != mapIt->first)
+      {
+        return false;
+      }
+
       const auto &contactData = mapIt->second;
       if (_msg.contact(i).position_size() !=
           static_cast<int>(contactData.size()))
@@ -669,6 +674,13 @@ class gz::sim::systems::PhysicsPrivate
 
         if (contact.extra != nullptr)
         {
+          if (j >= _msg.contact(i).normal_size() ||
+              j >= _msg.contact(i).wrench_size() ||
+              j >= _msg.contact(i).depth_size())
+          {
+            return false;
+          }
+
           const double sign = contact.swapped ? -1.0 : 1.0;
 
           // Compare normals
@@ -699,6 +711,12 @@ class gz::sim::systems::PhysicsPrivate
             return false;
           }
 
+          // Compare penetration depth
+          if (!math::equal(_msg.contact(i).depth(j), contact.extra->depth,
+                           1e-9))
+          {
+            return false;
+          }
         }
       }
     }
