@@ -8,6 +8,16 @@ release will remove the deprecated code.
 ## Ignition Gazebo 6.18.X to 6.19.X
 
 * **Buoyancy**
+  * The buoyant force now acts at the collision geometry's centroid instead
+    of the collision origin. This changes behavior for mesh collisions
+    (centroid wherever the geometry puts it); the origin centered primitives
+    are unaffected. In graded mode the layer above the last declared
+    interface uses the shape centroid as well.
+  * Mesh collisions now honor the SDF `<scale>` element in buoyancy
+    calculations: the displaced volume scales by the product of the three
+    components and the centroid componentwise. Models that relied on the
+    unscaled volume will float differently; the shipped example duck
+    displaces an eighth of what it did.
   * The graded buoyancy mode now accounts for the orientation of each
     collision when slicing it against a fluid interface. Previously the
     slicing plane was always axis aligned in the shape's own frame, so a
