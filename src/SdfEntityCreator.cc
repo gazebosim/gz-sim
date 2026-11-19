@@ -1141,6 +1141,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   this->dataPtr->ecm->CreateComponent(sensorEntity,
       components::Name(_sensor->Name()));
 
+  std::string explicitFrameId = _sensor->FrameId();
+  if (explicitFrameId.empty() && _sensor->Element())
+  {
+    explicitFrameId =
+        _sensor->Element()->Get<std::string>("gz_frame_id", "").first;
+  }
+  this->dataPtr->ecm->CreateComponent(sensorEntity,
+      components::SensorFrameId(explicitFrameId));
+
   if (_sensor->Type() == sdf::SensorType::CAMERA)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,

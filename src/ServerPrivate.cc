@@ -35,6 +35,7 @@
 
 #include <gz/fuel_tools/Interface.hh>
 
+#include "gz/sim/Constants.hh"
 #include "gz/sim/Util.hh"
 #include "SimulationRunner.hh"
 
@@ -760,6 +761,36 @@ sdf::Errors ServerPrivate::LoadSdfRootHelper(const ServerConfig &_config,
 
     _root.AddWorld(defaultWorld);
     _root.ClearActorLightModel();
+  }
+
+  if (!_config.Policies().empty())
+  {
+    for (uint64_t i = 0; i < _root.WorldCount(); ++i)
+    {
+      sdf::World *world = _root.WorldByIndex(i);
+      if (!world || !world->Element())
+        continue;
+      auto worldElem = world->Element();
+      auto policiesElem = worldElem->FindElement(std::string(kPoliciesTag));
+      if (!policiesElem)
+      {
+        policiesElem = std::make_shared<sdf::Element>();
+        policiesElem->SetName(std::string(kPoliciesTag));
+        worldElem->InsertElement(policiesElem, true);
+      }
+      for (const auto &[key, val] : _config.Policies())
+      {
+        auto policyElem = policiesElem->FindElement(key);
+        if (!policyElem)
+        {
+          policyElem = std::make_shared<sdf::Element>();
+          policyElem->SetName(key);
+          policyElem->AddValue("string", "", false);
+          policiesElem->InsertElement(policyElem, true);
+        }
+        policyElem->Set<std::string>(val);
+      }
+    }
   }
 
   return errors;

@@ -43,6 +43,7 @@ namespace sdf
   inline namespace SDF_VERSION_NAMESPACE
   {
     class Element;
+    class Sensor;
   }
 }
 
@@ -94,6 +95,50 @@ namespace gz
     std::string GZ_SIM_VISIBLE scopedName(const Entity &_entity,
       const EntityComponentManager &_ecm, const std::string &_delim = "/",
       bool _includePrefix = true);
+
+    /// \brief Policy controlling how default and explicit TF frame IDs are
+    /// resolved across gz-sim plugins and sensors.
+    enum class FrameIdPolicy
+    {
+      /// \brief Legacy scoped names (e.g., `model::link`, `model/odom`).
+      kScoped,
+      /// \brief Unprefixed local entity/frame names (default).
+      kLocal,
+      /// \brief Local entity/frame names prefixed by the enclosing model's
+      /// `scopedNamespace`.
+      kNamespaced,
+    };
+
+    /// \brief Get the active frame ID policy for the world in `_ecm`.
+    /// Reads `<gz:policies><frame_ids>` from `components::WorldSdf`
+    /// (`"scoped"`, `"local"`, or `"namespaced"`), defaulting to `kLocal`.
+    FrameIdPolicy GZ_SIM_VISIBLE frameIdPolicy(
+        const EntityComponentManager &_ecm);
+
+    /// \brief Return the frame prefix (with trailing `'/'`, or `""`) for
+    /// `_entity` under the world's `frameIdPolicy`.
+    std::string GZ_SIM_VISIBLE framePrefix(
+        const EntityComponentManager &_ecm, const Entity &_entity);
+
+    /// \brief Resolve a local frame ID using `_prefix`.
+    /// Exempts `"world"`, `"map"`, `"earth"`, and frames starting with `'/'`
+    /// (stripping the leading `'/'`).
+    std::string GZ_SIM_VISIBLE resolveFrameId(
+        std::string_view _prefix, std::string_view _localFrame);
+
+    /// \brief Resolve the TF frame ID for a model entity `_modelEntity`.
+    std::string GZ_SIM_VISIBLE modelFrameId(
+        const EntityComponentManager &_ecm, const Entity &_modelEntity);
+
+    /// \brief Resolve the TF frame ID for a sensor entity from its `sdf::Sensor`.
+    std::string GZ_SIM_VISIBLE sensorFrameId(
+        const Entity &_entity, const EntityComponentManager &_ecm,
+        const sdf::Sensor &_sdfSensor);
+
+    /// \brief Resolve the TF frame ID for a sensor entity from its ECM
+    /// components (`components::SensorFrameId` and `components::Name`).
+    std::string GZ_SIM_VISIBLE sensorFrameId(
+        const Entity &_entity, const EntityComponentManager &_ecm);
 
     /// \brief Helper function to generate the full scoped namespace of an
     /// entity by searching parent entities. The search stops when an absolute
