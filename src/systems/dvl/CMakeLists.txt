@@ -3,6 +3,8 @@
 gz_add_system(dvl
   SOURCES
     DopplerVelocityLogSystem.cc
+  TEST_SOURCES
+    DopplerVelocityLogSystem_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-rendering::gz-rendering
