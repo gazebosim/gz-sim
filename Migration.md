@@ -128,6 +128,43 @@ release will remove the deprecated code.
     * `ComponentTypesWithPeriodicChanges` is significantly more expensive in
       the new architecture and had no users so it has been deprecated.
 
+  * **VelocityControl**: The `<link_name>` SDF parameter originally creates a
+    command topic `/model/{model_name}/link/{link_name}/cmd_vel` for each
+    specified link.
+
+    With the new model namespace support, the default link command topic uses
+    the model namespace as the prefix when one is specified, while preserving
+    the original behavior otherwise.
+
+    The `<link_name>` parameter is now deprecated. Users are encouraged to use
+    `<link>` instead, which also supports an optional `<topic>` element for
+    customizing the link command topic. Relative topics are prefixed with the
+    model namespace when specified, while absolute topics (starting with `/`)
+    remain unchanged.
+
+    For example, the following configuration:
+
+    ```xml
+    <model name="robot1">
+      <plugin ...>
+        <link_name>base_link</link_name>
+      </plugin>
+    </model>
+    ```
+
+    Can be replaced with:
+
+    ```xml
+    <model name="robot1" namespace="/model/{name}">
+      <plugin ...>
+        <link>
+          <name>base_link</name>
+          <topic>link/base_link/cmd_vel<topic>
+        </link>
+      </plugin>
+    </model>
+    ```
+    Both configurations resolve to `/model/robot1/link/base_link/cmd_vel`.
 
 * **Breaking Changes**
   * Plugins for entities spawned into the world should now be able to
