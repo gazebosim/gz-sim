@@ -698,6 +698,7 @@ class gz::sim::systems::PhysicsPrivate
           {
             return false;
           }
+
         }
       }
     }
