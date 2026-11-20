@@ -39,7 +39,6 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 #include "../helpers/Subscription.hh"
 
 using namespace gz;
@@ -58,12 +57,6 @@ static constexpr int kRaycastDataIterations = 10;
 static constexpr int kRaycastResultsIterations = 200;
 /// \brief Iterations for laser scan publication test
 static constexpr int kLaserScanIterations = 200;
-/// \brief Iteration threshold for sensor topic verification
-static constexpr int kTopicVerificationIteration = 2;
-/// \brief Iteration threshold for raycast data checking
-static constexpr int kRaycastCheckIteration = 3;
-/// \brief Iteration threshold for results processing
-static constexpr int kResultsCheckIteration = 5;
 /// \brief Timeout duration in milliseconds for message waiting
 static constexpr int kMessageTimeoutMs = 5000;
 /// \brief Iterations for point cloud publication test
@@ -89,41 +82,28 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  bool cpuLidarFound = false;
-
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-  {
-    _ecm.Each<components::CpuLidar,
-              components::Name>(
-      [&](const Entity &_entity,
-          const components::CpuLidar *,
-          const components::Name *_name) -> bool
-      {
-        cpuLidarFound = true;
-        EXPECT_EQ("cpu_lidar", _name->Data());
-
-        auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-        EXPECT_NE(nullptr, sensorComp);
-
-        // Verify sensor topic is set after initial discovery
-        if (_info.iterations > kIterations::kTopicVerificationIteration)
-        {
-          auto topicComp =
-              _ecm.Component<components::SensorTopic>(_entity);
-          EXPECT_NE(nullptr, topicComp);
-          if (topicComp)
-          {
-            EXPECT_EQ("/test/cpu_lidar", topicComp->Data());
-          }
-        }
-        return true;
-      });
-  });
-
-  server.AddSystem(testSystem.systemPtr);
   server.Run(true, kIterations::kDiscoveryIterations, false);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+
+  bool cpuLidarFound = false;
+  ecm->Each<components::CpuLidar,
+            components::Name,
+            components::Sensor,
+            components::SensorTopic>(
+    [&](const Entity &,
+        const components::CpuLidar *,
+        const components::Name *_name,
+        const components::Sensor *,
+        const components::SensorTopic *_topic) -> bool
+    {
+      cpuLidarFound = true;
+      EXPECT_EQ("cpu_lidar", _name->Data());
+      EXPECT_EQ("/test/cpu_lidar", _topic->Data());
+      return true;
+    });
+
   EXPECT_TRUE(cpuLidarFound);
 }
 
@@ -142,36 +122,29 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  bool raycastDataFound = false;
-
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-  {
-    // Check for raycast data after sufficient iterations
-    if (_info.iterations >= kIterations::kRaycastCheckIteration)
-    {
-      _ecm.Each<components::CpuLidar,
-                components::RaycastData>(
-        [&](const Entity &,
-            const components::CpuLidar *,
-            const components::RaycastData *_rayData) -> bool
-        {
-          raycastDataFound = true;
-          EXPECT_EQ(640u, _rayData->Data().rays.size());
-
-          // Verify each ray has valid start and end points
-          for (const auto &ray : _rayData->Data().rays)
-          {
-            EXPECT_GT((ray.end - ray.start).Length(), 0.0);
-          }
-          return true;
-        });
-    }
-  });
-
-  server.AddSystem(testSystem.systemPtr);
   server.Run(true, kIterations::kRaycastDataIterations, false);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+
+  bool raycastDataFound = false;
+  ecm->Each<components::CpuLidar,
+            components::RaycastData>(
+    [&](const Entity &,
+        const components::CpuLidar *,
+        const components::RaycastData *_rayData) -> bool
+    {
+      raycastDataFound = true;
+      EXPECT_EQ(640u, _rayData->Data().rays.size());
+
+      // Verify each ray has valid start and end points
+      for (const auto &ray : _rayData->Data().rays)
+      {
+        EXPECT_GT((ray.end - ray.start).Length(), 0.0);
+      }
+      return true;
+    });
+
   EXPECT_TRUE(raycastDataFound);
 }
 
@@ -190,40 +163,27 @@ TEST_F(CpuLidarTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  bool resultsFound = false;
-
-  // Subscribe to the sensor topic so HasConnections() returns true
-  // and the system requests raycasts from Physics.
-  transport::Node node;
-  std::function<void(const msgs::LaserScan &)> cb =
-    [](const msgs::LaserScan &){};
-  node.Subscribe("/test/cpu_lidar", cb);
-
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-  {
-    // Wait for sufficient iterations before checking results
-    if (_info.iterations < kIterations::kResultsCheckIteration) return;
-
-    _ecm.Each<components::CpuLidar,
-              components::RaycastData>(
-      [&](const Entity &,
-          const components::CpuLidar *,
-          const components::RaycastData *_rayData) -> bool
-      {
-        if (!_rayData->Data().results.empty())
-        {
-          resultsFound = true;
-          EXPECT_EQ(_rayData->Data().rays.size(),
-                    _rayData->Data().results.size());
-        }
-        return true;
-      });
-  });
-
-  server.AddSystem(testSystem.systemPtr);
   server.Run(true, kIterations::kRaycastResultsIterations, false);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+
+  bool resultsFound = false;
+  ecm->Each<components::CpuLidar,
+            components::RaycastData>(
+    [&](const Entity &,
+        const components::CpuLidar *,
+        const components::RaycastData *_rayData) -> bool
+    {
+      if (!_rayData->Data().results.empty())
+      {
+        resultsFound = true;
+        EXPECT_EQ(_rayData->Data().rays.size(),
+                  _rayData->Data().results.size());
+      }
+      return true;
+    });
+
   EXPECT_TRUE(resultsFound);
 }
 
