@@ -63,9 +63,6 @@ class gz::sim::systems::TrajectoryFollowerPrivate
   /// \brief Gazebo transport node.
   public: transport::Node node;
 
-  /// \brief Topic name to pause/resume the trajectory.
-  public: std::string topic;
-
   /// \brief The link entity
   public: gz::sim::Link link;
 
@@ -113,6 +110,9 @@ class gz::sim::systems::TrajectoryFollowerPrivate
 
   /// \brief Force angular velocity to be zero when bearing is reached
   public: bool forceZeroAngVel = false;
+
+  /// \brief Resolved topic names
+  public: TrajectoryFollower::TopicNames resolvedTopicNames;
 };
 
 //////////////////////////////////////////////////
@@ -257,20 +257,31 @@ void TrajectoryFollowerPrivate::Load(const EntityComponentManager &_ecm,
   if (_sdf->HasElement("zero_vel_on_bearing_reached"))
     this->forceZeroAngVel = _sdf->Get<bool>("zero_vel_on_bearing_reached");
 
-  // Parse the optional <topic> element.
-  this->topic = "/model/" + this->model.Name(_ecm) +
-    "/trajectory_follower/pause";
+  // Generate namespace
+  std::string ns = scopedNamespace(_ecm, this->model.Entity());
+  std::string defaultPrefix = "/model/" + this->model.Name(_ecm);
 
-  if (_sdf->HasElement("topic"))
-    this->topic = _sdf->Get<std::string>("topic");
-
-  this->topic = transport::TopicUtils::AsValidTopic(this->topic);
-
-  this->node.Subscribe(topic, &TrajectoryFollowerPrivate::OnPause, this);
-
-  gzmsg << "TrajectoryFollower["
-      << this->model.Name(_ecm) << "] subscribed "
-      << "to pause messages on topic[" << this->topic << "]\n";
+  // Subscribe to pause
+  TopicNameOptions pauseTopicOptions;
+  pauseTopicOptions.sdfElementName = "topic";
+  pauseTopicOptions.topicNamespace = ns;
+  pauseTopicOptions.defaultTopicPrefix = defaultPrefix;
+  pauseTopicOptions.defaultTopicSuffix = "trajectory_follower/pause";
+  this->resolvedTopicNames.pauseTopic = resolvedTopicName(_sdf, pauseTopicOptions);
+  if(this->resolvedTopicNames.pauseTopic.empty())
+  {
+    gzerr << "TrajectoryFollower failed to find a valid topic name for "
+          << "to pause messages. Check the <topic> and the namespace attribute "
+          << "in the SDF." << std::endl;
+    return;
+  }
+  else
+  {
+    gzmsg << "TrajectoryFollower subscribing to pause messages on ["
+          << this->resolvedTopicNames.pauseTopic << "]" << std::endl;
+    this->node.Subscribe(this->resolvedTopicNames.pauseTopic,
+      &TrajectoryFollowerPrivate::OnPause, this);
+  }
 
   // If we have waypoints to visit, read the first one.
   if (!this->localWaypoints.empty())
@@ -292,6 +303,9 @@ TrajectoryFollower::TrajectoryFollower()
   : dataPtr(std::make_unique<TrajectoryFollowerPrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+TrajectoryFollower::~TrajectoryFollower() = default;
 
 //////////////////////////////////////////////////
 void TrajectoryFollower::Configure(const Entity &_entity,
@@ -410,6 +424,12 @@ void TrajectoryFollower::PreUpdate(
 
   // Apply the force and torque at COM.
   this->dataPtr->link.AddWorldWrench(_ecm, forceWorld, torqueWorld);
+}
+
+//////////////////////////////////////////////////
+TrajectoryFollower::TopicNames TrajectoryFollower::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 GZ_ADD_PLUGIN(TrajectoryFollower,

@@ -19,6 +19,7 @@
 
 #include <gz/sim/System.hh>
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -55,6 +56,14 @@ namespace systems
   ///   force/torque will be applied when moving the vehicle.
   ///
   /// Optional parameters:
+  ///
+  /// - `<topic>`: Topic used to pause/resume the trajectory follower
+  ///   (gz.msgs.Boolean). An absolute topic (starting with `/`) is used
+  ///   as-is. A relative topic is prefixed with the model's namespace, if
+  ///   one is set. The default is
+  ///   `/model/<model_name>/trajectory_follower/pause`, or
+  ///   `<namespace>/trajectory_follower/pause` when the model has a
+  ///   namespace.
   ///
   /// - `<loop>`: When true, all waypoints will be visited continuously in a
   ///   circular pattern. If false, the model will stop when the
@@ -136,11 +145,21 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+
+      /// \brief Pause topic name
+      public: std::string pauseTopic;
+
+    };
+
     /// \brief Constructor
     public: TrajectoryFollower();
 
     /// \brief Destructor
-    public: ~TrajectoryFollower() override = default;
+    public: ~TrajectoryFollower();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -159,6 +178,9 @@ namespace systems
     /// \return True if buoyancy should be applied.
     public: bool IsEnabled(Entity _entity,
         const EntityComponentManager &_ecm) const;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<TrajectoryFollowerPrivate> dataPtr;
