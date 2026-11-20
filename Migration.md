@@ -7,6 +7,16 @@ release will remove the deprecated code.
 
 ## Gazebo Sim 10.x to 11.0
 
+* **Physics engine information**
+  * The world entity has a new `PhysicsEngineInfo` component with the name
+    and version of the physics engine in use, as reported by the engine
+    through `gz::physics::GetEngineInfo` (for example `dartsim 6.16.0`). The
+    `Physics` system sets it once the engine is loaded, and only if the engine
+    implements that feature. `PhysicsEnginePlugin` still holds the plugin that
+    was requested.
+  * In the component inspectors, the `PhysicsEnginePlugin` row shows that
+    name and version instead of the plugin name, once the engine is loaded.
+
 * **Removals**
   * **Hydrodynamics**: The `<water_density>` SDF parameter has been removed.
     It was loaded but never used in any computation because the stability

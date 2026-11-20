@@ -43,6 +43,7 @@
 #include <gz/common/Uuid.hh>
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/eigen3/Conversions.hh>
+#include <gz/math/SemanticVersion.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/physics/config.hh>
 #include <gz/physics/FeatureList.hh>
@@ -145,6 +146,7 @@
 #include "gz/sim/components/JointForceCmd.hh"
 #include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEngineInfo.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/PoseCmd.hh"
@@ -994,6 +996,34 @@ class gz::sim::systems::PhysicsPrivate
 };
 
 //////////////////////////////////////////////////
+/// \brief Describe a loaded physics engine in a few words.
+/// \param[in] _engine The engine.
+/// \return Name and version reported by the engine, such as "dartsim 6.16.0".
+/// Empty if the engine doesn't implement the GetEngineInfo feature.
+static std::string engineInfo(const PhysicsPrivate::EnginePtrType &_engine)
+{
+  if (!_engine)
+    return {};
+
+  // Not part of MinimumFeatureList, engines without it can still be loaded
+  auto infoEngine = physics::RequestFeatures<
+      physics::FeatureList<physics::GetEngineInfo>>::From(_engine);
+  if (!infoEngine)
+    return {};
+
+  std::string info = infoEngine->GetName();
+  const math::SemanticVersion &version = infoEngine->GetVersion();
+  // A default constructed version (0.0.0) means the engine doesn't know it
+  if (version != math::SemanticVersion())
+  {
+    if (!info.empty())
+      info += " ";
+    info += version.Version();
+  }
+  return info;
+}
+
+//////////////////////////////////////////////////
 Physics::Physics() : System(), dataPtr(std::make_unique<PhysicsPrivate>())
 {
 }
@@ -1183,6 +1213,16 @@ void Physics::Configure(const Entity &_entity,
              << std::endl;
       return;
     }
+  }
+
+  // Keep what was loaded apart from PhysicsEnginePlugin, which has to stay
+  // the name of a plugin that can be loaded.
+  const std::string info = engineInfo(this->dataPtr->engine);
+  if (!info.empty())
+  {
+    gzmsg << "Physics engine: " << info << " [" << pluginLib << "]"
+          << std::endl;
+    _ecm.CreateComponent(_entity, components::PhysicsEngineInfo(info));
   }
 
   this->dataPtr->eventManager = &_eventMgr;
