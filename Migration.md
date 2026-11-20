@@ -114,6 +114,45 @@ release will remove the deprecated code.
     When both `<fluid_added_mass>` and an ocean current are active, the
     plugin automatically corrects the Coriolis force to use the velocity
     relative to the fluid rather than the absolute velocity.
+  * **Thruster**: The `<namespace>` SDF parameter originally controls the
+    namespace used for topic names. When `<topic>` is specified, its value is
+    prefixed with `<namespace>` regardless of whether it is relative or absolute.
+    Otherwise, the default topics use `/model/{namespace}/joint/{joint_name}/`.
+
+    With the new model namespace support, the model namespace takes precedence
+    over `<namespace>` when specified, while preserving the original behavior
+    otherwise.
+
+    The `<namespace>` parameter is now deprecated. Users are encouraged to use
+    `<topic>` together with the model namespace instead. Relative topics are
+    prefixed with the model namespace when specified, while absolute topics
+    (starting with `/`) remain unchanged.
+
+    For example, the following configuration:
+
+    ```xml
+    <model name="robot1">
+      <plugin ...>
+        <namespace>/robot1</namespace>
+        <joint_name>propeller_joint</joint_name>
+        <topic>cmd_thrust</topic>
+      </plugin>
+    </model>
+    ```
+
+    Can be replaced with:
+
+    ```xml
+    <model name="robot1" namespace="/robot1">
+      <plugin ...>
+        <joint_name>propeller_joint</joint_name>
+        <topic>cmd_thrust</topic>
+      </plugin>
+    </model>
+    ```
+
+    Both configurations resolve the command topic to `/robot1/cmd_thrust`.
+
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
