@@ -19,6 +19,7 @@
 
 #include <gz/sim/System.hh>
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -45,11 +46,18 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+    };
+
     /// \brief Constructor
     public: ApplyJointForce();
 
     /// \brief Destructor
-    public: ~ApplyJointForce() override = default;
+    public: ~ApplyJointForce() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -61,6 +69,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<ApplyJointForcePrivate> dataPtr;
