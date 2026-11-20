@@ -369,6 +369,18 @@ namespace gz
       /// \return True if headless mode is enable, false otherwise.
       public: bool HeadlessRendering() const;
 
+      /// \brief Set the device to use for headless rendering, e.g.
+      /// `/dev/dri/card1`. This lets users select which GPU is used on
+      /// multi-GPU or containerized hosts. An empty string means the render
+      /// engine selects its default device.
+      /// \param[in] _device Device identifier. Empty for the default device.
+      public: void SetRenderDevice(const std::string &_device);
+
+      /// \brief Get the device to use for headless rendering.
+      /// \return Device identifier. Empty means the render engine selects
+      /// its default device.
+      public: const std::string &RenderDevice() const;
+
       /// \brief Set the render engine server plugin library.
       /// \param[in] _renderEngineServer File containing render engine library.
       public: void SetRenderEngineServer(
