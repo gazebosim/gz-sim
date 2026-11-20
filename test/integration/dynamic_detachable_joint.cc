@@ -27,8 +27,10 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/dynamic_detachable_joint.pb.h>
+#include <gz/msgs/entity.pb.h>
 #include <gz/msgs/pose.pb.h>
 #include <gz/msgs/result.pb.h>
+#include <gz/msgs/world_control.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -56,6 +58,16 @@ class DynamicDetachableJointTest : public InternalFixture<::testing::Test>
   {
     ServerConfig serverConfig;
     serverConfig.SetSdfFile(std::string(PROJECT_SOURCE_PATH) + _sdfFile);
+    this->server = std::make_unique<Server>(serverConfig);
+
+    EXPECT_FALSE(this->server->Running());
+    EXPECT_FALSE(*this->server->Running(0));
+  }
+
+  public: void StartServerSdfString(const std::string &_sdfString)
+  {
+    ServerConfig serverConfig;
+    serverConfig.SetSdfString(_sdfString);
     this->server = std::make_unique<Server>(serverConfig);
 
     EXPECT_FALSE(this->server->Running());
@@ -130,6 +142,7 @@ TEST_F(DynamicDetachableJointTest,
   // DynamicDetachableJoint service
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -221,6 +234,7 @@ TEST_F(DynamicDetachableJointTest,
   {
     gzdbg << "[detach] request: model=red_cube link=link" << std::endl;
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::DETACH);
@@ -347,6 +361,7 @@ TEST_F(DynamicDetachableJointTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(OutOfRange))
   // attached
   {
     msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
     req.set_child_model_name("red_cube");
     req.set_child_link_name("link");
     req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -477,6 +492,7 @@ TEST_F(DynamicDetachableJointTest,
             << std::endl;
 
       msgs::AttachDetachRequest req;
+      req.set_parent_link_name("arm");
       req.set_child_model_name(target.name);
       req.set_child_link_name("link");
       req.set_command(msgs::AttachDetachRequest::ATTACH);
@@ -560,6 +576,7 @@ TEST_F(DynamicDetachableJointTest,
             << std::endl;
 
       msgs::AttachDetachRequest req;
+      req.set_parent_link_name("arm");
       req.set_child_model_name(target.name);
       req.set_child_link_name("link");
       req.set_command(msgs::AttachDetachRequest::DETACH);
@@ -614,5 +631,262 @@ TEST_F(DynamicDetachableJointTest,
 
     setRodPose(target.x, 0.14);
     this->server->Run(true, 5, false);
+  }
+}
+
+/////////////////////////////////////////////////
+// TEST 4
+// "BlockingService"
+// Verifies that the blocking service (<service_name>/blocking) waits for
+// PreUpdate and returns actual execution errors (missing model, invalid parent
+// link, out of range) as well as success on attach and detach.
+TEST_F(DynamicDetachableJointTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(BlockingService))
+{
+  this->StartServer("/test/worlds/dynamic_detachable_joint.sdf");
+
+  // Run the server asynchronously so blocking service calls are processed by
+  // the simulation loop.
+  ASSERT_TRUE(this->server->Run(false, 0, false));
+
+  transport::Node node;
+  const std::string blockingService = "/payload/attach_detach/blocking";
+
+  // 1. Nonexistent child model should return error_code == 1
+  {
+    msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
+    req.set_child_model_name("nonexistent_model");
+    req.set_child_link_name("link");
+    req.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep;
+    bool result = false;
+    ASSERT_TRUE(node.Request(blockingService, req, 2000u, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(1, rep.error_code()) << rep.message();
+  }
+
+  // 2. Nonexistent parent link should return error_code == 1
+  {
+    msgs::AttachDetachRequest req;
+    req.set_parent_link_name("nonexistent_parent_link");
+    req.set_child_model_name("red_cube");
+    req.set_child_link_name("link");
+    req.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep;
+    bool result = false;
+    ASSERT_TRUE(node.Request(blockingService, req, 2000u, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(1, rep.error_code()) << rep.message();
+  }
+
+  // 3. Out-of-range child (blue_cube at x=0.50 while rod is at x=0.30)
+  //    should return error_code == 1
+  {
+    msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
+    req.set_child_model_name("blue_cube");
+    req.set_child_link_name("link");
+    req.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep;
+    bool result = false;
+    ASSERT_TRUE(node.Request(blockingService, req, 2000u, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(1, rep.error_code()) << rep.message();
+  }
+
+  // 4. Valid in-range attach (red_cube at x=0.30) should succeed
+  {
+    msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
+    req.set_child_model_name("red_cube");
+    req.set_child_link_name("link");
+    req.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep;
+    bool result = false;
+    ASSERT_TRUE(node.Request(blockingService, req, 2000u, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(0, rep.error_code()) << rep.message();
+  }
+
+  // 5. Detach via blocking service should succeed
+  {
+    msgs::AttachDetachRequest req;
+    req.set_parent_link_name("arm");
+    req.set_child_model_name("red_cube");
+    req.set_child_link_name("link");
+    req.set_command(msgs::AttachDetachRequest::DETACH);
+
+    msgs::Result rep;
+    bool result = false;
+    ASSERT_TRUE(node.Request(blockingService, req, 2000u, rep, result));
+    ASSERT_TRUE(result);
+    EXPECT_EQ(0, rep.error_code()) << rep.message();
+  }
+
+  this->server->Stop();
+}
+
+/////////////////////////////////////////////////
+// TEST 5
+// "MultipleParentLinksNestedResetAndDeletion"
+// Verifies:
+// 1. Specifying parent_link_name in AttachDetachRequest to attach multiple
+//    parent/child pairs simultaneously using one plugin instance.
+// 2. Attaching a nested child model using a scoped model name.
+// 3. Cleaning up an active joint when the attached child model is deleted.
+// 4. Cleaning up active joints on simulation ResetAll().
+TEST_F(DynamicDetachableJointTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(
+           MultipleParentLinksNestedResetAndDeletion))
+{
+  const std::string sdfString = R"(
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="multi_test">
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+    <model name="dual_arm">
+      <pose>0 0 0 0 0 0</pose>
+      <link name="left_arm">
+        <pose>0.10 0 0.14 0 0 0</pose>
+        <gravity>false</gravity>
+        <inertial><mass>1.0</mass></inertial>
+      </link>
+      <link name="right_arm">
+        <pose>0.50 0 0.14 0 0 0</pose>
+        <gravity>false</gravity>
+        <inertial><mass>1.0</mass></inertial>
+      </link>
+      <joint name="left_right_fixed" type="fixed">
+        <parent>left_arm</parent>
+        <child>right_arm</child>
+      </joint>
+      <plugin filename="gz-sim-dynamic-detachable-joint-system"
+              name="gz::sim::systems::DynamicDetachableJoint">
+        <service_name>/dual_arm/attach_detach</service_name>
+      </plugin>
+    </model>
+    <model name="container">
+      <pose>0.10 0 0.05 0 0 0</pose>
+      <model name="nested_cube">
+        <link name="link">
+          <inertial><mass>0.2</mass></inertial>
+          <collision name="collision">
+            <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          </collision>
+        </link>
+      </model>
+    </model>
+    <model name="blue_cube">
+      <pose>0.50 0 0.05 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.2</mass></inertial>
+        <collision name="collision">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>)";
+
+  this->StartServerSdfString(sdfString);
+  this->server->Run(true, 10, false);
+
+  transport::Node node;
+
+  // 1. Attach left_arm -> container::nested_cube::link and
+  //    right_arm -> blue_cube::link simultaneously.
+  {
+    msgs::AttachDetachRequest req1;
+    req1.set_parent_link_name("left_arm");
+    req1.set_child_model_name("container::nested_cube");
+    req1.set_child_link_name("link");
+    req1.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep1;
+    bool res1 = false;
+    ASSERT_TRUE(node.Request(
+        "/dual_arm/attach_detach", req1, 1000u, rep1, res1));
+    ASSERT_TRUE(res1);
+    EXPECT_EQ(0, rep1.error_code()) << rep1.message();
+
+    msgs::AttachDetachRequest req2;
+    req2.set_parent_link_name("right_arm");
+    req2.set_child_model_name("blue_cube");
+    req2.set_child_link_name("link");
+    req2.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep2;
+    bool res2 = false;
+    ASSERT_TRUE(node.Request(
+        "/dual_arm/attach_detach", req2, 1000u, rep2, res2));
+    ASSERT_TRUE(res2);
+    EXPECT_EQ(0, rep2.error_code()) << rep2.message();
+  }
+
+  this->server->Run(true, 10, false);
+
+  // 2. Delete blue_cube externally and step the server; the plugin should
+  //    clean up the joint for blue_cube automatically.
+  ASSERT_TRUE(this->server->RequestRemoveEntity("blue_cube"));
+  this->server->Run(true, 10, false);
+
+  {
+    msgs::AttachDetachRequest detachDeleted;
+    detachDeleted.set_parent_link_name("right_arm");
+    detachDeleted.set_child_model_name("blue_cube");
+    detachDeleted.set_child_link_name("link");
+    detachDeleted.set_command(msgs::AttachDetachRequest::DETACH);
+
+    msgs::Result rep;
+    bool res = false;
+    ASSERT_TRUE(node.Request(
+        "/dual_arm/attach_detach", detachDeleted, 1000u, rep, res));
+    ASSERT_TRUE(res);
+    EXPECT_EQ(1, rep.error_code()) << rep.message();
+  }
+
+  // 3. Reset the simulation; the remaining joint (left_arm -> nested_cube)
+  //    should be cleaned up so re-attaching after reset succeeds.
+  this->server->ResetAll();
+  this->server->Run(true, 10, false);
+
+  {
+    msgs::AttachDetachRequest reattachReq;
+    reattachReq.set_parent_link_name("left_arm");
+    reattachReq.set_child_model_name("container::nested_cube");
+    reattachReq.set_child_link_name("link");
+    reattachReq.set_command(msgs::AttachDetachRequest::ATTACH);
+
+    msgs::Result rep;
+    bool res = false;
+    ASSERT_TRUE(node.Request(
+        "/dual_arm/attach_detach", reattachReq, 1000u, rep, res));
+    ASSERT_TRUE(res);
+    EXPECT_EQ(0, rep.error_code()) << rep.message();
   }
 }
