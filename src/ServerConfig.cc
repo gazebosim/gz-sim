@@ -18,6 +18,12 @@
 
 #include <tinyxml2.h>
 
+#include <chrono>
+#include <cstdio>
+#include <random>
+#include <string>
+#include <thread>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
@@ -835,6 +841,41 @@ void copyElement(sdf::ElementPtr _sdf, const tinyxml2::XMLElement *_xml)
 }
 
 /////////////////////////////////////////////////
+/// \brief Copy a file so that the destination never exists in a partially
+/// written state. The file is copied next to the destination and then moved
+/// into place, so that other processes that look for the destination at the
+/// same time either don't find it or find the complete file.
+/// \param[in] _from Existing file
+/// \param[in] _to Destination file
+/// \return True if the destination was created.
+bool copyFileAtomically(const std::string &_from, const std::string &_to)
+{
+  std::random_device rd;
+  const std::string tmp = _to + "." + std::to_string(rd()) + ".tmp";
+
+  if (!common::copyFile(_from, tmp))
+  {
+    common::removeFile(tmp, common::FSWO_SUPPRESS_WARNINGS);
+    return false;
+  }
+
+  // std::rename replaces an existing destination atomically on POSIX
+  // systems, and fails if the destination exists on Windows.
+  // common::moveFile would replace it on Windows too, but there another
+  // process can't open the file while it is being replaced, so a server that
+  // is reading the config at that moment would fail to load it.
+  if (std::rename(tmp.c_str(), _to.c_str()) != 0)
+  {
+    // If the file is there, it can only have been put there by a complete
+    // copy.
+    common::removeFile(tmp, common::FSWO_SUPPRESS_WARNINGS);
+    return common::exists(_to);
+  }
+
+  return true;
+}
+
+/////////////////////////////////////////////////
 std::list<ServerConfig::PluginInfo>
 parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
 {
@@ -912,6 +953,29 @@ parsePluginsFromDoc(const tinyxml2::XMLDocument &_doc)
     ret.push_back({entityName, entityType, plugin});
   }
   return ret;
+}
+
+/////////////////////////////////////////////////
+/// \brief Parse the plugins in the default config file.
+/// On Windows, a file that another server has just moved into place with
+/// copyFileAtomically can't be opened for a short moment, because the move
+/// still holds it open for deletion. Retry briefly in that case, instead of
+/// loading no plugins.
+/// \param[in] _fname Default config file, which exists
+/// \return List of plugins in the file
+std::list<ServerConfig::PluginInfo> parsePluginsFromDefaultConfig(
+    const std::string &_fname)
+{
+  tinyxml2::XMLDocument doc;
+  auto result = doc.LoadFile(_fname.c_str());
+  for (int i = 0; i < 20 && common::exists(_fname) &&
+       (result == tinyxml2::XML_ERROR_FILE_NOT_FOUND ||
+        result == tinyxml2::XML_ERROR_FILE_COULD_NOT_BE_OPENED); ++i)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    result = doc.LoadFile(_fname.c_str());
+  }
+  return parsePluginsFromDoc(doc);
 }
 }  // namespace
 
@@ -1015,7 +1079,7 @@ sim::loadPluginInfo(bool _isPlayback)
              << std::endl;
       return ret;
     }
-    else if (!common::copyFile(installedConfig, defaultConfig))
+    else if (!copyFileAtomically(installedConfig, defaultConfig))
     {
       gzerr << "Failed to copy installed config [" << installedConfig
              << "] to default config [" << defaultConfig << "]."
@@ -1030,7 +1094,7 @@ sim::loadPluginInfo(bool _isPlayback)
     }
   }
 
-  ret = sim::parsePluginsFromFile(defaultConfig);
+  ret = parsePluginsFromDefaultConfig(defaultConfig);
 
   if (ret.empty())
   {

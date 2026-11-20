@@ -17,7 +17,17 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <memory>
+#include <string>
+#include <thread>
+#include <vector>
+
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
+#include <gz/common/TempDirectory.hh>
+#include <gz/common/Util.hh>
+#include <gz/sim/InstallationDirectories.hh>
 #include <gz/sim/ServerConfig.hh>
 #include <gz/sim/Util.hh>
 #include <test_config.hh>
@@ -184,6 +194,138 @@ TEST(LoadPluginInfo, FromEmptyEnv)
 
   EXPECT_EQ(0u, plugins.size());
   EXPECT_TRUE(common::unsetenv(kServerConfigPathEnv));
+}
+
+//////////////////////////////////////////////////
+/// \brief Points the home directory and the installation prefix to
+/// temporary directories, with an installed server.config, and restores the
+/// environment afterwards.
+class LoadPluginInfoDefaultConfig : public ::testing::Test
+{
+  public: void SetUp() override
+  {
+    this->hadHome = gz::common::env(GZ_HOMEDIR, this->origHome);
+    this->hadPrefix =
+        gz::common::env("GZ_SIM_INSTALL_PREFIX", this->origPrefix);
+    this->hadServerConfigEnv =
+        gz::common::env(kServerConfigPathEnv, this->origServerConfigEnv);
+
+    this->temp = std::make_unique<common::TempDirectory>(
+        "server_config", "gz", true);
+    ASSERT_TRUE(this->temp->Valid());
+
+    // Installed config
+    this->prefix = common::joinPaths(this->temp->Path(), "prefix");
+    ASSERT_TRUE(common::setenv("GZ_SIM_INSTALL_PREFIX", this->prefix));
+    if (getInstallPrefix() != this->prefix)
+    {
+      // For example, Bazel builds use a fixed install prefix.
+      GTEST_SKIP() << "The installation prefix can't be overridden";
+    }
+    this->installedConfig = common::joinPaths(
+        getServerConfigPath(), "server.config");
+    ASSERT_TRUE(common::createDirectories(getServerConfigPath()));
+    ASSERT_TRUE(common::copyFile(
+        common::joinPaths(PROJECT_SOURCE_PATH, "include", "gz", "sim",
+                          "server.config"),
+        this->installedConfig));
+
+    ASSERT_TRUE(common::unsetenv(kServerConfigPathEnv));
+  }
+
+  public: void TearDown() override
+  {
+    if (this->hadHome)
+      common::setenv(GZ_HOMEDIR, this->origHome);
+    else
+      common::unsetenv(GZ_HOMEDIR);
+    if (this->hadPrefix)
+      common::setenv("GZ_SIM_INSTALL_PREFIX", this->origPrefix);
+    else
+      common::unsetenv("GZ_SIM_INSTALL_PREFIX");
+    if (this->hadServerConfigEnv)
+      common::setenv(kServerConfigPathEnv, this->origServerConfigEnv);
+  }
+
+  /// \brief Directory where the default config is copied for a given home
+  public: static std::string ConfigDir(const std::string &_home)
+  {
+    return common::joinPaths(_home, ".gz", "sim", GZ_SIM_MAJOR_VERSION_STR);
+  }
+
+  public: std::unique_ptr<common::TempDirectory> temp;
+  public: std::string prefix;
+  public: std::string installedConfig;
+  public: std::string origHome;
+  public: std::string origPrefix;
+  public: std::string origServerConfigEnv;
+  public: bool hadHome{false};
+  public: bool hadPrefix{false};
+  public: bool hadServerConfigEnv{false};
+};
+
+//////////////////////////////////////////////////
+TEST_F(LoadPluginInfoDefaultConfig, CopiesInstalledConfig)
+{
+  const auto expected = parsePluginsFromFile(this->installedConfig).size();
+  ASSERT_LT(0u, expected);
+
+  const auto home = common::joinPaths(this->temp->Path(), "home");
+  ASSERT_TRUE(common::createDirectories(home));
+  ASSERT_TRUE(common::setenv(GZ_HOMEDIR, home));
+
+  EXPECT_EQ(expected, loadPluginInfo().size());
+
+  // The installed config was copied, and nothing else was left behind.
+  const auto configDir = ConfigDir(home);
+  const auto copied = common::joinPaths(configDir, "server.config");
+  EXPECT_TRUE(common::exists(copied));
+  EXPECT_EQ(expected, parsePluginsFromFile(copied).size());
+
+  std::vector<std::string> files;
+  for (common::DirIter dir(configDir), end; dir != end; ++dir)
+    files.push_back(common::basename(*dir));
+  EXPECT_EQ(std::vector<std::string>{"server.config"}, files);
+}
+
+//////////////////////////////////////////////////
+// Servers that start at the same time with a home directory that has no
+// default config must all load the installed systems, and not read a config
+// file that another server is still copying.
+TEST_F(LoadPluginInfoDefaultConfig, ConcurrentFirstUse)
+{
+  const auto expected = parsePluginsFromFile(this->installedConfig).size();
+  ASSERT_LT(0u, expected);
+
+  constexpr int kThreads = 8;
+  constexpr int kRounds = 100;
+
+  for (int round = 0; round < kRounds; ++round)
+  {
+    const auto home = common::joinPaths(
+        this->temp->Path(), "home" + std::to_string(round));
+    ASSERT_TRUE(common::createDirectories(home));
+    ASSERT_TRUE(common::setenv(GZ_HOMEDIR, home));
+
+    std::atomic<bool> start{false};
+    std::atomic<int> failures{0};
+    std::vector<std::thread> threads;
+    for (int i = 0; i < kThreads; ++i)
+    {
+      threads.emplace_back([&]()
+      {
+        while (!start)
+          std::this_thread::yield();
+        if (loadPluginInfo().size() != expected)
+          ++failures;
+      });
+    }
+    start = true;
+    for (auto &thread : threads)
+      thread.join();
+
+    ASSERT_EQ(0, failures) << "round " << round;
+  }
 }
 
 //////////////////////////////////////////////////
