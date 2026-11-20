@@ -17,6 +17,12 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/double.pb.h>
 #include <gz/msgs/Utility.hh>
@@ -469,6 +475,145 @@ TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
   // Tolerance could be lower (1e-6) if the joint pose had a precise 180
   // rotation
   this->TestWorld(world, ns, topic, 0.004, 1000, 0.2, 1e-4);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDGains))
+{
+  const unsigned int sampleCount{501};
+  auto recordTrace = [&](const std::string &_gains, std::vector<double> &_trace)
+  {
+    ServerConfig serverConfig;
+    serverConfig.SetSdfString(R"(
+<sdf version="1.9">
+  <world name="thruster_pid_gains">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <gravity>0 0 0</gravity>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <model name="sub">
+      <link name="body">
+        <pose>0 0 0 0 1.57 0</pose>
+        <inertial>
+          <mass>100</mass>
+          <inertia>
+            <ixx>33.89</ixx>
+            <iyy>33.89</iyy>
+            <izz>1.125</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <link name="propeller">
+        <pose>-1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000354167</ixx>
+            <iyy>0.000021667</iyy>
+            <izz>0.000334167</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="propeller_joint" type="revolute">
+        <pose>0 0 0 0 3.14159265 0</pose>
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>-1 0 0</xyz>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-thruster-system"
+              name="gz::sim::systems::Thruster">
+        <joint_name>propeller_joint</joint_name>
+        <thrust_coefficient>0.004</thrust_coefficient>
+        <fluid_density>1000</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+        <max_thrust_cmd>300</max_thrust_cmd>
+        <min_thrust_cmd>0</min_thrust_cmd>
+        )" + _gains + R"(
+      </plugin>
+    </model>
+  </world>
+</sdf>)");
+
+    Link propeller;
+    TestFixture fixture(serverConfig);
+    fixture.OnConfigure([&](const Entity &_worldEntity,
+        const std::shared_ptr<const sdf::Element> &,
+        EntityComponentManager &_ecm, EventManager &)
+    {
+      const World world(_worldEntity);
+      const auto modelEntity = world.ModelByName(_ecm, "sub");
+      ASSERT_NE(modelEntity, kNullEntity);
+      const Model model(modelEntity);
+      const auto propellerEntity = model.LinkByName(_ecm, "propeller");
+      ASSERT_NE(propellerEntity, kNullEntity);
+      propeller = Link(propellerEntity);
+      propeller.EnableVelocityChecks(_ecm);
+    });
+    fixture.OnPostUpdate([&](const UpdateInfo &,
+        const EntityComponentManager &_ecm)
+    {
+      const auto angularVelocity = propeller.WorldAngularVelocity(_ecm);
+      ASSERT_TRUE(angularVelocity);
+      const double speed = angularVelocity.value().Length();
+      // Begin each trace at the first response to the asynchronous command.
+      if (!_trace.empty() || speed > 1e-3)
+        _trace.push_back(speed);
+    });
+    fixture.Finalize();
+
+    transport::Node node;
+    auto pub = node.Advertise<msgs::Double>(
+        "/model/sub/joint/propeller_joint/cmd_thrust");
+    ASSERT_TRUE(transport::waitUntil([&]
+    {
+      return pub.HasConnections();
+    }, std::chrono::seconds(3), std::chrono::milliseconds(100)));
+
+    msgs::Double msg;
+    msg.set_data(10.0);
+    ASSERT_TRUE(pub.Publish(msg));
+    ASSERT_TRUE(transport::waitUntil([&]
+    {
+      fixture.Server()->Run(true, 1, false);
+      return !_trace.empty();
+    }, std::chrono::seconds(3), std::chrono::milliseconds(100)))
+        << "No propeller motion with " << _gains;
+    fixture.Server()->Run(true, sampleCount - 1, false);
+  };
+
+  const std::string pGain{"<p_gain>0.002</p_gain>"};
+  std::vector<double> pOnly, withIntegral, withDerivative, doubledP;
+  recordTrace(pGain, pOnly);
+  recordTrace(pGain + "<i_gain>0.05</i_gain>", withIntegral);
+  recordTrace(pGain + "<d_gain>0.00005</d_gain>", withDerivative);
+  recordTrace("<p_gain>0.004</p_gain>", doubledP);
+
+  ASSERT_EQ(sampleCount, pOnly.size());
+  ASSERT_EQ(sampleCount, withIntegral.size());
+  ASSERT_EQ(sampleCount, withDerivative.size());
+  ASSERT_EQ(sampleCount, doubledP.size());
+
+  auto maxDifference = [&](const std::vector<double> &_trace)
+  {
+    double difference{0.0};
+    for (unsigned int i = 0; i < sampleCount; ++i)
+      difference = std::max(difference, std::abs(_trace[i] - pOnly[i]));
+    return difference;
+  };
+  const double minDifference{0.1};  // rad/s
+  EXPECT_GT(maxDifference(withIntegral), minDifference) << "i_gain";
+  EXPECT_GT(maxDifference(withDerivative), minDifference) << "d_gain";
+  EXPECT_GT(maxDifference(doubledP), minDifference) << "p_gain control";
 }
 
 /////////////////////////////////////////////////
