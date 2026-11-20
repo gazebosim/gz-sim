@@ -26,6 +26,9 @@
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
 
+#include "gz/sim/Actor.hh"
+#include "gz/sim/components/Actor.hh"
+#include "gz/sim/components/Name.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/EventManager.hh"
 #include "gz/sim/Server.hh"
@@ -167,3 +170,55 @@ TEST_F(ActorFixture, ActorTrajectoryNoMesh)
 
   g_scene.reset();
 }
+
+/////////////////////////////////////////////////
+// Verify that Actor::WorldPose returns the updated pose of an actor following
+// an SDF scripted trajectory even without active camera topic subscribers.
+// See https://github.com/gazebosim/gz-sim/issues/4131
+TEST_F(ActorFixture, ActorWorldPoseScriptedTrajectory)
+{
+  sim::ServerConfig serverConfig;
+
+  const std::string sdfFile = std::string(PROJECT_SOURCE_PATH) +
+    "/test/worlds/actor_trajectory.sdf";
+
+  serverConfig.SetSdfFile(sdfFile);
+  sim::Server server(serverConfig);
+
+  std::vector<math::Pose3d> actorPoses;
+  this->mockSystem->preUpdateCallback =
+    [&actorPoses](const sim::UpdateInfo &_info,
+                  sim::EntityComponentManager &_ecm)
+    {
+      if (_info.iterations % 200 != 0)
+        return;
+
+      _ecm.Each<sim::components::Actor, sim::components::Name>(
+        [&](const sim::Entity &_entity,
+            const sim::components::Actor *,
+            const sim::components::Name *_name) -> bool
+        {
+          if (_name->Data() == "animated_box")
+          {
+            sim::Actor actor(_entity);
+            auto worldPose = actor.WorldPose(_ecm);
+            if (worldPose)
+            {
+              actorPoses.push_back(*worldPose);
+            }
+          }
+          return true;
+        });
+    };
+
+  server.AddSystem(this->systemPtr);
+  server.Run(true, 1000, false);
+
+  // Verify that world poses were recorded and that the pose changed over time
+  EXPECT_FALSE(actorPoses.empty());
+  ASSERT_GE(actorPoses.size(), 3u);
+
+  // The actor should move along the trajectory, not remain at initial base pose
+  EXPECT_NE(actorPoses.front(), actorPoses.back());
+}
+

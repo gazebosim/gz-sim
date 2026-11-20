@@ -122,8 +122,8 @@ namespace gz
       /// via SetTrajectoryPose or interpolated from waypoints in the SDF script
       /// based on the current time.
       /// \param[in] _ecm Entity-component manager.
-      /// \return World pose of the actor or nullopt if the entity does not
-      /// have a components::WorldPose component.
+      /// \return World pose of the actor or nullopt if unable to determine
+      /// the actor's world pose.
       /// \sa Pose
       public: std::optional<math::Pose3d> WorldPose(
           const EntityComponentManager &_ecm) const;
