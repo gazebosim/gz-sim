@@ -105,37 +105,38 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
   size_t iters100 = 100u;
   server.Run(true, iters100, false);
 
-  // Check both sensor entities. Each camera's model has the same name as its
-  // sensor, so the lookup also asks for the Sensor component.
+  // Check both cameras. Each only visits entities that have all of these
+  // components, so we just need to count the matches and check the topics.
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
 
-    // The world has exactly these two logical cameras
-    std::size_t cameraCount{0};
-    ecm->Each<components::LogicalCamera>(
-        [&cameraCount](const Entity &, const components::LogicalCamera *)
+    std::size_t camera1Count{0};
+    std::size_t camera2Count{0};
+    ecm->Each<components::LogicalCamera, components::Name,
+              components::SensorTopic>(
+        [&](const Entity &, const components::LogicalCamera *,
+            const components::Name *_name,
+            const components::SensorTopic *_topic)
         {
-          ++cameraCount;
+          if (_name->Data() == sensorName1)
+          {
+            ++camera1Count;
+            EXPECT_EQ(topic1, _topic->Data());
+          }
+          else if (_name->Data() == sensorName2)
+          {
+            ++camera2Count;
+            EXPECT_EQ(topic2, _topic->Data());
+          }
+          else
+          {
+            ADD_FAILURE() << "Unknown logical camera: " << _name->Data();
+          }
           return true;
         });
-    EXPECT_EQ(2u, cameraCount);
-
-    auto checkSensor = [&ecm](const std::string &_name,
-                              const std::string &_topic)
-    {
-      const auto sensors = ecm->EntitiesByComponents(
-          components::Sensor(), components::Name(_name));
-      ASSERT_EQ(1u, sensors.size()) << _name;
-      const Entity sensor = sensors.front();
-      EXPECT_NE(nullptr, ecm->Component<components::LogicalCamera>(sensor));
-
-      const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
-      ASSERT_NE(nullptr, topicComp) << _name;
-      EXPECT_EQ(_topic, topicComp->Data());
-    };
-    checkSensor(sensorName1, topic1);
-    checkSensor(sensorName2, topic2);
+    EXPECT_EQ(1u, camera1Count);
+    EXPECT_EQ(1u, camera2Count);
   }
 
   mutex.lock();
