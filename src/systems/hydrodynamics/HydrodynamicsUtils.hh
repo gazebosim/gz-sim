@@ -32,16 +32,16 @@ namespace systems
 {
 namespace hydrodynamics
 {
-  /// \brief Build the negated added-mass Coriolis matrix (-C_A) per
+  /// \brief Build the added-mass Coriolis matrix C_A per
   /// Fossen (2011) Theorem 6.2, eq 6.43.
   ///
   /// Uses only diagonal elements of _Ma. The returned matrix is
   /// skew-symmetric: C + C^T = 0. The Fossen sign convention is that
   /// diagonal elements of _Ma are negative (e.g. X_u_dot < 0).
   ///
-  /// \param[in] _Ma 6x6 added mass matrix
+  /// \param[in] _Ma 6x6 added mass matrix, in the Fossen sign convention
   /// \param[in] _state 6x1 body-frame velocity [u,v,w,p,q,r]
-  /// \return 6x6 matrix equal to -C_A (skew-symmetric)
+  /// \return 6x6 Coriolis matrix C_A (skew-symmetric)
   inline Eigen::Matrix<double, 6, 6> buildCoriolisMatrix(
     const Eigen::Matrix<double, 6, 6> &_Ma,
     const Eigen::Matrix<double, 6, 1> &_state)
