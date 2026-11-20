@@ -619,6 +619,47 @@ TEST_F(TriggeredPublisherTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TriggerDelay))
   EXPECT_EQ(pubCount, recvCount);
 }
 
+/////////////////////////////////////////////////
+TEST_F(TriggeredPublisherTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ResetClearsDelayedQueue))
+{
+  transport::Node node;
+  auto inputPub = node.Advertise<msgs::Empty>("/in_13");
+  std::atomic<std::size_t> recvCount{0};
+  auto msgCb = std::function<void(const msgs::Empty &)>(
+      [&recvCount](const auto &)
+      {
+        ++recvCount;
+      });
+  node.Subscribe("/out_13", msgCb);
+  ASSERT_TRUE(waitUntil(1000, [&] { return inputPub.HasConnections(); }));
+
+  EXPECT_TRUE(inputPub.Publish(msgs::Empty()));
+
+  // The delayed output should be queued, but not emitted before reset.
+  this->server->Run(true, 500, false);
+  EXPECT_EQ(0u, recvCount);
+
+  this->server->ResetAll();
+
+  // A pre-reset queued message must not leak into the new episode.
+  this->server->Run(true, 1100, false);
+  EXPECT_FALSE(waitUntil(300, [&]{return recvCount.load() > 0u;}));
+  EXPECT_EQ(0u, recvCount);
+
+  transport::Node postResetNode;
+  auto postResetInputPub = postResetNode.Advertise<msgs::Empty>("/in_13");
+  ASSERT_TRUE(waitUntil(1000, [&]
+      {
+        return postResetInputPub.HasConnections();
+      }));
+
+  EXPECT_TRUE(postResetInputPub.Publish(msgs::Empty()));
+  this->server->Run(true, 1500, false);
+  EXPECT_TRUE(waitUntil(1000, [&]{return recvCount.load() == 1u;}));
+  EXPECT_EQ(1u, recvCount);
+}
+
 TEST_F(TriggeredPublisherTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(WrongInputWhenRepeatedFieldExpected))
 {
