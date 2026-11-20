@@ -48,6 +48,40 @@ release will remove the deprecated code.
     base pointer is no longer supported.
 
 * **Deprecations**
+  * **AckermannSteering**: The `<sub_topic>` SDF parameter originally prefixes
+    the specified value with `/model/{model_name}/`.
+
+    With the new model namespace support, `<sub_topic>` uses the model namespace
+    as the prefix when one is specified, while preserving the original behavior
+    otherwise.
+
+    The `<sub_topic>` parameter is now deprecated. Users are encouraged to use
+    `<topic>` together with the model namespace instead. Relative topics are
+    prefixed with the model namespace when specified, while absolute topics
+    (starting with `/`) remain unchanged.
+
+    For example, the following configuration:
+
+    ```xml
+    <model name="robot1">
+      <plugin ...>
+        <sub_topic>cmd_vel</sub_topic>
+      </plugin>
+    </model>
+    ```
+
+    Can be replaced with:
+
+    ```xml
+    <model name="robot1" namespace="model/{name}">
+      <plugin ...>
+        <topic>cmd_vel</topic>
+      </plugin>
+    </model>
+    ```
+
+  Both configurations resolve to `/model/robot1/cmd_vel`.
+
   * **Hydrodynamics**: Added mass via plugin parameters (`<xDotU>`,
     `<yDotV>`, `<zDotW>`, `<kDotP>`, `<mDotQ>`, `<nDotR>`, and all
     cross terms `<*Dot*>`) is deprecated **when using the DART physics
@@ -142,6 +176,12 @@ release will remove the deprecated code.
     `/<model_name>/pose` to `/model/<model>/pose`. The new topic name is
     is consistent with the topic names for models that already exist in the
     world, i.e. models that are not spawned.
+  * Pose Publisher: `<publish_model_pose>` no longer takes the value of
+    `<publish_nested_model_pose>` when it is not set. It now defaults to
+    false, like the other `publish_*` options. A system that only sets
+    `<publish_nested_model_pose>true</publish_nested_model_pose>` no longer
+    publishes the pose of its top-level model. To keep the old behavior,
+    also set `<publish_model_pose>true</publish_model_pose>`.
   * Component's `typeId` is now `constexpr`. It is not allowed to change it
     at runtime anymore. Furthermore component registration is now only allowed
     through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be

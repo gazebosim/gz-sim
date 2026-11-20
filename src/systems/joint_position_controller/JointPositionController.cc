@@ -59,7 +59,7 @@ class ParameterProxy
   {
   }
 
-  //! \brief Initialise
+  //! \brief Initialize
   public: template<typename Getter, typename Setter>
   void Init(
     gz::transport::parameters::ParametersRegistry *_registry,
@@ -141,7 +141,7 @@ class gz::sim::systems::JointPositionControllerPrivate
   /// \param[in] _msg Position message
   public: void OnActuatorPos(const msgs::Actuators &_msg);
 
-  //! \brief Helper to initialise and declare a PID parameter
+  //! \brief Helper to initialize and declare a PID parameter
   public: template<typename Getter, typename Setter>
   void DeclareParameter(
       ParameterProxy<math::PID> *_param,
