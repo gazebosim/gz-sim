@@ -74,7 +74,7 @@ class ResetFixture: public InternalFixture<::testing::Test>
 };
 
 /////////////////////////////////////////////////
-/// This test checks that that the physics system handles cases where entities
+/// This test checks that the physics system handles cases where entities
 /// are removed and then added back
 TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_WIN32(HandleReset))
 {

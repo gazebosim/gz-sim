@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="buoyancy_engine_start">
+    <gravity>0 0 -9.8</gravity>
+    <physics name="100ms" type="ode">
+      <max_step_size>0.1</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics"/>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <uniform_fluid_density>1000</uniform_fluid_density>
+    </plugin>
+
+    <!-- The 1 m^3 box displaces its own mass in water. -->
+    <model name="default_engine">
+      <link name="body">
+        <inertial>
+          <mass>1000</mass>
+          <inertia>
+            <ixx>166.6667</ixx>
+            <iyy>166.6667</iyy>
+            <izz>166.6667</izz>
+          </inertia>
+        </inertial>
+        <collision name="body_collision">
+          <geometry>
+            <box>
+              <size>1 1 1</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin
+        filename="gz-sim-buoyancy-engine-system"
+        name="gz::sim::systems::BuoyancyEngine">
+        <link_name>body</link_name>
+        <namespace>default_engine</namespace>
+      </plugin>
+    </model>
+
+    <model name="raised_min_engine">
+      <pose>5 0 0 0 0 0</pose>
+      <!-- At 0.001 m^3 the bladder alone supports 0.7 kg. -->
+      <link name="body">
+        <inertial>
+          <mass>0.7</mass>
+        </inertial>
+      </link>
+      <plugin
+        filename="gz-sim-buoyancy-engine-system"
+        name="gz::sim::systems::BuoyancyEngine">
+        <link_name>body</link_name>
+        <namespace>raised_min_engine</namespace>
+        <min_volume>0.001</min_volume>
+        <max_volume>0.002</max_volume>
+        <max_inflation_rate>0.0001</max_inflation_rate>
+      </plugin>
+    </model>
+
+    <model name="explicit_engine">
+      <pose>10 0 0 0 0 0</pose>
+      <!-- At 0.0006 m^3 the bladder alone supports 0.3 kg. -->
+      <link name="body">
+        <inertial>
+          <mass>0.3</mass>
+        </inertial>
+      </link>
+      <plugin
+        filename="gz-sim-buoyancy-engine-system"
+        name="gz::sim::systems::BuoyancyEngine">
+        <link_name>body</link_name>
+        <namespace>explicit_engine</namespace>
+        <default_volume>0.0006</default_volume>
+      </plugin>
+    </model>
+  </world>
+</sdf>
