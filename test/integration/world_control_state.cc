@@ -27,11 +27,11 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -76,36 +76,28 @@ TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
     received = true;
   };
 
-  // Create a system that checks for state changes in the ECM
-  gz::sim::test::Relay testSystem;
-
-  testSystem.OnUpdate([](const sim::UpdateInfo &_info,
-    sim::EntityComponentManager &_ecm)
-    {
-      // After the first iteration, there should be an entity with the name
-      // "box"
-      bool hasBox = false;
-      _ecm.Each<gz::sim::components::Name>(
-        [&](const gz::sim::Entity &,
-            const gz::sim::components::Name *_name)->bool
-        {
-          if (_name->Data() == "box")
-          {
-            hasBox = true;
-          }
-          return true;
-        });
-      if (_info.iterations > 1)
-        EXPECT_TRUE(hasBox);
-      else
-        EXPECT_FALSE(hasBox);
-    });
-  server.AddSystem(testSystem.systemPtr);
-
   EXPECT_TRUE(node.Subscribe("/world/default/state", cb));
 
   // Run the server once
   server.RunOnce(false);
+
+  // Before the state update request, there should be no entity named "box"
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    bool hasBox = false;
+    ecm->Each<gz::sim::components::Name>(
+      [&](const gz::sim::Entity &,
+          const gz::sim::components::Name *_name) -> bool
+      {
+        if (_name->Data() == "box")
+        {
+          hasBox = true;
+        }
+        return true;
+      });
+    EXPECT_FALSE(hasBox);
+  }
 
   // Wait for the state cb to take place
   unsigned int sleep = 0u;
@@ -113,7 +105,23 @@ TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   while (!received && sleep++ < maxSleep)
     GZ_SLEEP_MS(100);
 
-  // Run again, and the test system should now find an entity with the name
-  // "box"
+  // Run again, and the server should now find an entity with the name "box"
   server.RunOnce(false);
+
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    bool hasBox = false;
+    ecm->Each<gz::sim::components::Name>(
+      [&](const gz::sim::Entity &,
+          const gz::sim::components::Name *_name) -> bool
+      {
+        if (_name->Data() == "box")
+        {
+          hasBox = true;
+        }
+        return true;
+      });
+    EXPECT_TRUE(hasBox);
+  }
 }

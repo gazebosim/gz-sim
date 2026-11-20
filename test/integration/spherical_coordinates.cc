@@ -38,7 +38,6 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 #define tol 10e-4
 
