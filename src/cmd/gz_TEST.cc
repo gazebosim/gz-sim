@@ -123,6 +123,32 @@ TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(RandomSeedValue))
 }
 
 /////////////////////////////////////////////////
+TEST(CmdLine, GZ_UTILS_TEST_DISABLED_ON_WIN32(ExitOnPluginError))
+{
+  const std::string worldPath = std::string(PROJECT_SOURCE_PATH) +
+      "/test/worlds/plugin_load_error.sdf";
+
+  // Without the flag, the plugin is skipped and the server runs all the
+  // iterations.
+  std::string cmd = kGzCommand + " -r --iterations 5 " + worldPath +
+      " 2>&1; echo \"exit_code=$?\"";
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+
+  std::string output = customExecStr(cmd);
+  EXPECT_NE(output.find("exit_code=0"), std::string::npos) << output;
+
+  // With the flag, the server exits on its own with a non-zero exit code
+  // before reaching the iteration limit. The limit keeps the test from
+  // hanging if the server doesn't exit.
+  cmd = kGzCommand + " -r --iterations 10000 --exit-on-plugin-error " +
+      worldPath + " 2>&1; echo \"exit_code=$?\"";
+  std::cout << "Running command [" << cmd << "]" << std::endl;
+
+  output = customExecStr(cmd);
+  EXPECT_NE(output.find("exit_code=255"), std::string::npos) << output;
+}
+
+/////////////////////////////////////////////////
 TEST(CmdLine, GazeboServer)
 {
   std::string cmd = kGzCommand + " -r -v 4 --iterations 5 " +
