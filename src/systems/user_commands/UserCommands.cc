@@ -1923,6 +1923,7 @@ bool WheelSlipCommand::Execute()
 
 GZ_ADD_PLUGIN(UserCommands, System,
   UserCommands::ISystemConfigure,
+  UserCommands::ISystemConfigurePriority,
   UserCommands::ISystemPreUpdate
 )
 
