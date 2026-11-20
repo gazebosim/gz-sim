@@ -133,7 +133,11 @@ void CopyPaste::OnPaste()
 /////////////////////////////////////////////////
 bool CopyPaste::eventFilter(QObject *_obj, QEvent *_event)
 {
-  if (_event->type() == gz::sim::gui::events::EntitiesSelected::kType)
+  // EntitiesSelected is sent to the main window. On the QuickWindow, which is
+  // filtered for key presses, Qt Quick posts private events of the same type
+  // (QEvent::User + 1).
+  if (_event->type() == gz::sim::gui::events::EntitiesSelected::kType &&
+      qobject_cast<gz::gui::MainWindow *>(_obj))
   {
     std::lock_guard<std::mutex> guard(this->dataPtr->mutex);
 
