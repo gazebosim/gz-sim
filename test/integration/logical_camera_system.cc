@@ -93,13 +93,8 @@ TEST_F(LogicalCameraTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LogicalCameraBox))
 
   // subscribe to logical camera topic
   transport::Node node;
-  node.Subscribe(std::string("/world/logical_camera_sensor/") +
-      "model/logical_camera-1/link/logical_camera_link" +
-      "/sensor/logical_camera-1/logical_camera", &logicalCamera1Cb);
-
-  node.Subscribe(std::string("/world/logical_camera_sensor/") +
-  "model/logical_camera-2/link/logical_camera_link" +
-  "/sensor/logical_camera-2/logical_camera", &logicalCamera2Cb);
+  node.Subscribe(topic1, &logicalCamera1Cb);
+  node.Subscribe(topic2, &logicalCamera2Cb);
 
   // Run server and verify that we are receiving messages
   size_t iters100 = 100u;
