@@ -18,7 +18,10 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <functional>
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef HAVE_DART
@@ -53,6 +56,7 @@
 #include "gz/sim/components/AngularVelocity.hh"
 #include "gz/sim/components/AngularVelocityReset.hh"
 #include "gz/sim/components/AxisAlignedBox.hh"
+#include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/Geometry.hh"
@@ -1582,6 +1586,463 @@ TEST_F(PhysicsSystemFixtureWithDart6_10, JointEffortLimitsCommandComponent)
   EXPECT_NEAR(positions[0], positions[40], 3e-5);
   EXPECT_NEAR(positions[0], positions[49], 3e-5);
   EXPECT_LT(std::abs(positions[50]) + 1e-2, std::abs(positions[99]));
+}
+
+namespace
+{
+/////////////////////////////////////////////////
+/// \brief Steps a world without gravity and logs the state of some joints.
+/// Without gravity a joint only moves when it is commanded, so a command that
+/// leaks to a joint it was not set on shows up in that joint's log. Only the
+/// first degree of freedom of each joint is logged.
+class JointCmdRunner
+{
+  /// \brief Called in PreUpdate with the index of the step about to run.
+  public: using Script =
+      std::function<void(std::size_t _step, EntityComponentManager &_ecm)>;
+
+  /// \param[in] _world World file name in test/worlds.
+  /// \param[in] _joints (Model name, joint name) of the joints to log.
+  public: JointCmdRunner(const std::string &_world,
+      const std::vector<std::pair<std::string, std::string>> &_joints)
+      : names(_joints), entities(_joints.size(), kNullEntity),
+        pos(_joints.size()), vel(_joints.size())
+  {
+    sdf::Root root;
+    root.Load(std::string(PROJECT_SOURCE_PATH) + "/test/worlds/" + _world);
+    root.WorldByIndex(0)->SetGravity(math::Vector3d::Zero);
+    ServerConfig serverConfig;
+    serverConfig.SetSdfRoot(root);
+    this->server = std::make_unique<Server>(serverConfig);
+
+    this->relay.OnPreUpdate(
+        [this](const UpdateInfo &, EntityComponentManager &_ecm)
+        {
+          const auto step = this->pos[0].size();
+          if (step == 0u)
+            this->Init(_ecm);
+          if (this->script)
+            this->script(step, _ecm);
+        });
+    this->relay.OnPostUpdate(
+        [this](const UpdateInfo &, const EntityComponentManager &_ecm)
+        {
+          for (std::size_t i = 0; i < this->entities.size(); ++i)
+          {
+            this->pos[i].push_back(_ecm.Component<components::JointPosition>(
+                this->entities[i])->Data().at(0));
+            this->vel[i].push_back(_ecm.Component<components::JointVelocity>(
+                this->entities[i])->Data().at(0));
+          }
+        });
+    this->server->AddSystem(this->relay.systemPtr);
+  }
+
+  /// \brief Run more steps.
+  /// \param[in] _steps Number of steps.
+  /// \param[in] _script Called in PreUpdate before each step.
+  public: void Run(std::size_t _steps, Script _script)
+  {
+    this->script = std::move(_script);
+    this->server->Run(true, _steps, false);
+  }
+
+  /// \brief Entity of a logged joint.
+  public: Entity Joint(std::size_t _i) const
+  {
+    return this->entities[_i];
+  }
+
+  /// \brief Position after step _step of a logged joint.
+  public: double Pos(std::size_t _i, std::size_t _step) const
+  {
+    return this->pos[_i].at(_step);
+  }
+
+  /// \brief Velocity after step _step of a logged joint.
+  public: double Vel(std::size_t _i, std::size_t _step) const
+  {
+    return this->vel[_i].at(_step);
+  }
+
+  private: void Init(EntityComponentManager &_ecm)
+  {
+    for (std::size_t i = 0; i < this->names.size(); ++i)
+    {
+      auto model = _ecm.EntityByComponents(components::Model(),
+          components::Name(this->names[i].first));
+      this->entities[i] = _ecm.EntityByComponents(components::Joint(),
+          components::Name(this->names[i].second),
+          components::ParentEntity(model));
+      EXPECT_NE(kNullEntity, this->entities[i]) << this->names[i].second;
+      _ecm.CreateComponent(this->entities[i], components::JointPosition());
+      _ecm.CreateComponent(this->entities[i], components::JointVelocity());
+    }
+  }
+
+  private: std::vector<std::pair<std::string, std::string>> names;
+  private: std::vector<Entity> entities;
+  private: std::vector<std::vector<double>> pos;
+  private: std::vector<std::vector<double>> vel;
+  private: Script script;
+  private: test::Relay relay;
+  private: std::unique_ptr<Server> server;
+};
+
+/////////////////////////////////////////////////
+/// Joints of the demo_joint_types.sdf model used by the tests below. The first
+/// one is commanded, the others are not.
+const std::vector<std::pair<std::string, std::string>> kDemoJoints{
+    {"demo_joint_types", "revolute_demo"},
+    {"demo_joint_types", "prismatic_demo"},
+    {"demo_joint_types", "universal_demo"}};
+
+/////////////////////////////////////////////////
+/// \brief A command or reset to set on a joint, with the effect to expect.
+struct JointCmdCase
+{
+  /// \brief Name, for messages.
+  std::string name;
+
+  /// \brief Sets the command on a joint.
+  std::function<void(EntityComponentManager &, Entity)> set;
+
+  /// \brief Whether the effect is on the joint position or velocity.
+  bool position;
+
+  /// \brief Range expected for the position or velocity after the step.
+  double min;
+  double max;
+};
+
+/////////////////////////////////////////////////
+/// \param[in] _extra Number of values added to each command after the first
+/// one, to have commands with more values than a joint has degrees of freedom.
+std::vector<JointCmdCase> JointCmdCases(std::size_t _extra)
+{
+  auto values = [_extra](double _first)
+  {
+    std::vector<double> result{_first};
+    result.insert(result.end(), _extra, 9.0);
+    return result;
+  };
+  return {
+    {"JointPositionReset",
+     [values](EntityComponentManager &_ecm, Entity _joint)
+     {
+       _ecm.CreateComponent(_joint,
+           components::JointPositionReset(values(0.5)));
+     }, true, 0.49, 0.51},
+    {"JointVelocityReset",
+     [values](EntityComponentManager &_ecm, Entity _joint)
+     {
+       _ecm.CreateComponent(_joint,
+           components::JointVelocityReset(values(2.0)));
+     }, false, 1.99, 2.01},
+    {"JointVelocityCmd",
+     [values](EntityComponentManager &_ecm, Entity _joint)
+     {
+       _ecm.CreateComponent(_joint,
+           components::JointVelocityCmd(values(1.0)));
+     }, false, 0.95, 1.05},
+    {"JointForceCmd",
+     [values](EntityComponentManager &_ecm, Entity _joint)
+     {
+       _ecm.CreateComponent(_joint,
+           components::JointForceCmd(values(1.0)));
+     }, false, 1e-2, 1.0}};
+}
+
+/////////////////////////////////////////////////
+/// Set a command on the first joint of kDemoJoints in a fresh world. The
+/// component type exists in the world, but not on the other joints of the
+/// model, which must not move.
+void CheckCmdOnOneJoint(const JointCmdCase &_case)
+{
+  SCOPED_TRACE(_case.name);
+  JointCmdRunner runner("demo_joint_types.sdf", kDemoJoints);
+
+  runner.Run(6,
+    [&](std::size_t _step, EntityComponentManager &_ecm)
+    {
+      if (_step == 3u)
+        _case.set(_ecm, runner.Joint(0));
+
+      for (std::size_t i = 1; i < kDemoJoints.size(); ++i)
+      {
+        const auto other = runner.Joint(i);
+        EXPECT_EQ(nullptr,
+            _ecm.Component<components::JointPositionReset>(other));
+        EXPECT_EQ(nullptr,
+            _ecm.Component<components::JointVelocityReset>(other));
+        EXPECT_EQ(nullptr, _ecm.Component<components::JointForceCmd>(other));
+        EXPECT_EQ(nullptr,
+            _ecm.Component<components::JointVelocityCmd>(other));
+      }
+    });
+
+  // The commanded joint is not affected before the command
+  EXPECT_NEAR(0.0, runner.Pos(0, 2), 1e-6);
+  EXPECT_NEAR(0.0, runner.Vel(0, 2), 1e-6);
+
+  const double effect =
+      _case.position ? runner.Pos(0, 3) : runner.Vel(0, 3);
+  EXPECT_GE(effect, _case.min);
+  EXPECT_LE(effect, _case.max);
+
+  for (std::size_t i = 1; i < kDemoJoints.size(); ++i)
+  {
+    for (std::size_t step = 0; step < 6u; ++step)
+    {
+      EXPECT_NEAR(runner.Pos(i, 0), runner.Pos(i, step), 1e-3)
+          << kDemoJoints[i].second << " step " << step;
+      EXPECT_NEAR(0.0, runner.Vel(i, step), 1e-3)
+          << kDemoJoints[i].second << " step " << step;
+    }
+  }
+}
+
+}  // namespace
+
+/////////////////////////////////////////////////
+/// Test that commands and resets set on one joint of a model are applied to
+/// that joint only.
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointCmdOnlyAffectsCommandedJoint))
+{
+  for (const auto &testCase : JointCmdCases(0))
+    CheckCmdOnOneJoint(testCase);
+}
+
+/////////////////////////////////////////////////
+/// Test that command types created after the simulation started, and removed
+/// again, are applied while present and never afterwards. No joint has any
+/// command component at the start.
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointCmdTypeCreatedAndRemovedAtRuntime))
+{
+  JointCmdRunner runner("demo_joint_types.sdf", kDemoJoints);
+
+  runner.Run(30,
+    [&](std::size_t _step, EntityComponentManager &_ecm)
+    {
+      const auto joint = runner.Joint(0);
+      if (_step < 5u)
+      {
+        EXPECT_FALSE(_ecm.HasComponentType(components::JointForceCmd::typeId));
+        EXPECT_FALSE(
+            _ecm.HasComponentType(components::JointVelocityCmd::typeId));
+      }
+      else if (_step == 5u)
+      {
+        _ecm.CreateComponent(joint, components::JointForceCmd({1.0}));
+      }
+      else if (_step == 6u)
+      {
+        _ecm.RemoveComponent<components::JointForceCmd>(joint);
+      }
+      else if (_step == 15u)
+      {
+        _ecm.CreateComponent(joint, components::JointForceCmd({-1.0}));
+      }
+      else if (_step == 16u)
+      {
+        _ecm.RemoveComponent<components::JointForceCmd>(joint);
+      }
+      else if (_step == 25u)
+      {
+        _ecm.CreateComponent(joint, components::JointVelocityCmd({1.0}));
+      }
+      else if (_step == 26u)
+      {
+        // Consumed by the physics system
+        EXPECT_EQ(nullptr, _ecm.Component<components::JointVelocityCmd>(joint));
+      }
+    });
+
+  // Nothing moves before the first command
+  for (std::size_t step = 0; step < 5u; ++step)
+    EXPECT_NEAR(0.0, runner.Vel(0, step), 1e-6) << "step " << step;
+
+  // The force applied at step 5 accelerates the joint
+  const double v5 = runner.Vel(0, 5);
+  EXPECT_LT(1e-3, v5);
+
+  // After removal no force is applied: the joint keeps its velocity
+  for (std::size_t step = 6; step < 15u; ++step)
+    EXPECT_NEAR(v5, runner.Vel(0, step), 0.1 * v5) << "step " << step;
+
+  // A force created again after the type had no instance is applied
+  EXPECT_GT(runner.Vel(0, 14) - 0.5 * v5, runner.Vel(0, 15));
+  for (std::size_t step = 16; step < 25u; ++step)
+    EXPECT_NEAR(runner.Vel(0, 15), runner.Vel(0, step), 0.1 * v5)
+        << "step " << step;
+
+  // Velocity command, applied once
+  EXPECT_NEAR(1.0, runner.Vel(0, 25), 5e-2);
+
+  // Other joints never move
+  for (std::size_t i = 1; i < kDemoJoints.size(); ++i)
+  {
+    for (std::size_t step = 0; step < 30u; ++step)
+    {
+      EXPECT_NEAR(0.0, runner.Vel(i, step), 1e-2)
+          << kDemoJoints[i].second << " step " << step;
+    }
+  }
+}
+
+/////////////////////////////////////////////////
+/// Test that a velocity reset and a velocity command set on the same joint in
+/// the same step result in the reset being applied and the command ignored.
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointVelocityResetAndCmdTogether))
+{
+  JointCmdRunner runner("demo_joint_types.sdf", kDemoJoints);
+
+  runner.Run(10,
+    [&](std::size_t _step, EntityComponentManager &_ecm)
+    {
+      const auto joint = runner.Joint(0);
+      if (_step == 4u)
+      {
+        _ecm.CreateComponent(joint, components::JointVelocityReset({2.0}));
+        _ecm.CreateComponent(joint, components::JointVelocityCmd({-1.0}));
+      }
+      else if (_step == 5u)
+      {
+        // Both are consumed by the physics system
+        EXPECT_EQ(nullptr,
+            _ecm.Component<components::JointVelocityReset>(joint));
+        EXPECT_EQ(nullptr, _ecm.Component<components::JointVelocityCmd>(joint));
+      }
+    });
+
+  // The reset wins, and the ignored command is not applied later either
+  EXPECT_NEAR(0.0, runner.Vel(0, 3), 1e-6);
+  for (std::size_t step = 4; step < 10u; ++step)
+    EXPECT_NEAR(2.0, runner.Vel(0, step), 5e-2) << "step " << step;
+}
+
+/////////////////////////////////////////////////
+/// Test that commands and resets with more values than the joint has degrees
+/// of freedom are applied to the existing degrees of freedom and the extra
+/// values are ignored. revolute_demo has a single degree of freedom.
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointCmdWithMoreValuesThanDofs))
+{
+  for (const auto &testCase : JointCmdCases(2))
+    CheckCmdOnOneJoint(testCase);
+}
+
+/////////////////////////////////////////////////
+/// Test that limits with more values than the joint has degrees of freedom
+/// are applied to the existing degrees of freedom.
+TEST_F(PhysicsSystemFixtureWithDart6_10,
+       JointLimitsCmdWithMoreValuesThanDofs)
+{
+  // revolute_demo has a single degree of freedom. A velocity limit of 0.1 holds
+  // a velocity command of 1.0, a tiny effort limit holds a force of 100 and a
+  // tiny position limit holds a velocity of 2.
+  const std::vector<math::Vector2d> tiny{
+      {-1e-6, 1e-6}, {-1.0, 1.0}, {-1.0, 1.0}};
+  {
+    JointCmdRunner runner("demo_joint_types.sdf", kDemoJoints);
+    runner.Run(5,
+      [&](std::size_t _step, EntityComponentManager &_ecm)
+      {
+        if (_step == 2u)
+        {
+          _ecm.CreateComponent(runner.Joint(0),
+              components::JointVelocityLimitsCmd(
+                {{-0.1, 0.1}, {-5.0, 5.0}, {-5.0, 5.0}}));
+          _ecm.CreateComponent(runner.Joint(0),
+              components::JointVelocityCmd({1.0}));
+        }
+      });
+    EXPECT_NEAR(0.0, runner.Vel(0, 1), 1e-6);
+    EXPECT_NEAR(0.1, runner.Vel(0, 2), 1e-2);
+  }
+  {
+    JointCmdRunner runner("demo_joint_types.sdf", kDemoJoints);
+    runner.Run(5,
+      [&](std::size_t _step, EntityComponentManager &_ecm)
+      {
+        if (_step == 2u)
+        {
+          _ecm.CreateComponent(runner.Joint(0),
+              components::JointEffortLimitsCmd(tiny));
+          _ecm.CreateComponent(runner.Joint(0),
+              components::JointForceCmd({100.0}));
+        }
+      });
+    EXPECT_NEAR(0.0, runner.Vel(0, 4), 1e-3);
+  }
+  {
+    JointCmdRunner runner("demo_joint_types.sdf", kDemoJoints);
+    runner.Run(15,
+      [&](std::size_t _step, EntityComponentManager &_ecm)
+      {
+        if (_step == 2u)
+        {
+          _ecm.CreateComponent(runner.Joint(0),
+              components::JointPositionLimitsCmd(tiny));
+          _ecm.CreateComponent(runner.Joint(0),
+              components::JointVelocityReset({2.0}));
+        }
+      });
+    EXPECT_NEAR(0.0, runner.Pos(0, 14), 1e-3);
+  }
+}
+
+/////////////////////////////////////////////////
+/// Test that a model whose battery is empty gets the joint forces zeroed,
+/// without affecting the joints of other models, and that it recovers when the
+/// battery is charged again. A constant torque is requested on the upper joint
+/// of two identical pendulums, one of them gets a battery after 5 steps.
+TEST_F(PhysicsSystemFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointForceCmdBatteryOff))
+{
+  JointCmdRunner runner("pose_publisher.sdf", {
+      {"double_pendulum_with_base", "upper_joint"},
+      {"double_pendulum_static_pose_publisher", "upper_joint"}});
+
+  Entity battery{kNullEntity};
+  runner.Run(25,
+    [&](std::size_t _step, EntityComponentManager &_ecm)
+    {
+      for (std::size_t i = 0; i < 2u; ++i)
+        _ecm.SetComponentData<components::JointForceCmd>(
+            runner.Joint(i), {10.0});
+
+      if (_step == 5u)
+      {
+        battery = _ecm.CreateEntity();
+        _ecm.CreateComponent(battery, components::BatterySoC(0.0f));
+        _ecm.SetParentEntity(battery, _ecm.ParentEntity(runner.Joint(0)));
+      }
+      else if (_step == 15u)
+      {
+        _ecm.Component<components::BatterySoC>(battery)->Data() = 0.5f;
+      }
+    });
+
+  // Same torque, same motion
+  for (std::size_t step = 0; step < 5u; ++step)
+    EXPECT_NEAR(runner.Vel(1, step), runner.Vel(0, step), 1e-6);
+  EXPECT_LT(1e-3, runner.Vel(0, 4));
+
+  // Battery empty: the torque is zeroed and the joint keeps its velocity
+  for (std::size_t step = 5; step < 15u; ++step)
+  {
+    EXPECT_NEAR(runner.Vel(0, 4), runner.Vel(0, step), 1e-3)
+        << "step " << step;
+  }
+  // The other model keeps accelerating
+  EXPECT_LT(runner.Vel(1, 4) + 1e-2, runner.Vel(1, 14));
+
+  // Battery charged: the torque is applied again
+  EXPECT_LT(runner.Vel(0, 14) + 1e-2, runner.Vel(0, 24));
 }
 
 /////////////////////////////////////////////////
