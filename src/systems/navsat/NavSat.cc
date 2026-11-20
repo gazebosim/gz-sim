@@ -41,6 +41,7 @@
 #include "gz/sim/components/NavSat.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/components/SphericalCoordinates.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Util.hh"
 
@@ -265,8 +266,17 @@ void NavSat::Implementation::Update(const EntityComponentManager &_ecm)
         it->second->SetLongitude(GZ_DTOR(latLonEle.value().Y()));
         it->second->SetAltitude(latLonEle.value().Z());
 
-        // Velocity in ENU frame
-        it->second->SetVelocity(_worldLinearVel->Data());
+        // The position lookup confirmed that the world has this component.
+        const auto *sphericalCoords =
+            _ecm.Component<components::SphericalCoordinates>(
+                worldEntity(_entity, _ecm));
+        const auto enu = sphericalCoords->Data().GlobalFromLocalVelocity(
+            math::CoordinateVector3::Metric(_worldLinearVel->Data()));
+        if (!enu)
+          return true;
+
+        if (const auto velocity = enu->AsMetricVector())
+          it->second->SetVelocity(*velocity);
 
         return true;
       });
