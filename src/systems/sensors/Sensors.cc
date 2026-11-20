@@ -348,16 +348,15 @@ void SensorsPrivate::WaitForInit()
     {
       // Only initialize if there are rendering sensors
       gzdbg << "Initializing render context" << std::endl;
+#ifndef __APPLE__
       if (this->backgroundColor)
         this->renderUtil.SetBackgroundColor(*this->backgroundColor);
       if (this->ambientLight)
         this->renderUtil.SetAmbientLight(*this->ambientLight);
-#ifndef __APPLE__
-
       this->renderUtil.Init();
 #else
-      // On macOS the render engine must be initialised on the main thread.
-      // See Sensors::Update.
+      // On macOS the render engine must be initialized on the main thread.
+      // See Sensors::Configure.
 #endif
       this->scene = this->renderUtil.Scene();
       this->scene->SetCameraPassCountPerGpuFlush(6u);
@@ -876,6 +875,23 @@ void Sensors::Configure(const Entity &/*_id*/,
   this->dataPtr->forceRenderConn = _eventMgr.Connect<events::ForceRender>(
       std::bind(&SensorsPrivate::ForceRender, this->dataPtr.get()));
 
+#ifdef __APPLE__
+  // On macOS the render engine must be initialized on the main thread.
+  // Initialize eagerly here so that rendering sensors spawned dynamically
+  // later (even when Server::Run executes on a worker thread) can reuse the
+  // render context.
+  if (this->dataPtr->backgroundColor)
+  {
+    this->dataPtr->renderUtil.SetBackgroundColor(
+        *this->dataPtr->backgroundColor);
+  }
+  if (this->dataPtr->ambientLight)
+  {
+    this->dataPtr->renderUtil.SetAmbientLight(*this->dataPtr->ambientLight);
+  }
+  this->dataPtr->renderUtil.Init();
+#endif
+
   // Kick off worker thread
   this->dataPtr->Run();
 }
@@ -920,25 +936,6 @@ void Sensors::Update(const UpdateInfo &_info,
                      EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::Update");
-
-#ifdef __APPLE__
-  // On macOS the render engine must be initialised on the main thread.
-  if (!this->dataPtr->initialized &&
-      (_ecm.HasComponentType(components::BoundingBoxCamera::typeId) ||
-       _ecm.HasComponentType(components::Camera::typeId) ||
-       _ecm.HasComponentType(components::DepthCamera::typeId) ||
-       _ecm.HasComponentType(components::GpuLidar::typeId) ||
-       _ecm.HasComponentType(components::RgbdCamera::typeId) ||
-       _ecm.HasComponentType(components::ThermalCamera::typeId) ||
-       _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
-       _ecm.HasComponentType(components::WideAngleCamera::typeId)))
-  {
-    std::unique_lock<std::mutex> lock(this->dataPtr->renderMutex);
-    gzdbg << "Initialization needed" << std::endl;
-    this->dataPtr->renderUtil.Init();
-    this->dataPtr->nextUpdateTime = _info.simTime;
-  }
-#endif
 
   if (this->dataPtr->running && this->dataPtr->initialized)
   {
