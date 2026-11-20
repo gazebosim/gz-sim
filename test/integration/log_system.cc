@@ -756,9 +756,12 @@ TEST_F(LogSystemTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RecordAndPlayback))
   EXPECT_EQ(33, stateMsg.entities_size());
   EXPECT_NE(batch.end(), ++recordedIter);
 
-  // Playback config
+  // Playback config. Point at the state.tlog file itself rather than the
+  // recording directory, which is the common mistake this recovers from. The
+  // assertions below then check that playback recovered the parent directory
+  // and ran as usual.
   ServerConfig playServerConfig;
-  playServerConfig.SetLogPlaybackPath(logPlaybackDir);
+  playServerConfig.SetLogPlaybackPath(logPlaybackFile);
 
   // Start server
   Server playServer(playServerConfig);
