@@ -20,6 +20,7 @@
 #include <gz/msgs/magnetometer.pb.h>
 
 #include <cstddef>
+#include <mutex>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -98,6 +99,12 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
 
   // Hardcoded SDF values
   const math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
+
+  // Make sure we got some readings before comparing against the last one
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    ASSERT_FALSE(magnetometerMsgs.empty());
+  }
 
   std::size_t sensorCount{0};
   ecm->Each<components::Magnetometer, components::Name,
