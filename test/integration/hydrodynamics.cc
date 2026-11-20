@@ -17,7 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <thread>
+
+#include <gz/msgs/boolean.pb.h>
+#include <gz/msgs/data_load_options.pb.h>
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/entity_factory.pb.h>
+#include <gz/msgs/spherical_coordinates.pb.h>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -200,4 +207,202 @@ TEST_F(HydrodynamicsTest,
     EXPECT_NEAR(sphereVel[i-1].Y(), 0, 1e-6);
     EXPECT_GT(sphereVel[i-1].X(), 0);
   }
+}
+
+/////////////////////////////////////////////////
+/// A model spawned after the first iteration must see the current table.
+/// The plugin used to look for the world's environmental data only while
+/// the world entity was new, so a model spawned later looked up nothing and
+/// sat still in a current loaded from a file.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CurrentFromLateSpawn))
+{
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "hydrodynamics.sdf");
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(world);
+  TestFixture fixture(serverConfig);
+
+  Link body;
+  std::vector<math::Vector3d> bodyVels;
+  fixture.
+  OnPreUpdate([&](const UpdateInfo &/*_info*/, EntityComponentManager &_ecm)
+    {
+      if (body.Entity() != kNullEntity)
+        return;
+      World w(worldEntity(_ecm));
+      auto modelEntity = w.ModelByName(_ecm, "sphere_late");
+      if (modelEntity == kNullEntity)
+        return;
+      auto linkEntity = Model(modelEntity).LinkByName(_ecm,
+          "sphere_late_link");
+      ASSERT_NE(linkEntity, kNullEntity);
+      body = Link(linkEntity);
+      body.EnableVelocityChecks(_ecm);
+    }).
+  OnPostUpdate([&](const UpdateInfo &/*_info*/,
+                   const EntityComponentManager &_ecm)
+    {
+      if (body.Entity() == kNullEntity)
+        return;
+      auto bodyVel = body.WorldLinearVelocity(_ecm);
+      if (bodyVel)
+        bodyVels.push_back(bodyVel.value());
+    }).
+  Finalize();
+
+  // Let the world settle in, with its environmental data loaded.
+  fixture.Server()->Run(true, 100, false);
+  EXPECT_TRUE(bodyVels.empty());
+
+  // Spawn a copy of sphere_current, at a different spot inside the table.
+  const std::string sphereLate = R"(
+    <?xml version="1.0" ?>
+    <sdf version="1.6">
+      <model name="sphere_late">
+        <link name="sphere_late_link">
+          <pose>0 4 0 0 0 0</pose>
+          <inertial>
+            <mass>40</mass>
+            <inertia>
+              <ixx>0.4</ixx>
+              <iyy>0.4</iyy>
+              <izz>0.4</izz>
+            </inertia>
+          </inertial>
+          <collision name="sphere_late_collision">
+            <geometry>
+              <sphere>
+                <radius>0.2</radius>
+              </sphere>
+            </geometry>
+          </collision>
+        </link>
+        <plugin
+          filename="gz-sim-hydrodynamics-system"
+          name="gz::sim::systems::Hydrodynamics">
+          <link_name>sphere_late_link</link_name>
+          <xDotU>15.381</xDotU>
+          <yDotV>15.381</yDotV>
+          <zDotW>15.381</zDotW>
+          <xUabsU>-94.2475</xUabsU>
+          <yVabsV>-94.2475</yVabsV>
+          <zWabsW>-94.2475</zWabsW>
+          <lookup_current_x>current_x</lookup_current_x>
+          <lookup_current_y>current_y</lookup_current_y>
+          <lookup_current_z>current_z</lookup_current_z>
+        </plugin>
+      </model>
+    </sdf>)";
+
+  transport::Node node;
+  msgs::EntityFactory req;
+  req.set_sdf(sphereLate);
+  msgs::Boolean res;
+  bool result{false};
+  EXPECT_TRUE(node.Request("/world/hydrodynamics/create", req, 5000, res,
+      result));
+  EXPECT_TRUE(result);
+  EXPECT_TRUE(res.data());
+
+  fixture.Server()->Run(true, 1500, false);
+  ASSERT_GT(bodyVels.size(), 1000u);
+
+  // Given a current of (1, 0, 0) the late sphere drifts along +x too.
+  const std::size_t n = bodyVels.size();
+  for (std::size_t i = n - 10; i < n; ++i)
+  {
+    EXPECT_GT(bodyVels[i].X(), 0.5);
+    EXPECT_NEAR(bodyVels[i].Y(), 0, 1e-6);
+    EXPECT_NEAR(bodyVels[i].Z(), 0, 1e-6);
+    EXPECT_NEAR(bodyVels[i-1].X(), bodyVels[i].X(), 1e-3);
+  }
+}
+
+/////////////////////////////////////////////////
+/// A current table reloaded at run time, through the environment topic,
+/// must reach the plugin: it used to read the table once and keep it.
+TEST_F(HydrodynamicsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(CurrentFromReloadedTable))
+{
+  auto world = common::joinPaths(std::string(PROJECT_BINARY_PATH),
+      "test", "worlds", "hydrodynamics.sdf");
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(world);
+  TestFixture fixture(serverConfig);
+
+  Link body;
+  std::vector<math::Vector3d> bodyVels;
+  fixture.
+  OnConfigure(
+    [&](const Entity &_worldEntity,
+      const std::shared_ptr<const sdf::Element> &/*_sdf*/,
+      EntityComponentManager &_ecm,
+      EventManager &/*eventMgr*/)
+    {
+      World w(_worldEntity);
+      // A body without plugin added mass: the reload is a step change of
+      // the current, which a finite-differenced added-mass term turns into
+      // a force spike (as it does for a step on the topic).
+      auto modelEntity = w.ModelByName(_ecm, "sphere_reload");
+      ASSERT_NE(modelEntity, kNullEntity);
+      auto linkEntity = Model(modelEntity).LinkByName(_ecm,
+          "sphere_reload_link");
+      ASSERT_NE(linkEntity, kNullEntity);
+      body = Link(linkEntity);
+      body.EnableVelocityChecks(_ecm);
+    }).
+  OnPostUpdate([&](const UpdateInfo &/*_info*/,
+                   const EntityComponentManager &_ecm)
+    {
+      auto bodyVel = body.WorldLinearVelocity(_ecm);
+      if (bodyVel)
+        bodyVels.push_back(bodyVel.value());
+    }).
+  Finalize();
+
+  // The table in the world file: a current of (1, 0, 0).
+  fixture.Server()->Run(true, 500, false);
+  ASSERT_FALSE(bodyVels.empty());
+  EXPECT_GT(bodyVels.back().X(), 0.1);
+  EXPECT_NEAR(bodyVels.back().Y(), 0, 1e-6);
+
+  // Reload the environment with a table of (0, 1, 0).
+  transport::Node node;
+  auto pub = node.Advertise<msgs::DataLoadPathOptions>(
+      "/world/hydrodynamics/environment");
+  for (int i = 0; i < 50 && !pub.HasConnections(); ++i)
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  ASSERT_TRUE(pub.HasConnections());
+
+  msgs::DataLoadPathOptions msg;
+  msg.set_path(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+      "test", "worlds", "hydrodynamic_currents_y.csv"));
+  msg.set_time("timestamp");
+  msg.set_static_time(false);
+  msg.set_x("x");
+  msg.set_y("y");
+  msg.set_z("z");
+  msg.set_units(msgs::DataLoadPathOptions::RADIANS);
+  msg.set_coordinate_type(msgs::SphericalCoordinatesType::GLOBAL);
+  EXPECT_TRUE(pub.Publish(msg));
+
+  // The sphere turns towards +y once the new table is in. The simulation
+  // outruns the message, so step in short runs until it lands.
+  for (int i = 0; i < 100 && bodyVels.back().Y() < 0.3; ++i)
+  {
+    fixture.Server()->Run(true, 100, false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  ASSERT_GT(bodyVels.back().Y(), 0.3);
+
+  // From here on the water no longer moves along x, so the x drift decays
+  // while the y drift keeps growing.
+  const auto turned = bodyVels.back();
+  fixture.Server()->Run(true, 300, false);
+  EXPECT_LT(bodyVels.back().X(), turned.X() - 0.05);
+  EXPECT_GT(bodyVels.back().Y(), turned.Y());
+  EXPECT_NEAR(bodyVels.back().Z(), 0, 1e-6);
 }

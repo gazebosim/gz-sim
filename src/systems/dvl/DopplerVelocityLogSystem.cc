@@ -159,6 +159,11 @@ class gz::sim::systems::DopplerVelocityLogSystem::Implementation
   public: std::shared_ptr<
     gz::sensors::EnvironmentalData> latestEnvironmentalData;
 
+  /// \brief The world's environmental data set last handed to the sensors,
+  /// to notice a reload.
+  public: std::shared_ptr<
+    gz::sim::components::EnvironmentalData> lastEnvironmentalData;
+
   /// \brief Connection to the pre-render event.
   public: gz::common::ConnectionPtr preRenderConn;
 
@@ -258,27 +263,29 @@ void DopplerVelocityLogSystem::Implementation::DoPreUpdate(
   const gz::sim::UpdateInfo &,
   gz::sim::EntityComponentManager &_ecm)
 {
-  _ecm.EachNew<gz::sim::components::Environment>(
-    [&](const gz::sim::Entity &_entity,
-        const gz::sim::components::Environment *_env) -> bool
+  // Read the world's environmental data whenever it is present, not only
+  // while the world entity is new: a sensor spawned later must see it, and
+  // a reload puts a new data set on the component.
+  {
+    const auto *env = _ecm.Component<gz::sim::components::Environment>(
+        gz::sim::worldEntity(_ecm));
+    if (nullptr != env && env->Data() != this->lastEnvironmentalData)
     {
-      if (_entity == gz::sim::worldEntity(_ecm))
-      {
-        // \todo(anyone) Create an EnvironmentalData DOM class
-        // in sdformat and make gz-sensors and gz-sim use this
-        // generic data structure? Currently the data structure is
-        // duplicated in the two libraries.
-        auto envData = sensors::EnvironmentalData::MakeShared(
-            _env->Data()->frame, _env->Data()->reference,
-            static_cast<gz::sensors::EnvironmentalData::ReferenceUnits>(
-                _env->Data()->units),
-            _env->Data()->staticTime);
+      this->lastEnvironmentalData = env->Data();
+      // \todo(anyone) Create an EnvironmentalData DOM class
+      // in sdformat and make gz-sensors and gz-sim use this
+      // generic data structure? Currently the data structure is
+      // duplicated in the two libraries.
+      auto envData = sensors::EnvironmentalData::MakeShared(
+          env->Data()->frame, env->Data()->reference,
+          static_cast<gz::sensors::EnvironmentalData::ReferenceUnits>(
+              env->Data()->units),
+          env->Data()->staticTime);
 
-        this->perStepRequests.push_back(
-          requests::SetEnvironmentalData{envData});
-      }
-      return true;
-    });
+      this->perStepRequests.push_back(
+        requests::SetEnvironmentalData{envData});
+    }
+  }
 
   _ecm.EachNew<gz::sim::components::CustomSensor,
                gz::sim::components::ParentEntity>(
