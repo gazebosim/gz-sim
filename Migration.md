@@ -14,6 +14,16 @@ release will remove the deprecated code.
     density. Existing SDF files that specify `<water_density>` will continue
     to load without error; the parameter is simply ignored.
 
+* **Server**
+  * Stopping a `Server` is now permanent. After `Server::Stop()` is called,
+    the process receives SIGINT or SIGTERM, or a stop is requested on the
+    `/server_control` service, `Server::Run()` and `Server::RunOnce()` return
+    false without stepping simulation. Before, a stopped `Server` could be
+    run again. Create a new `Server` to run simulation again.
+  * A stop that arrives while a non-blocking `Server::Run()` is still
+    starting is no longer lost. Before, it could leave the simulation
+    running forever and the `Server` destructor blocked.
+
 * **Buoyancy**
   * The buoyant force now acts at the collision geometry's centroid instead
     of the collision origin. This changes behavior for cone collisions

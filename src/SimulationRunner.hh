@@ -428,12 +428,58 @@ namespace gz
       /// See the newWorldControlState variable below.
       private: void ProcessNewWorldControlState();
 
-      /// \brief This is used to indicate that a stop event has been received.
-      private: std::atomic<bool> stopReceived{false};
+      /// \brief State of the run loop: IDLE to RUNNING to IDLE, or STOPPED
+      /// from any state. STOPPED is permanent. Entering RUNNING is a compare
+      /// and exchange from IDLE, so a stop request can never be overwritten.
+      private: class RunState
+      {
+        /// \brief Try to enter RUNNING.
+        /// \return False if a stop was received.
+        public: bool TryStart()
+        {
+          auto expected = Value::IDLE;
+          return this->value.compare_exchange_strong(expected, Value::RUNNING);
+        }
 
-      /// \brief This is used to indicate that Run has been called, and the
-      /// server is in the run state.
-      private: std::atomic<bool> running{false};
+        /// \brief Leave RUNNING. STOPPED is left untouched.
+        public: void Finish()
+        {
+          auto expected = Value::RUNNING;
+          this->value.compare_exchange_strong(expected, Value::IDLE);
+        }
+
+        /// \brief Record a stop request.
+        public: void Stop()
+        {
+          this->value = Value::STOPPED;
+        }
+
+        /// \return True while running.
+        public: bool Running() const
+        {
+          return this->value == Value::RUNNING;
+        }
+
+        /// \return True once a stop was received.
+        public: bool Stopped() const
+        {
+          return this->value == Value::STOPPED;
+        }
+
+        /// \brief The states of the run loop.
+        private: enum class Value
+        {
+          IDLE,
+          RUNNING,
+          STOPPED
+        };
+
+        /// \brief Current state.
+        private: std::atomic<Value> value{Value::IDLE};
+      };
+
+      /// \brief Current run state.
+      private: RunState runState;
 
       /// \brief Manager of all systems.
       /// Note: must be before EntityComponentManager

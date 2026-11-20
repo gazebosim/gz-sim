@@ -70,10 +70,7 @@ namespace gz
 
       /// \brief Run the server, and all the simulation runners.
       /// \param[in] _iterations Number of iterations.
-      /// \param[in] _cond Optional condition variable. This condition is
-      /// notified when the server has started running.
-      public: bool Run(const uint64_t _iterations,
-                 std::optional<std::condition_variable *> _cond = std::nullopt);
+      public: bool Run(const uint64_t _iterations);
 
       /// \brief Add logging record plugin.
       /// \param[in] _config Server configuration parameters.
@@ -184,8 +181,14 @@ namespace gz
       public: std::mutex runMutex;
 
       /// \brief This is used to indicate that Run has been called, and the
-      /// server is in the run state.
+      /// server is in the run state. Only Server::Run sets it. It is cleared
+      /// again when the run ends or when Stop() is called.
       public: std::atomic<bool> running{false};
+
+      /// \brief Set by Stop(), which signals and stop requests on
+      /// /server_control also call. Once set the server never runs again.
+      /// Protected by runMutex.
+      public: bool stopped{false};
 
       /// \brief Thread that executes systems.
       public: std::thread runThread;

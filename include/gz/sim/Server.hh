@@ -246,7 +246,8 @@ namespace gz
       /// was successfully created. In blocking mode, true will be returned
       /// if the Server ran for the specified number of iterations or was
       /// terminated. False will always be returned if signal handlers could
-      /// not be initialized, and if the server is already running.
+      /// not be initialized, if the server is already running, and if the
+      /// server has been stopped (see Stop()).
       public: bool Run(const bool _blocking = false,
                        const uint64_t _iterations = 0,
                        const bool _paused = true);
@@ -257,7 +258,8 @@ namespace gz
       /// false to run simulation unpaused. The simulation iterations will
       /// be increased by 1.
       /// \return False if the server was terminated before completing,
-      /// not being initialized, or if the server is already running.
+      /// not being initialized, if the server is already running, or if the
+      /// server has been stopped (see Stop()).
       public: bool RunOnce(const bool _paused = true);
 
       /// \brief Get whether the server is running. The server can have zero
@@ -434,6 +436,9 @@ namespace gz
                                       const unsigned int _worldIndex = 0);
 
       /// \brief Stop the server. This will stop all running simulations.
+      /// \note Stopping is permanent for this Server instance: subsequent
+      /// calls to Run() and RunOnce() return without stepping simulation and
+      /// report failure. Construct a new Server to run again.
       public: void Stop();
 
       /// \brief Reset all runners in this simulation
