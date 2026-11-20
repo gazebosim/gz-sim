@@ -18,6 +18,7 @@
 #define GZ_SIM_SYSTEMS_ODOMETRYPUBLISHER_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
@@ -51,15 +52,26 @@ namespace systems
   ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
   /// messages. This element is optional, and the default value is
-  /// `/model/{name_of_model}/odometry`.
+  /// `/model/{name_of_model}/odometry`. If the model has a namespace,
+  /// the default topic becomes `{namespace}/odometry`. The custom topic is
+  /// then prefixed with the namespace if it does not start with `/`, or
+  /// remains unchanged if it starts with `/`.
   ///
   /// - `<odom_covariance_topic>`: Custom topic on which this system will
   /// publish odometry with covariance messages. This element is optional, and
   /// the default value is `/model/{name_of_model}/odometry_with_covariance`.
+  /// If the model has a namespace, the default topic becomes
+  /// `{namespace}/odometry_with_covariance`. The custom topic is then
+  /// prefixed with the namespace if it does not start with `/`, or remains
+  /// unchanged if it starts with `/`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
   /// transform from `odom_frame` to `robot_base_frame`. This element is
   /// optional, and the default value is `/model/{name_of_model}/pose`.
+  /// If the model has a namespace, the default topic becomes
+  /// `{namespace}/pose`. The custom topic is then prefixed with the namespace
+  /// if it does not start with `/`, or remains unchanged if it starts with
+  /// `/`.
   ///
   /// - `<dimensions>`: Number of dimensions to represent odometry. Only 2 and 3
   /// dimensional spaces are supported. This element is optional, and the
@@ -95,11 +107,24 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief Odometry with covariance topic name
+      public: std::string odomCovTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+    };
+
     /// \brief Constructor
     public: OdometryPublisher();
 
     /// \brief Destructor
-    public: ~OdometryPublisher() override = default;
+    public: ~OdometryPublisher() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -116,6 +141,11 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    /// \return Topic names resolved during Configure. Fields are empty if
+    /// Configure has not been called or failed.
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<OdometryPublisherPrivate> dataPtr;
