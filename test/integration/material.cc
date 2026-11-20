@@ -66,8 +66,8 @@ class MaterialTest : public InternalFixture<::testing::Test>
         << "Failed to create EntityComponentManager";
     }
 
-    this->creator =
-        std::make_unique<SdfEntityCreator>(*this->ecmGuard, this->dummyEventMgr);
+    this->creator = std::make_unique<SdfEntityCreator>(
+        *this->ecmGuard, this->dummyEventMgr);
     return ::testing::AssertionSuccess();
   }
 
@@ -82,7 +82,8 @@ class MaterialTest : public InternalFixture<::testing::Test>
     ASSERT_NE(nullptr, root.Model());
 
     Entity modelEntity = this->creator->CreateEntities(root.Model());
-    Entity worldEntity = this->ecmGuard->EntityByComponents(components::World());
+    Entity worldEntity =
+        this->ecmGuard->EntityByComponents(components::World());
     this->creator->SetParent(modelEntity, worldEntity);
   }
 
