@@ -508,22 +508,22 @@ void Hydrodynamics::PreUpdate(
     return;
   }
 
-  // Get current vector
+  // Get current vector: what the topic (or <default_current>) says, plus
+  // the table loaded from environmental data, at the link, if there is one.
   math::Vector3d currentVector(0, 0, 0);
+  {
+    std::lock_guard lock(this->dataPtr->mtx);
+    currentVector = this->dataPtr->currentVector;
+  }
 
   if (this->dataPtr->useCurrentTable)
   {
     auto position = baseLink.WorldInertialPose(_ecm);
     if (position.has_value())
     {
-      currentVector = this->dataPtr->GetWaterCurrentFromEnvironment(
+      currentVector += this->dataPtr->GetWaterCurrentFromEnvironment(
         _ecm, _info.simTime, position.value().Pos());
     }
-  }
-  else
-  {
-    std::lock_guard lock(this->dataPtr->mtx);
-    currentVector = this->dataPtr->currentVector;
   }
   // Transform state to local frame
   auto pose = baseLink.WorldPose(_ecm);
