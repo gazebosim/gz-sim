@@ -48,7 +48,10 @@ namespace systems
   ///
   /// - `<topic>`: Name of the topic to publish to. This parameter is optional,
   /// and if not provided, the joint state will be published to
-  /// "/world/<world_name>/model/<model_name>/joint_state".
+  /// "/world/<world_name>/model/<model_name>/joint_state", or
+  /// "<namespace>/joint_state" when the model has a namespace. Relative
+  /// topic names are prefixed with the namespace. Absolute topic names
+  /// remain unchanged.
   ///
   /// - `<joint_name>`: Name of a joint to publish. This parameter can be
   /// specified multiple times, and is optional. All joints in a model will
@@ -62,6 +65,13 @@ namespace systems
         public ISystemConfigure,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Joint state topic
+      public: std::string jointStateTopic;
+    };
+
     /// \brief Constructor
     public: JointStatePublisher();
 
@@ -76,6 +86,10 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
+
+    /// \brief Get the resolved topic names
+    /// \return Resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Create components for a joint.
     /// \param[in] _ecm The EntityComponentManager.
@@ -95,8 +109,8 @@ namespace systems
     /// \brief The joints that will be published.
     private: std::set<Entity> joints;
 
-    /// \brief The topic
-    private: std::string topic;
+    /// \brief Resolved topic names
+    private: TopicNames resolvedTopicNames;
 
     /// \brief Publication period derived from `<update_rate>`.
     private: std::chrono::steady_clock::duration updatePeriod{0};
