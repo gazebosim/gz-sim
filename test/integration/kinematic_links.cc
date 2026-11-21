@@ -37,7 +37,6 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -197,15 +196,13 @@ State RunWorld(const std::string &_sdf, std::size_t _iterations)
   serverConfig.SetSdfString(_sdf);
   Server server(serverConfig);
 
-  State state;
-  test::Relay recorder;
-  recorder.OnPostUpdate(
-      [&state](const UpdateInfo &, const EntityComponentManager &_ecm)
-      {
-        state.Record(_ecm);
-      });
-  server.AddSystem(recorder.systemPtr);
   server.Run(true, _iterations, false);
+  State state;
+  auto ecm = server.EcmScope();
+  if (ecm.Valid())
+  {
+    state.Record(*ecm);
+  }
   return state;
 }
 }  // namespace
