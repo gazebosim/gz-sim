@@ -1022,13 +1022,28 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   if (parent)
     name = parent->Name() +  "::" + name;
 
+  // Actors without a skin (e.g. actors made of links and visuals) can still
+  // follow a scripted trajectory, so only try to load the skin mesh if one
+  // has been specified.
+  const std::string &skinFilename = _actor.SkinFilename();
+  const bool hasSkin = !skinFilename.empty() && skinFilename != "__default__";
+
   rendering::MeshDescriptor descriptor;
-  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
-  common::MeshManager *meshManager = common::MeshManager::Instance();
-  descriptor.mesh = meshManager->Load(descriptor.meshName);
   std::unordered_map<std::string, unsigned int> mapAnimNameId;
   common::SkeletonPtr meshSkel;
-  if (nullptr == descriptor.mesh)
+  if (hasSkin)
+  {
+    descriptor.meshName = asFullPath(skinFilename, _actor.FilePath());
+    common::MeshManager *meshManager = common::MeshManager::Instance();
+    descriptor.mesh = meshManager->Load(descriptor.meshName);
+  }
+
+  if (!hasSkin)
+  {
+    gzdbg << "Actor [" << _name << "] has no skin, only trajectory animation "
+          << "will be applied." << std::endl;
+  }
+  else if (nullptr == descriptor.mesh)
   {
     gzwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
            << std::endl;
