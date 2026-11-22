@@ -1749,12 +1749,11 @@ void RenderUtilPrivate::AddNewSensor(const EntityComponentManager &_ecm,
     {
       topicOptions.defaultTopicSuffix = defaultPrefix;
     }
-    else
+    else if (ns != "/")
     {
       // Ensure the suffix is absolute to prevent resolvedTopicName from
       // prepending the namespace again.
-      topicOptions.defaultTopicSuffix =
-        (!ns.empty() && ns.front() == '/') ? ns : '/' + ns;
+      topicOptions.defaultTopicSuffix = ns.front() == '/' ? ns : '/' + ns;
     }
   }
 
