@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdf version="1.6">
+  <world name="default">
+    <model name="ground_plane">
+      <pose relative_to="world">0 0 0 0 0 0</pose>
+      <static>true</static>
+      <link name="ground">
+        <collision name="ground">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="ground">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="model_name">
+      <pose relative_to="world">0 0 0.1 0 0 0</pose>
+      <static>false</static>
+      <!--Here we create a Link called "box"-->
+      <link name="box">
+        <!--Visual section-->
+        <inertial>
+          <!--inertial properties of the link mass, inertia matix-->
+          <mass>1.14395</mass>
+          <inertia>
+            <ixx>0.095329</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>0.381317</iyy>
+            <iyz>0</iyz>
+            <izz>0.476646</izz>
+          </inertia>
+        </inertial>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.2</size>
+            </box>
+          </geometry>
+          <!--let's add color to our link-->
+          <material>
+            <ambient>0.0 0.0 1.0 1</ambient>
+            <diffuse>0.0 0.0 1.0 1</diffuse>
+            <specular>0.0 0.0 1.0 1</specular>
+          </material>
+        </visual>
+        <!--Collision section-->
+        <collision name="collision_box">
+          <geometry>
+            <box>
+              <size>0.5 0.5 0.2</size>
+            </box>
+          </geometry>
+        </collision>
+      </link>
+      <plugin filename="PluginLinearVelocity" name="plugin_velocity::PluginLinearVelocity">
+        <link_name>box</link_name>
+        <!--Make sure to insert the smae name given to the link (i.a.w. see line 39)-->
+      </plugin>
+    </model>
+  </world>
+</sdf>
