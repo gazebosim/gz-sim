@@ -531,68 +531,108 @@ See https://github.com/gazebosim/gz-sim/issues/168 for more info."
 
             # On macOS, start the server anf GUI as clea processes instead of
             # forking, which is unsafe after Qt and CoreFoundation initialization.
-            
-            serverArgs = originalArgs.dup
 
-            guiOptions = [
-                "--gui-config",
-                "--render-engine-gui",
-                "--render-engine-gui-api-backend"
-            ]
-
-            # These options affect both the server and GUI processes.
-            sharedOptions = [
-                "-v",
-                "--verbose",
-                "--render-engine",
-                "--render-engine-api-backend"
-            ]
-
+            serverArgs = []
             guiArgs = []
-            filteredServerArgs = []
-            index = 0
 
-            while index < originalArgs.length
-                argument = originalArgs[index]
+            # Shared options
+            serverArgs += ["--verbose", options["verbose"]]
+            guiArgs += ["--verbose", options["verbose"]]
 
-                if sharedOptions.include?(argument)
-                    filteredServerArgs << argument
-                    guiArgs << argument
+            # Server options
+            serverArgs += ["--iterations", options["iterations"].to_s] \
+            if options["iterations"] != 0
 
-                    if index + 1 < originalArgs.length
-                        filteredServerArgs << originalArgs[index + 1]
-                        guiArgs << originalArgs[index + 1]
-                        index += 1
-                    end
-                elsif guiOptions.include?(argument)
-                    guiArgs << argument
+            serverArgs << "-r" if options["run"] == 1
 
-                    if index + 1 < originalArgs.length
-                        guiArgs << originalArgs[index + 1]
-                        index += 1
-                    end
-                else
-                    filteredServerArgs << argument
-                end
+            serverArgs += ["-z", options["hz"].to_s] \
+            if options["hz"] != -1
 
-                index += 1
+            serverArgs += ["--initial-sim-time", options["initial_sim_time"].to_s] \
+            if options["initial_sim_time"] != 0
+
+            serverArgs << "--levels" if options["levels"] == 1
+
+            serverArgs += ["--network-role", options["network_role"]] \
+            unless options["network_role"].empty?
+
+            serverArgs += ["--network-secondaries",
+            options["network_secondaries"].to_s] \
+            if options["network_secondaries"] != 0
+
+            serverArgs << "--record" if options["record"] == 1
+
+            serverArgs += ["--record-path", options["record-path"]] \
+            unless options["record-path"].empty?
+
+            serverArgs << "--record-resources" \
+            if options["record-resources"] == 1
+
+            options["record-topics"].each do |topic|
+            serverArgs += ["--record-topic", topic]
             end
 
-            # Reuse the current gz executable so the children come from the same
-            # Gazebo installation as the parent instead of resolving gz from PATH.
+            serverArgs += ["--record-period", options["record-period"].to_s] \
+            if options["record-period"] != -1
+
+            serverArgs << "--log-overwrite" if options["log-overwrite"] == 1
+            serverArgs << "--log-compress" if options["log-compress"] == 1
+
+            serverArgs += ["--playback", options["playback"]] \
+            unless options["playback"].empty?
+
+            serverArgs += ["--physics-engine", options["physics_engine"]] \
+            unless options["physics_engine"].empty?
+
+            serverArgs << "--headless-rendering" \
+            if options["headless-rendering"] == 1
+
+            serverArgs += ["--render-engine-server",
+            options["render_engine_server"]] \
+            unless options["render_engine_server"].empty?
+
+            serverArgs += ["--render-engine-server-api-backend",
+            options["render_engine_server_api_backend"]] \
+            unless options["render_engine_server_api_backend"].empty?
+
+            serverArgs += ["--seed", options["seed"].to_s] \
+            if options["seed"] != 0
+
+            serverArgs << options["file"] unless options["file"].empty?
+
+            # GUI options
+            guiArgs += ["--gui-config", options["gui_config"]] \
+            unless options["gui_config"].empty?
+
+            guiArgs += ["--render-engine-gui",
+            options["render_engine_gui"]] \
+            unless options["render_engine_gui"].empty?
+
+            guiArgs += ["--render-engine-gui-api-backend",
+            options["render_engine_gui_api_backend"]] \
+            unless options["render_engine_gui_api_backend"].empty?
 
             gzExecutable = File.realpath($PROGRAM_NAME)
 
             serverPid = Process.spawn(
-                {"RMT_PORT" => "1500"},
-                gzExecutable, "sim", "-s", *filteredServerArgs,
-                pgroup: true
+            {"RMT_PORT" => "1500"},
+            gzExecutable, "sim", "--force-version", LIBRARY_VERSION,
+            "-s", *serverArgs,
+            pgroup: true
             )
+
+            begin
             guiPid = Process.spawn(
                 {"RMT_PORT" => "1501"},
-                gzExecutable, "sim", "-g", *guiArgs,
+                gzExecutable, "sim", "--force-version", LIBRARY_VERSION,
+                "-g", *guiArgs,
                 pgroup: true
             )
+            rescue
+            Process.kill("TERM", -serverPid)
+            Process.wait(serverPid)
+            raise
+            end
 
         else
             serverPid = Process.fork do
