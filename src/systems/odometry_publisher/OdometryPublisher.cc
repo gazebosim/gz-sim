@@ -307,6 +307,35 @@ void OdometryPublisher::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+<<<<<<< HEAD
+=======
+math::Vector3d OdometryPublisherPrivate::CalculateAngularVelocity(
+    const math::Pose3d &_lastPose, const math::Pose3d &_currentPose,
+    std::chrono::duration<double> _dt)
+{
+  // Compute the first order finite difference between current and previous
+  // rotation as quaternion.
+  math::Quaterniond currentRot = _currentPose.Rot();
+  if (currentRot.Dot(_lastPose.Rot()) < 0)
+  {
+    currentRot = -currentRot;
+  }
+
+  const math::Quaterniond rotationDiff =
+    currentRot * _lastPose.Rot().Inverse();
+
+  math::Vector3d rotationAxis;
+  double rotationAngle;
+  rotationDiff.AxisAngle(rotationAxis, rotationAngle);
+
+  const math::Vector3d angularVelocity =
+    (rotationAngle / _dt.count()) * rotationAxis;
+
+  return _currentPose.Rot().RotateVectorReverse(angularVelocity);
+}
+
+//////////////////////////////////////////////////
+>>>>>>> 66373b1a (Fix quaternion sign-flip causing angular velocity spikes (#3834))
 void OdometryPublisherPrivate::UpdateOdometry(
     const ignition::gazebo::UpdateInfo &_info,
     const ignition::gazebo::EntityComponentManager &_ecm)
