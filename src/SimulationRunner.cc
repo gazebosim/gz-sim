@@ -39,11 +39,84 @@
 #include "network/NetworkManagerPrimary.hh"
 #include "SdfGenerator.hh"
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 using namespace gz;
 using namespace gz::sim;
 
 using StringSet = std::unordered_set<std::string>;
 
+<<<<<<< HEAD
+=======
+namespace {
+#ifdef HAVE_PYBIND11
+// Helper struct to maybe do a scoped release of the Python GIL. There are a
+// number of ways where releasing and acquiring the GIL is not necessary:
+// 1. Gazebo is built without Pybind11
+// 2. The python interpreter is not initialized. This could happen in tests that
+//    create a SimulationRunner without sim::Server where the interpreter is
+//    initialized.
+// 3. sim::Server was instantiated by a Python module. In this case, there's a
+//    chance that this would be called with the GIL already released.
+struct MaybeGilScopedRelease
+{
+  MaybeGilScopedRelease()
+  {
+    if (Py_IsInitialized() != 0 && PyGILState_Check() == 1)
+    {
+      this->release.emplace();
+    }
+  }
+  std::optional<pybind11::gil_scoped_release> release;
+};
+#else
+  struct MaybeGilScopedRelease
+  {
+    // The empty constructor is needed to avoid an "unused variable" warning
+    // when an instance of this class is used.
+    MaybeGilScopedRelease(){}
+  };
+#endif
+
+}
+
+#ifdef _WIN32
+namespace gz
+{
+namespace sim
+{
+inline namespace GZ_SIM_VERSION_NAMESPACE {
+// Utility class to store the windows HANDLE variable and close
+// the handle using RAII. This class also hides the HANDLE
+// type from the global header files.
+class SimulationRunnerWinHandleStorage
+{
+  private: HANDLE handleStorage{NULL};
+
+  public: HANDLE handle() { return handleStorage; }
+
+  public: SimulationRunnerWinHandleStorage(HANDLE h) : handleStorage(h) {}
+
+  public: ~SimulationRunnerWinHandleStorage() {
+    if (handleStorage != NULL)
+    {
+      CloseHandle(handleStorage);
+    }
+  }
+};
+}
+}
+}
+#endif
+>>>>>>> 503bc6b0 (Use high resolution timer on Windows (#3478))
 
 //////////////////////////////////////////////////
 SimulationRunner::SimulationRunner(const sdf::World *_world,
@@ -117,6 +190,25 @@ SimulationRunner::SimulationRunner(const sdf::World *_world,
         static_cast<int>(this->stepSize.count() / this->desiredRtf));
   }
 
+<<<<<<< HEAD
+=======
+  // Epoch
+  this->simTimeEpoch = std::chrono::round<std::chrono::nanoseconds>(
+    std::chrono::duration<double>{_config.InitialSimTime()}
+  );
+  this->currentInfo.simTime = this->simTimeEpoch;
+
+#ifdef _WIN32
+  HANDLE winPrecisionTimerHandle = CreateWaitableTimerExA(NULL, NULL,
+    CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+  if (winPrecisionTimerHandle != NULL)
+  {
+    winPrecisionTimer = std::make_unique<SimulationRunnerWinHandleStorage>(
+      winPrecisionTimerHandle);
+  }
+#endif
+
+>>>>>>> 503bc6b0 (Use high resolution timer on Windows (#3478))
   // World control
   transport::NodeOptions opts;
   std::string ns{"/world/" + this->worldName};
@@ -769,14 +861,45 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       // larger than the typical OS + CPU C-state latency.
       constexpr auto kSpinThreshold = 200us;
 
+      auto now = std::chrono::steady_clock::now();
+
       // If the scheduled update time is in the future...
-      if (nextUpdateTime > std::chrono::steady_clock::now())
+      if (nextUpdateTime > now)
       {
         // ...sleep until we are close to the target time.
         auto sleepTarget = nextUpdateTime - kSpinThreshold;
-        if (sleepTarget > std::chrono::steady_clock::now())
+        if (sleepTarget > now)
         {
+#ifndef _WIN32
           std::this_thread::sleep_until(sleepTarget);
+#else
+          if (winPrecisionTimer)
+          {
+            auto sleepTargetDuration =
+              std::chrono::duration_cast<std::chrono::microseconds>(
+              sleepTarget - now);
+            LARGE_INTEGER due_time;
+            memset(&due_time, 0, sizeof(due_time));
+            // Positive durations are absolute, while negative durations
+            // are relative in 10 us intervals.
+            // The absolute time uses the non-precision system clock so we
+            // need to use relative time.
+            due_time.QuadPart = -sleepTargetDuration.count() * 10;
+            if (SetWaitableTimer(winPrecisionTimer->handle(), &due_time, 0,
+              NULL, NULL, FALSE) != TRUE)
+            {
+              gzerr << "Could not SetWaitableTimer" << std::endl;
+            }
+            else
+            {
+              WaitForSingleObject(winPrecisionTimer->handle(), INFINITE);
+            }
+          }
+          else
+          {
+            std::this_thread::sleep_until(sleepTarget);
+          }
+#endif
         }
 
         // ...then busy-wait for the final moments for precision.
@@ -787,7 +910,7 @@ bool SimulationRunner::Run(const uint64_t _iterations)
       }
 
       // Schedule the next update time.
-      auto now = std::chrono::steady_clock::now();
+      now = std::chrono::steady_clock::now();
       nextUpdateTime += this->updatePeriod;
       if (nextUpdateTime < now)
       {
