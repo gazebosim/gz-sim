@@ -204,7 +204,7 @@ namespace gz
       public: std::optional<math::Pose3d> WorldInertialPose(
           const EntityComponentManager &_ecm) const;
 
-      /// \brief Get the linear velocity at the origin of of the link frame
+      /// \brief Get the linear velocity at the origin of the link frame
       /// expressed in the world frame, using an offset expressed in a
       /// body-fixed frame. If no offset is given, the velocity at the origin of
       /// the Link frame will be returned.

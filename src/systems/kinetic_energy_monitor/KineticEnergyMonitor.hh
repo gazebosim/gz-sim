@@ -21,7 +21,6 @@
 #include <memory>
 #include <string>
 #include <gz/sim/config.hh>
-#include <gz/sim/Export.hh>
 #include <gz/sim/System.hh>
 
 namespace gz
