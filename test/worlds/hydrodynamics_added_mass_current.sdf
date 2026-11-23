@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+  Two tilted bodies with the same added mass and damping in a uniform
+  current of 0.2 -0.1 0.05 m/s, pushed by a "gravity" from rest. "plugin"
+  has its added mass in the plugin's coefficients, which work against the
+  water. "native" has it in the physics engine's <fluid_added_mass>, whose
+  Coriolis terms work against the ground: the plugin corrects them for the
+  current.
+-->
+<sdf version="1.11">
+  <world name="hydrodynamics_added_mass_current">
+    <gravity>1.0 0.5 -2.0</gravity>
+    <physics name="1ms" type="dart">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+    <model name="plugin">
+      <pose>0 0 0 0.3 -0.2 0.5</pose>
+      <link name="link">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>0.15</ixx><iyy>0.2</iyy><izz>0.25</izz>
+            <ixy>0.01</ixy><ixz>-0.02</ixz><iyz>0.005</iyz>
+          </inertia>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-hydrodynamics-system"
+              name="gz::sim::systems::Hydrodynamics">
+        <link_name>link</link_name>
+        <xDotU>-1</xDotU><yDotV>-2</yDotV><zDotW>-3</zDotW>
+        <kDotP>-0.01</kDotP><mDotQ>-0.02</mDotQ><nDotR>-0.015</nDotR>
+        <xU>-4</xU><yV>-6</yV><zW>-5</zW>
+        <kP>-0.3</kP><mQ>-0.4</mQ><nR>-0.2</nR>
+        <xUabsU>-30</xUabsU><yVabsV>-80</yVabsV><zWabsW>-60</zWabsW>
+        <kPabsP>-1.5</kPabsP><mQabsQ>-2</mQabsQ><nRabsR>-1</nRabsR>
+        <default_current>0.2 -0.1 0.05</default_current>
+      </plugin>
+    </model>
+    <model name="native">
+      <pose>0 5 0 0.3 -0.2 0.5</pose>
+      <link name="link">
+        <inertial>
+          <mass>10</mass>
+          <inertia>
+            <ixx>0.15</ixx><iyy>0.2</iyy><izz>0.25</izz>
+            <ixy>0.01</ixy><ixz>-0.02</ixz><iyz>0.005</iyz>
+          </inertia>
+          <fluid_added_mass>
+            <xx>1</xx><yy>2</yy><zz>3</zz>
+            <pp>0.01</pp><qq>0.02</qq><rr>0.015</rr>
+          </fluid_added_mass>
+        </inertial>
+      </link>
+      <plugin filename="gz-sim-hydrodynamics-system"
+              name="gz::sim::systems::Hydrodynamics">
+        <link_name>link</link_name>
+        <xU>-4</xU><yV>-6</yV><zW>-5</zW>
+        <kP>-0.3</kP><mQ>-0.4</mQ><nR>-0.2</nR>
+        <xUabsU>-30</xUabsU><yVabsV>-80</yVabsV><zWabsW>-60</zWabsW>
+        <kPabsP>-1.5</kPabsP><mQabsQ>-2</mQabsQ><nRabsR>-1</nRabsR>
+        <default_current>0.2 -0.1 0.05</default_current>
+      </plugin>
+    </model>
+  </world>
+</sdf>
