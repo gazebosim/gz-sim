@@ -379,7 +379,7 @@ TEST_F(ContactSystemTest,
 
 /////////////////////////////////////////////////
 // The test checks that contacts are published with
-// the correct extraContactData
+// the correct extraContactData for both colliding bodies
 TEST_F(ContactSystemTest,
        GZ_UTILS_TEST_DISABLED_ON_WIN32(ExtraContactData))
 {
@@ -398,40 +398,44 @@ TEST_F(ContactSystemTest,
 
   std::mutex contactMutex;
   std::vector<msgs::Contacts> contactMsgs;
+  std::vector<msgs::Contacts> groundContactMsgs;
 
   auto contactCb = [&](const msgs::Contacts &_msg) -> void
   {
     std::lock_guard<std::mutex> lock(contactMutex);
     contactMsgs.push_back(_msg);
   };
+  auto groundContactCb = [&](const msgs::Contacts &_msg) -> void
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    groundContactMsgs.push_back(_msg);
+  };
 
-  // subscribe to contacts topic
+  // subscribe to contacts topics on both colliding bodies
   transport::Node node;
   // Have to create an lvalue here for Node::Subscribe to work.
   auto callbackFunc = std::function<void(const msgs::Contacts &)>(contactCb);
   node.Subscribe("/test_extra_collision_data", callbackFunc);
+  auto groundCallbackFunc =
+      std::function<void(const msgs::Contacts &)>(groundContactCb);
+  node.Subscribe("/test_extra_collision_data_ground", groundCallbackFunc);
 
   // Run server for 10 iters to ensure
   // contact solver has converged
   size_t iters = 10;
   server.Run(true, iters, false);
-  {
-    std::lock_guard<std::mutex> lock(contactMutex);
-    ASSERT_GE(contactMsgs.size(), 1u);
-  }
 
+  auto checkContacts = [](const msgs::Contacts &_contacts,
+                          double _expectedForceZ,
+                          double _expectedNormalZ)
   {
-    std::lock_guard<std::mutex> lock(contactMutex);
-    const auto &lastContacts = contactMsgs.back();
-    EXPECT_EQ(1, lastContacts.contact_size());
+    ASSERT_EQ(1, _contacts.contact_size());
 
-    // The sphere weighs 1kg and gravity is set to 9.81 m/s^2
-    // Hence the contact force should be m*g = 9.81 N
-    // along the z-axis. The force on body 2 should be equal
-    // and opposite.
-    // All torques should be zero.
-    // The normal should align with the world z-axis
-    for (const auto &contact : lastContacts.contact())
+    // The sphere weighs 1kg and gravity is set to 9.81 m/s^2.
+    // Hence the contact force magnitude should be m*g = 9.81 N
+    // along the z-axis, equal and opposite on body 1 and body 2,
+    // with zero torques and normal aligned with the force on body 1.
+    for (const auto &contact : _contacts.contact())
     {
       ASSERT_EQ(1, contact.wrench_size());
       ASSERT_EQ(1, contact.normal_size());
@@ -440,8 +444,8 @@ TEST_F(ContactSystemTest,
                   5e-2);
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().y(),
                   5e-2);
-      EXPECT_NEAR(9.81, contact.wrench().Get(0).body_1_wrench().force().z(),
-                  5e-2);
+      EXPECT_NEAR(_expectedForceZ,
+                  contact.wrench().Get(0).body_1_wrench().force().z(), 5e-2);
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().x(),
                   5e-2);
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().torque().y(),
@@ -453,8 +457,8 @@ TEST_F(ContactSystemTest,
                   5e-2);
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().force().y(),
                   5e-2);
-      EXPECT_NEAR(-9.81, contact.wrench().Get(0).body_2_wrench().force().z(),
-                  5e-2);
+      EXPECT_NEAR(-_expectedForceZ,
+                  contact.wrench().Get(0).body_2_wrench().force().z(), 5e-2);
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().x(),
                   5e-2);
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_2_wrench().torque().y(),
@@ -464,9 +468,26 @@ TEST_F(ContactSystemTest,
 
       EXPECT_NEAR(0.0, contact.normal().Get(0).x(), 5e-2);
       EXPECT_NEAR(0.0, contact.normal().Get(0).y(), 5e-2);
-      EXPECT_NEAR(1.0, contact.normal().Get(0).z(), 5e-2);
+      EXPECT_NEAR(_expectedNormalZ, contact.normal().Get(0).z(), 5e-2);
 
     }
+  };
+
+  {
+    std::lock_guard<std::mutex> lock(contactMutex);
+    ASSERT_GE(contactMsgs.size(), 1u);
+    ASSERT_GE(groundContactMsgs.size(), 1u);
+
+    const auto &sphereContacts = contactMsgs.back();
+    const auto &groundContacts = groundContactMsgs.back();
+
+    checkContacts(sphereContacts, 9.81, 1.0);
+    checkContacts(groundContacts, -9.81, -1.0);
+
+    EXPECT_EQ(sphereContacts.contact(0).collision1().id(),
+              groundContacts.contact(0).collision2().id());
+    EXPECT_EQ(sphereContacts.contact(0).collision2().id(),
+              groundContacts.contact(0).collision1().id());
   }
 }
 
