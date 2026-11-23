@@ -85,18 +85,8 @@ TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    bool hasBox = false;
-    ecm->Each<gz::sim::components::Name>(
-      [&](const gz::sim::Entity &,
-          const gz::sim::components::Name *_name) -> bool
-      {
-        if (_name->Data() == "box")
-        {
-          hasBox = true;
-        }
-        return true;
-      });
-    EXPECT_FALSE(hasBox);
+    EXPECT_TRUE(
+        ecm->EntitiesByComponents(components::Name("box")).empty());
   }
 
   // Wait for the state cb to take place
@@ -111,17 +101,7 @@ TEST_F(WorldControlState, GZ_UTILS_TEST_DISABLED_ON_WIN32(SetState))
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    bool hasBox = false;
-    ecm->Each<gz::sim::components::Name>(
-      [&](const gz::sim::Entity &,
-          const gz::sim::components::Name *_name) -> bool
-      {
-        if (_name->Data() == "box")
-        {
-          hasBox = true;
-        }
-        return true;
-      });
-    EXPECT_TRUE(hasBox);
+    EXPECT_EQ(1u,
+        ecm->EntitiesByComponents(components::Name("box")).size());
   }
 }
