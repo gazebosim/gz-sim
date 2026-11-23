@@ -373,11 +373,11 @@ void JointController::PreUpdate(const UpdateInfo &_info,
       (!jointVelComp->Data().empty()) &&
       (applyForce))
   {
+    // Update force command.
+    const double force = this->dataPtr->velPid.Update(error, _info.dt);
+
     for (Entity joint : this->dataPtr->jointEntities)
     {
-      // Update force command.
-      double force = this->dataPtr->velPid.Update(error, _info.dt);
-
       auto forceComp =
           _ecm.Component<components::JointForceCmd>(joint);
       if (forceComp == nullptr)
