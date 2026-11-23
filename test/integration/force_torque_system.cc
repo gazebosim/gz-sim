@@ -37,7 +37,6 @@
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -120,70 +119,56 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightECM))
   EXPECT_FALSE(*server.Running(0));
   server.SetUpdatePeriod(1ns);
 
-  // Get entity for //test1/scale/sensor_joint/force_torque_sensor and add
-  // WrenchMeasured component on first PreUpdate
-  Entity sensorEntity;
-  bool firstRun = true;
-  auto addWrenchComponent =
-      [&firstRun, &sensorEntity](
-          const UpdateInfo &, EntityComponentManager &_ecm)
-      {
-        if (firstRun)
-        {
-          firstRun = false;
-
-          // Get sensorEntity
-          auto test1ModelEntity = _ecm.EntityByComponents(
-              components::Model(), components::Name("test1"));
-          Model test1Model(test1ModelEntity);
-
-          Model scaleModel(test1Model.ModelByName(_ecm, "scale"));
-          ASSERT_TRUE(scaleModel.Valid(_ecm));
-
-          Joint sensorJoint(scaleModel.JointByName(_ecm, "sensor_joint"));
-          ASSERT_TRUE(sensorJoint.Valid(_ecm));
-
-          sensorEntity = sensorJoint.SensorByName(_ecm, "force_torque_sensor");
-
-          // Expect it doesn't yet have WrenchMeasured
-          EXPECT_EQ(nullptr,
-                    _ecm.Component<components::WrenchMeasured>(sensorEntity));
-
-          // Add WrenchMeasured
-          _ecm.CreateComponent(sensorEntity, components::WrenchMeasured());
-
-          EXPECT_NE(nullptr,
-                    _ecm.Component<components::WrenchMeasured>(sensorEntity));
-        }
-      };
-
-  // Get the MeasuredWrench for //test1/scale/sensor_joint/force_torque_sensor
-  msgs::Wrench wrench;
-  auto getMeasuredWrench =
-    [&wrench, &sensorEntity](const UpdateInfo &,
-              const EntityComponentManager &_ecm)
-    {
-      auto measuredWrench =
-          _ecm.Component<components::WrenchMeasured>(sensorEntity);
-      ASSERT_NE(nullptr, measuredWrench);
-      if (measuredWrench)
-      {
-        wrench = measuredWrench->Data();
-      }
-    };
-
-  // Add the system
-  test::Relay testSystem;
-  testSystem.OnPreUpdate(addWrenchComponent);
-  testSystem.OnPostUpdate(getMeasuredWrench);
-  server.AddSystem(testSystem.systemPtr);
   server.Run(true, 1, false);
+
+  Entity sensorEntity{kNullEntity};
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+
+    // Get sensorEntity
+    auto test1ModelEntity = ecm->EntityByComponents(
+        components::Model(), components::Name("test1"));
+    Model test1Model(test1ModelEntity);
+
+    Model scaleModel(test1Model.ModelByName(*ecm, "scale"));
+    ASSERT_TRUE(scaleModel.Valid(*ecm));
+
+    Joint sensorJoint(scaleModel.JointByName(*ecm, "sensor_joint"));
+    ASSERT_TRUE(sensorJoint.Valid(*ecm));
+
+    sensorEntity = sensorJoint.SensorByName(*ecm, "force_torque_sensor");
+    ASSERT_NE(kNullEntity, sensorEntity);
+
+    // Expect it doesn't yet have WrenchMeasured
+    EXPECT_EQ(nullptr,
+              ecm->Component<components::WrenchMeasured>(sensorEntity));
+
+    // Add WrenchMeasured
+    ecm->CreateComponent(sensorEntity, components::WrenchMeasured());
+
+    EXPECT_NE(nullptr,
+              ecm->Component<components::WrenchMeasured>(sensorEntity));
+  }
 
   const size_t iters = 999u;
 
   // Run server (iters-1) steps, since we already took 1 step above
   server.Run(true, iters - 1, false);
   ASSERT_EQ(iters, *server.IterationCount());
+
+  msgs::Wrench wrench;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    auto measuredWrench =
+        ecm->Component<components::WrenchMeasured>(sensorEntity);
+    ASSERT_NE(nullptr, measuredWrench);
+    if (measuredWrench)
+    {
+      wrench = measuredWrench->Data();
+    }
+  }
 
   const double kSensorMass = 0.2;
   const double kWeightMass = 10;
