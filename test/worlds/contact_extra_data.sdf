@@ -61,6 +61,14 @@
           </inertia>
         </inertial>
         <enable_wind>false</enable_wind>
+        <sensor name='sensor_contact_ground' type='contact'>
+          <contact>
+            <collision>collision</collision>
+            <topic>/test_extra_collision_data_ground</topic>
+          </contact>
+          <always_on>1</always_on>
+          <update_rate>1000</update_rate>
+        </sensor>
       </link>
       <pose>0 0 0 0 -0 0</pose>
       <self_collide>false</self_collide>
