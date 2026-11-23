@@ -148,6 +148,43 @@ release will remove the deprecated code.
     When both `<fluid_added_mass>` and an ocean current are active, the
     plugin automatically corrects the Coriolis force to use the velocity
     relative to the fluid rather than the absolute velocity.
+
+  * **SpacecraftThrusterModel**: The `<sub_topic>` SDF parameter originally
+    appends the specified value to `<topic>`, or to the model name if `<topic>`
+    is not specified.
+
+    With the new model namespace support, `<sub_topic>` is appended to the
+    resolved topic name, which includes the model namespace when one is
+    specified, while preserving the original behavior otherwise.
+
+    The `<sub_topic>` parameter is now deprecated. Users are encouraged to
+    use `<topic>` together with the model namespace instead. Relative topics
+    are prefixed with the model namespace when specified, while absolute
+    topics (starting with `/`) remain unchanged.
+
+    For example, the following configuration:
+
+    ```xml
+    <model name="robot1">
+      <plugin ...>
+        <topic>motor</topic>
+        <sub_topic>cmd</sub_topic>
+      </plugin>
+    </model>
+    ```
+
+    Can be replaced with:
+
+    ```xml
+    <model name="robot1" namespace="motor">
+      <plugin ...>
+        <topic>cmd</topic>
+      </plugin>
+    </model>
+    ```
+
+    Both configurations resolve to `/motor/cmd`.
+
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
