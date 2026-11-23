@@ -617,9 +617,15 @@ class gz::sim::systems::PhysicsPrivate
   public: using ExtraContactData = GCFeature::ExtraContactDataT<Policy>;
 
   /// \brief A contact is described by a contactPoint and the corresponding
-  /// extraContactData which we bundle in a pair data structure
-  public: using ContactData = std::pair<const WorldShapeType::ContactPoint *,
-                                const ExtraContactData *>;
+  /// extraContactData, plus whether this entry is indexed under collision2
+  /// (in which case normal and force, defined on collision1 by gz-physics,
+  /// must be negated).
+  public: struct ContactData
+  {
+    const WorldShapeType::ContactPoint *point{nullptr};
+    const ExtraContactData *extra{nullptr};
+    bool swapped{false};
+  };
   /// \brief Each contact object we get from gz-physics contains the EntityPtrs
   /// of the two colliding entities and other data about the contact such as the
   /// position and extra contact date (wrench, normal and penetration depth).
@@ -651,7 +657,7 @@ class gz::sim::systems::PhysicsPrivate
       {
         const auto &contact = contactData[j];
         auto pos1 = _msg.contact(i).position(j);
-        auto pos2 = contact.first->point;
+        auto pos2 = contact.point->point;
 
         if (!math::equal(pos1.x(), pos2.x(), 1e-6) ||
             !math::equal(pos1.y(), pos2.y(), 1e-6) ||
@@ -660,11 +666,13 @@ class gz::sim::systems::PhysicsPrivate
           return false;
         }
 
-        if(contact.second != nullptr)
+        if (contact.extra != nullptr)
         {
+          const double sign = contact.swapped ? -1.0 : 1.0;
+
           // Compare normals
           auto normal1 = _msg.contact(i).normal(j);
-          auto normal2 = contact.second->normal;
+          const auto normal2 = sign * contact.extra->normal;
           if (!math::equal(normal1.x(), normal2.x(), 1e-6) ||
               !math::equal(normal1.y(), normal2.y(), 1e-6) ||
               !math::equal(normal1.z(), normal2.z(), 1e-6))
@@ -673,7 +681,7 @@ class gz::sim::systems::PhysicsPrivate
           }
           // Compare body1 and body2 forces
           auto body1force1 = _msg.contact(i).wrench(j).body_1_wrench().force();
-          auto body1force2 = contact.second->force;
+          const auto body1force2 = sign * contact.extra->force;
           if (!math::equal(body1force1.x(), body1force2.x(), 1e-6) ||
               !math::equal(body1force1.y(), body1force2.y(), 1e-6) ||
               !math::equal(body1force1.z(), body1force2.z(), 1e-6))
@@ -682,7 +690,7 @@ class gz::sim::systems::PhysicsPrivate
           }
 
           auto body2force1 = _msg.contact(i).wrench(j).body_2_wrench().force();
-          auto body2force2 = -contact.second->force;
+          const auto body2force2 = -sign * contact.extra->force;
           if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
               !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
               !math::equal(body2force1.z(), body2force2.z(), 1e-6))
@@ -4893,9 +4901,10 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
 
     if (coll1Entity != kNullEntity && coll2Entity != kNullEntity)
     {
-      ContactData data = std::make_pair(&contactPoint, extraContactData);
-      entityContactMap[coll1Entity][coll2Entity].push_back(data);
-      entityContactMap[coll2Entity][coll1Entity].push_back(data);
+      entityContactMap[coll1Entity][coll2Entity].push_back(
+          ContactData{&contactPoint, extraContactData, false});
+      entityContactMap[coll2Entity][coll1Entity].push_back(
+          ContactData{&contactPoint, extraContactData, true});
     }
   }
 
@@ -4956,35 +4965,37 @@ void PhysicsPrivate::UpdateCollisions(EntityComponentManager &_ecm)
           for (const auto &contact : contactData)
           {
             auto *position = contactMsg->add_position();
-            position->set_x(contact.first->point.x());
-            position->set_y(contact.first->point.y());
-            position->set_z(contact.first->point.z());
+            position->set_x(contact.point->point.x());
+            position->set_y(contact.point->point.y());
+            position->set_z(contact.point->point.z());
 
             // Check if the extra contact data exists,
             // since not all physics engines support it.
             // Then, fill the msg with extra data.
-            if(contact.second != nullptr)
+            if (contact.extra != nullptr)
             {
+              const double sign = contact.swapped ? -1.0 : 1.0;
+
               auto *normal = contactMsg->add_normal();
-              normal->set_x(contact.second->normal.x());
-              normal->set_y(contact.second->normal.y());
-              normal->set_z(contact.second->normal.z());
+              normal->set_x(sign * contact.extra->normal.x());
+              normal->set_y(sign * contact.extra->normal.y());
+              normal->set_z(sign * contact.extra->normal.z());
 
               auto *wrench = contactMsg->add_wrench();
               auto *body1Wrench = wrench->mutable_body_1_wrench();
               auto *body1Force = body1Wrench->mutable_force();
-              body1Force->set_x(contact.second->force.x());
-              body1Force->set_y(contact.second->force.y());
-              body1Force->set_z(contact.second->force.z());
+              body1Force->set_x(sign * contact.extra->force.x());
+              body1Force->set_y(sign * contact.extra->force.y());
+              body1Force->set_z(sign * contact.extra->force.z());
 
               // The force on the second body is equal and opposite
               auto *body2Wrench = wrench->mutable_body_2_wrench();
               auto *body2Force = body2Wrench->mutable_force();
-              body2Force->set_x(-contact.second->force.x());
-              body2Force->set_y(-contact.second->force.y());
-              body2Force->set_z(-contact.second->force.z());
+              body2Force->set_x(-sign * contact.extra->force.x());
+              body2Force->set_y(-sign * contact.extra->force.y());
+              body2Force->set_z(-sign * contact.extra->force.z());
 
-              contactMsg->add_depth(contact.second->depth);
+              contactMsg->add_depth(contact.extra->depth);
             }
           }
         }
