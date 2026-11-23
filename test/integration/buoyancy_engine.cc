@@ -17,6 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <condition_variable>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/msgs/double.pb.h>
@@ -46,12 +54,89 @@ class BuoyancyEngineTest : public InternalFixture<::testing::Test>
       "/model/buoyant_box/buoyancy_engine/");
   }
 
+  /// \brief Check the published volume and model height with no commands.
+  /// \param[in] _model Name and topic namespace of the model to check.
+  /// \param[in] _expectedVolume Expected bladder volume in m^3.
+  protected: void CheckStartVolume(const std::string &_model,
+      double _expectedVolume);
+
   /// \brief Node for communication
   public: gz::transport::Node node;
 
   /// \brief Publishes commands
   public: gz::transport::Node::Publisher pub;
 };
+
+/////////////////////////////////////////////////
+void BuoyancyEngineTest::CheckStartVolume(const std::string &_model,
+    double _expectedVolume)
+{
+  using namespace std::chrono_literals;
+  constexpr std::size_t steps = 30;  // 3 s at the world's 100 ms step size.
+  struct Samples
+  {
+    std::mutex mutex;
+    std::condition_variable cv;
+    std::vector<double> volumes;
+  };
+  auto samples = std::make_shared<Samples>();
+  std::function<void(const msgs::Double &)> onVolume =
+      [samples](const msgs::Double &_msg)
+      {
+        std::lock_guard lock(samples->mutex);
+        samples->volumes.push_back(_msg.data());
+        samples->cv.notify_one();
+      };
+  ASSERT_TRUE(this->node.Subscribe(
+      "/model/" + _model + "/buoyancy_engine/current_volume", onVolume));
+
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+    "test", "worlds", "buoyancy_engine_start.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+  Server server(serverConfig);
+  server.SetUpdatePeriod(1ns);
+
+  test::Relay testSystem;
+  testSystem.OnPostUpdate([&](const UpdateInfo &,
+                              const EntityComponentManager &_ecm)
+  {
+    const Entity model = _ecm.EntityByComponents(
+        components::Model(), components::Name(_model));
+    const auto *pose = _ecm.Component<components::Pose>(model);
+    ASSERT_NE(nullptr, pose);
+    EXPECT_NEAR(0.0, pose->Data().Pos().Z(), 1e-6);
+  });
+  ASSERT_TRUE(server.AddSystem(testSystem.systemPtr).value_or(false));
+
+  ASSERT_TRUE(server.Run(true, steps, false));
+  std::unique_lock lock(samples->mutex);
+  ASSERT_TRUE(samples->cv.wait_for(lock, 5s,
+      [&] { return !samples->volumes.empty(); }));
+  for (double volume : samples->volumes)
+    EXPECT_NEAR(_expectedVolume, volume, 1e-9);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyEngineTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TestDefaultStartVolume))
+{
+  this->CheckStartVolume("default_engine", 3e-4);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyEngineTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TestStartVolumeClampedToMinimum))
+{
+  this->CheckStartVolume("raised_min_engine", 1e-3);
+}
+
+/////////////////////////////////////////////////
+TEST_F(BuoyancyEngineTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(TestExplicitStartVolume))
+{
+  this->CheckStartVolume("explicit_engine", 6e-4);
+}
 
 /////////////////////////////////////////////////
 TEST_F(BuoyancyEngineTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TestDownward))
