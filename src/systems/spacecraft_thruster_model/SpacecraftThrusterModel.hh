@@ -19,6 +19,7 @@
 
 #include <gz/sim/System.hh>
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -60,11 +61,18 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Actuator command topic name
+      public: std::string cmdTopic;
+    };
+
     /// \brief Constructor
     public: SpacecraftThrusterModel();
 
     /// \brief Destructor
-    public: ~SpacecraftThrusterModel() override = default;
+    public: ~SpacecraftThrusterModel() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -76,6 +84,10 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<SpacecraftThrusterModelPrivate> dataPtr;
