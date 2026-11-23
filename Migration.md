@@ -149,6 +149,43 @@ release will remove the deprecated code.
     When both `<fluid_added_mass>` and an ocean current are active, the
     plugin automatically corrects the Coriolis force to use the velocity
     relative to the fluid rather than the absolute velocity.
+
+  * **SpacecraftThrusterModel**: The `<sub_topic>` SDF parameter originally
+    appends the specified value to `<topic>`, or to the model name if `<topic>`
+    is not specified.
+
+    With the new model namespace support, `<sub_topic>` is appended to the
+    resolved topic name, which includes the model namespace when one is
+    specified, while preserving the original behavior otherwise.
+
+    The `<sub_topic>` parameter is now deprecated. Users are encouraged to
+    use `<topic>` together with the model namespace instead. Relative topics
+    are prefixed with the model namespace when specified, while absolute
+    topics (starting with `/`) remain unchanged.
+
+    For example, the following configuration:
+
+    ```xml
+    <model name="robot1">
+      <plugin ...>
+        <topic>motor</topic>
+        <sub_topic>cmd</sub_topic>
+      </plugin>
+    </model>
+    ```
+
+    Can be replaced with:
+
+    ```xml
+    <model name="robot1" namespace="motor">
+      <plugin ...>
+        <topic>cmd</topic>
+      </plugin>
+    </model>
+    ```
+
+    Both configurations resolve to `/motor/cmd`.
+
   * `entityTypeStr` has been deprecated in favor of `entityTypeStrView`
     which has the same behavior but returns a `std::string_view` and avoids
     a memory allocation to improve performance.
@@ -177,6 +214,12 @@ release will remove the deprecated code.
     `/<model_name>/pose` to `/model/<model>/pose`. The new topic name is
     is consistent with the topic names for models that already exist in the
     world, i.e. models that are not spawned.
+  * Pose Publisher: `<publish_model_pose>` no longer takes the value of
+    `<publish_nested_model_pose>` when it is not set. It now defaults to
+    false, like the other `publish_*` options. A system that only sets
+    `<publish_nested_model_pose>true</publish_nested_model_pose>` no longer
+    publishes the pose of its top-level model. To keep the old behavior,
+    also set `<publish_model_pose>true</publish_model_pose>`.
   * Component's `typeId` is now `constexpr`. It is not allowed to change it
     at runtime anymore. Furthermore component registration is now only allowed
     through the `GZ_SIM_REGISTER_COMPONENT` macro and components must be
