@@ -26,6 +26,7 @@
 #include <sdf/Element.hh>
 
 #include <memory>
+#include <string>
 
 namespace gz
 {
@@ -57,16 +58,57 @@ namespace systems
   ///
   /// - `<angular_deviation>`: (Optional) Allowable angular deviation (in rad)
   ///                          from the desired orientation | Default: 0.05
+  ///
+  /// - `<cmd_pose_topic>`: (Optional) Topic for receiving target pose messages.
+  ///                       Default: `/model/{model_name}/cmd_pose`.
+  ///                       With a namespace: `{namespace}/cmd_pose`.
+  ///                       Relative custom topics are prefixed with the
+  ///                       namespace, while absolute topics remain unchanged.
+  ///
+  /// - `<cmd_vel_topic>`: (Optional) Topic for publishing velocity commands.
+  ///                      Default: `/model/{model_name}/cmd_vel`.
+  ///                      With a namespace: `{namespace}/cmd_vel`.
+  ///                      Relative custom topics are prefixed with the
+  ///                      namespace, while absolute topics remain unchanged.
+  ///
+  /// - `<odom_topic>`: (Optional) Topic for receiving odometry pose messages.
+  ///                   Default: `/model/{model_name}/pose`.
+  ///                   With a namespace: `{namespace}/pose`.
+  ///                   Relative custom topics are prefixed with the namespace,
+  ///                   while absolute topics remain unchanged.
+  ///
+  /// - `<reached_pose_topic>`: (Optional) Topic for publishing reached poses.
+  ///                           Default: `/model/{model_name}/reached_pose`.
+  ///                           With a namespace: `{namespace}/reached_pose`.
+  ///                           Relative custom topics are prefixed with the
+  ///                           namespace, while absolute topics remain
+  ///                           unchanged.
   class DriveToPoseController
       : public System,
         public ISystemConfigure,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command velocity topic name
+      public: std::string cmdVelTopic;
+
+      /// \brief Command pose topic name
+      public: std::string cmdPoseTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief Reached pose topic name
+      public: std::string reachedPoseTopic;
+    };
+
     /// \brief Constructor
     public: DriveToPoseController();
 
     /// \brief Destructor
-    public: ~DriveToPoseController() override = default;
+    public: ~DriveToPoseController() override;
 
     // Documentation inherited
     public: void Configure(
@@ -79,6 +121,9 @@ namespace systems
     public: void PostUpdate(
                   const UpdateInfo& _info,
                   const EntityComponentManager& _ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<DriveToPoseControllerPrivate> dataPtr;
