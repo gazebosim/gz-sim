@@ -1,0 +1,82 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="advanced_lift_drag">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <gravity>0 0 0</gravity>
+    <wind>
+      <linear_velocity>-20 0 0</linear_velocity>
+    </wind>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+
+    <!-- The level link is fixed with its forward axis aligned to the flow. -->
+    <model name="level">
+      <link name="base_link">
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.1</ixx>
+            <iyy>0.12</iyy>
+            <izz>0.15</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="fix" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+      <plugin filename="gz-sim-advanced-lift-drag-system"
+              name="gz::sim::systems::AdvancedLiftDrag">
+        <link_name>base_link</link_name>
+        <forward>1 0 0</forward>
+        <upward>0 0 1</upward>
+        <area>0.34</area>
+        <air_density>1.2041</air_density>
+        <AR>6.5</AR>
+        <eff>0.97</eff>
+        <mac>0.22</mac>
+        <CL0>0.15188</CL0>
+        <CLa>5.015</CLa>
+        <CD0>0.029</CD0>
+        <alpha_stall>0.3391428111</alpha_stall>
+      </plugin>
+    </model>
+
+    <!-- The control has the same coefficients and a slight pitch. -->
+    <model name="tilted">
+      <pose>0 5 0 0 0 0</pose>
+      <link name="base_link">
+        <pose>0 0 0 0 1e-9 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>0.1</ixx>
+            <iyy>0.12</iyy>
+            <izz>0.15</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="fix" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+      <plugin filename="gz-sim-advanced-lift-drag-system"
+              name="gz::sim::systems::AdvancedLiftDrag">
+        <link_name>base_link</link_name>
+        <forward>1 0 0</forward>
+        <upward>0 0 1</upward>
+        <area>0.34</area>
+        <air_density>1.2041</air_density>
+        <AR>6.5</AR>
+        <eff>0.97</eff>
+        <mac>0.22</mac>
+        <CL0>0.15188</CL0>
+        <CLa>5.015</CLa>
+        <CD0>0.029</CD0>
+        <alpha_stall>0.3391428111</alpha_stall>
+      </plugin>
+    </model>
+  </world>
+</sdf>
