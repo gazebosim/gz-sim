@@ -39,9 +39,7 @@
 #include "gz/sim/components/Name.hh"
 #include "test_config.hh"
 
-#include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 #include "../helpers/Util.hh"
 
 using namespace gz;
@@ -356,20 +354,17 @@ TEST_F(ContactSystemTest,
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ns);
 
-  msgs::Contacts contacts;
-  test::Relay contactDataRecorder;
-  contactDataRecorder.OnPostUpdate(
-      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
-      {
-        contactsFromEcm(_ecm, contacts);
-      });
-  server.AddSystem(contactDataRecorder.systemPtr);
-
   auto waitForContacts =
-      [&server, &contacts]()
+      [&server]()
       {
-        return test::StepUntil(server, 2000, [&]
+        return test::StepUntil(server, 2000, [&server]
         {
+          auto ecm = server.EcmScope();
+          if (!ecm.Valid())
+            return false;
+          msgs::Contacts contacts;
+          if (!contactsFromEcm(*ecm, contacts))
+            return false;
           return validMultipleCollisionContacts(contacts);
         });
       };
@@ -378,7 +373,6 @@ TEST_F(ContactSystemTest,
 
   server.ResetAll();
 
-  contacts.Clear();
   ASSERT_TRUE(waitForContacts());
 }
 
