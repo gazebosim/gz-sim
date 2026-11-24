@@ -37,6 +37,7 @@ namespace systems
   /// completed, the plugin is disabled. It can be re-enabled through an
   /// Ignition transport service.
   ///
+<<<<<<< HEAD
   /// It requires that contact sensors be placed in at least one link on the
   /// model on which this plugin is attached.
   ///
@@ -47,6 +48,23 @@ namespace systems
   ///              of the desired collision name so we match more than one
   ///              collision. For example, using the name of a model will match
   ///              all its collisions.
+=======
+  /// After publishing, the plugin is disabled. It can be re-enabled through
+  /// a Gazebo Transport service call.
+  ///
+  /// The plugin requires that a contact sensor is placed in at least one
+  /// link on the model on which this plugin is attached.
+  ///
+  /// ## System Parameters
+  ///
+  /// - `<target>` Name, or substring of a name, that identifies the target
+  ///              collision entity/entities.
+  ///              This value is searched in the scoped name of all collision
+  ///              entities, so it can possibly match more than one collision.
+  ///              For example, using the name of a model will match all of its
+  ///              collisions (scoped name
+  ///              `/<model_name>/<link_name>/<collision_name>`).
+>>>>>>> 3967729 (doc: resolve Doxygen section collision, ref parsing, and parameter warnings (#4230))
   ///
   /// - `<time>` Target time in seconds to maintain contact.
   ///
