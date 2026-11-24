@@ -5383,6 +5383,7 @@ void PhysicsPrivate::UpdateModelsBoundingBoxes(EntityComponentManager &_ecm)
 GZ_ADD_PLUGIN(Physics,
                     System,
                     Physics::ISystemConfigure,
+                    Physics::ISystemConfigurePriority,
                     Physics::ISystemReset,
                     Physics::ISystemUpdate)
 
