@@ -23,6 +23,7 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/components/Model.hh"
@@ -31,7 +32,6 @@
 #include "gz/sim/components/PoseCmd.hh"
 #include "test_config.hh"
 
-#include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -202,39 +202,6 @@ TEST_F(PerformerDetectorTest,
 {
   auto server = this->StartServer("/test/worlds/performer_detector.sdf", true);
 
-  test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const UpdateInfo &_info,
-                             EntityComponentManager &_ecm)
-  {
-    Entity vehicle = _ecm.EntityByComponents(
-        components::Model(), components::Name("vehicle_blue"));
-    ASSERT_FALSE(kNullEntity == vehicle);
-
-    if (_info.iterations == 2)
-    {
-      // Move vehicle out of level1
-      _ecm.CreateComponent(vehicle,
-          components::WorldPoseCmd(math::Pose3d({-100, 0, 0}, {})));
-    }
-    else if (_info.iterations == 4)
-    {
-      auto pose = _ecm.Component<components::Pose>(vehicle);
-      EXPECT_NEAR(-100.0, pose->Data().Pos().X(), 1e-3);
-      ASSERT_TRUE(nullptr == _ecm.Component<components::WorldPoseCmd>(vehicle));
-
-      // Move vehicle back into level1 and in the detectors' region
-      _ecm.CreateComponent(vehicle,
-          components::WorldPoseCmd(math::Pose3d({5, 2, 0.325}, {})));
-    }
-    else if (_info.iterations == 5)
-    {
-      auto pose = _ecm.Component<components::Pose>(vehicle);
-      EXPECT_NEAR(5, pose->Data().Pos().X(), 1e-3);
-    }
-  });
-
-  server->AddSystem(testSystem.systemPtr);
-
   transport::Node node;
   auto cmdVelPub = node.Advertise<msgs::Twist>("/model/vehicle_blue/cmd_vel");
 
@@ -247,7 +214,55 @@ TEST_F(PerformerDetectorTest,
 
   node.Subscribe("/performer_detector", detectorCb);
 
-  server->Run(true, 10, false);
+  auto vehicleEntity = [](const EntityComponentManager &_ecm)
+  {
+    return _ecm.EntityByComponents(
+        components::Model(), components::Name("vehicle_blue"));
+  };
+
+  server->Run(true, 1, false);
+  {
+    auto ecm = server->EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    Entity vehicle = vehicleEntity(*ecm);
+    ASSERT_NE(kNullEntity, vehicle);
+
+    // Move vehicle out of level1
+    ecm->CreateComponent(vehicle,
+        components::WorldPoseCmd(math::Pose3d({-100, 0, 0}, {})));
+  }
+
+  server->Run(true, 2, false);
+  {
+    auto ecm = server->EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    Entity vehicle = vehicleEntity(*ecm);
+    ASSERT_NE(kNullEntity, vehicle);
+
+    auto pose = ecm->Component<components::Pose>(vehicle);
+    ASSERT_NE(nullptr, pose);
+    EXPECT_NEAR(-100.0, pose->Data().Pos().X(), 1e-3);
+    ASSERT_EQ(nullptr, ecm->Component<components::WorldPoseCmd>(vehicle));
+
+    // Move vehicle back into level1 and in the detectors' region
+    ecm->CreateComponent(vehicle,
+        components::WorldPoseCmd(math::Pose3d({5, 2, 0.325}, {})));
+  }
+
+  server->Run(true, 1, false);
+  {
+    auto ecm = server->EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    Entity vehicle = vehicleEntity(*ecm);
+    ASSERT_NE(kNullEntity, vehicle);
+
+    auto pose = ecm->Component<components::Pose>(vehicle);
+    ASSERT_NE(nullptr, pose);
+    EXPECT_NEAR(5, pose->Data().Pos().X(), 1e-3);
+  }
+
+  server->Run(true, 6, false);
+  ASSERT_EQ(10u, *server->IterationCount());
 
   // Wait for messages to arrive in poseMsgs or a timeout is reached
   const auto timeOut = 5s;
