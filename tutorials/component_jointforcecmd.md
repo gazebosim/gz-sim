@@ -34,7 +34,11 @@ world, and all we have to do at runtime is to look for the joint by its name.
 
 `ApplyJointForce` happens to be a system meant to be specified under `<model>`
 in the SDF, so at the time `Configure()` is called, it has access to a model
+<<<<<<< HEAD
 entity from which we can extract a \ref gz::sim::Model:
+=======
+entity from which we can extract a \ref gz::sim::Model "Model" :
+>>>>>>> 3967729 (doc: resolve Doxygen section collision, ref parsing, and parameter warnings (#4230))
 
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc modelDeclaration
 \snippet src/systems/apply_joint_force/ApplyJointForce.cc Configure
