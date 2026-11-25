@@ -371,10 +371,10 @@ void JointTrajectoryController::Configure(
   }
 
   // Get additional parameters from SDF
-  if (_sdf->HasAttribute("use_header_start_time"))
+  if (_sdf->HasElement("use_header_start_time"))
   {
     this->dataPtr->useHeaderStartTime =
-        _sdf->Get<bool>("use_header_start_time");
+        _sdf->FindElement("use_header_start_time")->Get<bool>();
   }
   else
   {
@@ -464,11 +464,12 @@ void JointTrajectoryController::PreUpdate(
 
     if (this->dataPtr->trajectory.status == Trajectory::New)
     {
-      // Set trajectory start time if not set before
-      if (this->dataPtr->trajectory.startTime.count() == 0)
+      // Start unstamped trajectories and stamps already due at the previous
+      // step from the current simulation time.
+      auto &startTime = this->dataPtr->trajectory.startTime;
+      if (startTime.count() == 0 || startTime <= _info.simTime - _info.dt)
       {
-        this->dataPtr->trajectory.startTime = _info.simTime;
-        this->dataPtr->trajectory.status = Trajectory::Active;
+        startTime = _info.simTime;
       }
 
       // If the new trajectory has no points, consider it reached
@@ -476,9 +477,11 @@ void JointTrajectoryController::PreUpdate(
       {
         this->dataPtr->trajectory.status = Trajectory::Reached;
       }
-
-      // Update is always needed for a new trajectory
-      isTargetUpdateRequired = true;
+      else if (startTime <= _info.simTime)
+      {
+        this->dataPtr->trajectory.status = Trajectory::Active;
+        isTargetUpdateRequired = true;
+      }
     }
 
     if (this->dataPtr->trajectory.status == Trajectory::Active)
@@ -664,7 +667,7 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
 
   // Warn user that accelerations are currently ignored if the first point
   // contains them
-  if (_msg.points(0).accelerations_size() > 0)
+  if (_msg.points_size() > 0 && _msg.points(0).accelerations_size() > 0)
   {
     gzwarn << "[JointTrajectoryController] JointTrajectory message contains"
                " acceleration commands, which are currently ignored.\n";
@@ -679,21 +682,14 @@ void JointTrajectoryControllerPrivate::JointTrajectoryCallback(
                " received while executing a previous trajectory.\n";
   }
 
-  // Get start time of the trajectory from message header if desired
-  // If not enabled or there is no header, set start time to 0 and determine
-  // it later from simTime
-  if (this->useHeaderStartTime && _msg.has_header())
+  // Use simulation time when header timing is disabled or the stamp is absent.
+  this->trajectory.startTime = std::chrono::steady_clock::duration::zero();
+  if (this->useHeaderStartTime && _msg.has_header() &&
+      _msg.header().has_stamp())
   {
-    if (_msg.header().has_stamp())
-    {
-      const auto stamp = _msg.header().stamp();
-      this->trajectory.startTime = std::chrono::seconds(stamp.sec()) +
-                                   std::chrono::nanoseconds(stamp.nsec());
-    }
-  }
-  else
-  {
-    this->trajectory.startTime = std::chrono::nanoseconds(0);
+    const auto stamp = _msg.header().stamp();
+    this->trajectory.startTime = std::chrono::seconds(stamp.sec()) +
+                                 std::chrono::nanoseconds(stamp.nsec());
   }
 
   // Reset for a new trajectory
