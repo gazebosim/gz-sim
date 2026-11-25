@@ -19,8 +19,10 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <functional>
 #include <mutex>
+#include <string>
 
 #include <gz/msgs.hh>
 #include <gz/transport/Node.hh>
@@ -53,8 +55,38 @@ public:
 
 /////////////////////////////////////////////////
 class AcousticCommsTestFixture :
-  public ::testing::TestWithParam<AcousticCommsTestDefinition>
+  public InternalFixture<::testing::TestWithParam<AcousticCommsTestDefinition>>
 {
+  protected: void SetUp() override
+  {
+    InternalFixture::SetUp();
+
+    // Keep one-way unbind requests from a destroyed server from reaching the
+    // next parameter case's broker.
+    const auto *previousPartition = std::getenv("GZ_PARTITION");
+    if (previousPartition != nullptr)
+    {
+      this->hadPartition = true;
+      this->oldPartition = previousPartition;
+    }
+
+    this->partition = gz::common::uuid();
+    EXPECT_TRUE(gz::common::setenv("GZ_PARTITION", this->partition));
+  }
+
+  protected: void TearDown() override
+  {
+    if (this->hadPartition)
+      EXPECT_TRUE(gz::common::setenv("GZ_PARTITION", this->oldPartition));
+    else
+      EXPECT_TRUE(gz::common::unsetenv("GZ_PARTITION"));
+
+    InternalFixture::TearDown();
+  }
+
+  private: bool hadPartition{false};
+  private: std::string oldPartition;
+  private: std::string partition;
 };
 
 TEST_P(AcousticCommsTestFixture,
