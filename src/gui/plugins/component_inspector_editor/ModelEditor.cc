@@ -45,12 +45,10 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/ParentEntity.hh"
-#include "gz/sim/components/Recreate.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/SdfEntityCreator.hh"
 
 #include "gz/sim/gui/GuiEvents.hh"
-#include "gz/sim/Util.hh"
 
 #include "ModelEditor.hh"
 
@@ -177,9 +175,6 @@ void ModelEditor::Update(const UpdateInfo &,
       {
         Entity entity = this->dataPtr->entityCreator->CreateEntities(&(*link));
         this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
-        // Make sure to mark the parent as needing recreation. This will
-        // tell the server to rebuild the model with the new link.
-        _ecm.CreateComponent(eta.parentEntity, components::Recreate());
         entities.push_back(entity);
       }
     }
@@ -192,10 +187,6 @@ void ModelEditor::Update(const UpdateInfo &,
         Entity entity = this->dataPtr->entityCreator->CreateEntities(
             &(*sensor));
         this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
-        // Make sure to mark the parent as needing recreation. This will
-        // tell the server to rebuild the model with the new link.
-        _ecm.CreateComponent(topLevelModel(eta.parentEntity, _ecm),
-                             components::Recreate());
         entities.push_back(entity);
       }
     }
@@ -207,9 +198,6 @@ void ModelEditor::Update(const UpdateInfo &,
         Entity entity = this->dataPtr->entityCreator->CreateEntities(
             &(*joint), true);
         this->dataPtr->entityCreator->SetParent(entity, eta.parentEntity);
-        // Make sure to mark the parent as needing recreation. This will
-        // tell the server to rebuild the model with the new link.
-        _ecm.CreateComponent(eta.parentEntity, components::Recreate());
         entities.push_back(entity);
       }
     }
