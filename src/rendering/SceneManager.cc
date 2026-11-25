@@ -1031,39 +1031,39 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   rendering::MeshDescriptor descriptor;
   std::unordered_map<std::string, unsigned int> mapAnimNameId;
   common::SkeletonPtr meshSkel;
-  if (hasSkin)
-  {
-    descriptor.meshName = asFullPath(skinFilename, _actor.FilePath());
-    common::MeshManager *meshManager = common::MeshManager::Instance();
-    descriptor.mesh = meshManager->Load(descriptor.meshName);
-  }
-  else
+  if (!hasSkin)
   {
     gzdbg << "Actor [" << _name << "] has no skin, only trajectory animation "
           << "will be applied." << std::endl;
   }
-  else if (nullptr == descriptor.mesh)
-  {
-    gzwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
-           << std::endl;
-  }
   else
   {
-    // todo(anyone) create a copy of meshSkel so we don't modify the original
-    // when adding animations!
-    meshSkel = descriptor.mesh->MeshSkeleton();
-    if (nullptr == meshSkel)
+    descriptor.meshName = asFullPath(skinFilename, _actor.FilePath());
+    common::MeshManager *meshManager = common::MeshManager::Instance();
+    descriptor.mesh = meshManager->Load(descriptor.meshName);
+    if (nullptr == descriptor.mesh)
     {
-      gzwarn << "Mesh skeleton in [" << descriptor.meshName << "] not found."
+      gzwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
              << std::endl;
     }
     else
     {
-      this->dataPtr->actorSkeletons[_id] = meshSkel;
-      // Load all animations
-      mapAnimNameId = this->LoadAnimations(_actor);
-      if (mapAnimNameId.size() == 0)
-        return nullptr;
+      // todo(anyone) create a copy of meshSkel so we don't modify the original
+      // when adding animations!
+      meshSkel = descriptor.mesh->MeshSkeleton();
+      if (nullptr == meshSkel)
+      {
+        gzwarn << "Mesh skeleton in [" << descriptor.meshName << "] not found."
+               << std::endl;
+      }
+      else
+      {
+        this->dataPtr->actorSkeletons[_id] = meshSkel;
+        // Load all animations
+        mapAnimNameId = this->LoadAnimations(_actor);
+        if (mapAnimNameId.size() == 0)
+          return nullptr;
+      }
     }
   }
 
