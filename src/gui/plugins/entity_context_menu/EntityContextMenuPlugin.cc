@@ -20,7 +20,7 @@
 #include <memory>
 #include <utility>
 
-#include <QtQml>
+#include <QQmlEngine>
 
 #include <gz/common/Console.hh>
 

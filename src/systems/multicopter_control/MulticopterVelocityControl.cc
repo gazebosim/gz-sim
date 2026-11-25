@@ -30,7 +30,7 @@
 
 #include <gz/math/eigen3/Conversions.hh>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/Gravity.hh"

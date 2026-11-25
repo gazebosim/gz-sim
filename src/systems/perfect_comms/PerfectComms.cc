@@ -15,7 +15,7 @@
  *
  */
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>

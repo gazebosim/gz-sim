@@ -17,6 +17,9 @@
 
 #include "AboutDialogHandler.hh"
 
+#include <QDesktopServices>
+#include <QUrl>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/gui/Application.hh>
