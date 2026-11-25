@@ -347,7 +347,10 @@ int rootCallback(struct lws *_wsi,
           // Return non-zero to close the connection.
           return -1;
         }
-        self->OnMessage(fd, std::string((const char *)_in).substr(0, _len));
+        // Use the length libwebsockets reports. Binary payloads contain zero
+        // bytes, so treating the frame as a C string would truncate it.
+        self->OnMessage(fd,
+            std::string(static_cast<const char *>(_in), _len));
         break;
       }
 
@@ -667,15 +670,44 @@ void WebsocketServer::OnMessage(int _socketId, const std::string _msg)
     return;
 
   // Frame: operation,topic,type,payload
-  std::vector<std::string> frameParts = common::split(_msg, ",");
+  std::vector<std::string> frameParts;
+
+  // A request carries a serialized protobuf as its payload, which can hold
+  // commas and zero bytes. Take everything after the third comma verbatim
+  // instead of splitting the whole frame.
+  const std::string reqPrefix = this->operations[REQUEST] + ",";
+  std::size_t svcEnd = std::string::npos;
+  std::size_t typeEnd = std::string::npos;
+  if (_msg.compare(0, reqPrefix.size(), reqPrefix) == 0)
+  {
+    svcEnd = _msg.find(',', reqPrefix.size());
+    if (svcEnd != std::string::npos)
+      typeEnd = _msg.find(',', svcEnd + 1);
+  }
+
+  if (typeEnd != std::string::npos)
+  {
+    frameParts = {
+        this->operations[REQUEST],
+        _msg.substr(reqPrefix.size(), svcEnd - reqPrefix.size()),
+        _msg.substr(svcEnd + 1, typeEnd - svcEnd - 1),
+        _msg.substr(typeEnd + 1)};
+  }
+  else
+  {
+    frameParts = common::split(_msg, ",");
+  }
 
   // Check for a valid frame.
   if (frameParts.size() != 4 &&
       // Count the number of commas to handle a frame like "sub,,,"
       std::count(_msg.begin(), _msg.end(), ',') != 3)
   {
-    gzerr << "Received an invalid frame[" << _msg << "] with "
-          << frameParts.size() << "components when 4 is expected.\n";
+    // Log the size and operation only. The frame may hold binary data.
+    gzerr << "Received an invalid frame of " << _msg.size()
+          << " bytes with operation["
+          << _msg.substr(0, _msg.find(',')) << "] and "
+          << frameParts.size() << " components when 4 is expected.\n";
     return;
   }
 
