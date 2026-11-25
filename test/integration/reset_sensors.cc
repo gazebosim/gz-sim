@@ -264,7 +264,7 @@ TEST_F(ResetFixture, GZ_UTILS_TEST_DISABLED_ON_MAC(RestoreRemovedVisuals))
 }
 
 /////////////////////////////////////////////////
-/// This test checks that that air-pressure and camera sensor systems
+/// This test checks that air-pressure and camera sensor systems
 /// handle Reset events
 TEST_F(ResetFixture, HandleReset)
 {

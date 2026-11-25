@@ -17,12 +17,22 @@ concurrency:
 jobs:
   resolute-ci:
     runs-on: ubuntu-latest
-    name: Ubuntu Resolute CI
+    strategy:
+      # A Zenoh failure must not cancel the ZeroMQ run, and vice versa
+      fail-fast: false
+      matrix:
+        transport: [zeromq, zenoh]
+    # Keep "Ubuntu Resolute CI" for ZeroMQ, it is a required status check
+    name: Ubuntu Resolute CI${{ matrix.transport == 'zenoh' && ' (Zenoh)' || '' }}
+    env:
+      GZ_TRANSPORT_IMPLEMENTATION: ${{ matrix.transport }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
       - uses: actions/setup-python@v7
+        if: matrix.transport == 'zeromq'
       - uses: pre-commit/action@v3.0.1
+        if: matrix.transport == 'zeromq'
         with:
           extra_args: --all-files
       - name: Compile and test
@@ -32,6 +42,15 @@ jobs:
           gzdev-project-name: rotary
           # per bug https://github.com/gazebosim/gz-sim/issues/1409
           cmake-args: '-DCMAKE_INSTALL_PREFIX=/usr -DBUILD_DOCS=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo'
+      # The marker is written by .github/ci/before_cmake.sh inside the
+      # container. Without it, the tests ran with the default ZeroMQ backend.
+      - name: Check that the tests used Zenoh
+        if: ${{ !cancelled() && matrix.transport == 'zenoh' }}
+        run: |
+          if [ "$(cat build/gz_transport_implementation.txt 2>/dev/null)" != "zenoh" ]; then
+            echo "::error::No Zenoh marker from before_cmake.sh, the tests did not run with Zenoh"
+            exit 1
+          fi
 
   resolute-ci-disable-gui:
     runs-on: ubuntu-latest

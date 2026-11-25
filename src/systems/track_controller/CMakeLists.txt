@@ -1,6 +1,8 @@
 gz_add_system(track-controller
   SOURCES
     TrackController.cc
+  TEST_SOURCES
+    TrackController_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
     gz-physics::gz-physics
