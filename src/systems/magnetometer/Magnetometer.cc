@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2026 Rudis Laboratories
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +17,7 @@
  */
 
 #include "Magnetometer.hh"
+#include "WorldMagneticModel.hh"
 
 #include <string>
 #include <unordered_map>
@@ -26,9 +28,12 @@
 
 #include <sdf/Sensor.hh>
 
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Profiler.hh>
 
 #include <gz/transport/Node.hh>
+
+#include <gz/msgs/magnetometer.pb.h>
 
 #include <gz/sensors/SensorFactory.hh>
 #include <gz/sensors/MagnetometerSensor.hh>
@@ -41,11 +46,16 @@
 #include "gz/sim/components/Sensor.hh"
 #include "gz/sim/components/World.hh"
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/InstallationDirectories.hh"
 #include "gz/sim/Util.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace systems;
+
+// ============================================================
+// Built-in lookup tables (fallback when WMM is not enabled)
+// ============================================================
 
 /** set this always to the sampling in degrees for the table below */
 static constexpr const float SAMPLING_RES     =  10.0f;
@@ -116,6 +126,24 @@ static constexpr const int8_t strength_table[13][37] = \
   { 54, 54, 54, 55, 56, 57, 58, 58, 59, 58, 58, 57, 56, 54, 53, 52, 51, 51, 51, 51, 52, 53, 54, 55, 57, 58, 60, 61, 62, 61, 61, 59, 58, 56, 55, 54, 54 },  // NOLINT
 };
 
+// ============================================================
+// Per-sensor WMM field cache entry
+// ============================================================
+struct WMMCacheEntry
+{
+  /// \brief Last lat/lon/alt (deg, deg, km) where field was computed.
+  double lastLat{0.0};
+  double lastLon{0.0};
+  double lastAlt{0.0};
+
+  /// \brief Cached magnetic field vector in world frame (units depend on
+  /// useUnitsGauss / useEarthFrameNED settings).
+  math::Vector3d field;
+
+  /// \brief Whether this cache entry has been computed at least once.
+  bool valid{false};
+};
+
 /// \brief Private Magnetometer data class.
 class gz::sim::systems::MagnetometerPrivate
 {
@@ -135,10 +163,29 @@ class gz::sim::systems::MagnetometerPrivate
   public: bool initialized = false;
 
   /// \brief True if the magnetic field is reported in gauss rather than tesla.
+  /// Default is true (Gauss) to match the original lookup table behavior.
+  /// Set to false via SDF to get Tesla output.
   public: bool useUnitsGauss = true;
 
   /// \brief True if the magnetic field earth frame is NED rather than ENU.
-  public: bool useEarthFrameNED = true;
+  /// Default is false (ENU) to match Gazebo's internal convention.
+  /// Set to true via SDF to get NED output.
+  public: bool useEarthFrameNED = false;
+
+  // --- World Magnetic Model ---
+
+  /// \brief Whether to use the WMM for magnetic field computation.
+  public: bool useWMM = false;
+
+  /// \brief The World Magnetic Model instance (shared across all sensors).
+  public: WorldMagneticModel wmm;
+
+  /// \brief Distance in meters a sensor must move before the WMM field
+  /// is recomputed for that sensor.
+  public: double wmmRecalcDistance = 1000.0;
+
+  /// \brief Per-sensor WMM field cache.
+  public: std::unordered_map<Entity, WMMCacheEntry> wmmCache;
 
   /// \brief Create sensor
   /// \param[in] _ecm Immutable reference to ECM.
@@ -166,38 +213,43 @@ class gz::sim::systems::MagnetometerPrivate
   /// \param[in] _ecm Immutable reference to ECM.
   public: void RemoveMagnetometerEntities(const EntityComponentManager &_ecm);
 
+  /// \brief Compute magnetic field using WMM for a sensor at given
+  /// lat/lon/elevation, converting to the configured units and frame.
+  /// \param[in] _latDeg Latitude in degrees.
+  /// \param[in] _lonDeg Longitude in degrees.
+  /// \param[in] _elevM Elevation in meters above WGS84 ellipsoid.
+  /// \return Magnetic field vector in the configured frame and units.
+  public: math::Vector3d ComputeWMMField(
+    double _latDeg, double _lonDeg, double _elevM);
+
+  /// \brief Check if a sensor's cached WMM field should be recomputed
+  /// based on how far it has moved.
+  /// \param[in] _entity The sensor entity.
+  /// \param[in] _latDeg Current latitude in degrees.
+  /// \param[in] _lonDeg Current longitude in degrees.
+  /// \param[in] _elevM Current elevation in meters.
+  /// \return True if the field should be recomputed.
+  public: bool ShouldRecomputeWMM(Entity _entity,
+    double _latDeg, double _lonDeg, double _elevM);
+
+  // --- Built-in lookup table methods (fallback) ---
+
   unsigned get_lookup_table_index(float &val, float min, float max)
   {
-    /* for the rare case of hitting the bounds exactly
-     * the rounding logic wouldn't fit, so enforce it.
-     */
-
-    // limit to table bounds - required for maxima even when table spans full
-    // globe range
-    // limit to (table bounds - 1) because bilinear interpolation requires
-    // checking (index + 1)
     val = constrain(val, min, max - SAMPLING_RES);
-
     return static_cast<unsigned>((-(min) + val) / SAMPLING_RES);
   }
 
   float get_table_data(float lat, float lon, const int8_t table[13][37])
   {
-    /*
-     * If the values exceed valid ranges, return zero as default
-     * as we have no way of knowing what the closest real value
-     * would be.
-     */
     if (lat < -90.0f || lat > 90.0f ||
         lon < -180.0f || lon > 180.0f) {
       return 0.0f;
     }
 
-    /* round down to nearest sampling resolution */
     float min_lat = static_cast<int>(lat / SAMPLING_RES) * SAMPLING_RES;
     float min_lon = static_cast<int>(lon / SAMPLING_RES) * SAMPLING_RES;
 
-    /* find index of nearest low sampling point */
     unsigned min_lat_index =
       get_lookup_table_index(min_lat, SAMPLING_MIN_LAT, SAMPLING_MAX_LAT);
     unsigned min_lon_index =
@@ -208,7 +260,6 @@ class gz::sim::systems::MagnetometerPrivate
     const float data_ne = table[min_lat_index + 1][min_lon_index + 1];
     const float data_nw = table[min_lat_index + 1][min_lon_index];
 
-    /* perform bilinear interpolation on the four grid corners */
     const float lat_scale = constrain(
       (lat - min_lat) / SAMPLING_RES, 0.0f, 1.0f);
     const float lon_scale = constrain(
@@ -220,19 +271,16 @@ class gz::sim::systems::MagnetometerPrivate
     return lat_scale * (data_max - data_min) + data_min;
   }
 
-  // return magnetic declination in degrees
   float get_mag_declination(float lat, float lon)
   {
     return get_table_data(lat, lon, declination_table);
   }
 
-  // return magnetic field inclination in degrees
   float get_mag_inclination(float lat, float lon)
   {
     return get_table_data(lat, lon, inclination_table);
   }
 
-  // return magnetic field strength in centi-Gauss
   float get_mag_strength(float lat, float lon)
   {
     return get_table_data(lat, lon, strength_table);
@@ -269,6 +317,82 @@ void Magnetometer::Configure(const Entity &/*_entity*/,
     gzdbg << "Magnetometer: using param [use_earth_frame_ned: "
           << this->dataPtr->useEarthFrameNED << "]."
           << std::endl;
+
+    // --- World Magnetic Model configuration ---
+    if (_sdf->HasElement("use_world_magnetic_model"))
+    {
+      this->dataPtr->useWMM =
+          _sdf->Get<bool>("use_world_magnetic_model");
+    }
+
+    if (this->dataPtr->useWMM)
+    {
+      // COF file path (default: look next to the plugin, or use env)
+      std::string cofFile = "WMMHR.COF";
+      if (_sdf->HasElement("wmm_coefficient_file"))
+      {
+        cofFile = _sdf->Get<std::string>("wmm_coefficient_file");
+      }
+
+      // Decimal year (default: current date)
+      double decimalYear = -1.0;
+      if (_sdf->HasElement("wmm_date"))
+      {
+        decimalYear = _sdf->Get<double>("wmm_date");
+      }
+
+      // Recalculation distance
+      if (_sdf->HasElement("wmm_recalculation_distance"))
+      {
+        this->dataPtr->wmmRecalcDistance =
+            _sdf->Get<double>("wmm_recalculation_distance");
+      }
+
+      // Try to load the COF file directly, then fall back to the
+      // installed data directory (<prefix>/share/gz/gz-sim/wmm/).
+      // Try user-provided path first, then the installed data directory.
+      // We check existence before calling Load() to avoid spurious error
+      // messages from the first attempt.
+      bool loaded = false;
+      std::string resolvedPath = cofFile;
+
+      if (std::ifstream(cofFile).good())
+      {
+        loaded = this->dataPtr->wmm.Load(cofFile, decimalYear);
+      }
+
+      if (!loaded)
+      {
+        std::string installedPath = common::joinPaths(
+            gz::sim::getInstallPrefix(),
+            GZ_SIM_WMM_INSTALL_PATH, cofFile);
+        if (std::ifstream(installedPath).good())
+        {
+          resolvedPath = installedPath;
+          loaded = this->dataPtr->wmm.Load(installedPath, decimalYear);
+        }
+      }
+
+      if (!loaded)
+      {
+        gzwarn << "Magnetometer: Failed to load World Magnetic Model. Tried ["
+               << cofFile << "] and [" << common::joinPaths(
+                  gz::sim::getInstallPrefix(),
+                  GZ_SIM_WMM_INSTALL_PATH, cofFile)
+               << "]. Falling back to built-in lookup tables."
+               << std::endl;
+        this->dataPtr->useWMM = false;
+      }
+      else
+      {
+        gzmsg << "Magnetometer: Using World Magnetic Model ["
+              << this->dataPtr->wmm.ModelName()
+              << "] nMax=" << this->dataPtr->wmm.MaxDegree()
+              << ", recalc distance="
+              << this->dataPtr->wmmRecalcDistance << "m"
+              << std::endl;
+      }
+    }
 }
 
 //////////////////////////////////////////////////
@@ -378,6 +502,14 @@ void MagnetometerPrivate::AddMagnetometer(
 
   sensor->SetWorldMagneticField(_worldField->Data());
 
+  // Set the field unit and coordinate frame for published messages
+  sensor->SetFieldUnit(this->useUnitsGauss
+      ? msgs::Magnetometer::GAUSS
+      : msgs::Magnetometer::TESLA);
+  sensor->SetCoordinateFrame(this->useEarthFrameNED
+      ? msgs::Magnetometer::NED
+      : msgs::Magnetometer::ENU);
+
   // Get initial pose of sensor and set the reference z pos
   // The WorldPose component was just created and so it's empty
   // We'll compute the world pose manually here
@@ -438,6 +570,89 @@ void MagnetometerPrivate::CreateSensors(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
+/// \brief Approximate great-circle distance between two lat/lon points
+/// using the Haversine formula. Returns distance in meters.
+static double HaversineDistance(
+    double _lat1Deg, double _lon1Deg,
+    double _lat2Deg, double _lon2Deg)
+{
+  constexpr double kEarthRadiusM = 6371200.0;
+  constexpr double kDeg2Rad = GZ_PI / 180.0;
+
+  double dLat = (_lat2Deg - _lat1Deg) * kDeg2Rad;
+  double dLon = (_lon2Deg - _lon1Deg) * kDeg2Rad;
+  double lat1 = _lat1Deg * kDeg2Rad;
+  double lat2 = _lat2Deg * kDeg2Rad;
+
+  double a = std::sin(dLat / 2.0) * std::sin(dLat / 2.0) +
+             std::cos(lat1) * std::cos(lat2) *
+             std::sin(dLon / 2.0) * std::sin(dLon / 2.0);
+  return kEarthRadiusM * 2.0 * std::atan2(std::sqrt(a), std::sqrt(1.0 - a));
+}
+
+//////////////////////////////////////////////////
+bool MagnetometerPrivate::ShouldRecomputeWMM(
+    Entity _entity,
+    double _latDeg, double _lonDeg, double _elevM)
+{
+  auto cacheIt = this->wmmCache.find(_entity);
+  if (cacheIt == this->wmmCache.end() || !cacheIt->second.valid)
+    return true;
+
+  double dist = HaversineDistance(
+      cacheIt->second.lastLat, cacheIt->second.lastLon,
+      _latDeg, _lonDeg);
+
+  // Also consider altitude changes
+  double altDiffM = std::abs(_elevM - cacheIt->second.lastAlt * 1000.0);
+
+  return (dist + altDiffM) > this->wmmRecalcDistance;
+}
+
+//////////////////////////////////////////////////
+math::Vector3d MagnetometerPrivate::ComputeWMMField(
+    double _latDeg, double _lonDeg, double _elevM)
+{
+  // WMM expects altitude in km
+  double altKm = _elevM / 1000.0;
+
+  WMMFieldResult wmmResult = this->wmm.ComputeField(_latDeg, _lonDeg, altKm);
+
+  // WMM outputs in nT (nanotesla), NED frame
+  // Convert to the configured units
+  double X_ned = wmmResult.fieldNED.X();
+  double Y_ned = wmmResult.fieldNED.Y();
+  double Z_ned = wmmResult.fieldNED.Z();
+
+  // Convert from nT to Tesla or Gauss
+  double scale;
+  if (this->useUnitsGauss)
+  {
+    // 1 nT = 1e-5 Gauss
+    scale = 1.0e-5;
+  }
+  else
+  {
+    // 1 nT = 1e-9 Tesla
+    scale = 1.0e-9;
+  }
+
+  X_ned *= scale;
+  Y_ned *= scale;
+  Z_ned *= scale;
+
+  if (this->useEarthFrameNED)
+  {
+    return math::Vector3d(X_ned, Y_ned, Z_ned);
+  }
+  else
+  {
+    // Convert NED to ENU: X_enu = Y_ned, Y_enu = X_ned, Z_enu = -Z_ned
+    return math::Vector3d(Y_ned, X_ned, -Z_ned);
+  }
+}
+
+//////////////////////////////////////////////////
 void MagnetometerPrivate::Update(
     const EntityComponentManager &_ecm)
 {
@@ -464,45 +679,72 @@ void MagnetometerPrivate::Update(
             return true;
           }
 
-          auto lat_rad = GZ_DTOR(latLonEle.value().X());
-          auto lon_rad = GZ_DTOR(latLonEle.value().Y());
+          double lat_deg = latLonEle.value().X();
+          double lon_deg = latLonEle.value().Y();
+          double elev_m = latLonEle.value().Z();
 
-          // Magnetic declination and inclination (radians)
-          float declination_rad =
-            get_mag_declination(
-              lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
-          float inclination_rad =
-            get_mag_inclination(
-              lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
+          math::Vector3d magnetic_field_I;
 
-          // Magnetic strength in gauss (10^5 nano tesla = 10^-2 centi gauss)
-          float strength_ga =
-            0.01f *
-            get_mag_strength(lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI);
-
-          // Magnetic intensity measured in telsa
-          float strength_tesla = 1.0E-4 * strength_ga;
-
-          // Magnetic field components are calculated in world NED frame using:
-          // http://geomag.nrcan.gc.ca/mag_fld/comp-en.php
-          float H = cosf(inclination_rad);
-          H *= this->useUnitsGauss ? strength_ga : strength_tesla;
-          float Z_ned = tanf(inclination_rad) * H;
-          float X_ned = H * cosf(declination_rad);
-          float Y_ned = H * sinf(declination_rad);
-
-          float X = X_ned;
-          float Y = Y_ned;
-          float Z = Z_ned;
-          if (!this->useEarthFrameNED)
+          if (this->useWMM)
           {
-            // Use ENU convention for earth frame.
-            X = Y_ned;
-            Y = X_ned;
-            Z = -1.0 * Z_ned;
+            // ---- WMM path with per-sensor caching ----
+            if (this->ShouldRecomputeWMM(_entity, lat_deg, lon_deg, elev_m))
+            {
+              magnetic_field_I = this->ComputeWMMField(
+                  lat_deg, lon_deg, elev_m);
+
+              // Update cache
+              WMMCacheEntry &cache = this->wmmCache[_entity];
+              cache.lastLat = lat_deg;
+              cache.lastLon = lon_deg;
+              cache.lastAlt = elev_m / 1000.0;
+              cache.field = magnetic_field_I;
+              cache.valid = true;
+            }
+            else
+            {
+              // Use cached value
+              magnetic_field_I = this->wmmCache[_entity].field;
+            }
+          }
+          else
+          {
+            // ---- Built-in lookup table path (original behavior) ----
+            auto lat_rad = GZ_DTOR(lat_deg);
+            auto lon_rad = GZ_DTOR(lon_deg);
+
+            float declination_rad =
+              get_mag_declination(
+                lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
+            float inclination_rad =
+              get_mag_inclination(
+                lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI) * GZ_PI / 180;
+
+            float strength_ga =
+              0.01f *
+              get_mag_strength(lat_rad * 180 / GZ_PI, lon_rad * 180 / GZ_PI);
+
+            float strength_tesla = 1.0E-4 * strength_ga;
+
+            float H = cosf(inclination_rad);
+            H *= this->useUnitsGauss ? strength_ga : strength_tesla;
+            float Z_ned = tanf(inclination_rad) * H;
+            float X_ned = H * cosf(declination_rad);
+            float Y_ned = H * sinf(declination_rad);
+
+            float X = X_ned;
+            float Y = Y_ned;
+            float Z = Z_ned;
+            if (!this->useEarthFrameNED)
+            {
+              X = Y_ned;
+              Y = X_ned;
+              Z = -1.0 * Z_ned;
+            }
+
+            magnetic_field_I = math::Vector3d(X, Y, Z);
           }
 
-          math::Vector3d magnetic_field_I(X, Y, Z);
           it->second->SetWorldMagneticField(magnetic_field_I);
         }
         else
@@ -533,6 +775,7 @@ void MagnetometerPrivate::RemoveMagnetometerEntities(
         }
 
         this->entitySensorMap.erase(sensorId);
+        this->wmmCache.erase(_entity);
 
         return true;
       });
