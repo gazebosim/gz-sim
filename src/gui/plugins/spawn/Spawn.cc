@@ -28,9 +28,12 @@
 #include <QQmlProperty>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/common/Uuid.hh>
+#include <gz/fuel_tools/FuelClient.hh>
+#include <gz/fuel_tools/Interface.hh>
 
 #include <gz/gui/Application.hh>
 #include <gz/gui/GuiEvents.hh>
@@ -53,6 +56,7 @@
 #include <gz/transport/Publisher.hh>
 
 #include <sdf/Root.hh>
+#include <sdf/ParserConfig.hh>
 
 #include "gz/sim/rendering/RenderUtil.hh"
 #include "gz/sim/rendering/SceneManager.hh"
@@ -80,8 +84,15 @@ namespace gz::sim
     /// \brief Handle placement requests
     public: void HandlePlacement();
 
+    /// \brief Create a parser config that resolves resources for previews.
+    /// \return Parser configuration with Fuel and local file resolution.
+    public: sdf::ParserConfig ParserConfigWithFuelFindFile();
+
     /// \brief Gazebo communication node.
     public: transport::Node node;
+
+    /// \brief Client used to resolve Fuel resources while loading previews.
+    public: fuel_tools::FuelClient fuelClient;
 
     /// \brief Flag for indicating whether the preview needs to be generated.
     public: bool generatePreview = false;
@@ -282,6 +293,30 @@ void SpawnPrivate::HandlePlacement()
 }
 
 /////////////////////////////////////////////////
+sdf::ParserConfig SpawnPrivate::ParserConfigWithFuelFindFile()
+{
+  sdf::ParserConfig config = sdf::ParserConfig::GlobalConfig();
+  auto existingCallback = config.FindFileCallback();
+  config.SetFindCallback(
+      [this, existingCallback](const std::string &_uri) -> std::string
+      {
+        if (existingCallback)
+        {
+          auto path = existingCallback(_uri);
+          if (!path.empty())
+            return path;
+        }
+
+        auto path = common::findFile(_uri);
+        if (!path.empty())
+          return path;
+
+        return fuel_tools::fetchResourceWithClient(_uri, this->fuelClient);
+      });
+  return config;
+}
+
+/////////////////////////////////////////////////
 void SpawnPrivate::OnRender()
 {
   if (nullptr == this->scene)
@@ -321,13 +356,14 @@ void SpawnPrivate::OnRender()
     // Generate spawn preview
     rendering::VisualPtr rootVis = this->scene->RootVisual();
     sdf::Root root;
+    sdf::ParserConfig parserConfig = this->ParserConfigWithFuelFindFile();
     if (!this->spawnSdfString.empty())
     {
-      root.LoadSdfString(this->spawnSdfString);
+      root.LoadSdfString(this->spawnSdfString, parserConfig);
     }
     else if (!this->spawnSdfPath.empty())
     {
-      root.Load(this->spawnSdfPath);
+      root.Load(this->spawnSdfPath, parserConfig);
     }
     else if (!this->spawnCloneName.empty())
     {
