@@ -1601,6 +1601,7 @@ gz_sim_system_libraries(
         "@com_google_protobuf//:protobuf_lite",
         "@gz-common//profiler",
         "@gz-math",
+        "@gz-msgs",
         "@gz-msgs//:gzmsgs_cc_proto",
         "@gz-plugin//:register",
         "@gz-transport",
