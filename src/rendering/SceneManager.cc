@@ -1037,34 +1037,48 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
   if (parent)
     name = parent->Name() +  "::" + name;
 
+  // Actors without a skin (e.g. actors made of links and visuals) can still
+  // follow a scripted trajectory, so only try to load the skin mesh if one
+  // has been specified.
+  const std::string &skinFilename = _actor.SkinFilename();
+  const bool hasSkin = !skinFilename.empty() && skinFilename != "__default__";
+
   rendering::MeshDescriptor descriptor;
-  descriptor.meshName = asFullPath(_actor.SkinFilename(), _actor.FilePath());
-  common::MeshManager *meshManager = common::MeshManager::Instance();
-  descriptor.mesh = meshManager->Load(descriptor.meshName);
   std::unordered_map<std::string, unsigned int> mapAnimNameId;
   common::SkeletonPtr meshSkel;
-  if (nullptr == descriptor.mesh)
+  if (!hasSkin)
   {
-    gzwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
-           << std::endl;
+    gzdbg << "Actor [" << _name << "] has no skin, only trajectory animation "
+          << "will be applied." << std::endl;
   }
   else
   {
-    // todo(anyone) create a copy of meshSkel so we don't modify the original
-    // when adding animations!
-    meshSkel = descriptor.mesh->MeshSkeleton();
-    if (nullptr == meshSkel)
+    descriptor.meshName = asFullPath(skinFilename, _actor.FilePath());
+    common::MeshManager *meshManager = common::MeshManager::Instance();
+    descriptor.mesh = meshManager->Load(descriptor.meshName);
+    if (nullptr == descriptor.mesh)
     {
-      gzwarn << "Mesh skeleton in [" << descriptor.meshName << "] not found."
+      gzwarn << "Actor skin mesh [" << descriptor.meshName << "] not found."
              << std::endl;
     }
     else
     {
-      this->dataPtr->actorSkeletons[_id] = meshSkel;
-      // Load all animations
-      mapAnimNameId = this->LoadAnimations(_actor);
-      if (mapAnimNameId.size() == 0)
-        return nullptr;
+      // todo(anyone) create a copy of meshSkel so we don't modify the original
+      // when adding animations!
+      meshSkel = descriptor.mesh->MeshSkeleton();
+      if (nullptr == meshSkel)
+      {
+        gzwarn << "Mesh skeleton in [" << descriptor.meshName << "] not found."
+               << std::endl;
+      }
+      else
+      {
+        this->dataPtr->actorSkeletons[_id] = meshSkel;
+        // Load all animations
+        mapAnimNameId = this->LoadAnimations(_actor);
+        if (mapAnimNameId.size() == 0)
+          return nullptr;
+      }
     }
   }
 
