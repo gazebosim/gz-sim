@@ -167,3 +167,32 @@ std::optional<std::chrono::steady_clock::duration> Actor::AnimationTime(
   return _ecm.ComponentData<components::AnimationTime>(
       this->dataPtr->id);
 }
+
+//////////////////////////////////////////////////
+void Actor::SetBoneTransforms(EntityComponentManager &_ecm,
+    const std::map<std::string, math::Pose3d> &_transforms)
+{
+  auto boneTransforms =
+    _ecm.Component<components::BoneTransforms>(this->dataPtr->id);
+
+  if (!boneTransforms)
+  {
+    _ecm.CreateComponent(
+        this->dataPtr->id,
+        components::BoneTransforms(_transforms));
+  }
+  else
+  {
+    boneTransforms->Data() = _transforms;
+    _ecm.SetChanged(this->dataPtr->id, components::BoneTransforms::typeId,
+        ComponentState::OneTimeChange);
+  }
+}
+
+//////////////////////////////////////////////////
+std::optional<std::map<std::string, math::Pose3d>> Actor::BoneTransforms(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::BoneTransforms>(
+      this->dataPtr->id);
+}

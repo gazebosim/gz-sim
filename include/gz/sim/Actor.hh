@@ -17,6 +17,7 @@
 #ifndef GZ_SIM_ACTOR_HH_
 #define GZ_SIM_ACTOR_HH_
 
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -151,6 +152,23 @@ namespace gz
       /// \return Animation time
       public: std::optional<std::chrono::steady_clock::duration> AnimationTime(
           const EntityComponentManager &_ecm) const;
+
+      /// \brief Set the local transforms of the actor's skeleton bones.
+      /// While set, the skeleton is posed from these transforms instead of
+      /// the animation selected with SetAnimationName and SetAnimationTime
+      /// or played by the SDF script. The actor keeps following its
+      /// trajectory.
+      /// \param[in] _ecm Entity Component manager.
+      /// \param[in] _transforms Bone name to pose relative to the bone's
+      /// parent
+      public: void SetBoneTransforms(EntityComponentManager &_ecm,
+          const std::map<std::string, math::Pose3d> &_transforms);
+
+      /// \brief Get the local transforms of the actor's skeleton bones.
+      /// \param[in] _ecm Entity-component manager.
+      /// \return Bone transforms, or nullopt if none were set
+      public: std::optional<std::map<std::string, math::Pose3d>>
+          BoneTransforms(const EntityComponentManager &_ecm) const;
 
       /// \brief Private data pointer.
       GZ_UTILS_IMPL_PTR(dataPtr)
