@@ -464,11 +464,8 @@ void FreeSpaceExplorer::PostUpdate(
 
   if (!this->dataPtr->grid.has_value())
   {
-    gzerr<< "Grid not yet inited";
     return;
   }
-
-
 
   double currAngle = scan.angle_min();
 
@@ -476,6 +473,10 @@ void FreeSpaceExplorer::PostUpdate(
   for (uint32_t index = 0; index < scan.count(); index++)
   {
     auto length = scan.ranges(index);
+    if (std::isinf(length))
+    {
+      length = scan.range_max();
+    }
     auto obstacleExists = length <= scan.range_max();
     length = (length > scan.range_max()) ? scan.range_max() : length;
     auto toX = length * cos(currAngle) + this->dataPtr->position.Pos().X();
@@ -494,7 +495,6 @@ void FreeSpaceExplorer::PostUpdate(
   {
     return;
   }
-
   if (this->dataPtr->CountReachableUnknowns() == 0)
   {
     std::vector<unsigned char> pixelData;
@@ -513,7 +513,6 @@ void FreeSpaceExplorer::PostUpdate(
   auto nextPos = this->dataPtr->GetNextPoint(scan);
   if(nextPos.has_value())
   {
-    gzmsg << "Setting next position " << nextPos->Pos() <<std::endl;
     this->dataPtr->nextPosition.push(nextPos.value());
   }
 
