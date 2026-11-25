@@ -19,6 +19,8 @@
 
 #include <gz/msgs/entity_factory.pb.h>
 
+#include <cstddef>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -28,11 +30,11 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -98,23 +100,14 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Create a system just to get the ECM
-  EntityComponentManager *ecm{nullptr};
-  test::Relay testSystem;
-  testSystem.OnPreUpdate([&](const UpdateInfo &,
-                             EntityComponentManager &_ecm)
-      {
-        ecm = &_ecm;
-      });
-
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check we have the ECM
-  EXPECT_EQ(nullptr, ecm);
   server.Run(true, 1, false);
-  EXPECT_NE(nullptr, ecm);
 
-  auto entityCount = ecm->EntityCount();
+  std::size_t entityCount{0};
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    entityCount = ecm->EntityCount();
+  }
 
   // Subscribe to the camera topic
   transport::Node node;
@@ -166,20 +159,28 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
   EXPECT_TRUE(res.data());
 
   // Check entity has not been created yet
-  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model")));
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+        components::Name("spawned_model")));
+  }
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
-  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
-  entityCount = ecm->EntityCount();
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(entityCount + 4, ecm->EntityCount());
+    entityCount = ecm->EntityCount();
 
-  auto model = ecm->EntityByComponents(components::Model(),
-      components::Name("spawned_model"));
-  EXPECT_NE(kNullEntity, model);
-  auto poseComp = ecm->Component<components::Pose>(model);
-  EXPECT_NE(nullptr, poseComp);
-  EXPECT_EQ(math::Pose3d(3, 0, 1, 0, 0, 0), poseComp->Data());
+    auto model = ecm->EntityByComponents(components::Model(),
+        components::Name("spawned_model"));
+    EXPECT_NE(kNullEntity, model);
+    auto poseComp = ecm->Component<components::Pose>(model);
+    ASSERT_NE(nullptr, poseComp);
+    EXPECT_EQ(math::Pose3d(3, 0, 1, 0, 0, 0), poseComp->Data());
+  }
 
   // Verify camera now sees a white box
   g_count = 0u;
@@ -212,28 +213,40 @@ TEST_F(MeshUriTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SpawnMeshByName))
   EXPECT_TRUE(res.data());
 
   // Check entity has not been created yet
-  EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
-      components::Name(spawnedModel2Name)));
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(kNullEntity, ecm->EntityByComponents(components::Model(),
+        components::Name(spawnedModel2Name)));
+  }
 
   // Run an iteration and check it was created
   server.Run(true, 1, false);
-  EXPECT_EQ(entityCount + 4, ecm->EntityCount());
-  entityCount = ecm->EntityCount();
+  Entity model2{kNullEntity};
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    EXPECT_EQ(entityCount + 4, ecm->EntityCount());
 
-  auto model2 = ecm->EntityByComponents(components::Model(),
-      components::Name(spawnedModel2Name));
-  EXPECT_NE(kNullEntity, model2);
+    model2 = ecm->EntityByComponents(components::Model(),
+        components::Name(spawnedModel2Name));
+    EXPECT_NE(kNullEntity, model2);
 
-  poseComp = ecm->Component<components::Pose>(model2);
-  EXPECT_NE(nullptr, poseComp);
-  EXPECT_EQ(math::Pose3d(3, 0, 5, 0, 0, 0), poseComp->Data());
+    auto poseComp = ecm->Component<components::Pose>(model2);
+    ASSERT_NE(nullptr, poseComp);
+    EXPECT_EQ(math::Pose3d(3, 0, 5, 0, 0, 0), poseComp->Data());
+  }
 
   // run and spawned model 2 should fall onto the previous box
   server.Run(true, 1000, false);
-  poseComp = ecm->Component<components::Pose>(model2);
-  EXPECT_NE(nullptr, poseComp);
-  EXPECT_EQ(math::Pose3d(3, 0, 2, 0, 0, 0), poseComp->Data()) <<
-    poseComp->Data();
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    auto poseComp = ecm->Component<components::Pose>(model2);
+    ASSERT_NE(nullptr, poseComp);
+    EXPECT_EQ(math::Pose3d(3, 0, 2, 0, 0, 0), poseComp->Data()) <<
+      poseComp->Data();
+  }
 
   delete [] imageBuffer;
   imageBuffer = nullptr;

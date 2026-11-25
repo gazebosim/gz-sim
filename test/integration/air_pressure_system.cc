@@ -27,10 +27,10 @@
 #include "gz/sim/components/AirPressureSensor.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -60,42 +60,6 @@ TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
   auto topic = "world/air_pressure_sensor/model/air_pressure_model/link/link/"
       "sensor/air_pressure_sensor/air_pressure";
 
-  bool updateChecked{false};
-
-  // Create a system that checks sensor topic
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::AirPressureSensor, components::Name>(
-            [&](const Entity &_entity,
-                const components::AirPressureSensor *,
-                const components::Name *_name) -> bool
-            {
-              EXPECT_EQ(_name->Data(), sensorName);
-
-              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-              EXPECT_NE(nullptr, sensorComp);
-
-              if (_info.iterations == 1)
-                return true;
-
-              // This component is created on the 2nd PreUpdate
-              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-              EXPECT_NE(nullptr, topicComp);
-              if (topicComp)
-              {
-                EXPECT_EQ(topic, topicComp->Data());
-              }
-
-              updateChecked = true;
-
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
-
   // Subscribe to air_pressure topic
   bool received{false};
   msgs::FluidPressure msg;
@@ -116,7 +80,23 @@ TEST_F(AirPressureTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(AirPressure))
 
   // Run server
   server.Run(true, 100, false);
-  EXPECT_TRUE(updateChecked);
+
+  // Check the sensor entity. The world shares the sensor's name, so the
+  // lookup also asks for the Sensor component to make sure we get the sensor.
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+
+    const Entity sensor = ecm->EntityByComponents(
+        components::Sensor(), components::Name(sensorName));
+    ASSERT_NE(kNullEntity, sensor);
+    EXPECT_NE(nullptr, ecm->Component<components::AirPressureSensor>(sensor));
+
+    // The topic component is only created after the first update
+    const auto *topicComp = ecm->Component<components::SensorTopic>(sensor);
+    ASSERT_NE(nullptr, topicComp);
+    EXPECT_EQ(topic, topicComp->Data());
+  }
 
   // Wait for message to be received
   for (int sleep = 0; !received && sleep < 30; ++sleep)

@@ -307,6 +307,7 @@ gz_sim_system_libraries(
             "src/systems/ackermann_steering/**/*.cc",
             "src/systems/ackermann_steering/**/*.hh",
         ],
+        exclude = ["src/systems/ackermann_steering/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-ackermann-steering-system.so",
     static_lib_name = "gz-sim-ackermann-steering-system-static",
@@ -320,6 +321,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+ackermann_steering_test_sources = glob([
+    "src/systems/ackermann_steering/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-ackermann-steering-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in ackermann_steering_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -694,6 +714,26 @@ detachable_joint_test_sources = glob([
 gz_sim_system_libraries(
     srcs = glob(
         [
+            "src/systems/dynamic_detachable_joint/**/*.cc",
+            "src/systems/dynamic_detachable_joint/**/*.hh",
+        ],
+    ),
+    so_lib_name = "gz-sim-dynamic-detachable-joint-system.so",
+    static_lib_name = "gz-sim-dynamic-detachable-joint-system-static",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":gz-sim",
+        "@gz-common//profiler",
+        "@gz-msgs//:gzmsgs_cc_proto",
+        "@gz-plugin//:register",
+        "@gz-transport",
+        "@sdformat",
+    ],
+)
+
+gz_sim_system_libraries(
+    srcs = glob(
+        [
             "src/systems/diff_drive/**/*.cc",
             "src/systems/diff_drive/**/*.hh",
         ],
@@ -737,6 +777,7 @@ gz_sim_system_libraries(
             "src/systems/drive_to_pose_controller/**/*.cc",
             "src/systems/drive_to_pose_controller/**/*.hh",
         ],
+        exclude = ["src/systems/drive_to_pose_controller/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-drive-to-pose-controller-system.so",
     static_lib_name = "gz-sim-drive-to-pose-controller-system-static",
@@ -752,6 +793,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+drive_to_pose_controller_test_sources = glob([
+    "src/systems/drive_to_pose_controller/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-drive-to-pose-controller-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in drive_to_pose_controller_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1084,6 +1144,7 @@ gz_sim_system_libraries(
             "src/systems/joint_traj_control/**/*.cc",
             "src/systems/joint_traj_control/**/*.hh",
         ],
+        exclude = ["src/systems/joint_traj_control/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-joint-trajectory-controller-system.so",
     static_lib_name = "gz-sim-joint-trajectory-controller-system-static",
@@ -1097,6 +1158,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+joint_traj_control_test_sources = glob([
+    "src/systems/joint_traj_control/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-joint-trajectory-controller-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in joint_traj_control_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1239,13 +1319,6 @@ gz_sim_system_libraries(
     ],
 )
 
-gz_export_header(
-    name = "LogicalAudioSensorSystemExport",
-    out = "include/gz/sim/logicalaudiosensorplugin-system/Export.hh",
-    export_base = "GZ_SIM_LOGICALAUDIOSENSORPLUGIN_SYSTEM",
-    lib_name = "gz-sim-logicalaudiosensorplugin-system",
-)
-
 gz_sim_system_libraries(
     srcs = glob(
         [
@@ -1253,7 +1326,7 @@ gz_sim_system_libraries(
             "src/systems/logical_audio_sensor_plugin/**/*.hh",
         ],
         exclude = ["src/systems/logical_audio_sensor_plugin/**/*_TEST.cc"],
-    ) + ["include/gz/sim/logicalaudiosensorplugin-system/Export.hh"],
+    ),
     so_lib_name = "gz-sim-logicalaudiosensorplugin-system.so",
     static_lib_name = "gz-sim-logicalaudiosensorplugin-system-static",
     visibility = ["//visibility:public"],
@@ -1379,6 +1452,7 @@ gz_sim_system_libraries(
             "src/systems/mecanum_drive/**/*.cc",
             "src/systems/mecanum_drive/**/*.hh",
         ],
+        exclude = ["src/systems/mecanum_drive/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-mecanum-drive-system.so",
     static_lib_name = "gz-sim-mecanum-drive-system-static",
@@ -1392,6 +1466,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+mecanum_drive_test_sources = glob([
+    "src/systems/mecanum_drive/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-mecanum-drive-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in mecanum_drive_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1815,6 +1908,7 @@ gz_sim_system_libraries(
             "src/systems/spacecraft_thruster_model/**/*.cc",
             "src/systems/spacecraft_thruster_model/**/*.hh",
         ],
+        exclude = ["src/systems/spacecraft_thruster_model/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-spacecraft-thruster-model-system.so",
     static_lib_name = "gz-sim-spacecraft-thruster-model-system-static",
@@ -1831,6 +1925,25 @@ gz_sim_system_libraries(
         "@sdformat",
     ],
 )
+
+spacecraft_thruster_model_test_sources = glob([
+    "src/systems/spacecraft_thruster_model/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-spacecraft-thruster-model-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in spacecraft_thruster_model_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
@@ -1968,6 +2081,7 @@ gz_sim_system_libraries(
             "src/systems/track_controller/**/*.cc",
             "src/systems/track_controller/**/*.hh",
         ],
+        exclude = ["src/systems/track_controller/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-track-controller-system.so",
     static_lib_name = "gz-sim-track-controller-system-static",
@@ -1983,12 +2097,32 @@ gz_sim_system_libraries(
     ],
 )
 
+track_controller_test_sources = glob([
+    "src/systems/track_controller/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-track-controller-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in track_controller_test_sources]
+
 gz_sim_system_libraries(
     srcs = glob(
         [
             "src/systems/tracked_vehicle/**/*.cc",
             "src/systems/tracked_vehicle/**/*.hh",
         ],
+        exclude = ["src/systems/tracked_vehicle/*_TEST.cc"],
     ),
     so_lib_name = "gz-sim-tracked-vehicle-system.so",
     static_lib_name = "gz-sim-tracked-vehicle-system-static",
@@ -2002,6 +2136,25 @@ gz_sim_system_libraries(
         "@gz-transport",
     ],
 )
+
+tracked_vehicle_test_sources = glob([
+    "src/systems/tracked_vehicle/*_TEST.cc",
+])
+
+[cc_test(
+    name = src.replace("/", "_").replace(".cc", "").replace("src_", ""),
+    srcs = [src],
+    copts = ["-Wno-private-header"],
+    deps = [
+        ":gz-sim",
+        ":gz-sim-tracked-vehicle-system-static",
+        "//test:Helpers",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+        "@gz-utils//:ExtraTestMacros",
+        "@sdformat",
+    ],
+) for src in tracked_vehicle_test_sources]
 
 gz_sim_system_libraries(
     srcs = glob(
