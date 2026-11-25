@@ -31,6 +31,7 @@
 #include <gz/math/Helpers.hh>
 
 #include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/components/ParentEntity.hh"
 
 namespace gz
 {
@@ -132,6 +133,17 @@ bool EntityComponentManager::SetComponentData(const Entity _entity,
 
   if (nullptr == comp)
   {
+    this->CreateComponent(_entity, ComponentTypeT(_data));
+    return true;
+  }
+
+  // The Children component is kept in sync by the ParentEntity construct /
+  // destroy hooks, which are not triggered when a value is updated in place.
+  // Recreate the component instead if the parent changed.
+  if constexpr (std::is_same_v<ComponentTypeT, components::ParentEntity>)
+  {
+    if (comp->Data() == _data)
+      return false;
     this->CreateComponent(_entity, ComponentTypeT(_data));
     return true;
   }

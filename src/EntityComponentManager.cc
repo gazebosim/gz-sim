@@ -1630,6 +1630,24 @@ void EntityComponentManager::SetState(
 
         this->CreateComponentImplementation(entity, type, newComp.get());
       }
+      else if (type == components::ParentEntity::typeId)
+      {
+        // The Children component is kept in sync by the ParentEntity
+        // construct / destroy hooks, which are not triggered when a value is
+        // updated in place. Recreate the component if the parent changed.
+        components::ParentEntity newParent;
+        newParent.Deserialize(istr);
+        const auto *parentComp =
+            static_cast<const components::ParentEntity *>(comp);
+        if (parentComp->Data() != newParent.Data())
+        {
+          this->CreateComponentImplementation(entity, type, &newParent);
+        }
+        else
+        {
+          this->dataPtr->AddModifiedComponent(entity);
+        }
+      }
       else
       {
         // Update component value
@@ -1725,6 +1743,30 @@ void EntityComponentManager::SetState(
 
         this->CreateComponentImplementation(
           entity, compMsg.type(), newComp.get());
+      }
+      else if (compIter.first == components::ParentEntity::typeId)
+      {
+        // The Children component is kept in sync by the ParentEntity
+        // construct / destroy hooks, which are not triggered when a value is
+        // updated in place. Recreate the component if the parent changed.
+        // Recreating marks it as a one time change, which is appropriate for
+        // a change in the entity hierarchy.
+        components::ParentEntity newParent;
+        newParent.Deserialize(istr);
+        const auto *parentComp =
+            static_cast<const components::ParentEntity *>(comp);
+        if (parentComp->Data() != newParent.Data())
+        {
+          this->CreateComponentImplementation(
+              entity, compIter.first, &newParent);
+        }
+        else
+        {
+          this->SetChanged(entity, compIter.first,
+              _stateMsg.has_one_time_component_changes() ?
+              ComponentState::OneTimeChange :
+              ComponentState::PeriodicChange);
+        }
       }
       else
       {

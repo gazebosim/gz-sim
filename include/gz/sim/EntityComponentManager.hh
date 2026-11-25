@@ -334,6 +334,9 @@ namespace gz
       /// * If the entity doesn't have that component, the component will be
       ///   created.
       /// * If the entity has the component, its data will be updated.
+      /// * As an exception, a changed components::ParentEntity is recreated
+      ///   rather than updated in place, so that the entity hierarchy stays
+      ///   in sync. The component is then marked as a one time change.
       /// \param[in] _entity The entity.
       /// \param[in] _data New component data
       /// \tparam ComponentTypeT Component type
