@@ -158,11 +158,29 @@ ToolBar {
         onTriggered: {
           animation.stop()
           _VideoRecorder.OnStop()
-          fileDialog.open()
+          if (!_VideoRecorder.HasSaveFilename()) {
+            fileDialog.open()
+          }
         }
       }
     }
 
+    Connections {
+      target: _VideoRecorder
+      function onRecordingChanged() {
+        if (_VideoRecorder.Recording()) {
+          animation.start()
+        } else {
+          animation.stop()
+        }
+      }
+    }
+
+    Component.onCompleted: {
+      if (_VideoRecorder.Recording()) {
+        animation.start()
+      }
+    }
 
     ToolButton {
       id: record
