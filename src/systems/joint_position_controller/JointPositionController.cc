@@ -522,7 +522,7 @@ void JointPositionController::PreUpdate(
 {
   GZ_PROFILE("JointPositionController::PreUpdate");
 
-  // \TODO(anyone) This is a temporary fix for
+  // \todo(anyone) This is a temporary fix for
   // gazebosim/gz-sim#2165 until gazebosim/gz-sim#2217 is resolved.
   if (kNullEntity == this->dataPtr->model.Entity())
   {
@@ -537,7 +537,7 @@ void JointPositionController::PreUpdate(
     return;
   }
 
-  // \TODO(anyone) Support rewind
+  // \todo(anyone) Support rewind
   if (_info.dt < std::chrono::steady_clock::duration::zero())
   {
     gzwarn << "Detected jump back in time ["
