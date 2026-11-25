@@ -1037,8 +1037,7 @@ rendering::VisualPtr SceneManager::CreateActor(Entity _id,
     common::MeshManager *meshManager = common::MeshManager::Instance();
     descriptor.mesh = meshManager->Load(descriptor.meshName);
   }
-
-  if (!hasSkin)
+  else
   {
     gzdbg << "Actor [" << _name << "] has no skin, only trajectory animation "
           << "will be applied." << std::endl;
