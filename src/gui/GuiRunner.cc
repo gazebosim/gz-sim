@@ -74,7 +74,7 @@ class gz::sim::GuiRunner::Implementation
   public: std::thread updateThread;
 
   /// \brief True if the initial state has been received and processed.
-  public: std::atomic<bool> receivedInitialState{false};
+  public: bool receivedInitialState{false};
 
   /// \brief Name of WorldControl service
   public: std::string controlService;
@@ -263,7 +263,12 @@ void GuiRunner::OnStateAsyncService(const msgs::SerializedStepMap &_res)
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+<<<<<<< HEAD
                             Q_ARG(msgs::SerializedStepMap, _res));
+=======
+                            Q_ARG(gz::msgs::SerializedStepMap, _res),
+                            Q_ARG(bool, true));
+>>>>>>> 3d7359ad (fix: Fixed data race for UI updates (#3751))
 
   // todo(anyone) store reqSrv string in a member variable and use it here
   // and in RequestState()
@@ -279,23 +284,31 @@ void GuiRunner::OnState(const msgs::SerializedStepMap &_msg)
   GZ_PROFILE_THREAD_NAME("GuiRunner::OnState");
   GZ_PROFILE("GuiRunner::Update");
 
-  // Only process state updates after initial state has been received.
-  if (!this->dataPtr->receivedInitialState)
-    return;
-
   // Since this function may be called from a transport thread, we push the
   // OnStateQt function to the queue so that its called from the Qt thread. This
   // ensures that only one thread has access to the ecm and updateInfo
   // variables.
   QMetaObject::invokeMethod(this, "OnStateQt", Qt::QueuedConnection,
+<<<<<<< HEAD
                             Q_ARG(msgs::SerializedStepMap, _msg));
+=======
+                            Q_ARG(gz::msgs::SerializedStepMap, _msg),
+                            Q_ARG(bool, false));
+>>>>>>> 3d7359ad (fix: Fixed data race for UI updates (#3751))
 }
 
 /////////////////////////////////////////////////
-void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg)
+void GuiRunner::OnStateQt(const msgs::SerializedStepMap &_msg, bool _fullState)
 {
   GZ_PROFILE_THREAD_NAME("Qt thread");
   GZ_PROFILE("GuiRunner::Update");
+
+  // Skip state updates until initial state is received
+  if (!_fullState && !this->dataPtr->receivedInitialState)
+  {
+    return;
+  }
+
   this->dataPtr->ecm.SetState(_msg.state());
 
   // Update all plugins
