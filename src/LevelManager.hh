@@ -98,7 +98,7 @@ namespace gz
       public: void ConfigureDefaultLevel();
 
       /// \brief Load entities that have been marked for loading.
-      /// \param[in] _namesToLoad List of of entity names to load
+      /// \param[in] _namesToLoad List of entity names to load
       private: void LoadActiveEntities(
           const std::set<std::string> &_namesToLoad);
 
