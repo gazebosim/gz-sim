@@ -66,6 +66,11 @@ namespace gz
     /// All edges are positive booleans.
     using EntityGraph = math::graph::DirectedGraph<Entity, bool>;
 
+    /// \brief Alias for a list of component types to exclude in ECM queries
+    /// (such as `EntityComponentManager::Each`).
+    template <typename... ComponentTypeTs>
+    using Exclude = entt::exclude_t<const ComponentTypeTs...>;
+
     namespace detail
     {
       class GroupQueuer;
