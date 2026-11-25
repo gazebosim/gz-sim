@@ -30,7 +30,6 @@
 #include <gz/utils/ImplPtr.hh>
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
-#include "gz/sim/System.hh"
 
 namespace gz
 {

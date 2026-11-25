@@ -24,6 +24,7 @@
 #include <gz/utils/ImplPtr.hh>
 #include "gz/sim/config.hh"
 #include "gz/sim/comms/MsgManager.hh"
+#include <gz/common/Console.hh>
 
 /// \brief Private MsgManager data class.
 class gz::sim::comms::MsgManager::Implementation

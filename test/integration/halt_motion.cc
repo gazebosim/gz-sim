@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/twist.pb.h>
 
 #include <gz/common/Console.hh>

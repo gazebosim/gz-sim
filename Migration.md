@@ -7,6 +7,27 @@ release will remove the deprecated code.
 
 ## Gazebo Sim 10.x to 11.0
 
+* **Header includes**
+  * To reduce compile times, several public headers no longer include
+    headers they don't use. Code that relied on these indirect includes
+    must now include what it uses, typically `gz/msgs/Utility.hh` (for
+    `msgs::Set` and `msgs::Convert`), `gz/sim/Conversions.hh` (for
+    `sim::convert`), `gz/common/Console.hh`, `gz/common/Mesh.hh`,
+    `gz/sim/components/Environment.hh`, specific `sdf/*.hh` headers or
+    specific `gz/msgs/*.pb.h` headers.
+    * The `StringSerializer` and `VectorSerializer` component serializers
+      moved to the new `gz/sim/components/BasicSerializers.hh`, and
+      `MsgSerializer` and `VectorDoubleSerializer` moved to the new
+      `gz/sim/components/MsgSerializers.hh`. `gz/sim/components/Serialization.hh`
+      still includes both. Components that use only these serializers (for
+      example `Name.hh` and the joint state components) now include the new
+      headers instead of `Serialization.hh`, so they no longer bring in
+      `gz/sim/Conversions.hh`, `gz/msgs/Utility.hh` or `sdf/Sensor.hh`.
+    * `gz/sim/Util.hh` forward declares `common::Mesh`, `sdf::Mesh` and
+      `components::EnvironmentalData` instead of including their headers.
+    * `gz/sim/comms/Broker.hh` no longer includes `sdf/sdf.hh`, and
+      `gz/sim/comms/MsgManager.hh` no longer includes `gz/sim/System.hh`.
+
 * **Removals**
   * **Hydrodynamics**: The `<water_density>` SDF parameter has been removed.
     It was loaded but never used in any computation because the stability

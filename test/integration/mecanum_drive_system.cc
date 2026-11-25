@@ -22,6 +22,7 @@
 #include <functional>
 #include <thread>
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/twist.pb.h>

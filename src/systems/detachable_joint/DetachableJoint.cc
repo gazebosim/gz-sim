@@ -34,6 +34,7 @@
 #include "gz/sim/Util.hh"
 
 #include "DetachableJoint.hh"
+#include <gz/msgs/stringmsg.pb.h>
 
 using namespace gz;
 using namespace sim;

@@ -25,13 +25,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include <gz/common/Mesh.hh>
 #include <gz/math/AxisAlignedBox.hh>
 #include <gz/math/Pose3.hh>
-#include <sdf/Mesh.hh>
 #include <sdf/config.hh>
 
-#include "gz/sim/components/Environment.hh"
 #include "gz/sim/config.hh"
 #include "gz/sim/Entity.hh"
 #include "gz/sim/EntityComponentManager.hh"
@@ -43,6 +40,26 @@ namespace sdf
   inline namespace SDF_VERSION_NAMESPACE
   {
     class Element;
+    class Mesh;
+  }
+}
+
+namespace gz
+{
+  namespace common
+  {
+    class Mesh;
+  }
+
+  namespace sim
+  {
+    inline namespace GZ_SIM_VERSION_NAMESPACE
+    {
+      namespace components
+      {
+        struct EnvironmentalData;
+      }
+    }
   }
 }
 

@@ -15,6 +15,7 @@
  *
 */
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/marker.pb.h>
 
 #include <mutex>

@@ -15,6 +15,7 @@
  *
  */
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/marker.pb.h>
 #include <gz/msgs/contact.pb.h>
 #include <gz/transport/Node.hh>

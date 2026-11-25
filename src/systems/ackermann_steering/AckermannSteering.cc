@@ -18,6 +18,7 @@
 
 #include "AckermannSteering.hh"
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 #include <gz/msgs/odometry.pb.h>
@@ -39,6 +40,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/Conversions.hh"
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/JointPosition.hh"

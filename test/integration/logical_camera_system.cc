@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/logical_camera_image.pb.h>
 
 #include <cstddef>

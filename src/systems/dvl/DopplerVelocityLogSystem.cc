@@ -27,6 +27,7 @@
 
 #include <gz/sim/components/AngularVelocity.hh>
 #include <gz/sim/components/CustomSensor.hh>
+#include "gz/sim/components/Environment.hh"
 #include <gz/sim/components/LinearVelocity.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>

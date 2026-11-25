@@ -27,6 +27,7 @@
 
 #include <gz/sim/Util.hh>
 
+#include <gz/common/Mesh.hh>
 #include <gz/common/MeshManager.hh>
 #include <gz/common/SubMesh.hh>
 
