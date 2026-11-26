@@ -92,6 +92,7 @@ set(tests
   timeline_publisher.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
+  trajectory_follower_system.cc
   triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc

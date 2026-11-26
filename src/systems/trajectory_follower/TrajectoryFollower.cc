@@ -375,22 +375,14 @@ void TrajectoryFollower::PreUpdate(
     return;
   }
 
-  // Transform from world to local frame.
-  auto comPose = this->dataPtr->link.WorldInertialPose(_ecm);
-  if (!comPose.has_value())
-  {
-    gzerr << "Failed to get CoM pose for link ["
-           << this->dataPtr->link.Entity() << "]" << std::endl;
-    return;
-  }
-
   // Transform the force and torque to the world frame.
+  const auto &linkRotation = this->dataPtr->modelPose.Rot();
   // Move commands. The vehicle always move forward (X direction).
   gz::math::Vector3d forceWorld;
   gz::math::Vector3d torqueWorld;
   if (std::abs(bearing.Degree()) <= this->dataPtr->bearingTolerance)
   {
-    forceWorld = (*comPose).Rot().RotateVector(
+    forceWorld = linkRotation.RotateVector(
       gz::math::Vector3d(this->dataPtr->forceToApply, 0, 0));
 
     // force angular velocity to be zero when bearing is reached
@@ -404,8 +396,8 @@ void TrajectoryFollower::PreUpdate(
   else
   {
     int sign = static_cast<int>(std::abs(bearing.Degree()) / bearing.Degree());
-    torqueWorld = (*comPose).Rot().RotateVector(
-       gz::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
+    torqueWorld = linkRotation.RotateVector(
+      gz::math::Vector3d(0, 0, sign * this->dataPtr->torqueToApply));
   }
 
   // Apply the force and torque at COM.
