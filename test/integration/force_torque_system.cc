@@ -34,6 +34,7 @@
 
 #include "helpers/Relay.hh"
 #include "helpers/EnvTestFixture.hh"
+#include "helpers/Subscription.hh"
 
 using namespace gz;
 using namespace sim;
@@ -177,4 +178,33 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(SensorPoseOffset))
     EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
     wrenches.clear();
   }
+
+  node.Unsubscribe("/force_torque3");
+
+  transport::Node rigNode;
+  Subscription<msgs::Wrench> originSubscription;
+  Subscription<msgs::Wrench> rotatedSubscription;
+  originSubscription.Subscribe(rigNode, "/force_torque4_origin", 1u);
+  rotatedSubscription.Subscribe(rigNode, "/force_torque4_offset_rotated", 1u);
+
+  // Collect both readings after the load settled during the earlier runs.
+  server.Run(true, iters, false);
+  ASSERT_EQ(3 * iters, *server.IterationCount());
+
+  ASSERT_TRUE(originSubscription.WaitForMessages(1, 30s));
+  ASSERT_TRUE(rotatedSubscription.WaitForMessages(1, 30s));
+  const auto originWrench = originSubscription.Last();
+  const auto rotatedWrench = rotatedSubscription.Last();
+
+  // The 2 kg load's center of mass is at (0.3, 0.1, 0) in joint axes.
+  const math::Vector3d expectedForce{0, 0, 19.6};
+  EXPECT_EQ(expectedForce, msgs::Convert(originWrench.force()));
+  EXPECT_NEAR(1.96, originWrench.torque().x(), 1e-3);
+  EXPECT_NEAR(-5.88, originWrench.torque().y(), 1e-3);
+  EXPECT_NEAR(0, originWrench.torque().z(), 1e-3);
+
+  EXPECT_EQ(expectedForce, msgs::Convert(rotatedWrench.force()));
+  EXPECT_NEAR(-3.92, rotatedWrench.torque().x(), 1e-3);
+  EXPECT_NEAR(-1.96, rotatedWrench.torque().y(), 1e-3);
+  EXPECT_NEAR(0, rotatedWrench.torque().z(), 1e-3);
 }
