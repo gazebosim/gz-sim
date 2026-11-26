@@ -444,6 +444,7 @@ TEST_F(ContactSystemTest,
     {
       ASSERT_EQ(1, contact.wrench_size());
       ASSERT_EQ(1, contact.normal_size());
+      ASSERT_EQ(1, contact.depth_size());
 
       EXPECT_NEAR(0.0, contact.wrench().Get(0).body_1_wrench().force().x(),
                   5e-2);
@@ -475,6 +476,7 @@ TEST_F(ContactSystemTest,
       EXPECT_NEAR(0.0, contact.normal().Get(0).y(), 5e-2);
       EXPECT_NEAR(_expectedNormalZ, contact.normal().Get(0).z(), 5e-2);
 
+      EXPECT_GE(contact.depth().Get(0), 0.0);
     }
   };
 
