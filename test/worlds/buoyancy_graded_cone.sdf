@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<!--
+  Stratified water with no air interface: default density below z -10,
+  lighter water above, so a submerged cone between -10 and the surface takes
+  its whole buoyant force through the layer above the last declared
+  interface. With the force applied at the shape centroid a neutral cone
+  whose center of mass sits at that centroid feels no moment; applied at the
+  shape origin it spins. See INTEGRATION_buoyancy GradedSubmergedConeBalanced.
+-->
+<sdf version="1.6">
+  <world name="buoyancy_graded_cone">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+    <plugin
+      filename="gz-sim-buoyancy-system"
+      name="gz::sim::systems::Buoyancy">
+      <graded_buoyancy>
+        <default_density>1025</default_density>
+        <density_change>
+          <above_depth>-10</above_depth>
+          <density>1000</density>
+        </density_change>
+      </graded_buoyancy>
+    </plugin>
+
+    <!-- Cone r 0.5, length 2: volume 0.5235987756 m^3, centroid a quarter
+         length below the origin. Mass = 1000 * volume for neutral buoyancy
+         in the upper layer; center of mass placed at the centroid. Pitched
+         90 degrees so an origin applied force would produce a moment arm. -->
+    <model name="cone">
+      <pose>0 0 -5 0 1.5707963267948966 0</pose>
+      <link name="link">
+        <inertial>
+          <pose>0 0 -0.5 0 0 0</pose>
+          <mass>523.5987755982988</mass>
+          <inertia>
+            <ixx>60</ixx><iyy>60</iyy><izz>30</izz>
+            <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cone><radius>0.5</radius><length>2</length></cone>
+          </geometry>
+        </collision>
+      </link>
+    </model>
+  </world>
+</sdf>
