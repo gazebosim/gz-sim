@@ -72,6 +72,10 @@ namespace systems
   ///     prefixed with the namespace if it does not start with `/`, or remains
   ///     unchanged if it starts with `/`.
   ///
+  /// - `<body_link>`: The name of the vehicle body link. Should be in between
+  ///   left and right tracks, center of this link will be the center of
+  ///   rotation. This element is optional, default is model's canonical link.
+  ///
   /// - `<tracks_separation>`: Distance between tracks, in meters. Required
   ///   parameter.
   ///
