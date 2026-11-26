@@ -30,11 +30,7 @@ understanding:
 - [Terminology](./terminology.html)
 - [Create system plugins](./createsystemplugins.html)
 
-<<<<<<< HEAD
-## Resources
-=======
 ## Additional References
->>>>>>> 3967729 (doc: resolve Doxygen section collision, ref parsing, and parameter warnings (#4230))
 
 Quick access to resources mentioned in this tutorial:
 - List of \ref gz::sim::components in the API
