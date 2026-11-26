@@ -231,7 +231,7 @@ void NetworkManagerPrimary::PopulateAffinities(
   // Previous performer-to-secondary mapping - may need updating
   std::map<Entity, std::string> pToSPrevious;
 
-  // Updated performer-to-level mapping - used to update affinities
+  // Updated level-to-performer mapping - used to update affinities
   std::map<Entity, std::set<Entity>> lToPNew;
 
   // All performers
@@ -265,20 +265,28 @@ void NetworkManagerPrimary::PopulateAffinities(
   // First assignment: distribute levels evenly across secondaries
   if (pToSPrevious.empty())
   {
+    // Ensure assignments are unique
+    std::map<Entity, std::string> pToS;
+
+    gzdbg << "Performer to secondary first assignment" << std::endl;
     auto secondaryIt = this->secondaries.begin();
 
     for (const auto &it : lToPNew)
     {
       for (const auto &performer : it.second)
       {
-        this->SetAffinity(performer, secondaryIt->second->prefix,
-            _msg.add_affinity());
+        if (pToS.find(performer) == pToS.end())
+        {
+          pToS[performer] = secondaryIt->second->prefix;
+          this->SetAffinity(performer, secondaryIt->second->prefix,
+              _msg.add_affinity());
+        }
 
         // Remove performers as they are assigned
         allPerformers.erase(performer);
       }
 
-      // Round-robin levels
+      // Round-robin secondaries
       secondaryIt++;
       if (secondaryIt == this->secondaries.end())
       {
@@ -289,10 +297,14 @@ void NetworkManagerPrimary::PopulateAffinities(
     // Also assign level-less performers
     for (auto performer : allPerformers)
     {
-      this->SetAffinity(performer, secondaryIt->second->prefix,
-          _msg.add_affinity());
+      if (pToS.find(performer) == pToS.end())
+      {
+        pToS[performer] = secondaryIt->second->prefix;
+        this->SetAffinity(performer, secondaryIt->second->prefix,
+            _msg.add_affinity());
+      }
 
-      // Round-robin performers
+      // Round-robin secondaries
       secondaryIt++;
       if (secondaryIt == this->secondaries.end())
       {

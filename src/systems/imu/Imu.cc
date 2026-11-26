@@ -230,7 +230,7 @@ void ImuPrivate::AddSensor(
   // frame like NED, that must be supplied to the IMU sensor,
   // otherwise orientations are reported w.r.t to the initial
   // orientation.
-  if (data.Element()->HasElement("imu")) {
+  if (data.Element() != nullptr && data.Element()->HasElement("imu")) {
     auto imuElementPtr = data.Element()->GetElement("imu");
     if (imuElementPtr->HasElement("orientation_reference_frame")) {
       double heading = 0.0;
