@@ -16,725 +16,764 @@
  */
 import QtQuick
 import QtQuick.Window 2.2
-
 import QtQuick.Controls
 import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
 
-import QtQml.Models 2.2
-
-// Wrap everything in a rectangle so that there are no transparent
-// areas at the end of the trees
 Rectangle {
   id: resourceSpawner
   color: Material.background
-  Layout.minimumWidth: 740
-  Layout.minimumHeight: 500
+  Layout.minimumWidth: 440
+  Layout.minimumHeight: 380
   anchors.fill: parent
 
-  /**
-   * Height of each item on the tree
-   */
-  property int treeItemHeight: 30;
+  readonly property bool isDark: Material.theme === Material.Dark
+  readonly property color surfaceColor: isDark ?
+    Material.color(Material.Grey, Material.Shade900) :
+    Material.color(Material.Grey, Material.Shade100)
+  readonly property color subtleBarColor: isDark ?
+    Material.color(Material.Grey, Material.Shade800) :
+    Material.color(Material.Grey, Material.Shade200)
+  readonly property color borderColor: isDark ?
+    Material.color(Material.Grey, Material.Shade700) :
+    Material.color(Material.Grey, Material.Shade300)
 
-  /**
-   * Height of each item on the grid
-   */
-  property int gridItemHeight: 155;
+  // Active unified source pill: "all", "local", "fuel", "cached", "favorites"
+  property string activeSource: "fuel"
+  property string currentOwner: "openrobotics"
+  property string currentLocalPath: ""
+  property bool listMode: false
+  property bool showRecentStrip: true
 
-  /**
-   * Width of each item on the grid
-   */
-  property int gridItemWidth: 200;
-
-  /**
-   * Currently selected path or owner
-   */
-  property string currentPath: "";
-
-  /**
-   * True when browsing Fuel resources, false for local paths
-   */
-  property bool browsingFuel: true;
-
-  /**
-   * Whether the recently spawned strip is expanded
-   */
-  property bool showRecentStrip: true;
-
-  /**
-   * Color for odd rows, according to theme
-   */
-  property color oddColor: (Material.theme == Material.Light) ?
-  Material.color(Material.Grey, Material.Shade100):
-  Material.color(Material.Grey, Material.Shade800);
-
-  /**
-   * Color for even rows, according to theme
-   */
-  property color evenColor: (Material.theme == Material.Light) ?
-  Material.color(Material.Grey, Material.Shade200):
-  Material.color(Material.Grey, Material.Shade900);
-
-  function windowWidth() {
-    return resourceSpawner.Window.window ? (resourceSpawner.Window.window.width) : 0
+  function selectSource(src) {
+    activeSource = src
+    _ResourceSpawner.OnSourceFilterChosen(src)
+    if (src === "fuel")
+      _ResourceSpawner.OnOwnerClicked(currentOwner)
+    else if (src === "local" && currentLocalPath !== "")
+      _ResourceSpawner.OnPathClicked(currentLocalPath)
+    _ResourceSpawner.DisplayResources()
+    gridView.currentIndex = -1
+    listView.currentIndex = -1
   }
 
-  function windowHeight() {
-    return resourceSpawner.Window.window ? (resourceSpawner.Window.window.height) : 0
-  }
-
-  SplitView {
+  ColumnLayout {
     anchors.fill: parent
-    orientation: Qt.Horizontal
+    spacing: 0
 
-    SplitView {
-      orientation: Qt.Vertical
-      Layout.minimumHeight: 400
-      SplitView.minimumWidth: 300
+    // Row 1: Search, Sort, View-mode toggle
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 52
+      color: surfaceColor
 
+      RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        spacing: 8
 
-      anchors.bottom: parent.bottom
-      anchors.top: parent.top
-      anchors.left: parent.left
-      height: parent.height
-      ColumnLayout {
-        id: localColumn
-        Layout.minimumHeight: 100
-        Layout.fillWidth: true
-
-        spacing: 0
+        // Rounded search input
         Rectangle {
-          id: localResourceLabel
-          color: evenColor
-          border.color: "gray"
-          border.width: 1
-          Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 35
           Layout.fillWidth: true
-          Layout.leftMargin: -border.width
-          Layout.rightMargin: -border.width
+          Layout.preferredHeight: 36
+          radius: 18
+          color: Material.background
+          border.width: searchField.activeFocus ? 2 : 1
+          border.color: searchField.activeFocus ? Material.accent : borderColor
 
-          Label {
-            padding: 5
-            text: "Local resources"
+          RowLayout {
             anchors.fill: parent
-            font.pointSize: 14
-          }
-        }
-        TreeView {
-          id: tree
-          model: PathList
-          Layout.fillWidth: true
-          Layout.fillHeight: true
-          Layout.alignment: Qt.AlignCenter
-          Layout.minimumHeight: 100
+            anchors.leftMargin: 12
+            anchors.rightMargin: 8
+            spacing: 6
 
+            Image {
+              source: "qrc:/qml/images/search.svg"
+              sourceSize.width: 16
+              sourceSize.height: 16
+              opacity: 0.6
+            }
 
-          selectionModel: ItemSelectionModel {
-            model: PathList
-          }
+            TextInput {
+              id: searchField
+              Layout.fillWidth: true
+              verticalAlignment: TextInput.AlignVCenter
+              selectByMouse: true
+              clip: true
+              color: isDark ? "white" : "black"
+              font.pointSize: 10
 
-          palette {
-            base: oddColor
-            alternateBase: evenColor
-            highlight: Material.accent
-            windowText: "black"
-          }
-
-          delegate: TreeViewDelegate {
-            id: treeDelegate
-            implicitWidth: localResourceLabel.width
-            leftMargin: 0
-            rightMargin: 0
-            indentation: 20
-            spacing: 0
-
-            indicator: Rectangle {
-              x: leftMargin + (depth * indentation)
-              height: treeItemHeight
-              width: treeItemHeight * 0.75
-              color:  "transparent"
-              Image {
-                id: indicatorIcon
-                sourceSize.height: treeItemHeight * 0.6
-                sourceSize.width: treeItemHeight * 0.6
-                fillMode: Image.Pad
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.right
-                source: tree.isExpanded(row) ?
-                    "qrc:/Gazebo/images/chevron-down.svg" : "qrc:/Gazebo/images/chevron-right.svg"
-              }
-              MouseArea {
+              Text {
                 anchors.fill: parent
-                hoverEnabled: true
-                propagateComposedEvents: true
-                onClicked: mouse => {
-                  // Stop the event propagation. The TreeView's own collapsible
-                  // behaviour gets messy otherwise.
-                  mouse.accepted = true
-                  if (tree.isExpanded(row))
-                    tree.collapse(row)
-                  else
-                    tree.expand(row)
-                }
+                verticalAlignment: Text.AlignVCenter
+                text: "Search models, owners, categories..."
+                color: isDark ? "#88ffffff" : "#66000000"
+                font.pointSize: 10
+                visible: searchField.text === ""
+              }
+
+              onTextEdited: {
+                _ResourceSpawner.OnSearchEntered(searchField.text)
+                _ResourceSpawner.DisplayResources()
               }
             }
 
-            contentItem : Rectangle {
-              id: localItem
-              color: "transparent"
-              implicitHeight: treeItemHeight
-              anchors.margins: 0
-
-              Image {
-                id: dirIcon
-                sourceSize.height: treeItemHeight * 0.6
-                sourceSize.width: treeItemHeight * 0.6
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.left: parent.left
-                source: treeDelegate.selected ?
-                        "folder_open.png" : "folder_closed.png"
+            ToolButton {
+              visible: searchField.text !== ""
+              implicitWidth: 24
+              implicitHeight: 24
+              padding: 0
+              text: "\u2715"
+              font.pointSize: 9
+              onClicked: {
+                searchField.text = ""
+                _ResourceSpawner.OnSearchEntered("")
+                _ResourceSpawner.DisplayResources()
               }
+            }
+          }
+        }
 
-              Label {
-                text: (model === null) ? "" : model.path
-                elide: Text.ElideMiddle
-                font.pointSize: 12
-                anchors.leftMargin: 1
-                anchors.left: dirIcon.right
-                anchors.verticalCenter: parent.verticalCenter
-                leftPadding: 2
+        // Sort ComboBox
+        ComboBox {
+          id: sortComboBox
+          Layout.preferredWidth: 145
+          Layout.preferredHeight: 36
+          model: ["Most Recent", "Popular", "A - Z", "Z - A", "Downloaded"]
+          onActivated: {
+            _ResourceSpawner.OnSortChosen(currentText)
+            _ResourceSpawner.DisplayResources()
+          }
+        }
+
+        // Grid / List toggle
+        Rectangle {
+          Layout.preferredHeight: 34
+          Layout.preferredWidth: 68
+          radius: 6
+          color: subtleBarColor
+          border.color: borderColor
+          border.width: 1
+
+          RowLayout {
+            anchors.fill: parent
+            anchors.margins: 2
+            spacing: 2
+
+            ToolButton {
+              Layout.fillWidth: true
+              Layout.fillHeight: true
+              padding: 0
+              text: "\u25A6"
+              font.pointSize: 13
+              ToolTip.text: "Grid view"
+              ToolTip.visible: hovered
+              background: Rectangle {
+                radius: 4
+                color: !resourceSpawner.listMode ? Material.accent : "transparent"
               }
+              onClicked: resourceSpawner.listMode = false
+            }
 
-              MouseArea {
-                id: ma
-                anchors.fill: parent
-                propagateComposedEvents: true
-                hoverEnabled: true
-                onClicked: (mouse) => {
-                  _ResourceSpawner.OnPathClicked(model.path);
-                  _ResourceSpawner.DisplayResources();
-                  currentPath = model.path
-                  browsingFuel = false
-                  gridView.currentIndex = -1
-                  mouse.accepted = false
-
-                  var mi = treeDelegate.treeView.modelIndex(Qt.point(column, row))
-                  tree.selectionModel.select(mi, ItemSelectionModel.ClearAndSelect)
-                }
+            ToolButton {
+              Layout.fillWidth: true
+              Layout.fillHeight: true
+              padding: 0
+              text: "\u2630"
+              font.pointSize: 12
+              ToolTip.text: "List view"
+              ToolTip.visible: hovered
+              background: Rectangle {
+                radius: 4
+                color: resourceSpawner.listMode ? Material.accent : "transparent"
               }
-
-              ToolTip {
-                visible: ma.containsMouse
-                delay: 500
-                y: localItem.z - 30
-                text: model === null ?
-                "?" : model.path
-                enter: null
-                exit: null
-              }
+              onClicked: resourceSpawner.listMode = true
             }
           }
         }
       }
+    }
+
+    // Row 2: Unified source filter pills
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 42
+      color: surfaceColor
+
+      Flickable {
+        anchors.fill: parent
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        contentWidth: pillRow.implicitWidth
+        contentHeight: height
+        clip: true
+        flickableDirection: Flickable.HorizontalFlick
+
+        RowLayout {
+          id: pillRow
+          anchors.verticalCenter: parent.verticalCenter
+          spacing: 6
+
+          // All pill
+          Button {
+            text: "All"
+            flat: activeSource !== "all"
+            highlighted: activeSource === "all"
+            implicitHeight: 30
+            font.pointSize: 9
+            onClicked: selectSource("all")
+          }
+
+          // Local pill (opens path selector if clicked while active and multiple paths exist)
+          Button {
+            id: localPill
+            text: "Local (" + _ResourceSpawner.localCount + ")" +
+                  (PathList.rowCount() > 1 ? " \u25BE" : "")
+            flat: activeSource !== "local"
+            highlighted: activeSource === "local"
+            implicitHeight: 30
+            font.pointSize: 9
+            onClicked: {
+              if (activeSource === "local" && PathList.rowCount() > 1)
+                localPathPopup.open()
+              else {
+                currentLocalPath = ""
+                selectSource("local")
+              }
+            }
+          }
+
+          // Fuel owner pill (switches to Fuel, or opens Owner picker popup)
+          Button {
+            id: fuelPill
+            text: "Fuel: " + currentOwner + " \u25BE"
+            flat: activeSource !== "fuel"
+            highlighted: activeSource === "fuel"
+            implicitHeight: 30
+            font.pointSize: 9
+            onClicked: {
+              if (activeSource === "fuel")
+                ownerPopup.open()
+              else
+                selectSource("fuel")
+            }
+          }
+
+          // Cached pill
+          Button {
+            text: "Cached"
+            flat: activeSource !== "cached"
+            highlighted: activeSource === "cached"
+            implicitHeight: 30
+            font.pointSize: 9
+            onClicked: selectSource("cached")
+          }
+
+          // Favorites pill
+          Button {
+            text: "\u2605 Favorites"
+            flat: activeSource !== "favorites"
+            highlighted: activeSource === "favorites"
+            implicitHeight: 30
+            font.pointSize: 9
+            onClicked: selectSource("favorites")
+          }
+        }
+      }
+
+      Rectangle {
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 1
+        color: borderColor
+      }
+    }
+
+    // Row 3: Collapsible Recently Spawned quick-access strip
+    Rectangle {
+      id: recentStrip
+      visible: RecentResourceList.totalCount > 0
+      Layout.fillWidth: true
+      Layout.preferredHeight: showRecentStrip ? 56 : 24
+      color: subtleBarColor
 
       ColumnLayout {
-        id: fuelColumn
-        Layout.minimumHeight: 100
-        spacing: 0
-        Rectangle {
-          color: evenColor
-          border.color: "gray"
-          Layout.alignment: Qt.AlignLeft
-          Layout.preferredHeight: 35
+        anchors.fill: parent
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        anchors.topMargin: 2
+        anchors.bottomMargin: 4
+        spacing: 2
+
+        RowLayout {
           Layout.fillWidth: true
-          border.width: 1
-          Layout.leftMargin: -border.width
-          Layout.rightMargin: -border.width
-          Layout.topMargin: -border.width
           Label {
-            text: "Fuel resources"
-            padding: 5
-            anchors.fill: parent
-            font.pointSize: 14
+            text: "Recent (" + RecentResourceList.totalCount + ")"
+            font.pointSize: 9
+            font.bold: true
+            opacity: 0.75
+          }
+          Item { Layout.fillWidth: true }
+          ToolButton {
+            text: showRecentStrip ? "Hide" : "Show"
+            font.pointSize: 8
+            implicitHeight: 20
+            padding: 2
+            onClicked: showRecentStrip = !showRecentStrip
           }
         }
 
         ListView {
-          id: listView
-          model: OwnerList
+          visible: showRecentStrip
           Layout.fillWidth: true
           Layout.fillHeight: true
-          Layout.minimumWidth: 300
+          orientation: ListView.Horizontal
+          spacing: 6
           clip: true
-
-          ScrollBar.vertical: ScrollBar {
-            active: true;
-          }
+          model: RecentResourceList
 
           delegate: Rectangle {
-            id: fuelItem2
-            color: ListView.view.currentIndex == index ? Material.accent : (index % 2 == 0) ? evenColor : oddColor
-            height: treeItemHeight
-            width: ListView.view.width
-            ListView.onAdd : {
-              ListView.view.currentIndex = index
-            }
+            height: 26
+            width: Math.min(160, recentLabel.implicitWidth + 22)
+            radius: 13
+            color: recentMa.containsMouse ? Material.accent : surfaceColor
+            border.color: borderColor
+            border.width: 1
 
-            ListView.onCurrentItemChanged: {
-              if (index >= 0) {
-                currentPath = model.path
-                browsingFuel = true
-                _ResourceSpawner.OnOwnerClicked(model.path)
-                _ResourceSpawner.DisplayResources();
-                tree.selectionModel.clearSelection()
-                gridView.currentIndex = -1
-              }
+            Label {
+              id: recentLabel
+              anchors.centerIn: parent
+              width: parent.width - 14
+              text: model.name
+              elide: Text.ElideRight
+              font.pointSize: 9
+              horizontalAlignment: Text.AlignHCenter
             }
 
             MouseArea {
+              id: recentMa
               anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
               onClicked: {
-                listView.currentIndex = index
-              }
-            }
-
-            RowLayout {
-              anchors.fill: parent
-              anchors.leftMargin: 10
-              anchors.rightMargin: 10
-              clip: true
-
-              Image {
-                id: dirIcon2
-                source: listView.currentIndex == index ? "folder_open.png" : "folder_closed.png"
-                Layout.preferredHeight: treeItemHeight * 0.6
-                Layout.preferredWidth: treeItemHeight * 0.6
-              }
-
-              Label {
-                text: model.path
-                Layout.fillWidth: true
-                elide: Text.ElideMiddle
-                font.pointSize: 12
-                leftPadding: 2
-              }
-
-              Button {
-                // unicode for emdash (—)
-                text: "\u2014"
-                flat: true
-                Layout.fillHeight : true
-                Layout.preferredWidth: 30
-                visible: !_ResourceSpawner.IsDefaultOwner(model.path)
-
-                onClicked: {
-                  _ResourceSpawner.RemoveOwner(model.path)
-                }
+                _ResourceSpawner.RecordRecentSpawn(
+                  model.sdf, model.name, model.owner, model.thumbnailUrl)
+                _ResourceSpawner.OnResourceSpawn(model.sdf)
               }
             }
           }
         }
+      }
+    }
 
-        // Add owner button
-        Rectangle {
-          id: addOwnerBar
-          color: evenColor
-          Layout.minimumHeight: 50
-          Layout.fillWidth: true
-          clip:true
+    // Main content area: Responsive GridView or compact ListView
+    Item {
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+
+      // Empty / loading state
+      ColumnLayout {
+        anchors.centerIn: parent
+        visible: ResourceList.totalCount === 0
+        spacing: 8
+
+        BusyIndicator {
+          Layout.alignment: Qt.AlignHCenter
+          running: _ResourceSpawner.isFetching
+          visible: _ResourceSpawner.isFetching
+        }
+
+        Label {
+          Layout.alignment: Qt.AlignHCenter
+          text: _ResourceSpawner.isFetching ?
+            "Loading models from Fuel..." :
+            (searchField.text !== "" ?
+              "No models match \"" + searchField.text + "\"" :
+              (activeSource === "favorites" ?
+                "No favorites yet — click \u2606 on any card to pin it here." :
+                "No models found in this view."))
+          opacity: 0.7
+          font.pointSize: 11
+        }
+      }
+
+      // Responsive GridView
+      GridView {
+        id: gridView
+        anchors.fill: parent
+        anchors.margins: 6
+        visible: !resourceSpawner.listMode
+        model: ResourceList
+        readonly property int columns: Math.max(1, Math.floor(width / 195))
+        cellWidth: Math.floor(width / columns)
+        cellHeight: 185
+        currentIndex: -1
+        clip: true
+
+        ScrollBar.vertical: ScrollBar { active: true }
+
+        delegate: ResourceCard {
+          required property int index
+          required property var model
+
+          width: gridView.cellWidth
+          height: gridView.cellHeight
+          resourceName: model.name
+          ownerName: model.owner
+          sdfPath: model.sdf
+          thumbnailUrl: model.thumbnailUrl
+          category: model.category
+          formattedFileSize: model.formattedFileSize
+          isFuel: model.isFuel
+          isDownloaded: model.isDownloaded
+          isDownloading: model.isDownloading
+          isFavorite: model.isFavorite
+          downloadCount: model.downloadCount
+          resourceIndex: model.index
+          selected: gridView.currentIndex === index
+
+          onSpawnRequested: {
+            _ResourceSpawner.RecordRecentSpawn(
+              model.sdf, model.name, model.owner, model.thumbnailUrl)
+            _ResourceSpawner.OnResourceSpawn(model.sdf)
+            gridView.currentIndex = index
+          }
+
+          onDownloadRequested: (spawnAfter) => {
+            _ResourceSpawner.OnDownloadFuelResource(
+              model.sdf, model.name, model.owner, model.index, spawnAfter)
+          }
+
+          onFavoriteToggled: {
+            _ResourceSpawner.ToggleFavorite(model.owner, model.name)
+          }
+        }
+      }
+
+      // Compact ListView mode
+      ListView {
+        id: listView
+        anchors.fill: parent
+        anchors.margins: 6
+        visible: resourceSpawner.listMode
+        model: ResourceList
+        spacing: 4
+        currentIndex: -1
+        clip: true
+
+        ScrollBar.vertical: ScrollBar { active: true }
+
+        delegate: Rectangle {
+          width: listView.width - 10
+          height: 54
+          radius: 6
+          color: listView.currentIndex === index ? Material.accent :
+                 (rowMa.containsMouse ? subtleBarColor : surfaceColor)
+          border.color: borderColor
+          border.width: 1
+
           RowLayout {
             anchors.fill: parent
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
+            anchors.margins: 6
             spacing: 10
 
-            TextField {
-              Layout.fillWidth: true
-              id: ownerInput
-              selectByMouse: true
-              color: Material.theme == Material.Light ? "black" : "white"
-              placeholderText: "Add owner"
-              function processInput() {
-                if (text != "" && _ResourceSpawner.AddOwner(text)) {
-                  text = ""
-                }
-              }
-              onAccepted: {
-                processInput();
-              }
-            }
+            Item {
+              Layout.preferredWidth: 52
+              Layout.preferredHeight: 40
 
-            RoundButton {
-              Material.background: Material.Green
-              contentItem: Label {
-                text: "+"
-                color: "white"
-                font.pointSize: 30
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-              }
-              padding: 0
-              onClicked: {
-                ownerInput.processInput()
-              }
-            }
-          }
-        }
-      }
-    } // SplitView
-
-    ColumnLayout {
-      Layout.minimumWidth: 300
-      Layout.fillWidth: true
-      spacing: 0
-      Rectangle {
-        id: searchSortBar
-        color: evenColor
-        height: 50
-        Layout.minimumWidth: 290
-        Layout.minimumHeight: 50
-        Layout.fillWidth: true
-        RowLayout {
-          id: rowLayout
-          spacing: 7
-          anchors.fill: parent
-          Rectangle {
-            color: "transparent"
-            height: 25
-            width: 25
-            Layout.leftMargin: 15
-            Image {
-              id: searchIcon
-              source: "qrc:/qml/images/search.svg"
-              anchors.verticalCenter: parent.verticalCenter
-            }
-          }
-          Rectangle {
-            color: oddColor
-            height: 35
-            Layout.minimumWidth: 100
-            Layout.minimumHeight: 30
-            Layout.preferredWidth: (searchSortBar.width - 80) / 2
-            TextInput {
-              id: searchField
-              anchors.fill: parent
-              topPadding: 8
-              leftPadding: 5
-              selectByMouse: true
-              color: Material.theme == Material.Light ? "black" : "white"
-              onTextEdited: {
-                _ResourceSpawner.OnSearchEntered(searchField.text);
-                _ResourceSpawner.DisplayResources();
-              }
-            }
-          }
-          Rectangle {
-            color: "transparent"
-            implicitHeight: sortComboBox.implicitHeight
-            Layout.minimumWidth: 140
-            Layout.preferredWidth: (searchSortBar.width - 80) / 2
-            ComboBox {
-              id: sortComboBox
-              anchors.fill: parent
-              model: ListModel {
-                id: cbItems
-                ListElement { text: "Most Recent"}
-                ListElement { text: "A - Z"}
-                ListElement { text: "Z - A"}
-                ListElement { text: "Downloaded"}
-              }
-              onActivated: {
-                _ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
-                _ResourceSpawner.DisplayResources();
-              }
-            }
-          }
-        }
-      }
-
-      Rectangle {
-        Layout.fillWidth: true
-        Layout.minimumWidth: 300
-        height: 40
-        color: Material.accent
-        Label {
-          text: currentPath ?
-            (browsingFuel ? "Owner: " : "Path: ") + currentPath +
-            " (" + gridView.model.totalCount + ")" : ""
-          font.pointSize: 12
-          elide: Text.ElideMiddle
-          anchors.margins: 5
-          anchors.verticalCenter: parent.verticalCenter
-          anchors.left: parent.left
-          anchors.right: parent.right
-        }
-      }
-
-      // Collapsible Recently Spawned quick-access strip
-      Rectangle {
-        id: recentStrip
-        visible: RecentResourceList.totalCount > 0
-        Layout.fillWidth: true
-        Layout.preferredHeight: showRecentStrip ? 64 : 26
-        color: oddColor
-
-        ColumnLayout {
-          anchors.fill: parent
-          anchors.leftMargin: 8
-          anchors.rightMargin: 8
-          anchors.topMargin: 2
-          anchors.bottomMargin: 4
-          spacing: 2
-
-          RowLayout {
-            Layout.fillWidth: true
-            Label {
-              text: "Recent (" + RecentResourceList.totalCount + ")"
-              font.pointSize: 10
-              font.bold: true
-              opacity: 0.75
-            }
-            Item { Layout.fillWidth: true }
-            ToolButton {
-              text: showRecentStrip ? "Hide" : "Show"
-              font.pointSize: 9
-              implicitHeight: 22
-              onClicked: showRecentStrip = !showRecentStrip
-            }
-          }
-
-          ListView {
-            visible: showRecentStrip
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            orientation: ListView.Horizontal
-            spacing: 6
-            clip: true
-            model: RecentResourceList
-
-            delegate: Rectangle {
-              height: 30
-              width: Math.min(160, recentLabel.implicitWidth + 24)
-              radius: 15
-              color: recentMa.containsMouse ? Material.accent : evenColor
-              border.color: Material.frameColor
-              border.width: 1
-
-              Label {
-                id: recentLabel
-                anchors.centerIn: parent
-                width: parent.width - 16
-                text: model.name
-                elide: Text.ElideRight
-                font.pointSize: 10
-                horizontalAlignment: Text.AlignHCenter
-              }
-
-              MouseArea {
-                id: recentMa
+              Image {
+                id: rowThumb
                 anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
+                asynchronous: true
+                cache: true
+                sourceSize.width: 64
+                sourceSize.height: 48
+                source: model.thumbnailUrl
+                visible: model.thumbnailUrl !== "" && status === Image.Ready
+                fillMode: Image.PreserveAspectFit
+              }
+
+              ResourceFallbackVisual {
+                anchors.fill: parent
+                visible: !rowThumb.visible
+                resourceName: model.name
+                category: model.category
+                loading: model.thumbnailUrl !== "" &&
+                         rowThumb.status === Image.Loading
+              }
+            }
+
+            ColumnLayout {
+              Layout.fillWidth: true
+              spacing: 1
+              Label {
+                Layout.fillWidth: true
+                text: model.name
+                font.bold: true
+                font.pointSize: 10
+                elide: Text.ElideRight
+              }
+              Label {
+                Layout.fillWidth: true
+                text: (model.isFuel ? model.owner : "Local") +
+                      (model.formattedFileSize !== "" ?
+                        (" \u00B7 " + model.formattedFileSize) : "")
+                font.pointSize: 8
+                opacity: 0.7
+                elide: Text.ElideRight
+              }
+            }
+
+            BusyIndicator {
+              visible: model.isDownloading
+              running: model.isDownloading
+              implicitWidth: 24
+              implicitHeight: 24
+            }
+
+            Button {
+              visible: !model.isDownloading
+              text: (!model.isFuel || model.isDownloaded) ? "+ Spawn" : "\u2B07 Get"
+              implicitHeight: 28
+              font.pointSize: 9
+              onClicked: {
+                if (!model.isFuel || model.isDownloaded) {
                   _ResourceSpawner.RecordRecentSpawn(
                     model.sdf, model.name, model.owner, model.thumbnailUrl)
                   _ResourceSpawner.OnResourceSpawn(model.sdf)
+                  listView.currentIndex = index
+                } else {
+                  _ResourceSpawner.OnDownloadFuelResource(
+                    model.sdf, model.name, model.owner, model.index, true)
                 }
+              }
+            }
+
+            ToolButton {
+              implicitWidth: 28
+              implicitHeight: 28
+              padding: 0
+              text: model.isFavorite ? "\u2605" : "\u2606"
+              font.pointSize: 13
+              onClicked: _ResourceSpawner.ToggleFavorite(model.owner, model.name)
+            }
+          }
+
+          MouseArea {
+            id: rowMa
+            anchors.fill: parent
+            z: -1
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+              if (model.isDownloading)
+                return
+              if (!model.isFuel || model.isDownloaded) {
+                _ResourceSpawner.RecordRecentSpawn(
+                  model.sdf, model.name, model.owner, model.thumbnailUrl)
+                _ResourceSpawner.OnResourceSpawn(model.sdf)
+                listView.currentIndex = index
+              } else {
+                _ResourceSpawner.OnDownloadFuelResource(
+                  model.sdf, model.name, model.owner, model.index, true)
               }
             }
           }
         }
       }
+    }
+
+    // Footer status bar
+    Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 28
+      color: surfaceColor
 
       Rectangle {
-        Layout.fillHeight: true
-        Layout.fillWidth: true
-        color: Material.background
-        GridView {
-          id: gridView
-          model: ResourceList
-          cellWidth: gridItemWidth
-          cellHeight: gridItemHeight
-          currentIndex: -1
-          clip: true
-          anchors.fill: parent
-          anchors.margins: 5
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 1
+        color: borderColor
+      }
 
-          ScrollBar.vertical: ScrollBar {
-            active: true;
+      RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        spacing: 8
+
+        Label {
+          text: "Showing " + ResourceList.totalCount + " model" +
+                (ResourceList.totalCount === 1 ? "" : "s") +
+                " \u00B7 Click or drag onto the 3D scene to place"
+          font.pointSize: 9
+          opacity: 0.7
+          elide: Text.ElideRight
+          Layout.fillWidth: true
+        }
+
+        BusyIndicator {
+          visible: _ResourceSpawner.isFetching
+          running: _ResourceSpawner.isFetching
+          implicitWidth: 18
+          implicitHeight: 18
+        }
+      }
+    }
+  }
+
+  // Fuel Owner selector & manager popup
+  Popup {
+    id: ownerPopup
+    x: fuelPill.x + 10
+    y: 94
+    width: 280
+    height: Math.min(320, ownerListPopup.contentHeight + 90)
+    padding: 8
+    modal: false
+    focus: true
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+    ColumnLayout {
+      anchors.fill: parent
+      spacing: 6
+
+      Label {
+        text: "Fuel Owners"
+        font.bold: true
+        font.pointSize: 10
+      }
+
+      ListView {
+        id: ownerListPopup
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        model: OwnerList
+        clip: true
+        spacing: 2
+
+        delegate: Rectangle {
+          width: ownerListPopup.width
+          height: 32
+          radius: 4
+          color: currentOwner === model.path ? Material.accent :
+                 (ownerRowMa.containsMouse ? subtleBarColor : "transparent")
+
+          RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 8
+            anchors.rightMargin: 4
+            spacing: 4
+
+            Label {
+              Layout.fillWidth: true
+              text: model.path
+              elide: Text.ElideMiddle
+              font.pointSize: 10
+            }
+
+            ToolButton {
+              visible: !_ResourceSpawner.IsDefaultOwner(model.path)
+              text: "\u2715"
+              implicitWidth: 24
+              implicitHeight: 24
+              padding: 0
+              onClicked: _ResourceSpawner.RemoveOwner(model.path)
+            }
           }
 
-          delegate: Item {
-            id: itemDelegate
-            width: gridView.cellWidth
-            height: gridView.cellHeight
-
-            Rectangle {
-              id: cardRect
-              anchors.fill: parent
-              anchors.margins: 4
-              radius: 6
-              color: gridView.currentIndex == index ? Material.accent :
-                     (ma2.containsMouse ? evenColor : Material.background)
-              border.width: (gridView.currentIndex == index || ma2.containsMouse) ? 2 : 1
-              border.color: (gridView.currentIndex == index || ma2.containsMouse) ?
-                            Material.accent : Material.frameColor
-
-              ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 6
-                spacing: 4
-
-                RowLayout {
-                  Layout.fillWidth: true
-                  spacing: 4
-                  Label {
-                    text: model.name
-                    font.pointSize: 11
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                  }
-                  ToolButton {
-                    id: favBtn
-                    implicitWidth: 24
-                    implicitHeight: 24
-                    padding: 0
-                    z: 2
-                    text: model.isFavorite ? "\u2605" : "\u2606"
-                    font.pointSize: 12
-                    opacity: (model.isFavorite || ma2.containsMouse) ? 1.0 : 0.35
-                    ToolTip.text: model.isFavorite ? "Remove favorite" : "Add favorite"
-                    ToolTip.visible: hovered
-                    onClicked: {
-                      _ResourceSpawner.ToggleFavorite(model.owner, model.name)
-                    }
-                  }
-                }
-
-                Item {
-                  Layout.fillHeight: true
-                  Layout.fillWidth: true
-
-                  Image {
-                    id: thumbnailImage
-                    anchors.fill: parent
-                    asynchronous: true
-                    cache: true
-                    sourceSize.width: gridItemWidth
-                    sourceSize.height: gridItemHeight
-                    source: model.thumbnailUrl
-                    visible: model.thumbnailUrl !== "" &&
-                             status === Image.Ready
-                    fillMode: Image.PreserveAspectFit
-                  }
-
-                  ResourceFallbackVisual {
-                    anchors.fill: parent
-                    visible: !thumbnailImage.visible
-                    resourceName: model.name
-                    category: model.category
-                    metaText: model.formattedFileSize !== "" ?
-                      model.formattedFileSize : (model.isFuel ? "FUEL" : "SDF")
-                    loading: model.thumbnailUrl !== "" &&
-                             thumbnailImage.status === Image.Loading
-                  }
-
-                  ProgressBar {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.bottom: parent.bottom
-                    indeterminate: true
-                    visible: model.isDownloading
-                  }
-                }
-              }
-
-              MouseArea {
-                id: ma2
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: model.isDownloading ? Qt.BusyCursor : Qt.PointingHandCursor
-                property point pressPos: Qt.point(0, 0)
-                property bool dragSpawned: false
-
-                onPressed: (mouse) => {
-                  pressPos = Qt.point(mouse.x, mouse.y)
-                  dragSpawned = false
-                }
-
-                onPositionChanged: (mouse) => {
-                  if (!pressed || dragSpawned || model.isDownloading)
-                    return
-                  var dx = mouse.x - pressPos.x
-                  var dy = mouse.y - pressPos.y
-                  if ((dx * dx + dy * dy) >
-                      (Qt.styleHints.startDragDistance * Qt.styleHints.startDragDistance)) {
-                    dragSpawned = true
-                    if (!model.isFuel || model.isDownloaded) {
-                      _ResourceSpawner.RecordRecentSpawn(
-                        model.sdf, model.name, model.owner, model.thumbnailUrl)
-                      _ResourceSpawner.OnResourceSpawn(model.sdf)
-                      gridView.currentIndex = index
-                    }
-                  }
-                }
-
-                onClicked: {
-                  if (dragSpawned || model.isDownloading)
-                    return
-                  if (model.isFuel && !model.isDownloaded) {
-                    _ResourceSpawner.OnDownloadFuelResource(
-                      model.sdf, model.name, model.owner, model.index, true)
-                  } else {
-                    _ResourceSpawner.RecordRecentSpawn(
-                      model.sdf, model.name, model.owner, model.thumbnailUrl)
-                    _ResourceSpawner.OnResourceSpawn(model.sdf)
-                    gridView.currentIndex = index
-                  }
-                }
-              }
-
-              ToolTip {
-                visible: ma2.containsMouse
-                delay: 500
-                text: model === null ? "N/A" :
-                      (model.isDownloading ? model.name + " (Downloading...)" :
-                      (model.isFuel && !model.isDownloaded ?
-                        model.name + " (Click to download & spawn)" :
-                        model.name + " (Click or drag to spawn)"))
-                enter: null
-                exit: null
-              }
-
-              ToolButton {
-                height: 30
-                width: 30
-                padding: 2
-                z: 2
-                checkable: false
-                ToolTip.text: "Download only"
-                ToolTip.visible: hovered
-                ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-                anchors.bottom: parent.bottom
-                anchors.right: parent.right
-                anchors.margins: 4
-                visible: model.isFuel && !model.isDownloaded && !model.isDownloading
-                contentItem: Image {
-                  fillMode: Image.PreserveAspectFit
-                  horizontalAlignment: Image.AlignHCenter
-                  verticalAlignment: Image.AlignVCenter
-                  source: "CloudDownload.png"
-                  sourceSize.width: 24
-                  sourceSize.height: 24
-                }
-                onClicked: {
-                  _ResourceSpawner.OnDownloadFuelResource(
-                    model.sdf, model.name, model.owner, model.index, false)
-                }
-              }
+          MouseArea {
+            id: ownerRowMa
+            anchors.fill: parent
+            z: -1
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: {
+              currentOwner = model.path
+              selectSource("fuel")
+              ownerPopup.close()
             }
+          }
+        }
+      }
+
+      RowLayout {
+        Layout.fillWidth: true
+        spacing: 6
+
+        TextField {
+          id: ownerInput
+          Layout.fillWidth: true
+          placeholderText: "Add Fuel owner..."
+          selectByMouse: true
+          font.pointSize: 10
+
+          function processInput() {
+            if (text.trim() !== "" && _ResourceSpawner.AddOwner(text.trim())) {
+              currentOwner = text.trim()
+              selectSource("fuel")
+              text = ""
+              ownerPopup.close()
+            }
+          }
+          onAccepted: processInput()
+        }
+
+        Button {
+          text: "+"
+          implicitWidth: 36
+          onClicked: ownerInput.processInput()
+        }
+      }
+    }
+  }
+
+  // Local path selector popup
+  Popup {
+    id: localPathPopup
+    x: localPill.x + 10
+    y: 94
+    width: 320
+    height: Math.min(260, localPathList.contentHeight + 60)
+    padding: 8
+    focus: true
+    closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+    ColumnLayout {
+      anchors.fill: parent
+      spacing: 4
+
+      Button {
+        Layout.fillWidth: true
+        flat: true
+        text: "All local paths (" + _ResourceSpawner.localCount + ")"
+        onClicked: {
+          currentLocalPath = ""
+          selectSource("local")
+          localPathPopup.close()
+        }
+      }
+
+      ListView {
+        id: localPathList
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        model: PathList
+        clip: true
+        spacing: 2
+
+        delegate: Button {
+          width: localPathList.width
+          flat: currentLocalPath !== model.path
+          highlighted: currentLocalPath === model.path
+          text: model.path
+          onClicked: {
+            currentLocalPath = model.path
+            selectSource("local")
+            localPathPopup.close()
           }
         }
       }
@@ -746,7 +785,8 @@ Rectangle {
     id: messageDialog
     width: 360
     height: 150
-    parent: resourceSpawner.Window.window ? resourceSpawner.Window.window.contentItem : resourceSpawner
+    parent: resourceSpawner.Window.window ?
+      resourceSpawner.Window.window.contentItem : resourceSpawner
     x: Math.round((parent.width - width) / 2)
     y: Math.round((parent.height - height) / 2)
     modal: true
@@ -755,6 +795,7 @@ Rectangle {
     standardButtons: Dialog.Ok
     contentItem: Text {
       text: ""
+      wrapMode: Text.WordWrap
     }
   }
 

@@ -123,6 +123,10 @@ namespace sim
     /// if the user is currently observing local resources.
     // cppcheck-suppress unusedStructMember
     bool isFuel = false;
+
+    /// \brief Active source filter: "all", "local", "fuel", "cached", or
+    /// "favorites".
+    std::string sourceFilter = "fuel";
   };
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
@@ -208,6 +212,12 @@ namespace sim
   class ResourceSpawner_EXPORTS_API ResourceSpawner : public gz::gui::Plugin
   {
     Q_OBJECT
+
+    /// \brief Total number of local models discovered across all local paths.
+    Q_PROPERTY(int localCount READ LocalCount NOTIFY localCountChanged)
+
+    /// \brief True while at least one Fuel owner list is still being fetched.
+    Q_PROPERTY(bool isFetching READ IsFetching NOTIFY isFetchingChanged)
 
     /// \brief Constructor
     public: ResourceSpawner();
@@ -354,6 +364,24 @@ namespace sim
     /// \param[in] _searchKeyword The search keyword, applies to either the
     /// resource's name or owner
     public slots: void OnSearchEntered(const QString &_searchKeyword);
+
+    /// \brief Callback when a unified source filter pill is selected.
+    /// \param[in] _filter One of "all", "local", "fuel", "cached", "favorites".
+    public slots: void OnSourceFilterChosen(const QString &_filter);
+
+    /// \brief Number of local resources discovered across all configured paths.
+    /// \return Local resource count.
+    public: int LocalCount() const;
+
+    /// \brief Whether a Fuel owner list fetch is currently in progress.
+    /// \return True if fetching.
+    public: bool IsFetching() const;
+
+    /// \brief Signal emitted when localCount changes.
+    signals: void localCountChanged();
+
+    /// \brief Signal emitted when isFetching changes.
+    signals: void isFetchingChanged();
 
     /// \brief Finds a thumbnail on the provided thumbnail path and
     /// sets the model's thumbnail path attribute to it, no action is

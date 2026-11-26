@@ -128,6 +128,15 @@ namespace gz::sim
     /// invoke slots on a destroyed object.
     public: std::atomic<bool> shuttingDown{false};
 
+    /// \brief All local resource paths registered via AddPath().
+    public: std::vector<std::string> localPaths;
+
+    /// \brief Cached count of discovered local models across localPaths.
+    public: int localCount = 0;
+
+    /// \brief Number of active Fuel list fetch threads.
+    public: std::atomic<int> activeFetches{0};
+
     /// \brief Build a canonical key for a resource from owner and name.
     public: static std::string ResourceKey(const std::string &_owner,
         const std::string &_name)
@@ -773,6 +782,16 @@ bool compareByDownloaded(const Resource &a, const Resource &b)
 }
 
 /////////////////////////////////////////////////
+bool compareByPopular(const Resource &a, const Resource &b)
+{
+  if (a.downloadCount != b.downloadCount)
+    return a.downloadCount > b.downloadCount;
+  if (a.likeCount != b.likeCount)
+    return a.likeCount > b.likeCount;
+  return compareByAlphabet(a, b);
+}
+
+/////////////////////////////////////////////////
 void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
 {
   if (this->dataPtr->displayData.searchKeyword.empty())
@@ -785,20 +804,22 @@ void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
   auto it = _resources.begin();
 
   // Remove any resources from the vector that don't contain the entered
-  // keyword in their name or owner name
+  // keyword in their name, owner, category, or description
   while (it != _resources.end())
   {
-    // Check for matches in the owner and name of the resource
-    std::string name = it->name;
-    std::string owner = it->owner;
-    std::for_each(name.begin(), name.end(), [](char & c){
-        c = ::tolower(c);
-        });
-    std::for_each(owner.begin(), owner.end(), [](char & c){
-        c = ::tolower(c);
-        });
+    auto toLower = [](std::string _s)
+    {
+      std::for_each(_s.begin(), _s.end(), [](char &c) { c = ::tolower(c); });
+      return _s;
+    };
+    const std::string name = toLower(it->name);
+    const std::string owner = toLower(it->owner);
+    const std::string category = toLower(it->category);
+    const std::string desc = toLower(it->description);
     if (name.find(searchKeyword) == std::string::npos &&
-        owner.find(searchKeyword) == std::string::npos)
+        owner.find(searchKeyword) == std::string::npos &&
+        category.find(searchKeyword) == std::string::npos &&
+        desc.find(searchKeyword) == std::string::npos)
     {
       it = _resources.erase(it);
     }
@@ -813,36 +834,105 @@ void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
 void ResourceSpawner::SortResources(std::vector<Resource> &_resources)
 {
   // Sort the results by the desired sort, don't do anything
-  // in the fourth case (Most Recent) as that is the order
-  // by default
+  // in the "Most Recent" case as that is the order by default
   if (this->dataPtr->displayData.sortMethod == "A - Z")
   {
-    // Sort std::vector<Resource> resource from a to z
     std::sort(_resources.begin(), _resources.end(), compareByAlphabet);
   }
   else if (this->dataPtr->displayData.sortMethod == "Z - A")
   {
-    // Sort std::vector<Resource> resource from z to a
     std::sort(_resources.begin(), _resources.end(), compareByAlphabet);
     std::reverse(_resources.begin(), _resources.end());
   }
   else if (this->dataPtr->displayData.sortMethod == "Downloaded")
   {
-    // Sort std::vector<Resource> resource from downloaded to not downloaded
     std::sort(_resources.begin(), _resources.end(), compareByDownloaded);
+  }
+  else if (this->dataPtr->displayData.sortMethod == "Popular")
+  {
+    std::sort(_resources.begin(), _resources.end(), compareByPopular);
   }
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::Resources(std::vector<Resource> &_resources)
 {
-  if (this->dataPtr->displayData.isFuel)
+  const std::string &filter = this->dataPtr->displayData.sourceFilter;
+
+  auto appendAllLocal = [this, &_resources]()
   {
-    _resources = this->FuelResources(this->dataPtr->displayData.ownerPath);
+    std::unordered_set<std::string> seenSdfs;
+    for (const auto &p : this->dataPtr->localPaths)
+    {
+      for (const auto &res : this->LocalResources(p))
+      {
+        if (seenSdfs.insert(res.sdfPath).second)
+          _resources.push_back(res);
+      }
+    }
+  };
+
+  auto appendAllFuel = [this, &_resources](bool _onlyCached)
+  {
+    for (const auto &kv : this->dataPtr->ownerModelMap)
+    {
+      for (const auto &res : kv.second)
+      {
+        if (!_onlyCached || res.isDownloaded)
+          _resources.push_back(res);
+      }
+    }
+  };
+
+  if (filter == "all")
+  {
+    appendAllLocal();
+    appendAllFuel(false);
+  }
+  else if (filter == "cached")
+  {
+    appendAllFuel(true);
+  }
+  else if (filter == "favorites")
+  {
+    std::vector<Resource> all;
+    std::unordered_set<std::string> seenSdfs;
+    for (const auto &p : this->dataPtr->localPaths)
+    {
+      for (const auto &res : this->LocalResources(p))
+      {
+        if (res.isFavorite && seenSdfs.insert(res.sdfPath).second)
+          all.push_back(res);
+      }
+    }
+    for (const auto &kv : this->dataPtr->ownerModelMap)
+    {
+      for (const auto &res : kv.second)
+      {
+        if (res.isFavorite)
+          all.push_back(res);
+      }
+    }
+    _resources = std::move(all);
+  }
+  else if (filter == "local")
+  {
+    if (this->dataPtr->displayData.ownerPath.empty() ||
+        this->dataPtr->displayData.isFuel)
+    {
+      appendAllLocal();
+    }
+    else
+    {
+      _resources = this->LocalResources(this->dataPtr->displayData.ownerPath);
+    }
   }
   else
   {
-    _resources = this->LocalResources(this->dataPtr->displayData.ownerPath);
+    // Default "fuel" mode
+    const std::string owner = this->dataPtr->displayData.ownerPath.empty() ?
+        std::string(kDefaultOwner) : this->dataPtr->displayData.ownerPath;
+    _resources = this->FuelResources(owner);
   }
 }
 
@@ -868,6 +958,10 @@ void ResourceSpawner::DisplayResources()
 void ResourceSpawner::AddPath(const std::string &_path)
 {
   this->dataPtr->pathModel.AddPath(_path);
+  this->dataPtr->localPaths.push_back(_path);
+  this->dataPtr->localCount +=
+      static_cast<int>(this->LocalResources(_path).size());
+  emit localCountChanged();
 }
 
 /////////////////////////////////////////////////
@@ -875,6 +969,36 @@ void ResourceSpawner::OnPathClicked(const QString &_path)
 {
   this->dataPtr->displayData.ownerPath = _path.toStdString();
   this->dataPtr->displayData.isFuel = false;
+  this->dataPtr->displayData.sourceFilter = "local";
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnSourceFilterChosen(const QString &_filter)
+{
+  this->dataPtr->displayData.sourceFilter = _filter.toStdString();
+  if (_filter == "local")
+  {
+    this->dataPtr->displayData.isFuel = false;
+    this->dataPtr->displayData.ownerPath = "";
+  }
+  else if (_filter == "fuel")
+  {
+    this->dataPtr->displayData.isFuel = true;
+    if (this->dataPtr->displayData.ownerPath.empty())
+      this->dataPtr->displayData.ownerPath = kDefaultOwner;
+  }
+}
+
+/////////////////////////////////////////////////
+int ResourceSpawner::LocalCount() const
+{
+  return this->dataPtr->localCount;
+}
+
+/////////////////////////////////////////////////
+bool ResourceSpawner::IsFetching() const
+{
+  return this->dataPtr->activeFetches.load() > 0;
 }
 
 /////////////////////////////////////////////////
@@ -1097,6 +1221,7 @@ void ResourceSpawner::OnOwnerClicked(const QString &_owner)
   // This may take a few seconds, set waiting cursor
   this->dataPtr->displayData.ownerPath = _owner.toStdString();
   this->dataPtr->displayData.isFuel = true;
+  this->dataPtr->displayData.sourceFilter = "fuel";
 }
 
 /////////////////////////////////////////////////
@@ -1122,6 +1247,9 @@ void ResourceSpawner::LoadConfig(const tinyxml2::XMLElement *)
   }
 
   gzmsg << "Please wait... Loading models from Fuel.\n";
+  this->dataPtr->displayData.ownerPath = kDefaultOwner;
+  this->dataPtr->displayData.isFuel = true;
+  this->dataPtr->displayData.sourceFilter = "fuel";
   this->dataPtr->ownerModel.AddPath(kDefaultOwner);
   RunFetchResourceListThread(kDefaultOwner);
 }
@@ -1173,7 +1301,14 @@ void ResourceSpawner::UpdateOwnerListModel(Resource _resource)
   _resource.isDownloading = this->dataPtr->activeDownloads.count(key) > 0;
 
   this->dataPtr->ownerModelMap[_resource.owner].push_back(_resource);
-  if (this->dataPtr->displayData.ownerPath == _resource.owner)
+  const std::string &filter = this->dataPtr->displayData.sourceFilter;
+  const bool matchesCurrentView =
+      (filter == "fuel" &&
+       this->dataPtr->displayData.ownerPath == _resource.owner) ||
+      (filter == "all") ||
+      (filter == "cached" && _resource.isDownloaded) ||
+      (filter == "favorites" && _resource.isFavorite);
+  if (matchesCurrentView && this->dataPtr->displayData.searchKeyword.empty())
   {
     this->dataPtr->resourceModel.AddResource(_resource);
   }
@@ -1223,6 +1358,8 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
   }
 
   worker.stopDownloading = false;
+  this->dataPtr->activeFetches.fetch_add(1);
+  emit isFetchingChanged();
 
   // Pull in fuel models asynchronously
   this->dataPtr->fetchResourceListWorkers[_owner].thread = std::thread(
@@ -1239,6 +1376,9 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
           {
             if (worker.stopDownloading)
             {
+              this->dataPtr->activeFetches.fetch_sub(1);
+              if (!this->dataPtr->shuttingDown)
+                emit isFetchingChanged();
               return;
             }
             auto id = iter->Identification();
@@ -1264,11 +1404,16 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
                 Q_ARG(gz::sim::Resource, resource));
           }
         }
-        if (counter == 0)
+        this->dataPtr->activeFetches.fetch_sub(1);
+        if (!this->dataPtr->shuttingDown)
         {
-          QString errorMsg = QString("No resources found for %1")
-                                 .arg(QString::fromStdString(owner));
-          emit resourceSpawnerError(errorMsg);
+          emit isFetchingChanged();
+          if (counter == 0)
+          {
+            QString errorMsg = QString("No resources found for %1")
+                                   .arg(QString::fromStdString(owner));
+            emit resourceSpawnerError(errorMsg);
+          }
         }
       });
 }

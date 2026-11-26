@@ -168,3 +168,42 @@ TEST(ResourceSpawnerTest, FormatFileSize)
   EXPECT_EQ("4.2 MB", ResourceSpawner::FormatFileSize(4404019));
   EXPECT_EQ("2.0 GB", ResourceSpawner::FormatFileSize(2147483648ULL));
 }
+
+/////////////////////////////////////////////////
+TEST(ResourceSpawnerTest,
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(PopularSortAndCategorySearch))
+{
+  auto app = std::make_unique<gui::Application>(g_argc, g_argv);
+  ASSERT_NE(nullptr, app);
+
+  ResourceSpawner spawner;
+
+  Resource a;
+  a.name = "Alpha";
+  a.category = "robot";
+  a.downloadCount = 100;
+
+  Resource b;
+  b.name = "Beta";
+  b.category = "sensor";
+  b.downloadCount = 5000;
+
+  Resource c;
+  c.name = "Gamma";
+  c.category = "robot";
+  c.downloadCount = 1200;
+
+  std::vector<Resource> list = {a, b, c};
+  spawner.OnSortChosen("Popular");
+  spawner.SortResources(list);
+  ASSERT_EQ(3u, list.size());
+  EXPECT_EQ("Beta", list[0].name);
+  EXPECT_EQ("Gamma", list[1].name);
+  EXPECT_EQ("Alpha", list[2].name);
+
+  spawner.OnSearchEntered("robot");
+  spawner.FilterResources(list);
+  ASSERT_EQ(2u, list.size());
+  EXPECT_EQ("Gamma", list[0].name);
+  EXPECT_EQ("Alpha", list[1].name);
+}
