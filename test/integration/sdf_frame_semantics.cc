@@ -43,7 +43,6 @@
 #include "gz/sim/components/Visual.hh"
 #include "gz/sim/components/World.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -55,30 +54,40 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     const gz::sim::ServerConfig &_serverConfig =
       gz::sim::ServerConfig())
   {
-    this->relay = std::make_unique<test::Relay>();
     this->server = std::make_unique<Server>(_serverConfig);
     using namespace std::chrono_literals;
     this->server->SetUpdatePeriod(0ns);
 
     EXPECT_FALSE(this->server->Running());
     EXPECT_FALSE(*this->server->Running(0));
-    // A pointer to the ecm. This will be valid once we run the mock system
-    relay->OnPreUpdate(
-        [this](const UpdateInfo &, EntityComponentManager &_ecm)
-        {
-          this->ecm = &_ecm;
-        });
-
-    this->server->AddSystem(this->relay->systemPtr);
     this->server->Run(true, 1, false);
-    if (nullptr == this->ecm)
+
+    // Hold on to the ECM while the test sets things up. Step() lets go of it
+    // while the server runs.
+    this->ecm = this->server->EcmScope();
+    if (!this->ecm.Valid())
     {
       return ::testing::AssertionFailure()
-        << "Failed to create EntityComponentManager";
+        << "Failed to get access to the EntityComponentManager";
     }
 
     this->creator =
         std::make_unique<SdfEntityCreator>(*this->ecm, this->dummyEventMgr);
+    return ::testing::AssertionSuccess();
+  }
+
+  /// \brief Step the server once. The ECM scope can't be held while the
+  /// server runs, so it's released and then taken again afterwards.
+  public: ::testing::AssertionResult Step()
+  {
+    this->ecm.Reset();
+    this->server->Run(true, 1, false);
+    this->ecm = this->server->EcmScope();
+    if (!this->ecm.Valid())
+    {
+      return ::testing::AssertionFailure()
+        << "Failed to get access to the EntityComponentManager";
+    }
     return ::testing::AssertionSuccess();
   }
 
@@ -128,9 +137,10 @@ class SdfFrameSemanticsTest : public InternalFixture<::testing::Test>
     return poseComp->Data();
   }
 
-  public: std::unique_ptr<test::Relay> relay;
   public: std::unique_ptr<Server> server;
-  public: EntityComponentManager *ecm {nullptr};
+  // Keep this after the server: members are destroyed in reverse order, so
+  // the scope is released before the server shuts down (which needs the lock)
+  public: Server::EcmGuard ecm;
   // We won't use the event manager but it's required to create an
   // SdfEntityCreator
   public: EventManager dummyEventMgr;
@@ -173,7 +183,7 @@ TEST_F(SdfFrameSemanticsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LinkRelativeTo))
   this->ecm->CreateComponent(link2, components::WorldPose());
 
   // Step once and check
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(expRelPose, this->GetPose(link2));
   EXPECT_EQ(expWorldPose, this->GetWorldPose(link2));
@@ -227,7 +237,7 @@ TEST_F(SdfFrameSemanticsTest, JointRelativeTo)
   this->ecm->CreateComponent(joint2, components::WorldPose());
 
   // Step once and check
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   // Expect the pose of J1 relative to model to be the same as L2 (default
   // behavior)
@@ -291,7 +301,7 @@ TEST_F(SdfFrameSemanticsTest, VisualCollisionRelativeTo)
   EXPECT_EQ(expPose, this->GetPose(collision));
 
   // Step once and check, the pose should still be close to its initial pose
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(expPose, this->GetPose(visual));
   EXPECT_EQ(expPose, this->GetPose(collision));
@@ -345,7 +355,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithLinks)
   EXPECT_EQ(link2ExpRelativePose, this->GetPose(link2));
 
   // Step once and check
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(link1ExpRelativePose, this->GetPose(link1));
   EXPECT_EQ(link2ExpRelativePose, this->GetPose(link2));
@@ -386,7 +396,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithJoints)
 
   this->ecm->CreateComponent(joint1, components::WorldPose());
   // Step once and check
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   // Expect the pose of J1 relative to model to be the same as F1 in world
   math::Pose3d expWorldPose(1, 0, 2, 0, 0, 0);
@@ -445,7 +455,7 @@ TEST_F(SdfFrameSemanticsTest, ExplicitFramesWithVisualAndCollision)
   EXPECT_EQ(expPose, this->GetPose(collision));
 
   // Step once and check, the pose should still be close to its initial pose
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(expPose, this->GetPose(visual));
   EXPECT_EQ(expPose, this->GetPose(collision));
@@ -493,7 +503,7 @@ TEST_F(SdfFrameSemanticsTest, NestedModelsRelativeTo)
   EXPECT_EQ(link2ExpectedPose, this->GetPose(link2));
 
   // Step once and check, the pose should still be close to its initial pose
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(link1ExpectedPose, this->GetPose(link1));
   EXPECT_EQ(link2ExpectedPose, this->GetPose(link2));
@@ -554,7 +564,7 @@ TEST_F(SdfFrameSemanticsTest,
   gz::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
 
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(link01ExpectedPose, this->GetPose(link01));
   EXPECT_EQ(link00ExpectedPose, this->GetPose(link00));
@@ -617,7 +627,7 @@ TEST_F(SdfFrameSemanticsTest,
   gz::math::Pose3d nestedModelsLink01ExpectedPose(20, 21, 22, 0, 0, 0);
   EXPECT_EQ(nestedModelsLink01ExpectedPose, this->GetPose(nestedModelsLink01));
 
-  this->server->Run(true, 1, false);
+  ASSERT_TRUE(this->Step());
 
   EXPECT_EQ(link01ExpectedPose, this->GetPose(link01));
   EXPECT_EQ(link00ExpectedPose, this->GetPose(link00));
