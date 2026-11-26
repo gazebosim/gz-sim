@@ -1010,6 +1010,26 @@ TEST(Conversions, Actor)
 }
 
 /////////////////////////////////////////////////
+TEST(Conversions, ActorWithoutSkin)
+{
+  // Actors without a skin can still follow a scripted trajectory, the skin
+  // filename should stay empty instead of being resolved to a path.
+  sdf::Actor actor;
+  actor.SetName("test_convert_actor_no_skin");
+  actor.SetFilePath("/tmp/model.sdf");
+
+  msgs::Actor actorMsg = convert<msgs::Actor>(actor);
+  EXPECT_TRUE(actorMsg.skin_filename().empty());
+
+  auto newActor = convert<sdf::Actor>(actorMsg);
+  EXPECT_TRUE(newActor.SkinFilename().empty());
+
+  actor.SetSkinFilename("__default__");
+  actorMsg = convert<msgs::Actor>(actor);
+  EXPECT_TRUE(actorMsg.skin_filename().empty());
+}
+
+/////////////////////////////////////////////////
 TEST(Conversions, ParticleEmitter)
 {
   sdf::ParticleEmitter emitter;

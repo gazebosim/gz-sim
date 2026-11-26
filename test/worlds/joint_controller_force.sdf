@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="joint_controller_test">
+      <link name="base_link"/>
+      <link name="rotor1"/>
+      <link name="rotor2"/>
+
+      <joint name="base_joint" type="fixed">
+        <parent>world</parent>
+        <child>base_link</child>
+      </joint>
+      <joint name="j1" type="revolute">
+        <parent>base_link</parent>
+        <child>rotor1</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <joint name="j2" type="revolute">
+        <parent>base_link</parent>
+        <child>rotor2</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+
+      <plugin
+        filename="gz-sim-joint-controller-system"
+        name="gz::sim::systems::JointController">
+        <joint_name>j1</joint_name>
+        <joint_name>j2</joint_name>
+        <initial_velocity>1.0</initial_velocity>
+        <use_force_commands>true</use_force_commands>
+        <p_gain>2.0</p_gain>
+        <i_gain>1.0</i_gain>
+        <d_gain>0.05</d_gain>
+      </plugin>
+    </model>
+  </world>
+</sdf>
