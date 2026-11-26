@@ -380,6 +380,7 @@ class Cmd
   end # parse()
 
   def execute(args)
+    originalArgs = args.drop(1)
     options = parse(args)
 
     library_name_path = Pathname.new(LIBRARY_NAME)
@@ -520,48 +521,150 @@ Please use [GZ_SIM_RESOURCE_PATH] instead."
       # and gui.
       if options['server'] == 0 && options['gui'] == 0
 
-        if plugin.end_with? ".dylib"
-          puts "On macOS `gz sim` currently only works with either the -s argument
-or the -g argument, you cannot run both server and gui in one terminal.
-See https://github.com/gazebosim/gz-sim/issues/44 for more info."
-          exit(-1)
-        end
-
         if plugin.end_with? ".dll"
           puts "`ign gazebo` currently only works with the -s argument on Windows.
 See https://github.com/gazebosim/gz-sim/issues/168 for more info."
           exit(-1)
         end
 
-        serverPid = Process.fork do
-          ENV['RMT_PORT'] = '1500'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim server')
-          Importer.runServer(parsed,
-            options['iterations'], options['run'], options['hz'],
-            options['initial_sim_time'], options['levels'],
-            options['network_role'], options['network_secondaries'],
-            options['record'], options['record-path'],
-            options['record-resources'], options['log-overwrite'],
-            options['log-compress'], options['playback'],
-            options['physics_engine'],
-            options['render_engine_server'],
-            options['render_engine_server_api_backend'],
-            options['render_engine_gui'],
-            options['render_engine_gui_api_backend'],
-            options['file'], options['record-topics'].join(':'),
-            options['wait_gui'],
-            options['headless-rendering'], options['record-period'],
-            options['seed'])
-        end
+        if plugin.end_with? ".dylib"
 
-        guiPid = Process.fork do
-          ENV['RMT_PORT'] = '1501'
-          Process.setpgid(0, 0)
-          Process.setproctitle('gz sim gui')
-          Importer.runGui(options['gui_config'], options['file'],
-                          options['wait_gui'], options['render_engine_gui'],
-                          options['render_engine_gui_api_backend'])
+            # On macOS, start the server anf GUI as clea processes instead of
+            # forking, which is unsafe after Qt and CoreFoundation initialization.
+
+            serverArgs = []
+            guiArgs = []
+
+            # Shared options
+            serverArgs += ["--verbose", options["verbose"]]
+            guiArgs += ["--verbose", options["verbose"]]
+
+            # Server options
+            serverArgs += ["--iterations", options["iterations"].to_s] \
+            if options["iterations"] != 0
+
+            serverArgs << "-r" if options["run"] == 1
+
+            serverArgs += ["-z", options["hz"].to_s] \
+            if options["hz"] != -1
+
+            serverArgs += ["--initial-sim-time", options["initial_sim_time"].to_s] \
+            if options["initial_sim_time"] != 0
+
+            serverArgs << "--levels" if options["levels"] == 1
+
+            serverArgs += ["--network-role", options["network_role"]] \
+            unless options["network_role"].empty?
+
+            serverArgs += ["--network-secondaries",
+            options["network_secondaries"].to_s] \
+            if options["network_secondaries"] != 0
+
+            serverArgs << "--record" if options["record"] == 1
+
+            serverArgs += ["--record-path", options["record-path"]] \
+            unless options["record-path"].empty?
+
+            serverArgs << "--record-resources" \
+            if options["record-resources"] == 1
+
+            options["record-topics"].each do |topic|
+            serverArgs += ["--record-topic", topic]
+            end
+
+            serverArgs += ["--record-period", options["record-period"].to_s] \
+            if options["record-period"] != -1
+
+            serverArgs << "--log-overwrite" if options["log-overwrite"] == 1
+            serverArgs << "--log-compress" if options["log-compress"] == 1
+
+            serverArgs += ["--playback", options["playback"]] \
+            unless options["playback"].empty?
+
+            serverArgs += ["--physics-engine", options["physics_engine"]] \
+            unless options["physics_engine"].empty?
+
+            serverArgs << "--headless-rendering" \
+            if options["headless-rendering"] == 1
+
+            serverArgs += ["--render-engine-server",
+            options["render_engine_server"]] \
+            unless options["render_engine_server"].empty?
+
+            serverArgs += ["--render-engine-server-api-backend",
+            options["render_engine_server_api_backend"]] \
+            unless options["render_engine_server_api_backend"].empty?
+
+            serverArgs += ["--seed", options["seed"].to_s] \
+            if options["seed"] != 0
+
+            serverArgs << options["file"] unless options["file"].empty?
+
+            # GUI options
+            guiArgs += ["--gui-config", options["gui_config"]] \
+            unless options["gui_config"].empty?
+
+            guiArgs += ["--render-engine-gui",
+            options["render_engine_gui"]] \
+            unless options["render_engine_gui"].empty?
+
+            guiArgs += ["--render-engine-gui-api-backend",
+            options["render_engine_gui_api_backend"]] \
+            unless options["render_engine_gui_api_backend"].empty?
+
+            gzExecutable = File.realpath($PROGRAM_NAME)
+
+            serverPid = Process.spawn(
+            {"RMT_PORT" => "1500"},
+            gzExecutable, "sim", "--force-version", LIBRARY_VERSION,
+            "-s", *serverArgs,
+            pgroup: true
+            )
+
+            begin
+            guiPid = Process.spawn(
+                {"RMT_PORT" => "1501"},
+                gzExecutable, "sim", "--force-version", LIBRARY_VERSION,
+                "-g", *guiArgs,
+                pgroup: true
+            )
+            rescue
+            Process.kill("TERM", -serverPid)
+            Process.wait(serverPid)
+            raise
+            end
+
+        else
+            serverPid = Process.fork do
+            ENV['RMT_PORT'] = '1500'
+            Process.setpgid(0, 0)
+            Process.setproctitle('gz sim server')
+            Importer.runServer(parsed,
+                options['iterations'], options['run'], options['hz'],
+                options['initial_sim_time'], options['levels'],
+                options['network_role'], options['network_secondaries'],
+                options['record'], options['record-path'],
+                options['record-resources'], options['log-overwrite'],
+                options['log-compress'], options['playback'],
+                options['physics_engine'],
+                options['render_engine_server'],
+                options['render_engine_server_api_backend'],
+                options['render_engine_gui'],
+                options['render_engine_gui_api_backend'],
+                options['file'], options['record-topics'].join(':'),
+                options['wait_gui'],
+                options['headless-rendering'], options['record-period'],
+                options['seed'])
+            end
+
+            guiPid = Process.fork do
+            ENV['RMT_PORT'] = '1501'
+            Process.setpgid(0, 0)
+            Process.setproctitle('gz sim gui')
+            Importer.runGui(options['gui_config'], options['file'],
+                            options['wait_gui'], options['render_engine_gui'],
+                            options['render_engine_gui_api_backend'])
+            end
         end
 
         # Handle SIGINT and SIGTERM signals
