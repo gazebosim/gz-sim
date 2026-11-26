@@ -646,6 +646,11 @@ class gz::sim::systems::PhysicsPrivate
     auto mapIt = _map.begin();
     for (int i = 0; i < _msg.contact_size(); ++i, ++mapIt)
     {
+      if (_msg.contact(i).collision2().id() != mapIt->first)
+      {
+        return false;
+      }
+
       const auto &contactData = mapIt->second;
       if (_msg.contact(i).position_size() !=
           static_cast<int>(contactData.size()))
@@ -694,6 +699,13 @@ class gz::sim::systems::PhysicsPrivate
           if (!math::equal(body2force1.x(), body2force2.x(), 1e-6) ||
               !math::equal(body2force1.y(), body2force2.y(), 1e-6) ||
               !math::equal(body2force1.z(), body2force2.z(), 1e-6))
+          {
+            return false;
+          }
+
+          // Compare penetration depth
+          if (!math::equal(_msg.contact(i).depth(j), contact.extra->depth,
+                           1e-9))
           {
             return false;
           }
