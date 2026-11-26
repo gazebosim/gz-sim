@@ -17,11 +17,14 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <string>
+#include <thread>
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QTemporaryDir>
 #include <QUrl>
@@ -120,4 +123,45 @@ TEST(ResourceSpawnerTest,
   ASSERT_NE(nullptr, item);
   EXPECT_TRUE(item->data(roles.key("isDownloading")).toBool());
   EXPECT_FALSE(item->data(roles.key("isDownloaded")).toBool());
+}
+
+/////////////////////////////////////////////////
+TEST(ResourceSpawnerTest,
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(DownloadFailureIsReported))
+{
+  auto app = std::make_unique<gui::Application>(g_argc, g_argv);
+  ASSERT_NE(nullptr, app);
+
+  ResourceSpawner spawner;
+  int errors{0};
+  QString lastError;
+  QObject::connect(&spawner, &ResourceSpawner::resourceSpawnerError,
+      [&errors, &lastError](const QString &_msg)
+      {
+        ++errors;
+        lastError = _msg;
+      });
+
+  // Process events until the queued download results arrive
+  auto waitForErrors = [&errors](int _count)
+  {
+    for (int i = 0; i < 500 && errors < _count; ++i)
+    {
+      QCoreApplication::processEvents();
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+  };
+
+  // An invalid model URL fails before any network access. The second
+  // request is ignored because the first one is still in progress.
+  spawner.OnDownloadFuelResource("not_a_model_url", "box", "alice", 0, true);
+  spawner.OnDownloadFuelResource("not_a_model_url", "box", "alice", 0, true);
+  waitForErrors(1);
+  EXPECT_EQ(1, errors);
+  EXPECT_TRUE(lastError.contains("box")) << lastError.toStdString();
+
+  // Once the download finished, it can be retried
+  spawner.OnDownloadFuelResource("not_a_model_url", "box", "alice", 0, true);
+  waitForErrors(2);
+  EXPECT_EQ(2, errors);
 }

@@ -24,11 +24,13 @@
 #include <algorithm>
 #include <atomic>
 #include <cctype>
+#include <exception>
 #include <set>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
 
+#include <QThreadPool>
 #include <QUrl>
 
 #include <sdf/Root.hh>
@@ -105,12 +107,10 @@ namespace gz::sim
     /// \brief Set of currently downloading resource keys ("owner/name").
     public: std::unordered_set<std::string> activeDownloads;
 
-    /// \brief Background threads performing Fuel model downloads.
-    public: std::vector<std::thread> downloadThreads;
-
-    /// \brief Set to true during destructor so background workers do not
-    /// invoke slots on a destroyed object.
-    public: std::atomic<bool> shuttingDown{false};
+    /// \brief Runs Fuel model downloads off the GUI thread. Each task only
+    /// calls FuelClient::DownloadModel and posts the result back to the GUI
+    /// thread.
+    public: QThreadPool downloadPool;
 
     /// \brief Build a canonical key for a resource from owner and name.
     public: static std::string ResourceKey(const std::string &_owner,
@@ -125,6 +125,10 @@ namespace {
 
 // Default owner to be fetched from Fuel. This owner cannot be removed.
 constexpr const char *kDefaultOwner = "openrobotics";
+
+// Number of Fuel downloads that run at the same time. Downloads can't be
+// cancelled, so this also bounds the wait when the plugin is closed.
+constexpr int kMaxConcurrentDownloads = 2;
 }
 using namespace gz;
 using namespace sim;
@@ -333,6 +337,8 @@ ResourceSpawner::ResourceSpawner()
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
 
+  this->dataPtr->downloadPool.setMaxThreadCount(kMaxConcurrentDownloads);
+
   this->dataPtr->fuelClient =
     std::make_unique<fuel_tools::FuelClient>();
 
@@ -365,7 +371,6 @@ ResourceSpawner::ResourceSpawner()
 /////////////////////////////////////////////////
 ResourceSpawner::~ResourceSpawner()
 {
-  this->dataPtr->shuttingDown = true;
   for (auto &workers : this->dataPtr->fetchResourceListWorkers)
   {
     workers.second.stopDownloading = true;
@@ -374,11 +379,18 @@ ResourceSpawner::~ResourceSpawner()
       workers.second.thread.join();
     }
   }
-  for (auto &t : this->dataPtr->downloadThreads)
+
+  // Fuel downloads can't be cancelled. Drop the ones that haven't started and
+  // wait for the ones in progress, so no model is left half extracted in the
+  // Fuel cache. Results posted to this object are discarded with it.
+  this->dataPtr->downloadPool.clear();
+  const int running = this->dataPtr->downloadPool.activeThreadCount();
+  if (running > 0)
   {
-    if (t.joinable())
-      t.join();
+    gzmsg << "Waiting for " << running << " Fuel download(s) to finish."
+          << std::endl;
   }
+  this->dataPtr->downloadPool.waitForDone();
 }
 
 /////////////////////////////////////////////////
@@ -694,65 +706,71 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
     }
   }
 
-  // Run download asynchronously on a worker thread so the GUI stays responsive.
-  this->dataPtr->downloadThreads.emplace_back(
+  // Download off the GUI thread and report the result back on it.
+  this->dataPtr->downloadPool.start(
       [this, uriStr, ownerStr, nameStr, _spawnAfterDownload]
       {
-        fuel_tools::FuelClient workerClient;
         std::string localPath;
-        const bool ok = workerClient.DownloadModel(
-            common::URI(uriStr, true), localPath);
+        std::string error;
+        bool success{false};
+        try
+        {
+          fuel_tools::FuelClient client;
+          const fuel_tools::Result result =
+              client.DownloadModel(common::URI(uriStr, true), localPath);
+          success = static_cast<bool>(result);
+          if (!success)
+            error = result.ReadableResult();
+        }
+        catch (const std::exception &_e)
+        {
+          error = _e.what();
+        }
 
-        if (this->dataPtr->shuttingDown)
-          return;
-
-        QMetaObject::invokeMethod(
-            this, "OnDownloadFinished", Qt::QueuedConnection,
-            Q_ARG(QString, QString::fromStdString(ownerStr)),
-            Q_ARG(QString, QString::fromStdString(nameStr)),
-            Q_ARG(QString, QString::fromStdString(localPath)),
-            Q_ARG(bool, ok),
-            Q_ARG(bool, _spawnAfterDownload));
+        QMetaObject::invokeMethod(this,
+            [this, ownerStr, nameStr, localPath, success, error,
+             _spawnAfterDownload]
+            {
+              this->OnDownloadFinished(ownerStr, nameStr, localPath, success,
+                  error, _spawnAfterDownload);
+            },
+            Qt::QueuedConnection);
       });
 }
 
 /////////////////////////////////////////////////
-void ResourceSpawner::OnDownloadFinished(const QString &_owner,
-    const QString &_name, const QString &_localPath, bool _success,
-    bool _spawnAfterDownload)
+void ResourceSpawner::OnDownloadFinished(const std::string &_owner,
+    const std::string &_name, const std::string &_localPath, bool _success,
+    const std::string &_error, bool _spawnAfterDownload)
 {
-  const std::string ownerStr = _owner.toStdString();
-  const std::string nameStr = _name.toStdString();
-  const std::string localPathStr = _localPath.toStdString();
-  const std::string key = ResourceSpawnerPrivate::ResourceKey(ownerStr,
-      nameStr);
-  this->dataPtr->activeDownloads.erase(key);
+  this->dataPtr->activeDownloads.erase(
+      ResourceSpawnerPrivate::ResourceKey(_owner, _name));
 
   std::string spawnedSdf;
 
-  auto ownerIt = this->dataPtr->ownerModelMap.find(ownerStr);
+  auto ownerIt = this->dataPtr->ownerModelMap.find(_owner);
   if (ownerIt != this->dataPtr->ownerModelMap.end())
   {
     for (auto &resource : ownerIt->second)
     {
-      if (resource.name == nameStr)
+      if (resource.name == _name)
       {
         resource.isDownloading = false;
         if (_success)
         {
           resource.isDownloaded = true;
           resource.isFuel = true;
-          std::string sdfPath = sdf::getModelFilePath(localPathStr);
+          std::string sdfPath = sdf::getModelFilePath(_localPath);
           if (sdfPath.empty())
-            sdfPath = common::joinPaths(localPathStr, "model.sdf");
+            sdfPath = common::joinPaths(_localPath, "model.sdf");
           resource.sdfPath = sdfPath;
           const std::string thumbnailPath =
-              common::joinPaths(localPathStr, "thumbnails");
+              common::joinPaths(_localPath, "thumbnails");
           this->SetThumbnail(thumbnailPath, resource);
           spawnedSdf = resource.sdfPath;
         }
         this->dataPtr->resourceModel.UpdateResourceByName(
-            ownerStr, nameStr, resource);
+            _owner, _name, resource);
         break;
       }
     }
@@ -760,10 +778,13 @@ void ResourceSpawner::OnDownloadFinished(const QString &_owner,
 
   if (!_success)
   {
-    gzwarn << "Download failed for [" << ownerStr << "/" << nameStr
-           << "]. Try again." << std::endl;
-    emit resourceSpawnerError(
-        QString("Failed to download \"%1\". Please try again.").arg(_name));
+    gzerr << "Failed to download [" << _owner << "/" << _name << "]"
+          << (_error.empty() ? "" : ": " + _error) << std::endl;
+    const QString name = QString::fromStdString(_name);
+    emit resourceSpawnerError(_error.empty() ?
+        QString("Failed to download \"%1\". Please try again.").arg(name) :
+        QString("Failed to download \"%1\": %2").arg(
+            name, QString::fromStdString(_error)));
     return;
   }
 

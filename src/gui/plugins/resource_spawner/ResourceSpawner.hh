@@ -266,6 +266,9 @@ namespace sim
     public slots: void OnOwnerClicked(const QString &_owner);
 
     /// \brief Callback when a request is made to download a fuel resource.
+    /// The download runs on a thread pool; a request for a resource that is
+    /// already being downloaded is ignored. Failures are reported through
+    /// resourceSpawnerError.
     /// \param[in] _path URI to the fuel resource
     /// \param[in] _name Name of the resource
     /// \param[in] _owner The name of the owner
@@ -275,17 +278,6 @@ namespace sim
     public slots: void OnDownloadFuelResource(const QString &_path,
         const QString &_name, const QString &_owner, int index,
         bool _spawnAfterDownload = false);
-
-    /// \brief Callback invoked on the Qt thread when an async Fuel download
-    /// finishes.
-    /// \param[in] _owner Owner of the downloaded resource.
-    /// \param[in] _name Name of the downloaded resource.
-    /// \param[in] _localPath Local path to the downloaded model directory.
-    /// \param[in] _success True if download succeeded.
-    /// \param[in] _spawnAfterDownload True if the model should be spawned.
-    public: Q_INVOKABLE void OnDownloadFinished(const QString &_owner,
-        const QString &_name, const QString &_localPath, bool _success,
-        bool _spawnAfterDownload);
 
     /// \brief Build the remote Fuel thumbnail URL for a model.
     /// \param[in] _serverUrl Base Fuel server URL.
@@ -345,6 +337,20 @@ namespace sim
     /// \brief Starts a thread that fetches the resources list for a given owner
     /// \param[in] _owner Name of owner.
     private: void RunFetchResourceListThread(const std::string &_owner);
+
+    /// \brief Updates the models when a Fuel download finishes, then spawns
+    /// the resource if requested. Runs on the GUI thread.
+    /// \param[in] _owner Owner of the resource.
+    /// \param[in] _name Name of the resource.
+    /// \param[in] _localPath Local path of the downloaded model. Only valid
+    /// if _success is true.
+    /// \param[in] _success True if the download succeeded.
+    /// \param[in] _error Reason of the failure, empty if unknown.
+    /// \param[in] _spawnAfterDownload True to spawn the resource after a
+    /// successful download.
+    private: void OnDownloadFinished(const std::string &_owner,
+        const std::string &_name, const std::string &_localPath,
+        bool _success, const std::string &_error, bool _spawnAfterDownload);
 
     /// \internal
     /// \brief Pointer to private data.
