@@ -43,7 +43,8 @@ namespace systems
     public System,
     public ISystemConfigurePriority,
     public ISystemPreUpdate,
-    public ISystemUpdate
+    public ISystemUpdate,
+    public ISystemPostUpdate
   {
     /// \brief Constructor
     public: ForceTorque();
@@ -61,6 +62,10 @@ namespace systems
     /// Documentation inherited
     public: void Update(const UpdateInfo &_info,
                         EntityComponentManager &_ecm) final;
+
+    /// Documentation inherited
+    public: void PostUpdate(const UpdateInfo &_info,
+                            const EntityComponentManager &_ecm) final;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<ForceTorquePrivate> dataPtr;

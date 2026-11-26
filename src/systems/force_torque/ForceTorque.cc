@@ -221,6 +221,13 @@ void ForceTorque::Update(const UpdateInfo &_info,
       }
     }
   }
+}
+
+//////////////////////////////////////////////////
+void ForceTorque::PostUpdate(const UpdateInfo &/*_info*/,
+    const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("ForceTorque::PostUpdate");
 
   this->dataPtr->RemoveForceTorqueEntities(_ecm);
 }
@@ -450,10 +457,14 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
         {
           gzerr << "Internal error, missing FT sensor for entity ["
                  << _entity << "]" << std::endl;
-          return true;
+        }
+        else
+        {
+          this->entitySensorMap.erase(sensorId);
         }
 
-        this->entitySensorMap.erase(sensorId);
+        this->sensorJointLinkMap.erase(_entity);
+        this->newSensors.erase(_entity);
 
         return true;
       });
@@ -462,7 +473,8 @@ void ForceTorquePrivate::RemoveForceTorqueEntities(
 GZ_ADD_PLUGIN(ForceTorque, System,
   ForceTorque::ISystemConfigurePriority,
   ForceTorque::ISystemPreUpdate,
-  ForceTorque::ISystemUpdate
+  ForceTorque::ISystemUpdate,
+  ForceTorque::ISystemPostUpdate
 )
 
 GZ_ADD_PLUGIN_ALIAS(ForceTorque, "gz::sim::systems::ForceTorque")

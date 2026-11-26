@@ -15,6 +15,11 @@
  *
  */
 
+#include <atomic>
+#include <chrono>
+#include <cstddef>
+#include <thread>
+
 #include <gtest/gtest.h>
 
 #include <gz/msgs/wrench.pb.h>
@@ -193,6 +198,95 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightECM))
       math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
   EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
   EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
+}
+
+/////////////////////////////////////////////////
+TEST_F(ForceTorqueTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(RemoveModelStopsPublisher))
+{
+  using namespace std::chrono_literals;
+  // Start server
+  ServerConfig serverConfig;
+  const auto sdfFile = common::joinPaths(
+      std::string(PROJECT_SOURCE_PATH), "test", "worlds", "force_torque.sdf");
+  serverConfig.SetSdfFile(sdfFile);
+
+  Server server(serverConfig);
+  EXPECT_FALSE(server.Running());
+  EXPECT_FALSE(server.Running(0).value_or(true));
+  server.SetUpdatePeriod(1us);
+
+  std::mutex mutex;
+  std::condition_variable cv;
+  std::size_t messageCount = 0u;
+  auto wrenchCb = std::function<void(const msgs::Wrench &)>(
+      [&mutex, &cv, &messageCount](const auto &)
+      {
+        std::lock_guard lock(mutex);
+        ++messageCount;
+        cv.notify_all();
+      });
+
+  transport::Node node;
+  node.Subscribe("/force_torque1", wrenchCb);
+
+  std::atomic<bool> removeModel{false};
+  test::Relay remover;
+  remover.OnUpdate(
+      [&removeModel](const UpdateInfo &, EntityComponentManager &_ecm)
+      {
+        if (!removeModel)
+        {
+          return;
+        }
+
+        auto modelEntity = _ecm.EntityByComponents(
+            components::Model(), components::Name("test1"));
+        if (kNullEntity != modelEntity)
+        {
+          _ecm.RequestRemoveEntity(modelEntity);
+        }
+      });
+  server.AddSystem(remover.systemPtr);
+
+  const size_t iters = 999u;
+  server.Run(true, iters, false);
+  ASSERT_EQ(iters, server.IterationCount().value_or(0u));
+
+  {
+    std::unique_lock lock(mutex);
+    cv.wait_for(lock, 30s,
+        [&]()
+        {
+          return messageCount > 0u;
+        });
+    EXPECT_GT(messageCount, 0u);
+  }
+
+  // Request removal from a default-priority system so it happens after
+  // ForceTorque::Update and is only visible to PostUpdate.
+  removeModel = true;
+  server.Run(true, 1u, false);
+  EXPECT_FALSE(server.HasEntity("test1"));
+
+  // Drain messages that were already in flight before the removal.
+  server.Run(true, 50u, false);
+  std::this_thread::sleep_for(200ms);
+
+  std::size_t countAfterRemoval = 0u;
+  {
+    std::lock_guard lock(mutex);
+    countAfterRemoval = messageCount;
+  }
+
+  // A stale publisher would keep publishing after the entity is gone.
+  server.Run(true, 1000u, false);
+  std::this_thread::sleep_for(200ms);
+
+  {
+    std::lock_guard lock(mutex);
+    EXPECT_EQ(countAfterRemoval, messageCount);
+  }
 }
 
 /////////////////////////////////////////////////
