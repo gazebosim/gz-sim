@@ -575,7 +575,12 @@ msgs::Actor gz::sim::convert(const sdf::Actor &_in)
   msgs::Actor out;
   out.mutable_entity()->set_name(_in.Name());
   msgs::Set(out.mutable_pose(), _in.RawPose());
-  out.set_skin_filename(asFullPath(_in.SkinFilename(), _in.FilePath()));
+  // Actors without a skin (e.g. actors made of links and visuals) can still
+  // follow a scripted trajectory, so only resolve the skin path if one has
+  // been specified.
+  const std::string &skinFilename = _in.SkinFilename();
+  if (!skinFilename.empty() && skinFilename != "__default__")
+    out.set_skin_filename(asFullPath(skinFilename, _in.FilePath()));
   out.set_skin_scale(_in.SkinScale());
   for (unsigned int i = 0; i < _in.AnimationCount(); ++i)
   {
