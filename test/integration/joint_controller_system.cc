@@ -21,12 +21,17 @@
 #include <gz/msgs/double.pb.h>
 #include <gz/msgs/actuators.pb.h>
 
+#include <chrono>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/AngularVelocity.hh"
+#include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/JointForceCmd.hh"
+#include "gz/sim/components/JointVelocity.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
 
@@ -337,6 +342,73 @@ TEST_F(JointControllerTestFixture,
   EXPECT_NEAR(0, angularVelocity.X(), 1e-2);
   EXPECT_NEAR(0, angularVelocity.Y(), 1e-2);
   EXPECT_NEAR(testAngVel, angularVelocity.Z(), 1e-2);
+}
+
+/////////////////////////////////////////////////
+// Tests that multiple joints share one force command per step.
+TEST_F(JointControllerTestFixture,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(JointForceCommandMultipleJoints))
+{
+  using namespace std::chrono_literals;
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(
+      PROJECT_SOURCE_PATH, "test", "worlds", "joint_controller_force.sdf"));
+
+  Server server(serverConfig);
+  server.SetUpdatePeriod(0ns);
+
+  test::Relay testSystem;
+  std::size_t samples = 0;
+  double integralError = 0.0;
+  double previousError = 0.0;
+
+  // Read the commands after JointController and before Physics clears them.
+  testSystem.OnPreUpdate(
+      [&](const UpdateInfo &_info, EntityComponentManager &_ecm)
+      {
+        const auto j1 = _ecm.EntityByComponents(
+            components::Joint(), components::Name("j1"));
+        const auto j2 = _ecm.EntityByComponents(
+            components::Joint(), components::Name("j2"));
+        ASSERT_NE(kNullEntity, j1);
+        ASSERT_NE(kNullEntity, j2);
+
+        const auto *velocity = _ecm.Component<components::JointVelocity>(j1);
+        if (!velocity || velocity->Data().empty())
+          return;
+        ASSERT_EQ(1u, velocity->Data().size());
+
+        const auto *force1 = _ecm.Component<components::JointForceCmd>(j1);
+        const auto *force2 = _ecm.Component<components::JointForceCmd>(j2);
+        ASSERT_NE(nullptr, force1);
+        ASSERT_NE(nullptr, force2);
+        ASSERT_EQ(1u, force1->Data().size());
+        ASSERT_EQ(1u, force2->Data().size());
+
+        const double dt = std::chrono::duration<double>(_info.dt).count();
+        ASSERT_GT(dt, 0.0);
+
+        // Evaluate one PID update using the target and gains from the SDF.
+        const double error = velocity->Data()[0] - 1.0;
+        integralError += error * dt;
+        const double derivativeError = (error - previousError) / dt;
+        previousError = error;
+        const double expectedForce =
+            -(2.0 * error + integralError + 0.05 * derivativeError);
+        EXPECT_NEAR(expectedForce, force1->Data()[0], 1e-9);
+        EXPECT_DOUBLE_EQ(force1->Data()[0], force2->Data()[0]);
+        EXPECT_NE(0.0, force1->Data()[0]);
+        EXPECT_NE(0.0, force2->Data()[0]);
+        ++samples;
+      });
+
+  server.AddSystem(testSystem.systemPtr);
+  const std::size_t forceIters = 3;
+  // Physics may need the first step to populate velocity feedback.
+  server.Run(true, 1, false);
+  server.Run(true, forceIters - samples, false);
+  EXPECT_EQ(forceIters, samples);
 }
 
 /////////////////////////////////////////////////
