@@ -39,7 +39,7 @@ namespace systems
   /// After publishing, the plugin is disabled. It can be re-enabled through
   /// a Gazebo Transport service call.
   ///
-  /// The plugin requires that a contact sensors is placed in at least one
+  /// The plugin requires that a contact sensor is placed in at least one
   /// link on the model on which this plugin is attached.
   ///
   /// ## System Parameters
@@ -50,7 +50,7 @@ namespace systems
   ///              entities, so it can possibly match more than one collision.
   ///              For example, using the name of a model will match all of its
   ///              collisions (scoped name
-  ///              `/model_name/link_name/collision_name`).
+  ///              `/<model_name>/<link_name>/<collision_name>`).
   ///
   /// - `<collision>` Optional parameter. Multiple <collision> elements are
   ///                 allowed. If specified, a touch event will only be emitted
