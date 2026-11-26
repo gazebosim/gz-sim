@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <sdf version="1.9">
   <world name="force_torque">
+    <gravity>0 0 -9.8</gravity>
     <physics name="fast" type="ignored">
       <real_time_factor>0</real_time_factor>
     </physics>
@@ -434,6 +435,60 @@
           </collision>
         </link>
       </model>
+    </model>
+
+    <model name="test4">
+      <pose>0 15 0   0 0 0</pose>
+      <link name="base">
+        <pose>0 0 0.5   0 0 0</pose>
+        <inertial>
+          <mass>100</mass>
+          <inertia>
+            <ixx>10</ixx>
+            <iyy>10</iyy>
+            <izz>10</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="anchor" type="fixed">
+        <parent>world</parent>
+        <child>base</child>
+      </joint>
+      <link name="load">
+        <pose>0 0 1   0 0 0</pose>
+        <inertial>
+          <pose>0.3 0.1 0   0 0 0</pose>
+          <mass>2</mass>
+          <inertia>
+            <ixx>0.01</ixx>
+            <iyy>0.01</iyy>
+            <izz>0.01</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="sensor_joint" type="fixed">
+        <parent>base</parent>
+        <child>load</child>
+        <sensor name="origin_sensor" type="force_torque">
+          <update_rate>100</update_rate>
+          <always_on>true</always_on>
+          <topic>force_torque4_origin</topic>
+          <force_torque>
+            <frame>sensor</frame>
+            <measure_direction>parent_to_child</measure_direction>
+          </force_torque>
+        </sensor>
+        <sensor name="offset_rotated_sensor" type="force_torque">
+          <pose degrees="true">0.1 0 0   0 0 90</pose>
+          <update_rate>100</update_rate>
+          <always_on>true</always_on>
+          <topic>force_torque4_offset_rotated</topic>
+          <force_torque>
+            <frame>sensor</frame>
+            <measure_direction>parent_to_child</measure_direction>
+          </force_torque>
+        </sensor>
+      </joint>
     </model>
   </world>
 </sdf>
