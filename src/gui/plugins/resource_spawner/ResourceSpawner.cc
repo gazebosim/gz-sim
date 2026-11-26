@@ -692,15 +692,17 @@ void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
   auto ownerIt = this->dataPtr->ownerModelMap.find(ownerStr);
   if (ownerIt != this->dataPtr->ownerModelMap.end())
   {
-    for (auto &resource : ownerIt->second)
+    auto &resources = ownerIt->second;
+    auto it = std::find_if(resources.begin(), resources.end(),
+        [&nameStr](const Resource &_resource)
+        {
+          return _resource.name == nameStr;
+        });
+    if (it != resources.end())
     {
-      if (resource.name == nameStr)
-      {
-        resource.isDownloading = true;
-        this->dataPtr->resourceModel.UpdateResourceByName(
-            ownerStr, nameStr, resource);
-        break;
-      }
+      it->isDownloading = true;
+      this->dataPtr->resourceModel.UpdateResourceByName(
+          ownerStr, nameStr, *it);
     }
   }
 
@@ -749,28 +751,29 @@ void ResourceSpawner::OnDownloadFinished(const std::string &_owner,
   auto ownerIt = this->dataPtr->ownerModelMap.find(_owner);
   if (ownerIt != this->dataPtr->ownerModelMap.end())
   {
-    for (auto &resource : ownerIt->second)
-    {
-      if (resource.name == _name)
-      {
-        resource.isDownloading = false;
-        if (_success)
+    auto &resources = ownerIt->second;
+    auto it = std::find_if(resources.begin(), resources.end(),
+        [&_name](const Resource &_resource)
         {
-          resource.isDownloaded = true;
-          resource.isFuel = true;
-          std::string sdfPath = sdf::getModelFilePath(_localPath);
-          if (sdfPath.empty())
-            sdfPath = common::joinPaths(_localPath, "model.sdf");
-          resource.sdfPath = sdfPath;
-          const std::string thumbnailPath =
-              common::joinPaths(_localPath, "thumbnails");
-          this->SetThumbnail(thumbnailPath, resource);
-          spawnedSdf = resource.sdfPath;
-        }
-        this->dataPtr->resourceModel.UpdateResourceByName(
-            _owner, _name, resource);
-        break;
+          return _resource.name == _name;
+        });
+    if (it != resources.end())
+    {
+      it->isDownloading = false;
+      if (_success)
+      {
+        it->isDownloaded = true;
+        it->isFuel = true;
+        std::string sdfPath = sdf::getModelFilePath(_localPath);
+        if (sdfPath.empty())
+          sdfPath = common::joinPaths(_localPath, "model.sdf");
+        it->sdfPath = sdfPath;
+        const std::string thumbnailPath =
+            common::joinPaths(_localPath, "thumbnails");
+        this->SetThumbnail(thumbnailPath, *it);
+        spawnedSdf = it->sdfPath;
       }
+      this->dataPtr->resourceModel.UpdateResourceByName(_owner, _name, *it);
     }
   }
 

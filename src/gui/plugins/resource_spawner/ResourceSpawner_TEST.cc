@@ -17,9 +17,11 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <thread>
@@ -64,8 +66,9 @@ Resource FuelResource(const std::string &_name, uint32_t _downloadCount)
 std::vector<std::string> Names(const std::vector<Resource> &_resources)
 {
   std::vector<std::string> names;
-  for (const auto &resource : _resources)
-    names.push_back(resource.name);
+  std::transform(_resources.begin(), _resources.end(),
+      std::back_inserter(names),
+      [](const Resource &_resource) { return _resource.name; });
   return names;
 }
 
