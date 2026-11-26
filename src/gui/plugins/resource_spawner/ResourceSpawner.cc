@@ -216,8 +216,14 @@ void ResourceModel::AddResources(std::vector<Resource> &_resources)
 /////////////////////////////////////////////////
 void ResourceModel::AddResource(const Resource &_resource)
 {
+  this->InsertResource(this->rowCount(), _resource);
+}
+
+/////////////////////////////////////////////////
+void ResourceModel::InsertResource(int _row, const Resource &_resource)
+{
   GZ_PROFILE_THREAD_NAME("Qt thread");
-  GZ_PROFILE("GridModel::AddResource");
+  GZ_PROFILE("GridModel::InsertResource");
 
   auto resource = new QStandardItem(QString::fromStdString(_resource.name));
   const auto roles = this->roleNames();
@@ -246,7 +252,7 @@ void ResourceModel::AddResource(const Resource &_resource)
   this->gridIndex++;
   emit sizeChanged();
 
-  this->appendRow(resource);
+  this->insertRow(std::clamp(_row, 0, this->rowCount()), resource);
 }
 
 /////////////////////////////////////////////////
@@ -557,77 +563,69 @@ bool compareByAlphabet(const Resource &a, const Resource &b)
   return (aName.compare(bName) < 0);
 }
 
+namespace {
 /////////////////////////////////////////////////
-bool compareByDownloaded(const Resource &a, const Resource &b)
+std::string ToLower(std::string _str)
 {
-  // Only return true when a is download and b is not
-  // Return false in all other cases and when they are equal
-  if (a.isDownloaded && !b.isDownloaded)
-  {
-    return true;
-  }
+  std::for_each(_str.begin(), _str.end(), [](char &_c)
+      {
+        _c = static_cast<char>(::tolower(static_cast<unsigned char>(_c)));
+      });
+  return _str;
+}
+
+/////////////////////////////////////////////////
+/// \brief Whether the resource's name or owner contains the keyword.
+/// \param[in] _resource Resource to check.
+/// \param[in] _keyword Lowercase search keyword. An empty keyword matches
+/// every resource.
+bool MatchesKeyword(const Resource &_resource, const std::string &_keyword)
+{
+  return _keyword.empty() ||
+      ToLower(_resource.name).find(_keyword) != std::string::npos ||
+      ToLower(_resource.owner).find(_keyword) != std::string::npos;
+}
+
+/////////////////////////////////////////////////
+/// \brief Whether _a is shown before _b with the given sort method.
+/// Resources that are equal for the sort method keep the order in which
+/// they were loaded, which is the "Most Recent" order for Fuel resources.
+bool SortsBefore(const std::string &_sortMethod, const Resource &_a,
+    const Resource &_b)
+{
+  if (_sortMethod == "Popular")
+    return _a.downloadCount > _b.downloadCount;
+  if (_sortMethod == "A - Z")
+    return compareByAlphabet(_a, _b);
+  if (_sortMethod == "Z - A")
+    return compareByAlphabet(_b, _a);
   return false;
 }
+}  // namespace
 
 /////////////////////////////////////////////////
 void ResourceSpawner::FilterResources(std::vector<Resource> &_resources)
 {
-  if (this->dataPtr->displayData.searchKeyword.empty())
-    return;
-
-  std::string searchKeyword = this->dataPtr->displayData.searchKeyword;
-  std::for_each(searchKeyword.begin(), searchKeyword.end(), [](char & c){
-      c = ::tolower(c);
-      });
-  auto it = _resources.begin();
-
-  // Remove any resources from the vector that don't contain the entered
-  // keyword in their name or owner name
-  while (it != _resources.end())
-  {
-    // Check for matches in the owner and name of the resource
-    std::string name = it->name;
-    std::string owner = it->owner;
-    std::for_each(name.begin(), name.end(), [](char & c){
-        c = ::tolower(c);
-        });
-    std::for_each(owner.begin(), owner.end(), [](char & c){
-        c = ::tolower(c);
-        });
-    if (name.find(searchKeyword) == std::string::npos &&
-        owner.find(searchKeyword) == std::string::npos)
-    {
-      it = _resources.erase(it);
-    }
-    else
-    {
-      ++it;
-    }
-  }
+  // Remove any resources that don't contain the entered keyword in their
+  // name or owner name
+  const std::string keyword =
+      ToLower(this->dataPtr->displayData.searchKeyword);
+  _resources.erase(std::remove_if(_resources.begin(), _resources.end(),
+      [&keyword](const Resource &_resource)
+      {
+        return !MatchesKeyword(_resource, keyword);
+      }), _resources.end());
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::SortResources(std::vector<Resource> &_resources)
 {
-  // Sort the results by the desired sort, don't do anything
-  // in the fourth case (Most Recent) as that is the order
-  // by default
-  if (this->dataPtr->displayData.sortMethod == "A - Z")
-  {
-    // Sort std::vector<Resource> resource from a to z
-    std::sort(_resources.begin(), _resources.end(), compareByAlphabet);
-  }
-  else if (this->dataPtr->displayData.sortMethod == "Z - A")
-  {
-    // Sort std::vector<Resource> resource from z to a
-    std::sort(_resources.begin(), _resources.end(), compareByAlphabet);
-    std::reverse(_resources.begin(), _resources.end());
-  }
-  else if (this->dataPtr->displayData.sortMethod == "Downloaded")
-  {
-    // Sort std::vector<Resource> resource from downloaded to not downloaded
-    std::sort(_resources.begin(), _resources.end(), compareByDownloaded);
-  }
+  const std::string &sortMethod = this->dataPtr->displayData.sortMethod;
+  std::stable_sort(_resources.begin(), _resources.end(),
+      [&sortMethod](const Resource &_a, const Resource &_b)
+      {
+        return SortsBefore(sortMethod, _a, _b);
+      });
 }
 
 /////////////////////////////////////////////////
@@ -874,11 +872,27 @@ void ResourceSpawner::UpdateOwnerListModel(Resource _resource)
       _resource.owner, _resource.name);
   _resource.isDownloading = this->dataPtr->activeDownloads.count(key) > 0;
 
-  this->dataPtr->ownerModelMap[_resource.owner].push_back(_resource);
-  if (this->dataPtr->displayData.ownerPath == _resource.owner)
+  auto &ownerResources = this->dataPtr->ownerModelMap[_resource.owner];
+  const auto &display = this->dataPtr->displayData;
+  const std::string keyword = ToLower(display.searchKeyword);
+  if (display.ownerPath == _resource.owner &&
+      MatchesKeyword(_resource, keyword))
   {
-    this->dataPtr->resourceModel.AddResource(_resource);
+    // The owner is on screen while its resources are still arriving. Insert
+    // the resource where DisplayResources would put it: after the shown
+    // resources that don't sort after it.
+    int row = 0;
+    for (const Resource &resource : ownerResources)
+    {
+      if (MatchesKeyword(resource, keyword) &&
+          !SortsBefore(display.sortMethod, _resource, resource))
+      {
+        ++row;
+      }
+    }
+    this->dataPtr->resourceModel.InsertResource(row, _resource);
   }
+  ownerResources.push_back(_resource);
 }
 
 /////////////////////////////////////////////////

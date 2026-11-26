@@ -23,9 +23,12 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QTemporaryDir>
 #include <QUrl>
 
@@ -42,6 +45,43 @@ char *g_argv[] =
 
 using namespace gz;
 using namespace sim;
+
+namespace
+{
+/////////////////////////////////////////////////
+Resource FuelResource(const std::string &_name, uint32_t _downloadCount)
+{
+  Resource resource;
+  resource.name = _name;
+  resource.owner = "alice";
+  resource.isFuel = true;
+  resource.sdfPath = "https://fuel.gazebosim.org/1.0/alice/models/" + _name;
+  resource.downloadCount = _downloadCount;
+  return resource;
+}
+
+/////////////////////////////////////////////////
+std::vector<std::string> Names(const std::vector<Resource> &_resources)
+{
+  std::vector<std::string> names;
+  for (const auto &resource : _resources)
+    names.push_back(resource.name);
+  return names;
+}
+
+/////////////////////////////////////////////////
+std::vector<std::string> Names(const ResourceModel &_model)
+{
+  std::vector<std::string> names;
+  const int nameRole = _model.roleNames().key("name");
+  for (int row = 0; row < _model.rowCount(); ++row)
+  {
+    names.push_back(
+        _model.item(row)->data(nameRole).toString().toStdString());
+  }
+  return names;
+}
+}  // namespace
 
 /////////////////////////////////////////////////
 TEST(ResourceSpawnerTest, BuildFuelThumbnailUrl)
@@ -164,4 +204,75 @@ TEST(ResourceSpawnerTest,
   spawner.OnDownloadFuelResource("not_a_model_url", "box", "alice", 0, true);
   waitForErrors(2);
   EXPECT_EQ(2, errors);
+}
+
+/////////////////////////////////////////////////
+TEST(ResourceSpawnerTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(SortResources))
+{
+  auto app = std::make_unique<gui::Application>(g_argc, g_argv);
+  ASSERT_NE(nullptr, app);
+
+  ResourceSpawner spawner;
+  const std::vector<Resource> loaded{FuelResource("b", 5),
+      FuelResource("C", 50), FuelResource("a", 10), FuelResource("d", 50)};
+
+  // "Popular" is the default: most downloaded first, and resources with the
+  // same download count keep the order in which they were loaded
+  auto resources = loaded;
+  spawner.SortResources(resources);
+  EXPECT_EQ((std::vector<std::string>{"C", "d", "a", "b"}), Names(resources));
+
+  resources = loaded;
+  spawner.OnSortChosen("Most Recent");
+  spawner.SortResources(resources);
+  EXPECT_EQ((std::vector<std::string>{"b", "C", "a", "d"}), Names(resources));
+
+  resources = loaded;
+  spawner.OnSortChosen("A - Z");
+  spawner.SortResources(resources);
+  EXPECT_EQ((std::vector<std::string>{"a", "b", "C", "d"}), Names(resources));
+
+  resources = loaded;
+  spawner.OnSortChosen("Z - A");
+  spawner.SortResources(resources);
+  EXPECT_EQ((std::vector<std::string>{"d", "C", "b", "a"}), Names(resources));
+}
+
+/////////////////////////////////////////////////
+TEST(ResourceSpawnerTest,
+    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ResourcesLoadedWhileShown))
+{
+  auto app = std::make_unique<gui::Application>(g_argc, g_argv);
+  ASSERT_NE(nullptr, app);
+
+  ResourceSpawner spawner;
+  auto *model = qobject_cast<ResourceModel *>(app->Engine()->rootContext()
+      ->contextProperty("ResourceList").value<QObject *>());
+  ASSERT_NE(nullptr, model);
+
+  // Resources that arrive from Fuel while their owner is shown are inserted
+  // in "Popular" order
+  spawner.OnOwnerClicked("alice");
+  spawner.DisplayResources();
+  for (const auto &resource : {FuelResource("office chair", 5),
+      FuelResource("table", 50), FuelResource("armchair", 10),
+      FuelResource("lamp", 50), FuelResource("chair", 10)})
+  {
+    spawner.UpdateOwnerListModel(resource);
+  }
+  EXPECT_EQ((std::vector<std::string>{
+      "table", "lamp", "armchair", "chair", "office chair"}), Names(*model));
+
+  // With a search keyword, only the matching ones are inserted
+  spawner.OnSearchEntered("chair");
+  spawner.DisplayResources();
+  spawner.UpdateOwnerListModel(FuelResource("desk", 99));
+  spawner.UpdateOwnerListModel(FuelResource("high chair", 20));
+  const std::vector<std::string> expected{
+      "high chair", "armchair", "chair", "office chair"};
+  EXPECT_EQ(expected, Names(*model));
+
+  // Same result as displaying all the loaded resources again
+  spawner.DisplayResources();
+  EXPECT_EQ(expected, Names(*model));
 }

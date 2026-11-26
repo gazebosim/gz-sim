@@ -435,10 +435,11 @@ Rectangle {
               anchors.fill: parent
               model: ListModel {
                 id: cbItems
+                // The first one is the default, see Display::sortMethod
+                ListElement { text: "Popular"}
                 ListElement { text: "Most Recent"}
                 ListElement { text: "A - Z"}
                 ListElement { text: "Z - A"}
-                ListElement { text: "Downloaded"}
               }
               onActivated: {
                 _ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);

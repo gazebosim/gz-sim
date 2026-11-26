@@ -100,10 +100,10 @@ namespace sim
     /// empty if there is currently no search query.
     std::string searchKeyword = "";
 
-    /// \brief The currently chosen method of sorting, which includes "A - Z",
-    /// "Z - A", "Most Recent", and "Downloaded."  The default sort method is
-    /// "Most Recent" as that is the order the fuel models are initially loaded.
-    std::string sortMethod = "";
+    /// \brief The currently chosen method of sorting: "Popular" (most
+    /// downloaded on Fuel first), "Most Recent" (the order in which the
+    /// resources are loaded), "A - Z" or "Z - A". Defaults to "Popular".
+    std::string sortMethod = "Popular";
 
     /// \brief The name of the owner if the user has Fuel resources chosen,
     /// and the name of the local path if the user has local resources chosen.
@@ -158,6 +158,12 @@ namespace sim
     /// \brief Add a resource to the grid view.
     /// param[in] _resource The local resource to be added
     public: void AddResource(const Resource &_resource);
+
+    /// \brief Insert a resource in the grid view at the given row.
+    /// \param[in] _row Row of the new resource. Values out of range append it
+    /// or prepend it.
+    /// \param[in] _resource The resource to be added
+    public: void InsertResource(int _row, const Resource &_resource);
 
     /// \brief Add a vector of resources to the grid view.
     /// param[in] _resource The vector of local resources to be added
@@ -243,10 +249,9 @@ namespace sim
     /// \param[in,out] _resources The vector of resources to filter
     public: void FilterResources(std::vector<Resource> &_resources);
 
-    /// \brief Sorts the vector of resources by the previously entered
-    /// sort method.  The sorting types as a string, are "Most Recent",
-    /// "A - Z", "Z - A", and "Downloaded." The sort defaults to
-    /// "Most Recent."
+    /// \brief Sorts the vector of resources by the chosen sort method, see
+    /// OnSortChosen. Resources that are equal for the sort method keep their
+    /// order.
     /// \param[in,out] _resources The vector of resources to sort
     public: void SortResources(std::vector<Resource> &_resources);
 
@@ -290,9 +295,10 @@ namespace sim
         const std::string &_owner, const std::string &_name);
 
     /// \brief Callback when a sort request is made.
-    /// \param[in] _sortType The sorting type as a string, accepts
-    /// "Most Recent", "A - Z", "Z - A", and "Downloaded." Defaults to
-    /// "Most Recent."
+    /// \param[in] _sortType The sorting type as a string: "Popular" (most
+    /// downloaded on Fuel first), "Most Recent", "A - Z" or "Z - A". Any
+    /// other value keeps the order in which the resources are loaded.
+    /// Defaults to "Popular".
     public slots: void OnSortChosen(const QString &_sortType);
 
     /// \brief Callback when a search request is made.
@@ -309,7 +315,9 @@ namespace sim
                 Resource &_resource);
 
     /// \brief Called form a download thread to update the GUI's list of
-    /// resources.
+    /// resources. If the resource's owner is being displayed and the
+    /// resource matches the search keyword, it is shown at the position
+    /// given by the sort method.
     /// \param[in] _resource The resource fetched from Fuel. Note that it is
     /// passed by value as a copy is necessary to update the resource if it's
     /// cached.
