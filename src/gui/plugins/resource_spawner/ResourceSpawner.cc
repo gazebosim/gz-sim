@@ -29,10 +29,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <QDir>
-#include <QNetworkAccessManager>
-#include <QNetworkDiskCache>
-#include <QStandardPaths>
 #include <QUrl>
 
 #include <sdf/Root.hh>
@@ -129,9 +125,6 @@ namespace {
 
 // Default owner to be fetched from Fuel. This owner cannot be removed.
 constexpr const char *kDefaultOwner = "openrobotics";
-
-// Maximum disk cache size for Fuel thumbnails (50 MiB).
-constexpr qint64 kThumbnailCacheMaxBytes = 50 * 1024 * 1024;
 }
 using namespace gz;
 using namespace sim;
@@ -339,23 +332,6 @@ ResourceSpawner::ResourceSpawner()
       "PathList", &this->dataPtr->pathModel);
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
-
-  // Enable persistent HTTP disk caching for remote Fuel thumbnails if the
-  // QML engine does not already have a disk cache configured.
-  if (auto *nam = gz::gui::App()->Engine()->networkAccessManager())
-  {
-    if (!nam->cache())
-    {
-      const QString cacheDir =
-          QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
-          "/gz-fuel-thumbnails";
-      QDir().mkpath(cacheDir);
-      auto *diskCache = new QNetworkDiskCache(nam);
-      diskCache->setCacheDirectory(cacheDir);
-      diskCache->setMaximumCacheSize(kThumbnailCacheMaxBytes);
-      nam->setCache(diskCache);
-    }
-  }
 
   this->dataPtr->fuelClient =
     std::make_unique<fuel_tools::FuelClient>();
