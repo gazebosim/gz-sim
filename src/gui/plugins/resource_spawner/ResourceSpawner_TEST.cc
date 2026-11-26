@@ -121,22 +121,3 @@ TEST(ResourceSpawnerTest,
   EXPECT_TRUE(item->data(roles.key("isDownloading")).toBool());
   EXPECT_FALSE(item->data(roles.key("isDownloaded")).toBool());
 }
-
-/////////////////////////////////////////////////
-TEST(ResourceSpawnerTest,
-    GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(FavoritesAndRecents))
-{
-  auto app = std::make_unique<gui::Application>(g_argc, g_argv);
-  ASSERT_NE(nullptr, app);
-
-  ResourceSpawner spawner;
-  const QString owner = "test_owner_unit";
-  const QString name = "test_model_unit";
-
-  const bool initialFav = spawner.IsFavorite(owner, name);
-  spawner.ToggleFavorite(owner, name);
-  EXPECT_NE(initialFav, spawner.IsFavorite(owner, name));
-  // Restore original state so QSettings stays clean.
-  spawner.ToggleFavorite(owner, name);
-  EXPECT_EQ(initialFav, spawner.IsFavorite(owner, name));
-}

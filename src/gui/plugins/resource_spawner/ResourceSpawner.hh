@@ -90,10 +90,6 @@ namespace sim
     /// \brief Bool to indicate if this model is currently being downloaded.
     // cppcheck-suppress unusedStructMember
     bool isDownloading = false;
-
-    /// \brief Bool to indicate if this model is marked as a favorite.
-    // cppcheck-suppress unusedStructMember
-    bool isFavorite = false;
   };
 
   /// \brief Data used by the `DisplayData()` function to filter and sort
@@ -290,28 +286,6 @@ namespace sim
     public: Q_INVOKABLE void OnDownloadFinished(const QString &_owner,
         const QString &_name, const QString &_localPath, bool _success,
         bool _spawnAfterDownload);
-
-    /// \brief Toggle favorite status for a resource.
-    /// \param[in] _owner Owner of the resource (empty for local).
-    /// \param[in] _name Name of the resource.
-    public: Q_INVOKABLE void ToggleFavorite(const QString &_owner,
-        const QString &_name);
-
-    /// \brief Check whether a resource is marked as a favorite.
-    /// \param[in] _owner Owner of the resource (empty for local).
-    /// \param[in] _name Name of the resource.
-    /// \return True if marked as favorite.
-    public: Q_INVOKABLE bool IsFavorite(const QString &_owner,
-        const QString &_name) const;
-
-    /// \brief Record a spawned resource in the recent resources list.
-    /// \param[in] _sdfPath Path to the spawned SDF.
-    /// \param[in] _name Name of the resource.
-    /// \param[in] _owner Owner of the resource (empty for local).
-    /// \param[in] _thumbnailUrl Thumbnail URL for display.
-    public: Q_INVOKABLE void RecordRecentSpawn(const QString &_sdfPath,
-        const QString &_name, const QString &_owner,
-        const QString &_thumbnailUrl);
 
     /// \brief Build the remote Fuel thumbnail URL for a model.
     /// \param[in] _serverUrl Base Fuel server URL.

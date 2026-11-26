@@ -58,11 +58,6 @@ Rectangle {
   property bool browsingFuel: true;
 
   /**
-   * Whether the recently spawned strip is expanded
-   */
-  property bool showRecentStrip: true;
-
-  /**
    * Color for odd rows, according to theme
    */
   property color oddColor: (Material.theme == Material.Light) ?
@@ -472,82 +467,6 @@ Rectangle {
         }
       }
 
-      // Collapsible Recently Spawned quick-access strip
-      Rectangle {
-        id: recentStrip
-        visible: RecentResourceList.totalCount > 0
-        Layout.fillWidth: true
-        Layout.preferredHeight: showRecentStrip ? 64 : 26
-        color: oddColor
-
-        ColumnLayout {
-          anchors.fill: parent
-          anchors.leftMargin: 8
-          anchors.rightMargin: 8
-          anchors.topMargin: 2
-          anchors.bottomMargin: 4
-          spacing: 2
-
-          RowLayout {
-            Layout.fillWidth: true
-            Label {
-              text: "Recent (" + RecentResourceList.totalCount + ")"
-              font.pointSize: 10
-              font.bold: true
-              opacity: 0.75
-            }
-            Item { Layout.fillWidth: true }
-            ToolButton {
-              text: showRecentStrip ? "Hide" : "Show"
-              font.pointSize: 9
-              implicitHeight: 22
-              onClicked: showRecentStrip = !showRecentStrip
-            }
-          }
-
-          ListView {
-            visible: showRecentStrip
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            orientation: ListView.Horizontal
-            spacing: 6
-            clip: true
-            model: RecentResourceList
-
-            delegate: Rectangle {
-              height: 30
-              width: Math.min(160, recentLabel.implicitWidth + 24)
-              radius: 15
-              color: recentMa.containsMouse ? Material.accent : evenColor
-              border.color: Material.frameColor
-              border.width: 1
-
-              Label {
-                id: recentLabel
-                anchors.centerIn: parent
-                width: parent.width - 16
-                text: model.name
-                elide: Text.ElideRight
-                font.pointSize: 10
-                horizontalAlignment: Text.AlignHCenter
-              }
-
-              MouseArea {
-                id: recentMa
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                  _ResourceSpawner.RecordRecentSpawn(
-                    model.sdf, model.name, model.owner, model.thumbnailUrl)
-                  _ResourceSpawner.OnResourceSpawn(model.sdf)
-                }
-              }
-            }
-          }
-        }
-      }
-
       Rectangle {
         Layout.fillHeight: true
         Layout.fillWidth: true
@@ -587,30 +506,11 @@ Rectangle {
                 anchors.margins: 6
                 spacing: 4
 
-                RowLayout {
+                Label {
+                  text: model.name
+                  font.pointSize: 11
+                  elide: Text.ElideRight
                   Layout.fillWidth: true
-                  spacing: 4
-                  Label {
-                    text: model.name
-                    font.pointSize: 11
-                    elide: Text.ElideRight
-                    Layout.fillWidth: true
-                  }
-                  ToolButton {
-                    id: favBtn
-                    implicitWidth: 24
-                    implicitHeight: 24
-                    padding: 0
-                    z: 2
-                    text: model.isFavorite ? "\u2605" : "\u2606"
-                    font.pointSize: 12
-                    opacity: (model.isFavorite || ma2.containsMouse) ? 1.0 : 0.35
-                    ToolTip.text: model.isFavorite ? "Remove favorite" : "Add favorite"
-                    ToolTip.visible: hovered
-                    onClicked: {
-                      _ResourceSpawner.ToggleFavorite(model.owner, model.name)
-                    }
-                  }
                 }
 
                 Item {
@@ -668,8 +568,6 @@ Rectangle {
                       (Qt.styleHints.startDragDistance * Qt.styleHints.startDragDistance)) {
                     dragSpawned = true
                     if (!model.isFuel || model.isDownloaded) {
-                      _ResourceSpawner.RecordRecentSpawn(
-                        model.sdf, model.name, model.owner, model.thumbnailUrl)
                       _ResourceSpawner.OnResourceSpawn(model.sdf)
                       gridView.currentIndex = index
                     }
@@ -683,8 +581,6 @@ Rectangle {
                     _ResourceSpawner.OnDownloadFuelResource(
                       model.sdf, model.name, model.owner, model.index, true)
                   } else {
-                    _ResourceSpawner.RecordRecentSpawn(
-                      model.sdf, model.name, model.owner, model.thumbnailUrl)
                     _ResourceSpawner.OnResourceSpawn(model.sdf)
                     gridView.currentIndex = index
                   }
