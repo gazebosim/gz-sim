@@ -22,9 +22,19 @@
 #include <gz/msgs/stringmsg_v.pb.h>
 
 #include <algorithm>
+#include <atomic>
+#include <cctype>
 #include <set>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
+
+#include <QDir>
+#include <QNetworkAccessManager>
+#include <QNetworkDiskCache>
+#include <QSettings>
+#include <QStandardPaths>
+#include <QUrl>
 
 #include <sdf/Root.hh>
 #include <sdf/parser.hh>
@@ -96,6 +106,93 @@ namespace gz::sim
     /// \brief Holds a map from owner to the associated resource list worker.
     public: std::unordered_map<std::string,
             FetchResourceListWorker> fetchResourceListWorkers;
+
+    /// \brief Model holding the most recently spawned resources.
+    public: ResourceModel recentModel;
+
+    /// \brief Backing list of recently spawned resources (newest first).
+    public: std::vector<Resource> recentResources;
+
+    /// \brief Set of favorite resource keys ("owner/name").
+    public: std::unordered_set<std::string> favorites;
+
+    /// \brief Set of currently downloading resource keys ("owner/name").
+    public: std::unordered_set<std::string> activeDownloads;
+
+    /// \brief Background threads performing Fuel model downloads.
+    public: std::vector<std::thread> downloadThreads;
+
+    /// \brief Set to true during destructor so background workers do not
+    /// invoke slots on a destroyed object.
+    public: std::atomic<bool> shuttingDown{false};
+
+    /// \brief Build a canonical key for a resource from owner and name.
+    public: static std::string ResourceKey(const std::string &_owner,
+        const std::string &_name)
+    {
+      return _owner + "/" + _name;
+    }
+
+    /// \brief Load persisted favorites and recent spawns from QSettings.
+    public: void LoadPersistedState()
+    {
+      QSettings settings("OpenRobotics", "GazeboResourceSpawner");
+      const QStringList favList = settings.value("favorites").toStringList();
+      for (const QString &key : favList)
+        this->favorites.insert(key.toStdString());
+
+      const int count = settings.beginReadArray("recent");
+      for (int i = 0; i < count; ++i)
+      {
+        settings.setArrayIndex(i);
+        Resource res;
+        res.name = settings.value("name").toString().toStdString();
+        res.owner = settings.value("owner").toString().toStdString();
+        res.sdfPath = settings.value("sdfPath").toString().toStdString();
+        res.thumbnailUrl =
+          settings.value("thumbnailUrl").toString().toStdString();
+        res.isFuel = !res.owner.empty();
+        res.isDownloaded = true;
+        res.isFavorite = this->favorites.count(
+            ResourceKey(res.owner, res.name)) > 0;
+        if (!res.sdfPath.empty() && common::exists(res.sdfPath))
+          this->recentResources.push_back(res);
+      }
+      settings.endArray();
+      this->recentModel.Clear();
+      this->recentModel.AddResources(this->recentResources);
+    }
+
+    /// \brief Persist favorites to QSettings.
+    public: void SaveFavorites() const
+    {
+      QSettings settings("OpenRobotics", "GazeboResourceSpawner");
+      QStringList favList;
+      favList.reserve(static_cast<int>(this->favorites.size()));
+      for (const std::string &key : this->favorites)
+        favList.append(QString::fromStdString(key));
+      settings.setValue("favorites", favList);
+    }
+
+    /// \brief Persist recent spawns to QSettings.
+    public: void SaveRecents() const
+    {
+      QSettings settings("OpenRobotics", "GazeboResourceSpawner");
+      settings.beginWriteArray("recent");
+      for (size_t i = 0; i < this->recentResources.size(); ++i)
+      {
+        settings.setArrayIndex(static_cast<int>(i));
+        settings.setValue("name",
+            QString::fromStdString(this->recentResources[i].name));
+        settings.setValue("owner",
+            QString::fromStdString(this->recentResources[i].owner));
+        settings.setValue("sdfPath",
+            QString::fromStdString(this->recentResources[i].sdfPath));
+        settings.setValue("thumbnailUrl",
+            QString::fromStdString(this->recentResources[i].thumbnailUrl));
+      }
+      settings.endArray();
+    }
   };
 }
 
@@ -103,6 +200,12 @@ namespace {
 
 // Default owner to be fetched from Fuel. This owner cannot be removed.
 constexpr const char *kDefaultOwner = "openrobotics";
+
+// Maximum number of recently spawned resources kept in the quick strip.
+constexpr size_t kMaxRecentResources = 5;
+
+// Maximum disk cache size for Fuel thumbnails (50 MiB).
+constexpr qint64 kThumbnailCacheMaxBytes = 50 * 1024 * 1024;
 }
 using namespace gz;
 using namespace sim;
@@ -194,31 +297,31 @@ void ResourceModel::AddResource(const Resource &_resource)
   GZ_PROFILE("GridModel::AddResource");
 
   auto resource = new QStandardItem(QString::fromStdString(_resource.name));
-  resource->setData(_resource.isFuel,
-      this->roleNames().key("isFuel"));
-  resource->setData(_resource.isDownloaded,
-      this->roleNames().key("isDownloaded"));
+  const auto roles = this->roleNames();
+  resource->setData(_resource.isFuel, roles.key("isFuel"));
+  resource->setData(_resource.isDownloaded, roles.key("isDownloaded"));
+  resource->setData(_resource.isDownloading, roles.key("isDownloading"));
+  resource->setData(_resource.isFavorite, roles.key("isFavorite"));
   resource->setData(QString::fromStdString(_resource.thumbnailPath),
-      this->roleNames().key("thumbnail"));
+      roles.key("thumbnail"));
+  resource->setData(QString::fromStdString(_resource.thumbnailUrl),
+      roles.key("thumbnailUrl"));
   resource->setData(QString::fromStdString(_resource.name),
-      this->roleNames().key("name"));
+      roles.key("name"));
   resource->setData(QString::fromStdString(_resource.sdfPath),
-      this->roleNames().key("sdf"));
+      roles.key("sdf"));
   resource->setData(QString::fromStdString(_resource.owner),
-      this->roleNames().key("owner"));
-
-  if (_resource.isFuel)
-  {
-    resource->setData(this->gridIndex,
-        this->roleNames().key("index"));
-    this->gridIndex++;
-  }
-  else
-  {
-    resource->setData(this->gridIndex,
-        this->roleNames().key("index"));
-    this->gridIndex++;
-  }
+      roles.key("owner"));
+  resource->setData(QString::fromStdString(_resource.description),
+      roles.key("description"));
+  resource->setData(static_cast<qulonglong>(_resource.fileSize),
+      roles.key("fileSize"));
+  resource->setData(static_cast<uint>(_resource.downloadCount),
+      roles.key("downloadCount"));
+  resource->setData(static_cast<uint>(_resource.likeCount),
+      roles.key("likeCount"));
+  resource->setData(this->gridIndex, roles.key("index"));
+  this->gridIndex++;
   emit sizeChanged();
 
   this->appendRow(resource);
@@ -227,20 +330,57 @@ void ResourceModel::AddResource(const Resource &_resource)
 /////////////////////////////////////////////////
 void ResourceModel::UpdateResourceModel(int index, Resource &_resource)
 {
-  QStandardItem *parentItem{nullptr};
-
-  parentItem = this->invisibleRootItem();
-
+  QStandardItem *parentItem = this->invisibleRootItem();
   auto resource = parentItem->child(index);
+  if (!resource)
+    return;
 
-  resource->setData(_resource.isFuel,
-      this->roleNames().key("isFuel"));
-  resource->setData(_resource.isDownloaded,
-      this->roleNames().key("isDownloaded"));
+  const auto roles = this->roleNames();
+  resource->setData(_resource.isFuel, roles.key("isFuel"));
+  resource->setData(_resource.isDownloaded, roles.key("isDownloaded"));
+  resource->setData(_resource.isDownloading, roles.key("isDownloading"));
+  resource->setData(_resource.isFavorite, roles.key("isFavorite"));
   resource->setData(QString::fromStdString(_resource.thumbnailPath),
-      this->roleNames().key("thumbnail"));
+      roles.key("thumbnail"));
+  resource->setData(QString::fromStdString(_resource.thumbnailUrl),
+      roles.key("thumbnailUrl"));
   resource->setData(QString::fromStdString(_resource.sdfPath),
-      this->roleNames().key("sdf"));
+      roles.key("sdf"));
+}
+
+/////////////////////////////////////////////////
+bool ResourceModel::UpdateResourceByName(const std::string &_owner,
+    const std::string &_name, const Resource &_resource)
+{
+  const auto roles = this->roleNames();
+  const int ownerRole = roles.key("owner");
+  const int nameRole = roles.key("name");
+  const QString qOwner = QString::fromStdString(_owner);
+  const QString qName = QString::fromStdString(_name);
+
+  QStandardItem *parentItem = this->invisibleRootItem();
+  for (int i = 0; i < this->rowCount(); ++i)
+  {
+    QStandardItem *item = parentItem->child(i);
+    if (!item)
+      continue;
+    if (item->data(ownerRole).toString() == qOwner &&
+        item->data(nameRole).toString() == qName)
+    {
+      item->setData(_resource.isFuel, roles.key("isFuel"));
+      item->setData(_resource.isDownloaded, roles.key("isDownloaded"));
+      item->setData(_resource.isDownloading, roles.key("isDownloading"));
+      item->setData(_resource.isFavorite, roles.key("isFavorite"));
+      item->setData(QString::fromStdString(_resource.thumbnailPath),
+          roles.key("thumbnail"));
+      item->setData(QString::fromStdString(_resource.thumbnailUrl),
+          roles.key("thumbnailUrl"));
+      item->setData(QString::fromStdString(_resource.sdfPath),
+          roles.key("sdf"));
+      return true;
+    }
+  }
+  return false;
 }
 
 /////////////////////////////////////////////////
@@ -255,6 +395,13 @@ QHash<int, QByteArray> ResourceModel::roleNames() const
     std::pair(104, "isFuel"),
     std::pair(105, "index"),
     std::pair(106, "owner"),
+    std::pair(107, "thumbnailUrl"),
+    std::pair(108, "isDownloading"),
+    std::pair(109, "isFavorite"),
+    std::pair(110, "fileSize"),
+    std::pair(111, "downloadCount"),
+    std::pair(112, "likeCount"),
+    std::pair(113, "description"),
   };
 }
 
@@ -267,9 +414,30 @@ ResourceSpawner::ResourceSpawner()
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "ResourceList", &this->dataPtr->resourceModel);
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
+      "RecentResourceList", &this->dataPtr->recentModel);
+  gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "PathList", &this->dataPtr->pathModel);
   gz::gui::App()->Engine()->rootContext()->setContextProperty(
       "OwnerList", &this->dataPtr->ownerModel);
+
+  // Enable persistent HTTP disk caching for remote Fuel thumbnails if the
+  // QML engine does not already have a disk cache configured.
+  if (auto *nam = gz::gui::App()->Engine()->networkAccessManager())
+  {
+    if (!nam->cache())
+    {
+      const QString cacheDir =
+          QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+          "/gz-fuel-thumbnails";
+      QDir().mkpath(cacheDir);
+      auto *diskCache = new QNetworkDiskCache(nam);
+      diskCache->setCacheDirectory(cacheDir);
+      diskCache->setMaximumCacheSize(kThumbnailCacheMaxBytes);
+      nam->setCache(diskCache);
+    }
+  }
+
+  this->dataPtr->LoadPersistedState();
   this->dataPtr->fuelClient =
     std::make_unique<fuel_tools::FuelClient>();
 
@@ -302,6 +470,7 @@ ResourceSpawner::ResourceSpawner()
 /////////////////////////////////////////////////
 ResourceSpawner::~ResourceSpawner()
 {
+  this->dataPtr->shuttingDown = true;
   for (auto &workers : this->dataPtr->fetchResourceListWorkers)
   {
     workers.second.stopDownloading = true;
@@ -310,38 +479,71 @@ ResourceSpawner::~ResourceSpawner()
       workers.second.thread.join();
     }
   }
+  for (auto &t : this->dataPtr->downloadThreads)
+  {
+    if (t.joinable())
+      t.join();
+  }
+}
+
+/////////////////////////////////////////////////
+std::string ResourceSpawner::BuildFuelThumbnailUrl(
+    const std::string &_serverUrl, const std::string &_serverVersion,
+    const std::string &_owner, const std::string &_name)
+{
+  if (_serverUrl.empty() || _owner.empty() || _name.empty())
+    return "";
+
+  std::string base = _serverUrl;
+  while (!base.empty() && base.back() == '/')
+    base.pop_back();
+
+  const std::string version = _serverVersion.empty() ? "1.0" : _serverVersion;
+  const QByteArray encodedOwner =
+      QUrl::toPercentEncoding(QString::fromStdString(_owner));
+  const QByteArray encodedName =
+      QUrl::toPercentEncoding(QString::fromStdString(_name));
+
+  return base + "/" + version + "/" + encodedOwner.toStdString() +
+      "/models/" + encodedName.toStdString() + "/tip/files/thumbnails/1.png";
 }
 
 /////////////////////////////////////////////////
 void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
     Resource &_resource)
 {
-  // Get first thumbnail image found
-  if (common::exists(_thumbnailPath))
+  if (!common::exists(_thumbnailPath) || !common::isDirectory(_thumbnailPath))
+    return;
+
+  std::vector<std::string> candidates;
+  for (common::DirIter file(_thumbnailPath);
+      file != common::DirIter(); ++file)
   {
-    for (common::DirIter file(_thumbnailPath);
-        file != common::DirIter(); ++file)
-    {
-      std::string current(*file);
-      if (common::isFile(current))
-      {
-        std::string thumbnailFileName = common::basename(current);
-        std::string::size_type thumbnailExtensionIndex =
-          thumbnailFileName.rfind(".");
-        std::string thumbnailFileExtension =
-          thumbnailFileName.substr(thumbnailExtensionIndex + 1);
-        // The standard image types QML supports, search for any file
-        // with this extension and use the first found
-        if (thumbnailFileExtension == "png"  ||
-            thumbnailFileExtension == "jpg"  ||
-            thumbnailFileExtension == "jpeg" ||
-            thumbnailFileExtension == "svg")
-        {
-          _resource.thumbnailPath = current;
-          break;
-        }
-      }
-    }
+    const std::string current(*file);
+    if (!common::isFile(current))
+      continue;
+
+    const std::string fileName = common::basename(current);
+    const auto dotPos = fileName.rfind('.');
+    if (dotPos == std::string::npos || dotPos + 1 >= fileName.size())
+      continue;
+
+    std::string ext = fileName.substr(dotPos + 1);
+    std::transform(ext.begin(), ext.end(), ext.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+
+    if (ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "svg")
+      candidates.push_back(current);
+  }
+
+  if (!candidates.empty())
+  {
+    // Sort deterministically so 1.png is consistently preferred over 2.png.
+    std::sort(candidates.begin(), candidates.end());
+    _resource.thumbnailPath = candidates.front();
+    _resource.thumbnailUrl =
+        QUrl::fromLocalFile(QString::fromStdString(_resource.thumbnailPath))
+            .toString().toStdString();
   }
 }
 
@@ -362,15 +564,21 @@ Resource ResourceSpawner::LocalResource(const std::string &_path)
   doc.LoadFile(configFileName.c_str());
   auto modelXml = doc.FirstChildElement("model");
 
-  // Get the name of the model
+  // Get the name and description of the model
   if (modelXml)
   {
     auto modelName = modelXml->FirstChildElement("name");
-    if (modelName)
+    if (modelName && modelName->GetText())
       resource.name = modelName->GetText();
+
+    auto modelDesc = modelXml->FirstChildElement("description");
+    if (modelDesc && modelDesc->GetText())
+      resource.description = modelDesc->GetText();
   }
   std::string sdfPath = sdf::getModelFilePath(resourcePath);
   resource.sdfPath = sdfPath;
+  resource.isFavorite = this->dataPtr->favorites.count(
+      ResourceSpawnerPrivate::ResourceKey(resource.owner, resource.name)) > 0;
 
   // Get first thumbnail image found
   this->SetThumbnail(thumbnailPath, resource);
@@ -563,50 +771,216 @@ void ResourceSpawner::OnPathClicked(const QString &_path)
 
 /////////////////////////////////////////////////
 void ResourceSpawner::OnDownloadFuelResource(const QString &_path,
-    const QString &_name, const QString &_owner, int index)
+    const QString &_name, const QString &_owner, int /*index*/,
+    bool _spawnAfterDownload)
 {
-  Resource modelResource;
-  std::string localPath;
+  const std::string ownerStr = _owner.toStdString();
+  const std::string nameStr = _name.toStdString();
+  const std::string uriStr = _path.toStdString();
+  const std::string key = ResourceSpawnerPrivate::ResourceKey(ownerStr,
+      nameStr);
 
-  // Set the waiting cursor while the resource downloads
-  QGuiApplication::setOverrideCursor(Qt::WaitCursor);
-  if (this->dataPtr->fuelClient->DownloadModel(
-      common::URI(_path.toStdString(), true), localPath))
+  if (this->dataPtr->activeDownloads.count(key) > 0)
+    return;
+
+  this->dataPtr->activeDownloads.insert(key);
+
+  // Mark as downloading immediately in both cache and visible model.
+  auto ownerIt = this->dataPtr->ownerModelMap.find(ownerStr);
+  if (ownerIt != this->dataPtr->ownerModelMap.end())
   {
-    // Successful download, set thumbnail
-    std::string thumbnailPath = common::joinPaths(localPath, "thumbnails");
-    this->SetThumbnail(thumbnailPath, modelResource);
-    modelResource.isDownloaded = true;
-    modelResource.sdfPath = common::joinPaths(localPath, "model.sdf");
-    modelResource.isFuel = true;
-    // Update the current grid of resources
-    this->dataPtr->resourceModel.UpdateResourceModel(index, modelResource);
-
-    // Update the ground truth ownerModelMap
-    if (this->dataPtr->ownerModelMap.find(_owner.toStdString()) !=
-        this->dataPtr->ownerModelMap.end())
+    for (auto &resource : ownerIt->second)
     {
-      std::vector<Resource> fuelResources =
-        this->dataPtr->ownerModelMap[_owner.toStdString()];
-      for (auto &resource : fuelResources)
+      if (resource.name == nameStr)
       {
-        if (resource.name == _name.toStdString())
+        resource.isDownloading = true;
+        this->dataPtr->resourceModel.UpdateResourceByName(
+            ownerStr, nameStr, resource);
+        break;
+      }
+    }
+  }
+
+  // Run download asynchronously on a worker thread so the GUI stays responsive.
+  this->dataPtr->downloadThreads.emplace_back(
+      [this, uriStr, ownerStr, nameStr, _spawnAfterDownload]
+      {
+        fuel_tools::FuelClient workerClient;
+        std::string localPath;
+        const bool ok = workerClient.DownloadModel(
+            common::URI(uriStr, true), localPath);
+
+        if (this->dataPtr->shuttingDown)
+          return;
+
+        QMetaObject::invokeMethod(
+            this, "OnDownloadFinished", Qt::QueuedConnection,
+            Q_ARG(QString, QString::fromStdString(ownerStr)),
+            Q_ARG(QString, QString::fromStdString(nameStr)),
+            Q_ARG(QString, QString::fromStdString(localPath)),
+            Q_ARG(bool, ok),
+            Q_ARG(bool, _spawnAfterDownload));
+      });
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::OnDownloadFinished(const QString &_owner,
+    const QString &_name, const QString &_localPath, bool _success,
+    bool _spawnAfterDownload)
+{
+  const std::string ownerStr = _owner.toStdString();
+  const std::string nameStr = _name.toStdString();
+  const std::string localPathStr = _localPath.toStdString();
+  const std::string key = ResourceSpawnerPrivate::ResourceKey(ownerStr,
+      nameStr);
+  this->dataPtr->activeDownloads.erase(key);
+
+  std::string spawnedSdf;
+  std::string spawnedThumbUrl;
+
+  auto ownerIt = this->dataPtr->ownerModelMap.find(ownerStr);
+  if (ownerIt != this->dataPtr->ownerModelMap.end())
+  {
+    for (auto &resource : ownerIt->second)
+    {
+      if (resource.name == nameStr)
+      {
+        resource.isDownloading = false;
+        if (_success)
         {
-          resource.isDownloaded = modelResource.isDownloaded;
-          resource.isFuel = modelResource.isFuel;
-          resource.sdfPath = modelResource.sdfPath;
+          resource.isDownloaded = true;
+          resource.isFuel = true;
+          std::string sdfPath = sdf::getModelFilePath(localPathStr);
+          if (sdfPath.empty())
+            sdfPath = common::joinPaths(localPathStr, "model.sdf");
+          resource.sdfPath = sdfPath;
+          const std::string thumbnailPath =
+              common::joinPaths(localPathStr, "thumbnails");
           this->SetThumbnail(thumbnailPath, resource);
-          this->dataPtr->ownerModelMap[_owner.toStdString()] = fuelResources;
-          break;
+          spawnedSdf = resource.sdfPath;
+          spawnedThumbUrl = resource.thumbnailUrl;
         }
+        this->dataPtr->resourceModel.UpdateResourceByName(
+            ownerStr, nameStr, resource);
+        break;
+      }
+    }
+  }
+
+  if (!_success)
+  {
+    gzwarn << "Download failed for [" << ownerStr << "/" << nameStr
+           << "]. Try again." << std::endl;
+    emit resourceSpawnerError(
+        QString("Failed to download \"%1\". Please try again.").arg(_name));
+    return;
+  }
+
+  if (_spawnAfterDownload && !spawnedSdf.empty())
+  {
+    this->RecordRecentSpawn(QString::fromStdString(spawnedSdf),
+        _name, _owner, QString::fromStdString(spawnedThumbUrl));
+    this->OnResourceSpawn(QString::fromStdString(spawnedSdf));
+  }
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::ToggleFavorite(const QString &_owner,
+    const QString &_name)
+{
+  const std::string ownerStr = _owner.toStdString();
+  const std::string nameStr = _name.toStdString();
+  const std::string key = ResourceSpawnerPrivate::ResourceKey(ownerStr,
+      nameStr);
+
+  const bool nowFav = this->dataPtr->favorites.count(key) == 0;
+  if (nowFav)
+    this->dataPtr->favorites.insert(key);
+  else
+    this->dataPtr->favorites.erase(key);
+
+  this->dataPtr->SaveFavorites();
+
+  auto ownerIt = this->dataPtr->ownerModelMap.find(ownerStr);
+  if (ownerIt != this->dataPtr->ownerModelMap.end())
+  {
+    for (auto &resource : ownerIt->second)
+    {
+      if (resource.name == nameStr)
+      {
+        resource.isFavorite = nowFav;
+        this->dataPtr->resourceModel.UpdateResourceByName(
+            ownerStr, nameStr, resource);
+        break;
       }
     }
   }
   else
   {
-    gzwarn << "Download failed.  Try again." << std::endl;
+    // Local resource: update visible model directly if present.
+    Resource updated;
+    updated.owner = ownerStr;
+    updated.name = nameStr;
+    // Preserve existing fields when updating local items in resourceModel.
+    const auto roles = this->dataPtr->resourceModel.roleNames();
+    const int ownerRole = roles.key("owner");
+    const int nameRole = roles.key("name");
+    const int favRole = roles.key("isFavorite");
+    auto *root = this->dataPtr->resourceModel.invisibleRootItem();
+    for (int i = 0; i < this->dataPtr->resourceModel.rowCount(); ++i)
+    {
+      if (auto *item = root->child(i))
+      {
+        if (item->data(ownerRole).toString() == _owner &&
+            item->data(nameRole).toString() == _name)
+        {
+          item->setData(nowFav, favRole);
+          break;
+        }
+      }
+    }
   }
-  QGuiApplication::restoreOverrideCursor();
+}
+
+/////////////////////////////////////////////////
+bool ResourceSpawner::IsFavorite(const QString &_owner,
+    const QString &_name) const
+{
+  return this->dataPtr->favorites.count(
+      ResourceSpawnerPrivate::ResourceKey(
+          _owner.toStdString(), _name.toStdString())) > 0;
+}
+
+/////////////////////////////////////////////////
+void ResourceSpawner::RecordRecentSpawn(const QString &_sdfPath,
+    const QString &_name, const QString &_owner, const QString &_thumbnailUrl)
+{
+  const std::string sdfStr = _sdfPath.toStdString();
+  if (sdfStr.empty())
+    return;
+
+  auto &recents = this->dataPtr->recentResources;
+  recents.erase(
+      std::remove_if(recents.begin(), recents.end(),
+          [&sdfStr](const Resource &_r) { return _r.sdfPath == sdfStr; }),
+      recents.end());
+
+  Resource entry;
+  entry.sdfPath = sdfStr;
+  entry.name = _name.isEmpty() ? common::basename(sdfStr) : _name.toStdString();
+  entry.owner = _owner.toStdString();
+  entry.thumbnailUrl = _thumbnailUrl.toStdString();
+  entry.isFuel = !entry.owner.empty();
+  entry.isDownloaded = true;
+  entry.isFavorite = this->IsFavorite(_owner, _name);
+
+  recents.insert(recents.begin(), entry);
+  if (recents.size() > kMaxRecentResources)
+    recents.resize(kMaxRecentResources);
+
+  this->dataPtr->recentModel.Clear();
+  this->dataPtr->recentModel.AddResources(recents);
+  this->dataPtr->SaveRecents();
 }
 
 /////////////////////////////////////////////////
@@ -677,10 +1051,18 @@ void ResourceSpawner::UpdateOwnerListModel(Resource _resource)
         common::URI(_resource.sdfPath), path))
   {
     _resource.isDownloaded = true;
-    _resource.sdfPath = common::joinPaths(path, "model.sdf");
+    std::string sdfPath = sdf::getModelFilePath(path);
+    if (sdfPath.empty())
+      sdfPath = common::joinPaths(path, "model.sdf");
+    _resource.sdfPath = sdfPath;
     std::string thumbnailPath = common::joinPaths(path, "thumbnails");
     this->SetThumbnail(thumbnailPath, _resource);
   }
+
+  const std::string key = ResourceSpawnerPrivate::ResourceKey(
+      _resource.owner, _resource.name);
+  _resource.isFavorite = this->dataPtr->favorites.count(key) > 0;
+  _resource.isDownloading = this->dataPtr->activeDownloads.count(key) > 0;
 
   this->dataPtr->ownerModelMap[_resource.owner].push_back(_resource);
   if (this->dataPtr->displayData.ownerPath == _resource.owner)
@@ -758,6 +1140,12 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
             resource.isDownloaded = false;
             resource.owner = id.Owner();
             resource.sdfPath = id.Url().Str();
+            resource.description = id.Description();
+            resource.fileSize = id.FileSize();
+            resource.downloadCount = id.DownloadCount();
+            resource.likeCount = id.LikeCount();
+            resource.thumbnailUrl = ResourceSpawner::BuildFuelThumbnailUrl(
+                server.Url().Str(), server.Version(), id.Owner(), id.Name());
 
             QMetaObject::invokeMethod(
                 this, "UpdateOwnerListModel", Qt::QueuedConnection,
