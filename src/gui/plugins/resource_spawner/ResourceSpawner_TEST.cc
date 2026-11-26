@@ -140,3 +140,31 @@ TEST(ResourceSpawnerTest,
   spawner.ToggleFavorite(owner, name);
   EXPECT_EQ(initialFav, spawner.IsFavorite(owner, name));
 }
+
+/////////////////////////////////////////////////
+TEST(ResourceSpawnerTest, InferCategory)
+{
+  EXPECT_EQ("drone", ResourceSpawner::InferCategory("X3 UAV"));
+  EXPECT_EQ("robot", ResourceSpawner::InferCategory("Clearpath Husky"));
+  EXPECT_EQ("sensor", ResourceSpawner::InferCategory(
+      "MyUnit", "Depth camera module"));
+  EXPECT_EQ("vehicle", ResourceSpawner::InferCategory("Prius Hybrid"));
+  EXPECT_EQ("nature", ResourceSpawner::InferCategory("Oak tree"));
+  EXPECT_EQ("building", ResourceSpawner::InferCategory("Warehouse Depot"));
+  EXPECT_EQ("furniture", ResourceSpawner::InferCategory("Picking_Shelves"));
+  EXPECT_EQ("light", ResourceSpawner::InferCategory("Street Lamp"));
+  EXPECT_EQ("prop", ResourceSpawner::InferCategory("Coke Can"));
+  EXPECT_EQ("robot", ResourceSpawner::InferCategory(
+      "CustomModel", "", {"ugv", "outdoor"}));
+  EXPECT_EQ("generic", ResourceSpawner::InferCategory("FooBarBaz"));
+}
+
+/////////////////////////////////////////////////
+TEST(ResourceSpawnerTest, FormatFileSize)
+{
+  EXPECT_EQ("", ResourceSpawner::FormatFileSize(0));
+  EXPECT_EQ("512 B", ResourceSpawner::FormatFileSize(512));
+  EXPECT_EQ("1.5 KB", ResourceSpawner::FormatFileSize(1536));
+  EXPECT_EQ("4.2 MB", ResourceSpawner::FormatFileSize(4404019));
+  EXPECT_EQ("2.0 GB", ResourceSpawner::FormatFileSize(2147483648ULL));
+}

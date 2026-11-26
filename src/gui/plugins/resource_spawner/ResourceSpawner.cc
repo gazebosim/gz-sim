@@ -24,7 +24,9 @@
 #include <algorithm>
 #include <atomic>
 #include <cctype>
+#include <iomanip>
 #include <set>
+#include <sstream>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -320,6 +322,10 @@ void ResourceModel::AddResource(const Resource &_resource)
       roles.key("downloadCount"));
   resource->setData(static_cast<uint>(_resource.likeCount),
       roles.key("likeCount"));
+  resource->setData(QString::fromStdString(_resource.category),
+      roles.key("category"));
+  resource->setData(QString::fromStdString(_resource.formattedFileSize),
+      roles.key("formattedFileSize"));
   resource->setData(this->gridIndex, roles.key("index"));
   this->gridIndex++;
   emit sizeChanged();
@@ -402,6 +408,8 @@ QHash<int, QByteArray> ResourceModel::roleNames() const
     std::pair(111, "downloadCount"),
     std::pair(112, "likeCount"),
     std::pair(113, "description"),
+    std::pair(114, "category"),
+    std::pair(115, "formattedFileSize"),
   };
 }
 
@@ -509,6 +517,104 @@ std::string ResourceSpawner::BuildFuelThumbnailUrl(
 }
 
 /////////////////////////////////////////////////
+std::string ResourceSpawner::InferCategory(const std::string &_name,
+    const std::string &_description, const std::vector<std::string> &_tags)
+{
+  std::string haystack = _name + " " + _description;
+  for (const auto &tag : _tags)
+    haystack += " " + tag;
+
+  // Tokenize on non-alphanumeric characters so short keywords like "tree" or
+  // "bot" don't false-match inside "street" or "bottle".
+  std::unordered_set<std::string> tokens;
+  std::string cur;
+  for (unsigned char ch : haystack)
+  {
+    if (std::isalnum(ch))
+    {
+      cur.push_back(static_cast<char>(std::tolower(ch)));
+    }
+    else if (!cur.empty())
+    {
+      tokens.insert(cur);
+      cur.clear();
+    }
+  }
+  if (!cur.empty())
+    tokens.insert(cur);
+
+  auto hasAny = [&tokens](std::initializer_list<const char *> _keywords)
+  {
+    for (const char *kw : _keywords)
+    {
+      if (tokens.count(kw) > 0)
+        return true;
+    }
+    return false;
+  };
+
+  if (hasAny({"drone", "quadcopter", "uav", "hexacopter", "multicopter",
+              "vtol", "aircraft", "plane", "zephyr", "x3", "x4"}))
+    return "drone";
+  if (hasAny({"robot", "rover", "husky", "turtlebot", "spot", "manipulator",
+              "gripper", "ur5", "ur10", "panda", "kuka", "pr2", "pioneer",
+              "jackal", "clearpath", "tugbot", "agv", "ugv", "bot"}))
+    return "robot";
+  if (hasAny({"camera", "lidar", "radar", "imu", "sonar", "gps", "sensor",
+              "realsense", "kinect", "hokuyo", "velodyne", "ouster", "depth"}))
+    return "sensor";
+  if (hasAny({"vehicle", "car", "truck", "prius", "forklift", "sedan", "suv",
+              "bus", "ambulance", "boat", "submarine", "vessel", "bicycle",
+              "motorcycle", "scooter", "hatchback"}))
+    return "vehicle";
+  if (hasAny({"tree", "oak", "pine", "bush", "grass", "rock", "plant",
+              "flower", "terrain", "mountain", "forest", "palm", "foliage"}))
+    return "nature";
+  if (hasAny({"house", "building", "warehouse", "hospital", "office", "wall",
+              "door", "window", "corridor", "tunnel", "bridge", "stairs",
+              "depot", "room", "garage"}))
+    return "building";
+  if (hasAny({"table", "chair", "desk", "shelf", "shelves", "rack", "cabinet",
+              "sofa", "couch", "bed", "bench", "bookcase", "pallet", "counter",
+              "sink"}))
+    return "furniture";
+  if (hasAny({"lamp", "light", "lantern", "spotlight", "sun"}))
+    return "light";
+  if (hasAny({"box", "crate", "bottle", "coke", "mug", "cup", "ball", "cone",
+              "barrel", "trash", "bin", "sign", "fence", "barrier", "canister",
+              "tool", "banana", "apple", "can"}))
+    return "prop";
+
+  return "generic";
+}
+
+/////////////////////////////////////////////////
+std::string ResourceSpawner::FormatFileSize(uint64_t _bytes)
+{
+  if (_bytes == 0)
+    return "";
+  if (_bytes < 1024)
+    return std::to_string(_bytes) + " B";
+
+  std::ostringstream oss;
+  oss << std::fixed << std::setprecision(1);
+  const double kb = static_cast<double>(_bytes) / 1024.0;
+  if (kb < 1024.0)
+  {
+    oss << kb << " KB";
+    return oss.str();
+  }
+  const double mb = kb / 1024.0;
+  if (mb < 1024.0)
+  {
+    oss << mb << " MB";
+    return oss.str();
+  }
+  oss << (mb / 1024.0) << " GB";
+  return oss.str();
+}
+
+/////////////////////////////////////////////////
 void ResourceSpawner::SetThumbnail(const std::string &_thumbnailPath,
     Resource &_resource)
 {
@@ -577,6 +683,8 @@ Resource ResourceSpawner::LocalResource(const std::string &_path)
   }
   std::string sdfPath = sdf::getModelFilePath(resourcePath);
   resource.sdfPath = sdfPath;
+  resource.category = ResourceSpawner::InferCategory(
+      resource.name, resource.description);
   resource.isFavorite = this->dataPtr->favorites.count(
       ResourceSpawnerPrivate::ResourceKey(resource.owner, resource.name)) > 0;
 
@@ -1144,6 +1252,10 @@ void ResourceSpawner::RunFetchResourceListThread(const std::string &_owner)
             resource.fileSize = id.FileSize();
             resource.downloadCount = id.DownloadCount();
             resource.likeCount = id.LikeCount();
+            resource.category = ResourceSpawner::InferCategory(
+                id.Name(), id.Description(), id.Tags());
+            resource.formattedFileSize =
+                ResourceSpawner::FormatFileSize(id.FileSize());
             resource.thumbnailUrl = ResourceSpawner::BuildFuelThumbnailUrl(
                 server.Url().Str(), server.Version(), id.Owner(), id.Name());
 

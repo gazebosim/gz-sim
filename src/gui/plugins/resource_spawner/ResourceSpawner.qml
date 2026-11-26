@@ -624,16 +624,21 @@ Rectangle {
                     cache: true
                     sourceSize.width: gridItemWidth
                     sourceSize.height: gridItemHeight
-                    source: model.thumbnailUrl !== "" ?
-                      model.thumbnailUrl : "NoThumbnail.png"
+                    source: model.thumbnailUrl
+                    visible: model.thumbnailUrl !== "" &&
+                             status === Image.Ready
                     fillMode: Image.PreserveAspectFit
                   }
 
-                  Image {
+                  ResourceFallbackVisual {
                     anchors.fill: parent
-                    visible: thumbnailImage.status === Image.Error
-                    source: "NoThumbnail.png"
-                    fillMode: Image.PreserveAspectFit
+                    visible: !thumbnailImage.visible
+                    resourceName: model.name
+                    category: model.category
+                    metaText: model.formattedFileSize !== "" ?
+                      model.formattedFileSize : (model.isFuel ? "FUEL" : "SDF")
+                    loading: model.thumbnailUrl !== "" &&
+                             thumbnailImage.status === Image.Loading
                   }
 
                   ProgressBar {

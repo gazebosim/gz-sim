@@ -78,6 +78,12 @@ namespace sim
     /// \brief Number of likes on Fuel (0 for local models).
     uint32_t likeCount = 0;
 
+    /// \brief Inferred semantic category (e.g. "robot", "sensor", "nature").
+    std::string category = "generic";
+
+    /// \brief Human-readable file size (e.g. "4.2 MB"), empty if unknown.
+    std::string formattedFileSize = "";
+
     /// \brief Bool to indicate if this model is fuel or not
     // cppcheck-suppress unusedStructMember
     bool isFuel = false;
@@ -322,6 +328,21 @@ namespace sim
     public: static std::string BuildFuelThumbnailUrl(
         const std::string &_serverUrl, const std::string &_serverVersion,
         const std::string &_owner, const std::string &_name);
+
+    /// \brief Infer a semantic visual category from model metadata.
+    /// \param[in] _name Model name.
+    /// \param[in] _description Optional model description.
+    /// \param[in] _tags Optional Fuel tags.
+    /// \return Category string (e.g. "robot", "sensor", "generic").
+    public: static std::string InferCategory(
+        const std::string &_name,
+        const std::string &_description = "",
+        const std::vector<std::string> &_tags = {});
+
+    /// \brief Format a byte count into a short human-readable string.
+    /// \param[in] _bytes Size in bytes.
+    /// \return Formatted string such as "4.2 MB", or empty string if 0.
+    public: static std::string FormatFileSize(uint64_t _bytes);
 
     /// \brief Callback when a sort request is made.
     /// \param[in] _sortType The sorting type as a string, accepts
