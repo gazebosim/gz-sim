@@ -39,13 +39,10 @@
 #include "gz/sim/components/World.hh"
 
 #include "gz/sim/EntityComponentManager.hh"
-#include "gz/sim/EventManager.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 #include "test_config.hh"
 
-#include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -53,26 +50,8 @@ using namespace std::chrono_literals;
 namespace components = gz::sim::components;
 
 //////////////////////////////////////////////////
-class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
+class SensorsFixture : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    InternalFixture::SetUp();
-
-    sdf::Plugin sdfPlugin;
-    sdfPlugin.SetFilename("libMockSystem.so");
-    sdfPlugin.SetName("gz::sim::MockSystem");
-    auto plugin = sm.LoadPlugin(sdfPlugin);
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<sim::MockSystem *>(
-        systemPtr->QueryInterface<sim::System>());
-  }
-
-  public: gz::sim::SystemPluginPtr systemPtr;
-  public: sim::MockSystem *mockSystem;
-
-  private: sim::SystemLoader sm;
 };
 
 /////////////////////////////////////////////////
@@ -88,18 +67,6 @@ TEST_F(SensorsFixture, UpdateRate)
 
   sim::Server server(serverConfig);
 
-  // A pointer to the ecm. This will be valid once we run the mock system
-  sim::EntityComponentManager *ecm = nullptr;
-  this->mockSystem->configureCallback =
-    [&](const sim::Entity &,
-           const std::shared_ptr<const sdf::Element> &,
-           sim::EntityComponentManager &_ecm,
-           sim::EventManager &)
-    {
-      ecm = &_ecm;
-    };
-
-  server.AddSystem(this->systemPtr);
   transport::Node node;
   std::string prefix{"/world/camera_sensor/model/default_topics/"};
 
@@ -187,57 +154,71 @@ TEST_F(SensorsFixture, UpdateRate)
   unsigned int iterations = 2000u;
   server.Run(true, iterations, false);
 
-  EXPECT_NE(nullptr, ecm);
+  // get the world step size and sensor update rates from ECM
+  double stepSize = 0.0;
+  unsigned int camRate = 0u;
+  unsigned int lidarRate = 0u;
+  unsigned int depthRate = 0u;
+  unsigned int rgbdRate = 0u;
+  unsigned int thermalRate = 0u;
+  unsigned int segmentationRate = 0u;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
 
-  // get the world step size
-  auto worldEntity = ecm->EntityByComponents(components::World());
-  EXPECT_NE(sim::kNullEntity, worldEntity);
-  auto physicsSdf = ecm->Component<components::Physics>(worldEntity)->Data();
-  double stepSize = physicsSdf.MaxStepSize();
-  EXPECT_LT(0, stepSize);
+    // get the world step size
+    auto worldEntity = ecm->EntityByComponents(components::World());
+    EXPECT_NE(sim::kNullEntity, worldEntity);
+    auto physicsSdf = ecm->Component<components::Physics>(worldEntity)->Data();
+    stepSize = physicsSdf.MaxStepSize();
+    EXPECT_LT(0, stepSize);
 
-  // get the sensors update rates
-  auto camLinkEntity = ecm->EntityByComponents(components::Name("camera_link"));
-  EXPECT_NE(sim::kNullEntity, camLinkEntity);
-  auto camEntity = ecm->EntityByComponents(components::Name("camera"),
-      components::ParentEntity(camLinkEntity));
-  EXPECT_NE(sim::kNullEntity, camEntity);
-  auto sensorSdf = ecm->Component<components::Camera>(camEntity)->Data();
-  unsigned int camRate = sensorSdf.UpdateRate();
-  EXPECT_LT(0u, camRate);
+    // get the sensors update rates
+    auto camLinkEntity = ecm->EntityByComponents(
+        components::Name("camera_link"));
+    EXPECT_NE(sim::kNullEntity, camLinkEntity);
+    auto camEntity = ecm->EntityByComponents(components::Name("camera"),
+        components::ParentEntity(camLinkEntity));
+    EXPECT_NE(sim::kNullEntity, camEntity);
+    auto sensorSdf = ecm->Component<components::Camera>(camEntity)->Data();
+    camRate = sensorSdf.UpdateRate();
+    EXPECT_LT(0u, camRate);
 
-  auto lidarEntity = ecm->EntityByComponents(components::Name("gpu_lidar"));
-  EXPECT_NE(sim::kNullEntity, lidarEntity);
-  sensorSdf = ecm->Component<components::GpuLidar>(lidarEntity)->Data();
-  unsigned int lidarRate = sensorSdf.UpdateRate();
-  EXPECT_LT(0u, lidarRate);
+    auto lidarEntity = ecm->EntityByComponents(components::Name("gpu_lidar"));
+    EXPECT_NE(sim::kNullEntity, lidarEntity);
+    sensorSdf = ecm->Component<components::GpuLidar>(lidarEntity)->Data();
+    lidarRate = sensorSdf.UpdateRate();
+    EXPECT_LT(0u, lidarRate);
 
-  auto depthEntity = ecm->EntityByComponents(components::Name("depth_camera"));
-  EXPECT_NE(sim::kNullEntity, depthEntity);
-  sensorSdf = ecm->Component<components::DepthCamera>(depthEntity)->Data();
-  unsigned int depthRate = sensorSdf.UpdateRate();
-  EXPECT_LT(0u, depthRate);
+    auto depthEntity = ecm->EntityByComponents(
+        components::Name("depth_camera"));
+    EXPECT_NE(sim::kNullEntity, depthEntity);
+    sensorSdf = ecm->Component<components::DepthCamera>(depthEntity)->Data();
+    depthRate = sensorSdf.UpdateRate();
+    EXPECT_LT(0u, depthRate);
 
-  auto rgbdEntity = ecm->EntityByComponents(components::Name("rgbd_camera"));
-  EXPECT_NE(sim::kNullEntity, rgbdEntity);
-  sensorSdf = ecm->Component<components::RgbdCamera>(rgbdEntity)->Data();
-  unsigned int rgbdRate = sensorSdf.UpdateRate();
-  EXPECT_LT(0u, rgbdRate);
+    auto rgbdEntity = ecm->EntityByComponents(components::Name("rgbd_camera"));
+    EXPECT_NE(sim::kNullEntity, rgbdEntity);
+    sensorSdf = ecm->Component<components::RgbdCamera>(rgbdEntity)->Data();
+    rgbdRate = sensorSdf.UpdateRate();
+    EXPECT_LT(0u, rgbdRate);
 
-  auto thermalEntity = ecm->EntityByComponents(
-      components::Name("thermal_camera"));
-  EXPECT_NE(sim::kNullEntity, thermalEntity);
-  sensorSdf = ecm->Component<components::ThermalCamera>(thermalEntity)->Data();
-  unsigned int thermalRate = sensorSdf.UpdateRate();
-  EXPECT_LT(0u, thermalRate);
+    auto thermalEntity = ecm->EntityByComponents(
+        components::Name("thermal_camera"));
+    EXPECT_NE(sim::kNullEntity, thermalEntity);
+    sensorSdf = ecm->Component<components::ThermalCamera>(
+        thermalEntity)->Data();
+    thermalRate = sensorSdf.UpdateRate();
+    EXPECT_LT(0u, thermalRate);
 
-  auto segmentationEntity = ecm->EntityByComponents(
-      components::Name("segmentation_camera"));
-  EXPECT_NE(sim::kNullEntity, segmentationEntity);
-  sensorSdf = ecm->Component<components::SegmentationCamera>(
-      segmentationEntity)->Data();
-  unsigned int segmentationRate = sensorSdf.UpdateRate();
-  EXPECT_LT(0u, segmentationRate);
+    auto segmentationEntity = ecm->EntityByComponents(
+        components::Name("segmentation_camera"));
+    EXPECT_NE(sim::kNullEntity, segmentationEntity);
+    sensorSdf = ecm->Component<components::SegmentationCamera>(
+        segmentationEntity)->Data();
+    segmentationRate = sensorSdf.UpdateRate();
+    EXPECT_LT(0u, segmentationRate);
+  }
 
   // compute and verify expected msg count based on update rate and sim time
   double timeRan = iterations * stepSize;
