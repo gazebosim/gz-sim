@@ -17,6 +17,7 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "EntityComponentManagerDiff.hh"
+#include "gz/sim/detail/FlatSet.hh"
 
 #include <functional>
 #include <map>
@@ -97,22 +98,27 @@ namespace
   /// components modified.
   struct ModifiedComponent { };
 
+  /// \brief Set of component type ids. An entity has only a few changed or
+  /// removed component types, so a sorted vector is cheaper to build, query
+  /// and destroy than a node-based std::unordered_set.
+  using ComponentTypeIdSet = detail::FlatSet<ComponentTypeId>;
+
   /// \brief Internal component containing the components marked as one time
   /// changed for the specific entity.
   struct OneTimeChangedComponents {
-    std::unordered_set<ComponentTypeId> data;
+    ComponentTypeIdSet data;
   };
 
   /// \brief Internal component containing the components marked as periodic
   /// changed for the specific entity.
   struct PeriodicChangedComponents {
-    std::unordered_set<ComponentTypeId> data;
+    ComponentTypeIdSet data;
   };
 
   /// \brief Internal component containing the components that were removed
   /// from the entity.
   struct RemovedComponents {
-    std::unordered_set<ComponentTypeId> data;
+    ComponentTypeIdSet data;
   };
 }
 
@@ -802,14 +808,14 @@ ComponentState EntityComponentManager::ComponentState(const Entity _entity,
   const auto* oneTimeChangeComp =
     this->Registry().try_get<OneTimeChangedComponents>(_entity);
   if (oneTimeChangeComp &&
-      oneTimeChangeComp->data.find(_typeId) != oneTimeChangeComp->data.end())
+      oneTimeChangeComp->data.contains(_typeId))
   {
     return ComponentState::OneTimeChange;
   }
   const auto* periodicChangeComp =
     this->Registry().try_get<PeriodicChangedComponents>(_entity);
   if (periodicChangeComp &&
-      periodicChangeComp->data.find(_typeId) != periodicChangeComp->data.end())
+      periodicChangeComp->data.contains(_typeId))
   {
     return ComponentState::PeriodicChange;
   }
@@ -1357,7 +1363,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
       const auto* oneTimeChange =
         this->Registry().try_get<OneTimeChangedComponents>(_entity);
       if (oneTimeChange &&
-          oneTimeChange->data.find(type) != oneTimeChange->data.end())
+          oneTimeChange->data.contains(type))
       {
         noChange = false;
       }
@@ -1367,7 +1373,7 @@ void EntityComponentManager::AddEntityToMessage(msgs::SerializedStateMap &_msg,
         const auto* periodicChange =
           this->Registry().try_get<PeriodicChangedComponents>(_entity);
         if (periodicChange &&
-            periodicChange->data.find(type) != periodicChange->data.end())
+            periodicChange->data.contains(type))
         {
           noChange = false;
         }
