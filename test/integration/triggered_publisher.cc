@@ -17,6 +17,7 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/empty.pb.h>
 #include <gz/msgs/float.pb.h>

@@ -20,7 +20,7 @@
 #include <gz/msgs/particle_emitter.pb.h>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
-#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/components/MsgSerializers.hh>
 #include <gz/sim/config.hh>
 
 namespace gz

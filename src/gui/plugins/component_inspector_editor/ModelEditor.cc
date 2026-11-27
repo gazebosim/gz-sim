@@ -53,6 +53,7 @@
 #include "gz/sim/Util.hh"
 
 #include "ModelEditor.hh"
+#include <sdf/Geometry.hh>
 
 namespace gz::sim
 {

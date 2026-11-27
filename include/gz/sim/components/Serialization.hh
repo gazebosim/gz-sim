@@ -17,28 +17,24 @@
 #ifndef GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 #define GZ_SIM_COMPONENTS_SERIALIZATION_HH_
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
+#include <gz/msgs/sensor.pb.h>
 
-#include <google/protobuf/message_lite.h>
+#include <ostream>
+#include <istream>
+#include <type_traits>
+#include <utility>
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
-#include <gz/msgs/double_v.pb.h>
-
-#include <string>
-#include <vector>
 #include <sdf/Sensor.hh>
 
-#include <gz/sim/Conversions.hh>
 #include <gz/msgs/Utility.hh>
 
+#include <gz/sim/Conversions.hh>
+#include <gz/sim/components/BasicSerializers.hh>
+#include <gz/sim/components/MsgSerializers.hh>
+
 // This header holds serialization operators which are shared among several
-// components
+// components. The serializers that do not need Conversions.hh are in
+// BasicSerializers.hh and MsgSerializers.hh, which are included here.
 
 namespace gz
 {
@@ -157,129 +153,6 @@ namespace serializers
 
   /// \brief Common serializer for sensors
   using SensorSerializer = ComponentToMsgSerializer<sdf::Sensor, msgs::Sensor>;
-
-  /// \brief Serializer for components that hold `std::vector<double>`.
-  class VectorDoubleSerializer
-  {
-    /// \brief Serialization
-    /// \param[in] _out Output stream.
-    /// \param[in] _vec Vector to stream
-    /// \return The stream.
-    public: static std::ostream &Serialize(std::ostream &_out,
-                                           const std::vector<double> &_vec)
-    {
-      gz::msgs::Double_V msg;
-      *msg.mutable_data() = {_vec.begin(), _vec.end()};
-      auto result = msg.SerializeToOstream(&_out);
-      (void)result;
-      return _out;
-    }
-
-    /// \brief Deserialization
-    /// \param[in] _in Input stream.
-    /// \param[in] _vec Vector to populate
-    /// \return The stream.
-    public: static std::istream &Deserialize(std::istream &_in,
-                                             std::vector<double> &_vec)
-    {
-      gz::msgs::Double_V msg;
-      if (!msg.ParseFromIstream(&_in))
-      {
-        return _in;
-      }
-
-      _vec = {msg.data().begin(), msg.data().end()};
-      return _in;
-    }
-  };
-
-  /// \brief Serializer for components that hold protobuf messages.
-  class MsgSerializer
-  {
-    /// \brief Serialization
-    /// \param[in] _out Output stream.
-    /// \param[in] _msg Message to stream
-    /// \return The stream.
-    public: static std::ostream &Serialize(std::ostream &_out,
-        const google::protobuf::Message &_msg)
-    {
-      auto result = _msg.SerializeToOstream(&_out);
-      (void)result;
-      return _out;
-    }
-
-    /// \brief Deserialization
-    /// \param[in] _in Input stream.
-    /// \param[in] _msg Message to populate
-    /// \return The stream.
-    public: static std::istream &Deserialize(std::istream &_in,
-        google::protobuf::Message &_msg)
-    {
-      auto result = _msg.ParseFromIstream(&_in);
-      (void)result;
-      return _in;
-    }
-  };
-
-  /// \brief Serializer for components that hold std::string.
-  class StringSerializer
-  {
-    /// \brief Serialization
-    /// \param[in] _out Output stream.
-    /// \param[in] _data Data to serialize.
-    /// \return The stream.
-    public: static std::ostream &Serialize(std::ostream &_out,
-        const std::string &_data)
-    {
-      _out << _data;
-      return _out;
-    }
-
-    /// \brief Deserialization
-    /// \param[in] _in Input stream.
-    /// \param[in] _data Data to populate.
-    /// \return The stream.
-    public: static std::istream &Deserialize(std::istream &_in,
-        std::string &_data)
-    {
-      _data = std::string(std::istreambuf_iterator<char>(_in), {});
-      return _in;
-    }
-  };
-
-  template <typename T>
-  class VectorSerializer
-  {
-    /// \brief Serialization for `std::vector<T>` with serializable T.
-    /// \param[in] _out Output stream.
-    /// \param[in] _data The data to stream.
-    /// \return The stream.
-    public: static std::ostream &Serialize(std::ostream &_out,
-      const std::vector<T> &_data)
-    {
-      _out << _data.size();
-      for (const auto& datum : _data)
-        _out << " " << datum;
-      return _out;
-    }
-
-    /// \brief Deserialization for `std::vector<T>` with serializable T.
-    /// \param[in] _in Input stream.
-    /// \param[out] _data The data to populate.
-    /// \return The stream.
-    public: static std::istream &Deserialize(std::istream &_in,
-      std::vector<T> &_data)
-    {
-      size_t size;
-      _in >> size;
-      _data.resize(size);
-      for (size_t i = 0; i < size; ++i)
-      {
-        _in >> _data[i];
-      }
-      return _in;
-    }
-  };
 }
 }
 }

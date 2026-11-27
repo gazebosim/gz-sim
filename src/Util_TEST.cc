@@ -21,6 +21,7 @@
 
 #include <gtest/gtest.h>
 #include <gz/common/Console.hh>
+#include <gz/common/Mesh.hh>
 #include <sdf/Actor.hh>
 #include <sdf/Light.hh>
 #include <sdf/Types.hh>

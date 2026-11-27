@@ -17,6 +17,7 @@
 
 #include "OdometryPublisher.hh"
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/header.pb.h>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/odometry_with_covariance.pb.h>
@@ -37,6 +38,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/Conversions.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/Model.hh"

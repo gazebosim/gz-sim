@@ -21,9 +21,17 @@
 #include <memory>
 
 #include <gz/utils/ImplPtr.hh>
-#include <sdf/sdf.hh>
+#include <sdf/config.hh>
 #include "gz/sim/comms/MsgManager.hh"
 #include "gz/sim/config.hh"
+
+namespace sdf
+{
+  inline namespace SDF_VERSION_NAMESPACE
+  {
+    class Element;
+  }
+}
 
 namespace gz
 {

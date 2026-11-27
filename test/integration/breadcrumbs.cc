@@ -17,7 +17,10 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/empty.pb.h>
+#include <gz/msgs/int32.pb.h>
+#include <gz/msgs/pose.pb.h>
 #include <gz/msgs/twist.pb.h>
 
 #include <optional>

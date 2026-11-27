@@ -20,7 +20,7 @@
 #include <gz/msgs/log_playback_stats.pb.h>
 #include <gz/sim/components/Factory.hh>
 #include <gz/sim/components/Component.hh>
-#include <gz/sim/components/Serialization.hh>
+#include <gz/sim/components/MsgSerializers.hh>
 #include <gz/sim/config.hh>
 #include <gz/sim/Conversions.hh>
 

@@ -17,6 +17,7 @@
 
 #include "DiffDrive.hh"
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/pose.pb.h>
@@ -37,6 +38,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 
+#include "gz/sim/Conversions.hh"
 #include "gz/sim/components/CanonicalLink.hh"
 #include "gz/sim/components/JointPosition.hh"
 #include "gz/sim/components/JointVelocityCmd.hh"

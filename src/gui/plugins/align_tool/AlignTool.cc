@@ -15,6 +15,7 @@
  *
 */
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/vector3d.pb.h>
 

@@ -35,6 +35,8 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include <gz/msgs/image.pb.h>
+#include <gz/msgs/stringmsg.pb.h>
 
 using namespace gz;
 using namespace sim;

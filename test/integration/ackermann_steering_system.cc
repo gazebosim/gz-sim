@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
+#include <gz/msgs/Utility.hh>
 #include <gz/msgs/actuators.pb.h>
 #include <gz/msgs/double.pb.h>
 #include <gz/msgs/odometry.pb.h>

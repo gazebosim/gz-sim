@@ -34,6 +34,7 @@
 #include <gz/rendering/RenderingIface.hh>
 #include <gz/rendering/Scene.hh>
 
+#include "gz/sim/Conversions.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/SystemPluginInfo.hh"

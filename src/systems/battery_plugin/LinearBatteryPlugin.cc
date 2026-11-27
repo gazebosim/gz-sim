@@ -39,6 +39,7 @@
 #include <sdf/Root.hh>
 #include <sdf/World.hh>
 
+#include "gz/sim/Conversions.hh"
 #include "gz/sim/components/BatteryPowerLoad.hh"
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/Joint.hh"

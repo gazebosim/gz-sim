@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <gz/msgs/Utility.hh>
+#include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/odometry.pb.h>
 #include <gz/msgs/pose_v.pb.h>
 #include <gz/msgs/twist.pb.h>

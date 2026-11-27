@@ -20,7 +20,6 @@
 #include <gz/math/Vector3.hh>
 #include <gz/sim/components/Component.hh>
 #include <gz/sim/components/Factory.hh>
-#include <gz/sim/components/Serialization.hh>
 #include <gz/sim/config.hh>
 
 namespace gz
