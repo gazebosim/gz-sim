@@ -17,17 +17,18 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include <gz/common/Filesystem.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/components/Environment.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/TestFixture.hh"
 #include "gz/sim/Util.hh"
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -51,44 +52,39 @@ TEST_F(EnvironmentPreloadTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(CanPreload))
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  bool dataLoaded{false};
-
-  // Create a system that looks for environmental data components
-  test::Relay testSystem;
-  testSystem.OnPostUpdate(
-      [&](const sim::UpdateInfo &,
-          const sim::EntityComponentManager &_ecm)
-      {
-        _ecm.EachNew<components::Environment>(
-            [&](const gz::sim::Entity &,
-                const components::Environment *_component) -> bool
-            {
-              auto data = _component->Data();
-              EXPECT_TRUE(data->frame.Has("humidity"));
-              const auto &humidityData = data->frame["humidity"];
-              auto humiditySession = humidityData.StepTo(
-                  humidityData.CreateSession(), 1658923062.5);
-              EXPECT_TRUE(humiditySession.has_value());
-              if (humiditySession.has_value())
-              {
-                const math::Vector3d position{36.80079505, -121.789472517, 0.8};
-                auto humidity =
-                    humidityData.LookUp(humiditySession.value(),
-                      position);
-                EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
-                dataLoaded = true;
-              }
-              EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
-
   // Run server
   server.RunOnce();
 
-  EXPECT_TRUE(dataLoaded);
+  // Each only visits entities with environmental data, so we just need to
+  // check the data and make sure there's exactly one of them
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+
+  std::size_t envCount{0};
+  ecm->Each<components::Environment>(
+      [&](const gz::sim::Entity &,
+          const components::Environment *_component) -> bool
+      {
+        ++envCount;
+        auto data = _component->Data();
+        EXPECT_TRUE(data->frame.Has("humidity"));
+        const auto &humidityData = data->frame["humidity"];
+        auto humiditySession = humidityData.StepTo(
+            humidityData.CreateSession(), 1658923062.5);
+        EXPECT_TRUE(humiditySession.has_value());
+        if (humiditySession.has_value())
+        {
+          const math::Vector3d position{36.80079505, -121.789472517, 0.8};
+          auto humidity =
+              humidityData.LookUp(humiditySession.value(),
+                position);
+          EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
+        }
+        EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
+        return true;
+      });
+
+  EXPECT_EQ(1u, envCount);
 }
 
 
@@ -107,44 +103,39 @@ TEST_F(EnvironmentPreloadTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  bool dataLoaded{false};
-
-  // Create a system that looks for environmental data components
-  test::Relay testSystem;
-  testSystem.OnPostUpdate(
-      [&](const sim::UpdateInfo &,
-          const sim::EntityComponentManager &_ecm)
-      {
-        _ecm.EachNew<components::Environment>(
-            [&](const gz::sim::Entity &,
-                const components::Environment *_component) -> bool
-            {
-              auto data = _component->Data();
-              EXPECT_TRUE(data->frame.Has("humidity"));
-              const auto &humidityData = data->frame["humidity"];
-              auto humiditySession = humidityData.StepTo(
-                  humidityData.CreateSession(), 1658923062.5);
-              EXPECT_TRUE(humiditySession.has_value());
-              if (humiditySession.has_value())
-              {
-                const math::Vector3d position{0, 0, 0.8};
-                auto transformedCoordinates =
-                  getGridFieldCoordinates(_ecm, position, data);
-                auto humidity =
-                    humidityData.LookUp(humiditySession.value(),
-                      transformedCoordinates.value());
-                EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
-                dataLoaded = true;
-              }
-              EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
-
   // Run server
   server.RunOnce();
 
-  EXPECT_TRUE(dataLoaded);
+  // Each only visits entities with environmental data, so we just need to
+  // check the data and make sure there's exactly one of them
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+
+  std::size_t envCount{0};
+  ecm->Each<components::Environment>(
+      [&](const gz::sim::Entity &,
+          const components::Environment *_component) -> bool
+      {
+        ++envCount;
+        auto data = _component->Data();
+        EXPECT_TRUE(data->frame.Has("humidity"));
+        const auto &humidityData = data->frame["humidity"];
+        auto humiditySession = humidityData.StepTo(
+            humidityData.CreateSession(), 1658923062.5);
+        EXPECT_TRUE(humiditySession.has_value());
+        if (humiditySession.has_value())
+        {
+          const math::Vector3d position{0, 0, 0.8};
+          auto transformedCoordinates =
+            getGridFieldCoordinates(*ecm, position, data);
+          auto humidity =
+              humidityData.LookUp(humiditySession.value(),
+                transformedCoordinates.value());
+          EXPECT_NEAR(89.5, humidity.value_or(0.), 1e-6);
+        }
+        EXPECT_EQ(data->reference, math::SphericalCoordinates::SPHERICAL);
+        return true;
+      });
+
+  EXPECT_EQ(1u, envCount);
 }
