@@ -66,10 +66,13 @@
 
 #include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
+#include "../helpers/PhysicsEngines.hh"
 
 using namespace gz;
 using namespace sim;
 using namespace std::chrono_literals;
+
+GZ_SIM_TEST_PHYSICS_ENGINES("dartsim", "bullet-featherstone");
 
 /// \brief Name of the arm model
 constexpr const char* kArmName = "simple_arm";

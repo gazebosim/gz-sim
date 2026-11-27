@@ -100,6 +100,17 @@ namespace systems
   ///   detected, and a collision that sets
   ///   `//collision/surface/contact/collide_without_contact` keeps the
   ///   contacts of its kinematic link detected. Defaults to true.
+  /// - `<engine><filename>`: Optional. Name of the gz-physics engine plugin
+  /// to load.
+  ///
+  /// ## Choosing the physics engine
+  ///
+  /// The engine plugin is chosen from the first of these that is set:
+  ///
+  /// 1. \ref gz::sim::ServerConfig::SetPhysicsEngine, also set by the
+  ///    `--physics-engine` command line option.
+  /// 2. The `<engine><filename>` system parameter.
+  /// 3. `gz-physics-dartsim-plugin`.
   ///
   /// ## Example
   ///
