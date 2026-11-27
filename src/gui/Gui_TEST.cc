@@ -230,7 +230,8 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     for (int sleep = 0;
         (nullptr == gui::App( ) ||
          gui::App()->allWindows().empty() ||
-         !gui::App()->allWindows()[0]->isVisible())
+         !gui::App()->allWindows()[0]->isVisible() ||
+         nullptr == gui::App()->Engine()->findChild<QuickStartHandler *>())
         && sleep < 30; ++sleep)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
