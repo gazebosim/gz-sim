@@ -17,8 +17,8 @@
 #ifndef GZ_SIM_GUI_ABOUTDIALOGHANDLER_HH_
 #define GZ_SIM_GUI_ABOUTDIALOGHANDLER_HH_
 
-#include <QtCore>
-#include <QDesktopServices>
+#include <QObject>
+#include <QString>
 #include <string>
 
 #include "gz/sim/EntityComponentManager.hh"

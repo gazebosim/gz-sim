@@ -32,8 +32,6 @@
 #include <gz/gui/MainWindow.hh>
 #include <gz/transport/Node.hh>
 
-// Include all components so they have first-class support
-#include "gz/sim/components/components.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/EntityComponentManager.hh"
 #include <gz/sim/gui/GuiEvents.hh>

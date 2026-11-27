@@ -17,7 +17,7 @@
 #ifndef GZ_SIM_SYSTEMS_MODELPHOTOSHOOT_HH_
 #define GZ_SIM_SYSTEMS_MODELPHOTOSHOOT_HH_
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include <memory>
 

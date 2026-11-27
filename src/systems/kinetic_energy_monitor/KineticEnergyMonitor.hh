@@ -19,8 +19,8 @@
 #define GZ_SIM_SYSTEMS_KINETIC_ENERGY_MONITOR_HH_
 
 #include <memory>
+#include <string>
 #include <gz/sim/config.hh>
-#include <gz/sim/Export.hh>
 #include <gz/sim/System.hh>
 
 namespace gz
@@ -50,7 +50,10 @@ namespace systems
   ///
   /// - `<topic>`: Custom topic that this system will publish to when kinetic
   /// energy surpasses the threshold. This element if optional, and the
-  /// default value is `/model/{name_of_model}/kinetic_energy`.
+  /// default value is `/model/{name_of_model}/kinetic_energy`, or
+  /// `{namespace}/kinetic_energy` when the model has a namespace. Relative
+  /// topic names are prefixed with the namespace. Absolute topic names
+  /// remain unchanged.
   ///
   /// ## Example Usage
   ///
@@ -102,6 +105,13 @@ namespace systems
     public ISystemConfigure,
     public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Kinetic energy topic
+      public: std::string energyTopic;
+    };
+
     /// \brief Constructor
     public: KineticEnergyMonitor();
 
@@ -117,6 +127,10 @@ namespace systems
     // Documentation inherited
     public: void PostUpdate(const UpdateInfo &_info,
                             const EntityComponentManager &_ecm) final;
+
+    /// \brief Get the resolved topic names
+    /// \return Resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer.
     private: std::unique_ptr<KineticEnergyMonitorPrivate> dataPtr;

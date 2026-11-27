@@ -23,7 +23,13 @@
 #include <memory>
 #include <vector>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
+#include <sdf/Joint.hh>
+#include <sdf/JointAxis.hh>
+#include <sdf/Light.hh>
+#include <sdf/Param.hh>
+#include <sdf/Sensor.hh>
+#include <sdf/parser.hh>
 
 #include <gz/common/URI.hh>
 

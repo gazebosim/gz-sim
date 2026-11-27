@@ -68,6 +68,37 @@ Parameter         | Description
 \<nR\>           | Linear drag in yaw
 \<default_current\> | Default ocean current vector
 
+## Ocean current conventions
+
+An ocean current is the velocity of the water, `vc`, in metres per second,
+expressed in the **world frame**. In a world with ENU spherical coordinates
+and a zero heading, the default, x points east, y north and z up. The plugin
+computes the damping on the velocity relative to the water, `ẋr = ẋ − vc`, so
+a body with no other force on it drifts with the current, and a body held
+still against a current feels the drag of the water flowing past it.
+
+The current reaches the plugin in three ways, and they add up:
+
+- `<default_current>` in the plugin, a constant vector;
+- the `/ocean_current` topic (`gz.msgs.Vector3d`), or
+  `/model/<namespace>/ocean_current` when the plugin sets `<namespace>`,
+  which replaces the default once a message arrives;
+- a table loaded by the `EnvironmentPreload` system, with
+  `<lookup_current_x>`, `<lookup_current_y>` and `<lookup_current_z>` naming
+  the columns that hold the water's velocity along the world's x, y and z,
+  sampled at the link's position every step.
+
+Ocean data is usually given in the marine convention, north, east and down,
+with depth positive downwards and speeds sometimes in knots. Convert once,
+when preparing the file or the message: x is east, y is north, z is minus
+down, a depth `d` is a world z of `-d`, and 1 knot is 0.5144 m/s. Data sets
+that use the CF standard names, such as the MBARI LRAUV worlds, map
+`eastward_sea_water_velocity_meter_per_sec` to x and
+`northward_sea_water_velocity_meter_per_sec` to y. The table's own
+coordinates follow the `<dimensions>` of `EnvironmentPreload`: local x, y and
+z, or latitude, longitude and altitude with a `spherical` reference, in which
+case the world needs `<spherical_coordinates>`.
+
 # A simple example
 
 Let's download the provided `buoyant_cylinder.sdf` world and run to see an
