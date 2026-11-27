@@ -19,6 +19,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <mutex>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
@@ -881,7 +882,7 @@ void Sensors::Configure(const Entity &/*_id*/,
 }
 
 //////////////////////////////////////////////////
-void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
+void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &_ecm)
 {
   GZ_PROFILE("Sensors::Reset");
 
@@ -909,9 +910,19 @@ void Sensors::Reset(const UpdateInfo &_info, EntityComponentManager &)
     }
     this->dataPtr->nextUpdateTime =  _info.simTime;
     std::unique_lock<std::mutex> lock2(this->dataPtr->renderUtilMutex);
+    this->dataPtr->updateTimeCv.wait(lock2, [this]()
+    {
+      return !this->dataPtr->updateAvailable ||
+             (this->dataPtr->updateTimeToApply ==
+              this->dataPtr->updateTimeApplied);
+    });
     this->dataPtr->updateTime =  _info.simTime;
     this->dataPtr->updateTimeToApply =  _info.simTime;
     this->dataPtr->updateTimeApplied =  _info.simTime;
+
+    // Reset skips PostUpdate. Collect both restored and removed entities
+    // before their new / removed markers are cleared from the ECM.
+    this->dataPtr->renderUtil.UpdateFromECM(_info, _ecm);
   }
 }
 
@@ -1137,6 +1148,16 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     gzerr << "Unable to create sensor. SDF sensor type is NONE." << std::endl;
     return std::string();
+  }
+
+  // Reset also marks surviving sensors as new. Reuse them rather than
+  // creating a second sensor with the same entity ID and topic.
+  auto existing = this->dataPtr->entityToIdMap.find(_entity);
+  if (existing != this->dataPtr->entityToIdMap.end())
+  {
+    auto sensor = this->dataPtr->sensorManager.Sensor(existing->second);
+    if (sensor)
+      return sensor->Name();
   }
 
   // Create within gz-sensors
