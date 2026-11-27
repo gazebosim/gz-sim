@@ -132,18 +132,6 @@
       "tags": ["warehouse", "depot", "tugbot", "mobile", "amr"]
     },
     {
-      "id": "husky_depot",
-      "title": "Husky in Depot",
-      "description": "Clearpath Husky skid-steer UGV inside an industrial depot environment.",
-      "category": "mobile",
-      "featured": false,
-      "source": "fuel",
-      "owner": "MovAi",
-      "fuelName": "husky_depot",
-      "fuelThumbnail": "/thumbnails/1.png",
-      "tags": ["husky", "ugv", "depot", "mobile", "skid-steer"]
-    },
-    {
       "id": "industrial_warehouse",
       "title": "Industrial Warehouse",
       "description": "Compact industrial warehouse layout for SLAM and mobile navigation testing.",
@@ -286,10 +274,9 @@
       "description": "Multiple MBARI LRAUV underwater vehicles with buoyancy and thruster plugins.",
       "category": "marine",
       "featured": false,
-      "source": "fuel",
-      "owner": "mabelzhang",
-      "fuelName": "Multi-LRAUV Swimming Race",
-      "fuelThumbnail": "/thumbnails/multi_lrauv_race1.png",
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "multi_lrauv_race.sdf",
       "tags": ["underwater", "auv", "lrauv", "marine", "multi-robot"]
     },
     {
@@ -348,18 +335,6 @@
       "fuelName": "Cave World",
       "fuelThumbnail": "/thumbnails/1.png",
       "tags": ["subt", "cave", "underground", "slam"]
-    },
-    {
-      "id": "urban_subt",
-      "title": "SubT Urban Simple 01",
-      "description": "Underground urban infrastructure built for search-and-rescue robotics.",
-      "category": "space",
-      "featured": false,
-      "source": "fuel",
-      "owner": "OpenRobotics",
-      "fuelName": "Urban Simple 01",
-      "fuelThumbnail": "/thumbnails/0.png",
-      "tags": ["subt", "urban", "underground", "rescue"]
     },
     {
       "id": "spacecraft",
