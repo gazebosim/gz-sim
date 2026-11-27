@@ -212,8 +212,6 @@ void Breadcrumbs::PreUpdate(const UpdateInfo &_info,
       return;
     }
 
-    auto poseComp = _ecm.Component<components::Pose>(this->model.Entity());
-
     for (std::size_t i = 0; i < cmds.size(); ++i)
     {
       if (this->maxDeployments < 0 ||
@@ -256,7 +254,8 @@ void Breadcrumbs::PreUpdate(const UpdateInfo &_info,
         }
 
         modelToSpawn.SetName(desiredName);
-        modelToSpawn.SetRawPose(poseComp->Data() * modelToSpawn.RawPose());
+        modelToSpawn.SetRawPose(
+            worldPose(this->model.Entity(), _ecm) * modelToSpawn.RawPose());
         gzmsg << "Deploying " << modelToSpawn.Name() << " at "
                << modelToSpawn.RawPose() << std::endl;
         Entity entity = this->creator->CreateEntities(&modelToSpawn);

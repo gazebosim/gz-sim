@@ -666,6 +666,56 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 }
 
 /////////////////////////////////////////////////
+// Check world-frame deployment from a nested model.
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedHost))
+{
+  this->LoadWorld(
+      common::joinPaths("test", "worlds", "breadcrumbs_nested.sdf"));
+
+  std::optional<math::Pose3d> deployedPose;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        const Entity breadcrumb = _ecm.EntityByComponents(
+            components::Model(), components::Name("B_0"));
+        if (breadcrumb == kNullEntity)
+          return;
+
+        // A world child has a world-frame Pose component.
+        const Entity world =
+            _ecm.EntityByComponents(components::Name("breadcrumbs_nested"));
+        ASSERT_NE(kNullEntity, world);
+        EXPECT_EQ(world, _ecm.ParentEntity(breadcrumb));
+        const auto *pose = _ecm.Component<components::Pose>(breadcrumb);
+        ASSERT_NE(nullptr, pose);
+        deployedPose = pose->Data();
+      });
+  this->server->AddSystem(testSystem.systemPtr);
+
+  transport::Node node;
+  auto deploy = node.Advertise<msgs::Empty>("/breadcrumbs_nested/deploy");
+  const std::size_t maxWaitSteps{1000};
+  for (std::size_t i = 0; i < maxWaitSteps && !deploy.HasConnections(); ++i)
+    ASSERT_TRUE(this->server->Run(true, 1, false));
+  ASSERT_TRUE(deploy.HasConnections());
+  ASSERT_TRUE(deploy.Publish(msgs::Empty()));
+
+  for (std::size_t i = 0; i < maxWaitSteps && !deployedPose; ++i)
+    ASSERT_TRUE(this->server->Run(true, 1, false));
+  ASSERT_TRUE(deployedPose.has_value());
+
+  const math::Pose3d outer(10, 0, 0, 0, 0, 0.5);
+  const math::Pose3d inner(2, 1, 0, 0, 0, 0.2);
+  const math::Pose3d offset(0.5, -0.2, 0.1, 0, 0, 0.1);
+  const auto expected = outer * inner * offset;
+  EXPECT_NEAR(deployedPose->Pos().X(), expected.Pos().X(), 1e-3);
+  EXPECT_NEAR(deployedPose->Pos().Y(), expected.Pos().Y(), 1e-3);
+  EXPECT_NEAR(deployedPose->Pos().Z(), expected.Pos().Z(), 1e-3);
+  EXPECT_NEAR(deployedPose->Rot().Yaw(), expected.Rot().Yaw(), 1e-3);
+}
+
+/////////////////////////////////////////////////
 /// Main
 int main(int _argc, char **_argv)
 {

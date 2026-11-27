@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="breadcrumbs_nested">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <model name="outer">
+      <pose>10 0 0 0 0 0.5</pose>
+      <static>true</static>
+      <link name="link"/>
+      <model name="inner">
+        <pose>2 1 0 0 0 0.2</pose>
+        <static>true</static>
+        <link name="link"/>
+        <plugin
+          filename="gz-sim-breadcrumbs-system"
+          name="gz::sim::systems::Breadcrumbs">
+          <topic>/breadcrumbs_nested/deploy</topic>
+          <max_deployments>1</max_deployments>
+          <breadcrumb>
+            <sdf version="1.9">
+              <model name="B">
+                <pose>0.5 -0.2 0.1 0 0 0.1</pose>
+                <static>true</static>
+                <link name="body"/>
+              </model>
+            </sdf>
+          </breadcrumb>
+        </plugin>
+      </model>
+    </model>
+  </world>
+</sdf>
