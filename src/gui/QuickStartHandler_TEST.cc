@@ -22,7 +22,9 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QTemporaryDir>
 #include <QTemporaryFile>
+#include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
 
@@ -49,8 +51,18 @@ TEST(QuickStartHandlerTest, DefaultCatalogLoaded)
   EXPECT_EQ(raw.value("categories").toArray().size(), categories.size());
   EXPECT_EQ(raw.value("worlds").toArray().size(), allWorlds.size());
 
+  // The dialog shows the featured worlds as a fixed 3x2 grid of thumbnails
+  const QDir examplesDir(
+      QString::fromStdString(std::string(PROJECT_SOURCE_PATH) +
+                             "/examples/worlds"));
   const QVariantList featured = handler.FeaturedWorlds();
-  EXPECT_EQ(featured.size(), 6);
+  EXPECT_EQ(6, featured.size());
+  for (const QVariant &worldVar : featured)
+  {
+    const QString thumb = worldVar.toMap().value("thumbnail").toString();
+    EXPECT_TRUE(QFile::exists(examplesDir.filePath("thumbnails/" + thumb)))
+        << "Missing thumbnail [" << thumb.toStdString() << "]";
+  }
 
   for (const QVariant &catVar : categories)
   {
@@ -60,9 +72,6 @@ TEST(QuickStartHandlerTest, DefaultCatalogLoaded)
               handler.Worlds(cat.value("id").toString()).size());
   }
 
-  const QDir examplesDir(
-      QString::fromStdString(std::string(PROJECT_SOURCE_PATH) +
-                             "/examples/worlds"));
   for (const QVariant &worldVar : allWorlds)
   {
     const QVariantMap world = worldVar.toMap();
@@ -144,13 +153,36 @@ TEST(QuickStartHandlerTest, FilterByCategorySourceAndQuery)
   }
 
   const QVariantList pandaMatches = handler.Worlds("all", "all", "panda");
-  EXPECT_EQ(1, pandaMatches.size());
+  ASSERT_EQ(1, pandaMatches.size());
   EXPECT_EQ("panda_joint_control",
             pandaMatches.first().toMap().value("id").toString());
 
-  // Case-insensitive tag search
-  const QVariantList uavMatches = handler.Worlds("all", "all", "UAV");
-  EXPECT_GT(uavMatches.size(), 0);
+  // "starter" only appears in the tags of the empty world
+  const QVariantList tagMatches = handler.Worlds("all", "all", " STARTER ");
+  ASSERT_EQ(1, tagMatches.size());
+  EXPECT_EQ("empty", tagMatches.first().toMap().value("id").toString());
+}
+
+/////////////////////////////////////////////////
+TEST(QuickStartHandlerTest, ResolveThumbnailUrl)
+{
+  QTemporaryDir prefix;
+  ASSERT_TRUE(prefix.isValid());
+  qputenv("GZ_SIM_INSTALL_PREFIX", prefix.path().toUtf8());
+  QuickStartHandler handler;
+  const QDir thumbs(handler.WorldsPath() + "/thumbnails");
+  ASSERT_TRUE(thumbs.mkpath("."));
+  QFile png(thumbs.filePath("Owner.My World.png"));
+  ASSERT_TRUE(png.open(QIODevice::WriteOnly));
+  png.close();
+
+  QVariantMap world;
+  world["thumbnail"] = "Owner.My World.png";
+  EXPECT_EQ(QUrl::fromLocalFile(png.fileName()).toString(),
+            handler.ResolveThumbnailUrl(world));
+  world["thumbnail"] = "missing.png";
+  EXPECT_TRUE(handler.ResolveThumbnailUrl(world).isEmpty());
+  qunsetenv("GZ_SIM_INSTALL_PREFIX");
 }
 
 /////////////////////////////////////////////////
@@ -176,22 +208,20 @@ TEST(QuickStartHandlerTest, ResolveWorldUriAndInvalidCatalog)
   brokenFuel["owner"] = "OpenRobotics";
   EXPECT_TRUE(handler.ResolveWorldUri(brokenFuel).isEmpty());
 
-  // Loading an invalid file should fail without corrupting existing catalog
-  const int prevCount = handler.Worlds().size();
+  // Invalid catalogs are rejected and the loaded one is kept
+  const QVariantList prevWorlds = handler.Worlds();
+  const QVariantList prevCategories = handler.Categories();
   EXPECT_FALSE(handler.LoadCatalog("/nonexistent/path/catalog.json"));
-  EXPECT_EQ(prevCount, handler.Worlds().size());
-
-  QTemporaryFile badJson;
-  ASSERT_TRUE(badJson.open());
-  badJson.write("{ not valid json");
-  badJson.flush();
-  EXPECT_FALSE(handler.LoadCatalog(badJson.fileName()));
-  EXPECT_EQ(prevCount, handler.Worlds().size());
-
-  QTemporaryFile noValidWorlds;
-  ASSERT_TRUE(noValidWorlds.open());
-  noValidWorlds.write(R"({"categories": [], "worlds": [{"id": "a"}]})");
-  noValidWorlds.flush();
-  EXPECT_FALSE(handler.LoadCatalog(noValidWorlds.fileName()));
-  EXPECT_EQ(prevCount, handler.Worlds().size());
+  for (const char *json : {"{ not valid json", "[]", "{}",
+                           R"({"categories": [], "worlds": {}})",
+                           R"({"categories": [], "worlds": [{"id": "a"}]})"})
+  {
+    QTemporaryFile file;
+    ASSERT_TRUE(file.open());
+    file.write(json);
+    file.flush();
+    EXPECT_FALSE(handler.LoadCatalog(file.fileName())) << json;
+  }
+  EXPECT_TRUE(prevWorlds == handler.Worlds());
+  EXPECT_TRUE(prevCategories == handler.Categories());
 }
