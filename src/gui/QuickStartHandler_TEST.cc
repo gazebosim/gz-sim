@@ -53,7 +53,12 @@ TEST(QuickStartHandlerTest, DefaultCatalogLoaded)
   EXPECT_EQ(featured.size(), 6);
 
   for (const QVariant &catVar : categories)
-    EXPECT_FALSE(catVar.toMap().value("name").toString().isEmpty());
+  {
+    const QVariantMap cat = catVar.toMap();
+    EXPECT_FALSE(cat.value("name").toString().isEmpty());
+    EXPECT_EQ(cat.value("count").toInt(),
+              handler.Worlds(cat.value("id").toString()).size());
+  }
 
   const QDir examplesDir(
       QString::fromStdString(std::string(PROJECT_SOURCE_PATH) +
@@ -85,10 +90,13 @@ TEST(QuickStartHandlerTest, LoadCatalogSkipsInvalidEntries)
   QuickStartHandler handler;
   QTemporaryFile file;
   ASSERT_TRUE(file.open());
-  file.write(R"({"categories": [{"id": "mobile"}, {"id": "mobile"}, {}],
+  file.write(R"({"categories": [{"id": "Mobile"}, {"id": "mobile"}, {},
+                                {"id": "all"}, {"id": "featured"}],
     "worlds": [
-      {"id": "a", "title": "A", "category": "mobile", "source": "local",
+      {"id": "a", "title": "A", "category": "MOBILE", "source": "Local",
        "fileName": "a.sdf", "featured": true},
+      {"id": "e", "title": "E", "category": "featured", "source": "local",
+       "fileName": "e.sdf"},
       {"id": "a", "title": "Dup", "category": "mobile", "source": "local",
        "fileName": "b.sdf"},
       {"id": "b", "title": "B", "category": "x", "source": "local",
@@ -98,9 +106,15 @@ TEST(QuickStartHandlerTest, LoadCatalogSkipsInvalidEntries)
       42]})");
   file.flush();
   ASSERT_TRUE(handler.LoadCatalog(file.fileName()));
-  ASSERT_EQ(1, handler.Worlds().size());
-  ASSERT_EQ(1, handler.Categories().size());
-  EXPECT_EQ(1, handler.Categories()[0].toMap().value("count").toInt());
+  EXPECT_EQ(2, handler.Worlds().size());
+  EXPECT_EQ(1, handler.Worlds("Mobile", "LOCAL").size());
+  // "e" is featured because of its category, "a" because of its flag
+  EXPECT_EQ(2, handler.FeaturedWorlds().size());
+
+  const QVariantList categories = handler.Categories();
+  ASSERT_EQ(2, categories.size());
+  EXPECT_EQ(1, categories[0].toMap().value("count").toInt());
+  EXPECT_EQ(2, categories[1].toMap().value("count").toInt());
 }
 
 /////////////////////////////////////////////////

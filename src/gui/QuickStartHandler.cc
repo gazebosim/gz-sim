@@ -169,11 +169,12 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
   for (int i = 0; i < categoriesArray.size(); ++i)
   {
     const QJsonObject obj = categoriesArray.at(i).toObject();
-    const QString id = obj.value("id").toString();
-    if (id.isEmpty() || categoryCounts.contains(id))
+    // Ids are case-insensitive and "all" means "no category filter"
+    const QString id = obj.value("id").toString().toLower();
+    if (id.isEmpty() || id == "all" || categoryCounts.contains(id))
     {
       gzerr << "QuickStart catalog [" << path << "]: skipping categories["
-            << i << "] with a missing or duplicate id" << std::endl;
+            << i << "] with a missing, reserved or duplicate id" << std::endl;
       continue;
     }
     categoryCounts.insert(id, 0);
@@ -196,7 +197,12 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
     for (const char *field : kWorldStringFields)
       entry[field] = obj.value(field).toString();
 
-    entry["featured"] = obj.value("featured").toBool();
+    // Category and source are matched case-insensitively, and a world in
+    // the "featured" category is always featured
+    entry["category"] = entry["category"].toString().toLower();
+    entry["source"] = entry["source"].toString().toLower();
+    entry["featured"] = obj.value("featured").toBool() ||
+        entry["category"] == "featured";
     QStringList tags;
     const QJsonArray tagsArray = obj.value("tags").toArray();
     for (const QJsonValue &tagVal : tagsArray)
@@ -276,13 +282,13 @@ QVariantList QuickStartHandler::Worlds(
     {
       const bool inCategory = (catFilter == "featured")
           ? world.value("featured").toBool()
-          : world.value("category").toString().toLower() == catFilter;
+          : world.value("category").toString() == catFilter;
       if (!inCategory)
         continue;
     }
 
     if (!IsWildcard(srcFilter) &&
-        world.value("source").toString().toLower() != srcFilter)
+        world.value("source").toString() != srcFilter)
     {
       continue;
     }
