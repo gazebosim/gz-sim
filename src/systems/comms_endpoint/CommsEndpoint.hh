@@ -20,7 +20,7 @@
 #include <memory>
 
 #include <gz/utils/ImplPtr.hh>
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 #include "gz/sim/System.hh"
 
 namespace gz

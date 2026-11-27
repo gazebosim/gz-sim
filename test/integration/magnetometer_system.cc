@@ -19,6 +19,9 @@
 
 #include <gz/msgs/magnetometer.pb.h>
 
+#include <cstddef>
+#include <mutex>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -31,11 +34,11 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
@@ -79,44 +82,6 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   auto topic = "world/magnetometer_sensor/model/magnetometer_model/link/link/"
       "sensor/magnetometer_sensor/magnetometer";
 
-  // Create a system that records magnetometer data
-  test::Relay testSystem;
-
-  std::vector<math::Pose3d> poses;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::Magnetometer,
-                  components::Name,
-                  components::WorldPose>(
-            [&](const Entity &_entity,
-                const components::Magnetometer *,
-                const components::Name *_name,
-                const components::WorldPose *_worldPose) -> bool
-            {
-              EXPECT_EQ(_name->Data(), sensorName);
-              poses.push_back(_worldPose->Data());
-
-              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-              EXPECT_NE(nullptr, sensorComp);
-
-              if (_info.iterations == 1)
-                return true;
-
-              // This component is created on the 2nd PreUpdate
-              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-              EXPECT_NE(nullptr, topicComp);
-              if (topicComp)
-              {
-                EXPECT_EQ(topic, topicComp->Data());
-              }
-
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
-
   // subscribe to magnetometer topic
   transport::Node node;
   node.Subscribe(topic, &magnetometerCb);
@@ -125,19 +90,46 @@ TEST_F(MagnetometerTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(RotatedMagnetometer))
   // Run server
   size_t iters = 200u;
   server.Run(true, iters, false);
-  EXPECT_EQ(iters, poses.size());
+
+  // Check the sensor and the field it measured. Each only visits entities
+  // that have all of these components, so we just need to make sure there's
+  // exactly one magnetometer.
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
   // Hardcoded SDF values
-  math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
+  const math::Vector3d worldMagneticField(0.94, 0.76, -0.12);
 
-  math::Vector3d field = poses.back().Rot().Inverse().RotateVector(
-        worldMagneticField);
-  mutex.lock();
-  EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),
-      field.X(), TOL);
-  EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->y(),
-      field.Y(), TOL);
-  EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->z(),
-      field.Z(), TOL);
-  mutex.unlock();
+  // Make sure we got some readings before comparing against the last one
+  {
+    std::lock_guard<std::mutex> lock(mutex);
+    ASSERT_FALSE(magnetometerMsgs.empty());
+  }
+
+  std::size_t sensorCount{0};
+  ecm->Each<components::Magnetometer, components::Name,
+            components::SensorTopic, components::WorldPose>(
+      [&](const Entity &, const components::Magnetometer *,
+          const components::Name *_name,
+          const components::SensorTopic *_topic,
+          const components::WorldPose *_worldPose)
+      {
+        ++sensorCount;
+        EXPECT_EQ(sensorName, _name->Data());
+        EXPECT_EQ(topic, _topic->Data());
+
+        const math::Vector3d field =
+            _worldPose->Data().Rot().Inverse().RotateVector(
+                worldMagneticField);
+        mutex.lock();
+        EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->x(),
+            field.X(), TOL);
+        EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->y(),
+            field.Y(), TOL);
+        EXPECT_NEAR(magnetometerMsgs.back().mutable_field_tesla()->z(),
+            field.Z(), TOL);
+        mutex.unlock();
+        return true;
+      });
+  EXPECT_EQ(1u, sensorCount);
 }

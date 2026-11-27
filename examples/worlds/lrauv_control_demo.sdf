@@ -250,6 +250,11 @@
         filename="gz-sim-hydrodynamics-system"
         name="gz::sim::systems::Hydrodynamics">
         <link_name>base_link</link_name>
+        <!-- As in the LRAUV project's own simulation
+             (github.com/osrf/lrauv), the added mass Coriolis force is off:
+             with these coefficients its Munk moment makes the vehicle
+             directionally unstable. -->
+        <disable_coriolis>true</disable_coriolis>
         <xDotU>-4.876161</xDotU>
         <yDotV>-126.324739</yDotV>
         <zDotW>-126.324739</zDotW>

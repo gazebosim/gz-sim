@@ -19,7 +19,8 @@
 
 #include <gz/msgs/serialized_map.pb.h>
 
-#include <QtCore>
+#include <QEvent>
+#include <QObject>
 #include <string>
 
 #include <gz/utils/ImplPtr.hh>

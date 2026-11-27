@@ -320,15 +320,15 @@ void ForceTorquePrivate::Update(const EntityComponentManager &_ecm)
           auto X_WS = X_WJ * X_JS;
           auto X_SP = X_WS.Inverse() * X_WP;
 
-          // The joint wrench is computed at the joint frame. We need to
-          // transform it the sensor frame.
-          math::Vector3d force =
-              X_JS.Rot().Inverse() * msgs::Convert(jointWrench->Data().force());
-
-          math::Vector3d torque =
-              X_JS.Rot().Inverse() *
-                  msgs::Convert(jointWrench->Data().torque()) -
-              X_JS.Pos().Cross(force);
+          // Shift the torque to the sensor origin in joint axes before
+          // rotating the wrench into sensor axes.
+          const auto &wrench = jointWrench->Data();
+          const auto jointForce = msgs::Convert(wrench.force());
+          const auto jointTorque = msgs::Convert(wrench.torque());
+          const auto jointToSensor = X_JS.Rot().Inverse();
+          const auto force = jointToSensor * jointForce;
+          const auto torque =
+              jointToSensor * (jointTorque - X_JS.Pos().Cross(jointForce));
 
           it->second->SetForce(force);
           it->second->SetTorque(torque);

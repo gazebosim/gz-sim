@@ -17,7 +17,7 @@
 #ifndef GZ_SIM_GUI_PATHMANAGER_HH_
 #define GZ_SIM_GUI_PATHMANAGER_HH_
 
-#include <QtCore>
+#include <QObject>
 
 #include <gz/transport/Node.hh>
 

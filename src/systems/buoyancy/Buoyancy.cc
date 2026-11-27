@@ -30,13 +30,26 @@
 
 #include <gz/plugin/Register.hh>
 
+#include <gz/math/Box.hh>
+#include <gz/math/Capsule.hh>
+#include <gz/math/Cone.hh>
+#include <gz/math/Cylinder.hh>
+#include <gz/math/Ellipsoid.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/math/Pose3.hh>
+#include <gz/math/Sphere.hh>
 #include <gz/math/Vector3.hh>
 
 #include <gz/msgs/Utility.hh>
 
-#include <sdf/sdf.hh>
+#include <sdf/Box.hh>
+#include <sdf/Capsule.hh>
+#include <sdf/Cone.hh>
+#include <sdf/Cylinder.hh>
+#include <sdf/Element.hh>
+#include <sdf/Ellipsoid.hh>
+#include <sdf/Geometry.hh>
+#include <sdf/Sphere.hh>
 
 #include "gz/sim/components/CenterOfVolume.hh"
 #include "gz/sim/components/Collision.hh"

@@ -32,7 +32,6 @@
 #include "gz/sim/Server.hh"
 
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -105,11 +104,6 @@ class DriveToPoseControllerTest
     pub.Publish(poseMsg);
 
     // Run the system for 2s
-    test::Relay testSystem;
-    testSystem.OnPreUpdate(
-      [&](const UpdateInfo&,
-          const EntityComponentManager&){});
-    server.AddSystem(testSystem.systemPtr);
     server.Run(true, 2000, false);
 
     // Verify the final pose with the actual odom pose

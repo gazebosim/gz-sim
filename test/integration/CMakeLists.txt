@@ -4,6 +4,7 @@ set(tests
   ackermann_steering_system.cc
   actor.cc
   acoustic_comms.cc
+  advanced_lift_drag_system.cc
   air_pressure_system.cc
   air_speed_system.cc
   altimeter_system.cc
@@ -21,6 +22,7 @@ set(tests
   detachable_joint.cc
   diff_drive_system.cc
   drive_to_pose_controller_system.cc
+  dynamic_detachable_joint.cc
   each_new_removed.cc
   entity_erase.cc
   entity_system.cc
@@ -92,6 +94,7 @@ set(tests
   timeline_publisher.cc
   touch_plugin.cc
   tracked_vehicle_system.cc
+  trajectory_follower_system.cc
   triggered_publisher.cc
   user_commands.cc
   velocity_control_system.cc
@@ -130,6 +133,7 @@ set(tests_needing_display
   optical_tactile_plugin.cc
   reset_sensors.cc
   rgbd_camera.cc
+  scene_manager.cc
   sensors_system.cc
   sensors_system_battery.cc
   sensors_system_update_rate.cc
