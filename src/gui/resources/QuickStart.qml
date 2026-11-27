@@ -54,19 +54,16 @@ Rectangle {
     sequence: StandardKey.Cancel
     enabled: !searchField.activeFocus
     onActivated: {
+      quickStart.selectedWorld = "";
       QuickStartHandler.SetStartingWorld("");
-      Qt.callLater(function() {
-        if (quickStart.Window.window) {
-          quickStart.Window.window.close();
-        }
-      });
+      quickStart.closeWindow();
     }
   }
 
   Shortcut {
     sequences: ["Return", "Enter"]
     enabled: openWorld.enabled && !searchField.activeFocus
-    onActivated: quickStart.launchSelected()
+    onActivated: quickStart.closeWindow()
   }
 
   FileDialog {
@@ -93,7 +90,6 @@ Rectangle {
   function selectWorld(key, uri) {
     var select = key !== quickStart.selectedWorld && uri !== "";
     quickStart.selectedWorld = select ? key : "";
-    openWorld.enabled = select;
     QuickStartHandler.SetStartingWorld(select ? uri : "");
   }
 
@@ -104,14 +100,11 @@ Rectangle {
       return;
     quickStart.selectedWorld = key;
     QuickStartHandler.SetStartingWorld(uri);
-    openWorld.enabled = true;
-    quickStart.launchSelected();
+    quickStart.closeWindow();
   }
 
-  function launchSelected() {
-    if (!openWorld.enabled) {
-      return;
-    }
+  // Closing the dialog starts the server with the current starting world.
+  function closeWindow() {
     Qt.callLater(function() {
       if (quickStart.Window.window) {
         quickStart.Window.window.close();
@@ -343,7 +336,7 @@ Rectangle {
       }
     }
 
-    // Bottom row, which holds the run button and don't show checkbox.
+    // Bottom row: "don't show again" checkbox and the launch buttons.
     Rectangle {
       Layout.fillWidth: true
       Layout.preferredHeight: 64
@@ -378,11 +371,10 @@ Rectangle {
         }
         Button {
           id: openWorld
-          visible: true
           text: qsTr("Run")
-          enabled: false
+          enabled: quickStart.selectedWorld !== ""
           highlighted: true
-          onClicked: quickStart.launchSelected()
+          onClicked: quickStart.closeWindow()
         }
       }
     }
