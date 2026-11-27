@@ -49,6 +49,46 @@ using namespace std::chrono_literals;
 
 class RecreateEntitiesFixture : public InternalFixture<::testing::Test>
 {
+  /// \brief Add components::Recreate to all models in the ECM.
+  /// \param[in] _ecm Entity Component Manager.
+  public: void RecreateAllModels(EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Model>(
+        [&](const gz::sim::Entity &_entity,
+            const components::Model *) -> bool
+        {
+          _ecm.CreateComponent(_entity, components::Recreate());
+          return true;
+        });
+  }
+
+  /// \brief Add components::Recreate to all models in the server's ECM.
+  /// \param[in] _server Server instance.
+  public: void RecreateAllModels(Server &_server)
+  {
+    auto ecm = _server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    this->RecreateAllModels(*ecm);
+  }
+
+  /// \brief Verify that no model entities have components::Recreate in the ECM.
+  /// \param[in] _ecm Entity Component Manager.
+  public: void ExpectNoRecreateEntities(const EntityComponentManager &_ecm)
+  {
+    auto entities = _ecm.EntitiesByComponents(
+        components::Model(), components::Recreate());
+    EXPECT_TRUE(entities.empty());
+  }
+
+  /// \brief Verify that no model entities have components::Recreate in the
+  /// server's ECM.
+  /// \param[in] _server Server instance.
+  public: void ExpectNoRecreateEntities(Server &_server)
+  {
+    auto ecm = _server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    this->ExpectNoRecreateEntities(*ecm);
+  }
 };
 
 /////////////////////////////////////////////////
@@ -229,11 +269,12 @@ TEST_F(RecreateEntitiesFixture,
     EXPECT_NE(kNullEntity, ellipLinkEntity);
   };
 
-  // validate initial state
+  // validate initial state and add components::Recreate to models
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
     validateEntities(*ecm);
+    this->RecreateAllModels(*ecm);
   }
 
   // store the original entity ids
@@ -247,19 +288,6 @@ TEST_F(RecreateEntitiesFixture,
   Entity originalsphLinkEntity = sphLinkEntity;
   Entity originalcapLinkEntity = capLinkEntity;
   Entity originalellipLinkEntity = ellipLinkEntity;
-
-  // Add components::Recreate to models so that entities get recreated
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    ecm->Each<components::Model>(
-        [&](const gz::sim::Entity &_entity,
-            const components::Model *) -> bool
-        {
-          ecm->CreateComponent(_entity, components::Recreate());
-          return true;
-        });
-  }
 
   // Run so that entities get recreated in the ECM
   server.Run(true, 1, false);
@@ -287,13 +315,7 @@ TEST_F(RecreateEntitiesFixture,
   // entities to be recreated
   server.Run(true, 1, false);
 
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    auto entities = ecm->EntitiesByComponents(
-        components::Model(), components::Recreate());
-    EXPECT_TRUE(entities.empty());
-  }
+  this->ExpectNoRecreateEntities(server);
 }
 
 /////////////////////////////////////////////////
@@ -397,24 +419,12 @@ TEST_F(RecreateEntitiesFixture,
     EXPECT_EQ(4u, jointCount);
   };
 
-  // validate initial state
+  // validate initial state and add components::Recreate to models
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
     validateEntities(*ecm);
-  }
-
-  // Add components::Recreate to models so that entities get recreated
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    ecm->Each<components::Model>(
-        [&](const gz::sim::Entity &_entity,
-            const components::Model *) -> bool
-        {
-          ecm->CreateComponent(_entity, components::Recreate());
-          return true;
-        });
+    this->RecreateAllModels(*ecm);
   }
 
   // Run so that entities get recreated in the ECM
@@ -431,13 +441,7 @@ TEST_F(RecreateEntitiesFixture,
   // entities to be recreated
   server.Run(true, 1, false);
 
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    auto entities = ecm->EntitiesByComponents(
-        components::Model(), components::Recreate());
-    EXPECT_TRUE(entities.empty());
-  }
+  this->ExpectNoRecreateEntities(server);
 }
 
 /////////////////////////////////////////////////
@@ -548,24 +552,12 @@ TEST_F(RecreateEntitiesFixture,
     EXPECT_EQ(2u, jointCount);
   };
 
-  // validate initial state
+  // validate initial state and add components::Recreate to models
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
     validateEntities(*ecm);
-  }
-
-  // Add components::Recreate to models so that entities get recreated
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    ecm->Each<components::Model>(
-        [&](const gz::sim::Entity &_entity,
-            const components::Model *) -> bool
-        {
-          ecm->CreateComponent(_entity, components::Recreate());
-          return true;
-        });
+    this->RecreateAllModels(*ecm);
   }
 
   // Run so that entities get recreated in the ECM
@@ -582,11 +574,5 @@ TEST_F(RecreateEntitiesFixture,
   // entities to be recreated
   server.Run(true, 1, false);
 
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    auto entities = ecm->EntitiesByComponents(
-        components::Model(), components::Recreate());
-    EXPECT_TRUE(entities.empty());
-  }
+  this->ExpectNoRecreateEntities(server);
 }
