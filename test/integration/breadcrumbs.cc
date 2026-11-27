@@ -40,6 +40,7 @@
 #include "test_config.hh"
 
 #include "helpers/Relay.hh"
+#include "helpers/Util.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
@@ -695,15 +696,13 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedHost))
 
   transport::Node node;
   auto deploy = node.Advertise<msgs::Empty>("/breadcrumbs_nested/deploy");
-  const std::size_t maxWaitSteps{1000};
-  for (std::size_t i = 0; i < maxWaitSteps && !deploy.HasConnections(); ++i)
-    ASSERT_TRUE(this->server->Run(true, 1, false));
-  ASSERT_TRUE(deploy.HasConnections());
+  const uint64_t maxWaitSteps{1000};
+  ASSERT_TRUE(test::StepUntil(
+      *this->server, maxWaitSteps, [&]() { return deploy.HasConnections(); }));
   ASSERT_TRUE(deploy.Publish(msgs::Empty()));
 
-  for (std::size_t i = 0; i < maxWaitSteps && !deployedPose; ++i)
-    ASSERT_TRUE(this->server->Run(true, 1, false));
-  ASSERT_TRUE(deployedPose.has_value());
+  ASSERT_TRUE(test::StepUntil(
+      *this->server, maxWaitSteps, [&]() { return deployedPose.has_value(); }));
 
   const math::Pose3d outer(10, 0, 0, 0, 0, 0.5);
   const math::Pose3d inner(2, 1, 0, 0, 0, 0.2);
