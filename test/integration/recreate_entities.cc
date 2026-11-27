@@ -230,7 +230,11 @@ TEST_F(RecreateEntitiesFixture,
   };
 
   // validate initial state
-  validateEntities(*server.EcmScope());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // store the original entity ids
   Entity originalboxModelEntity = boxModelEntity;
@@ -247,6 +251,7 @@ TEST_F(RecreateEntitiesFixture,
   // Add components::Recreate to models so that entities get recreated
   {
     auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
     ecm->Each<components::Model>(
         [&](const gz::sim::Entity &_entity,
             const components::Model *) -> bool
@@ -260,7 +265,11 @@ TEST_F(RecreateEntitiesFixture,
   server.Run(true, 1, false);
 
   // validate that the entities are recreated
-  validateEntities(*server.EcmScope());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // check that the newly recreated entities should have a different entity id
   EXPECT_NE(originalboxModelEntity, boxModelEntity);
@@ -278,9 +287,13 @@ TEST_F(RecreateEntitiesFixture,
   // entities to be recreated
   server.Run(true, 1, false);
 
-  auto entities = server.EcmScope()->EntitiesByComponents(
-      components::Model(), components::Recreate());
-  EXPECT_TRUE(entities.empty());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    auto entities = ecm->EntitiesByComponents(
+        components::Model(), components::Recreate());
+    EXPECT_TRUE(entities.empty());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -385,11 +398,16 @@ TEST_F(RecreateEntitiesFixture,
   };
 
   // validate initial state
-  validateEntities(*server.EcmScope());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // Add components::Recreate to models so that entities get recreated
   {
     auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
     ecm->Each<components::Model>(
         [&](const gz::sim::Entity &_entity,
             const components::Model *) -> bool
@@ -403,15 +421,23 @@ TEST_F(RecreateEntitiesFixture,
   server.Run(true, 1, false);
 
   // validate that the entities are recreated
-  validateEntities(*server.EcmScope());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // Run again to make sure the recreate components are removed and no
   // entities to be recreated
   server.Run(true, 1, false);
 
-  auto entities = server.EcmScope()->EntitiesByComponents(
-      components::Model(), components::Recreate());
-  EXPECT_TRUE(entities.empty());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    auto entities = ecm->EntitiesByComponents(
+        components::Model(), components::Recreate());
+    EXPECT_TRUE(entities.empty());
+  }
 }
 
 /////////////////////////////////////////////////
@@ -523,11 +549,16 @@ TEST_F(RecreateEntitiesFixture,
   };
 
   // validate initial state
-  validateEntities(*server.EcmScope());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // Add components::Recreate to models so that entities get recreated
   {
     auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
     ecm->Each<components::Model>(
         [&](const gz::sim::Entity &_entity,
             const components::Model *) -> bool
@@ -541,13 +572,21 @@ TEST_F(RecreateEntitiesFixture,
   server.Run(true, 1, false);
 
   // validate that the entities are recreated
-  validateEntities(*server.EcmScope());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // Run again to make sure the recreate components are removed and no
   // entities to be recreated
   server.Run(true, 1, false);
 
-  auto entities = server.EcmScope()->EntitiesByComponents(
-      components::Model(), components::Recreate());
-  EXPECT_TRUE(entities.empty());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    auto entities = ecm->EntitiesByComponents(
+        components::Model(), components::Recreate());
+    EXPECT_TRUE(entities.empty());
+  }
 }
