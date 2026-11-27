@@ -19,11 +19,13 @@
 
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryFile>
 #include <QVariantList>
 #include <QVariantMap>
 
-#include <set>
 #include <string>
 
 #include "QuickStartHandler.hh"
@@ -36,71 +38,69 @@ using namespace sim::gui;
 TEST(QuickStartHandlerTest, DefaultCatalogLoaded)
 {
   QuickStartHandler handler;
-
   const QVariantList categories = handler.Categories();
-  EXPECT_GE(categories.size(), 7);
-
   const QVariantList allWorlds = handler.Worlds();
-  EXPECT_GT(allWorlds.size(), 15);
+
+  // The loader skips duplicate ids, unknown categories and worlds that
+  // cannot be resolved, so every entry of the bundled catalog must load
+  QFile catalog(":/Gazebo/quickstart_worlds.json");
+  ASSERT_TRUE(catalog.open(QIODevice::ReadOnly));
+  const QJsonObject raw = QJsonDocument::fromJson(catalog.readAll()).object();
+  EXPECT_EQ(raw.value("categories").toArray().size(), categories.size());
+  EXPECT_EQ(raw.value("worlds").toArray().size(), allWorlds.size());
 
   const QVariantList featured = handler.FeaturedWorlds();
   EXPECT_EQ(featured.size(), 6);
 
-  // Ensure every category id is unique and has a non-empty name
-  std::set<std::string> categoryIds;
   for (const QVariant &catVar : categories)
-  {
-    const QVariantMap cat = catVar.toMap();
-    const std::string id = cat.value("id").toString().toStdString();
-    EXPECT_FALSE(id.empty());
-    EXPECT_FALSE(cat.value("name").toString().isEmpty());
-    EXPECT_TRUE(categoryIds.insert(id).second) << "Duplicate category: " << id;
-  }
+    EXPECT_FALSE(catVar.toMap().value("name").toString().isEmpty());
 
-  // Ensure every world references a valid category and has a valid URI
-  std::set<std::string> worldIds;
   const QDir examplesDir(
       QString::fromStdString(std::string(PROJECT_SOURCE_PATH) +
                              "/examples/worlds"));
   for (const QVariant &worldVar : allWorlds)
   {
     const QVariantMap world = worldVar.toMap();
+    if (world.value("source").toString() != "local")
+      continue;
+
     const std::string id = world.value("id").toString().toStdString();
-    EXPECT_FALSE(id.empty());
-    EXPECT_TRUE(worldIds.insert(id).second) << "Duplicate world id: " << id;
-
-    const std::string cat = world.value("category").toString().toStdString();
-    EXPECT_TRUE(categoryIds.count(cat) > 0)
-        << "World [" << id << "] has unknown category [" << cat << "]";
-
     const QString uri = handler.ResolveWorldUri(world);
-    EXPECT_FALSE(uri.isEmpty()) << "World [" << id << "] has empty URI";
-
-    const QString source = world.value("source").toString();
-    if (source == "local")
+    QFile sdf(examplesDir.filePath(uri));
+    EXPECT_TRUE(sdf.exists())
+        << "Local example world missing: " << uri.toStdString();
+    // Worlds tagged as offline must not download models from Fuel
+    if (world.value("tags").toStringList().contains("offline") &&
+        sdf.open(QIODevice::ReadOnly))
     {
-      QFile sdf(examplesDir.filePath(uri));
-      EXPECT_TRUE(sdf.exists())
-          << "Local example world missing: " << uri.toStdString();
-      // Worlds tagged as offline must not download models from Fuel
-      if (world.value("tags").toStringList().contains("offline") &&
-          sdf.open(QIODevice::ReadOnly))
-      {
-        EXPECT_FALSE(sdf.readAll().contains("fuel.gazebosim.org"))
-            << "Offline world [" << id << "] downloads from Fuel";
-      }
-    }
-    else if (source == "fuel")
-    {
-      EXPECT_TRUE(uri.startsWith("https://fuel.gazebosim.org/1.0/"))
-          << "Invalid Fuel URI: " << uri.toStdString();
-    }
-    else
-    {
-      FAIL() << "Unknown world source [" << source.toStdString()
-             << "] for world [" << id << "]";
+      EXPECT_FALSE(sdf.readAll().contains("fuel.gazebosim.org"))
+          << "Offline world [" << id << "] downloads from Fuel";
     }
   }
+}
+
+/////////////////////////////////////////////////
+TEST(QuickStartHandlerTest, LoadCatalogSkipsInvalidEntries)
+{
+  QuickStartHandler handler;
+  QTemporaryFile file;
+  ASSERT_TRUE(file.open());
+  file.write(R"({"categories": [{"id": "mobile"}, {"id": "mobile"}, {}],
+    "worlds": [
+      {"id": "a", "title": "A", "category": "mobile", "source": "local",
+       "fileName": "a.sdf", "featured": true},
+      {"id": "a", "title": "Dup", "category": "mobile", "source": "local",
+       "fileName": "b.sdf"},
+      {"id": "b", "title": "B", "category": "x", "source": "local",
+       "fileName": "b.sdf"},
+      {"id": "c", "title": "C", "category": "mobile", "source": "fuel"},
+      {"id": "d", "category": "mobile", "source": "local", "fileName": "d"},
+      42]})");
+  file.flush();
+  ASSERT_TRUE(handler.LoadCatalog(file.fileName()));
+  ASSERT_EQ(1, handler.Worlds().size());
+  ASSERT_EQ(1, handler.Categories().size());
+  EXPECT_EQ(1, handler.Categories()[0].toMap().value("count").toInt());
 }
 
 /////////////////////////////////////////////////
@@ -172,5 +172,12 @@ TEST(QuickStartHandlerTest, ResolveWorldUriAndInvalidCatalog)
   badJson.write("{ not valid json");
   badJson.flush();
   EXPECT_FALSE(handler.LoadCatalog(badJson.fileName()));
+  EXPECT_EQ(prevCount, handler.Worlds().size());
+
+  QTemporaryFile noValidWorlds;
+  ASSERT_TRUE(noValidWorlds.open());
+  noValidWorlds.write(R"({"categories": [], "worlds": [{"id": "a"}]})");
+  noValidWorlds.flush();
+  EXPECT_FALSE(handler.LoadCatalog(noValidWorlds.fileName()));
   EXPECT_EQ(prevCount, handler.Worlds().size());
 }

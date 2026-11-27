@@ -23,6 +23,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSet>
 #include <QUrl>
 
 #include "gz/sim/InstallationDirectories.hh"
@@ -161,26 +162,39 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
     return false;
   }
 
-  QVariantList parsedWorlds;
+  // Parse categories first so that worlds can be checked against them
+  QVariantList parsedCategories;
   QHash<QString, int> categoryCounts;
-  int featuredCount = 0;
-
-  const QJsonArray worldsArray = root.value("worlds").toArray();
-  for (const QJsonValue &val : worldsArray)
+  const QJsonArray categoriesArray = root.value("categories").toArray();
+  for (int i = 0; i < categoriesArray.size(); ++i)
   {
-    if (!val.isObject())
+    const QJsonObject obj = categoriesArray.at(i).toObject();
+    const QString id = obj.value("id").toString();
+    if (id.isEmpty() || categoryCounts.contains(id))
+    {
+      gzerr << "QuickStart catalog [" << path << "]: skipping categories["
+            << i << "] with a missing or duplicate id" << std::endl;
       continue;
+    }
+    categoryCounts.insert(id, 0);
 
-    const QJsonObject obj = val.toObject();
+    QVariantMap cat;
+    cat["id"] = id;
+    cat["name"] = obj.value("name").toString();
+    cat["icon"] = obj.value("icon").toString();
+    parsedCategories.append(cat);
+  }
+
+  QVariantList parsedWorlds;
+  QSet<QString> worldIds;
+  int featuredCount = 0;
+  const QJsonArray worldsArray = root.value("worlds").toArray();
+  for (int i = 0; i < worldsArray.size(); ++i)
+  {
+    const QJsonObject obj = worldsArray.at(i).toObject();
     QVariantMap entry;
     for (const char *field : kWorldStringFields)
       entry[field] = obj.value(field).toString();
-
-    if (entry["id"].toString().isEmpty() ||
-        entry["title"].toString().isEmpty())
-    {
-      continue;
-    }
 
     entry["featured"] = obj.value("featured").toBool();
     QStringList tags;
@@ -192,34 +206,44 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
     }
     entry["tags"] = tags;
 
-    parsedWorlds.append(entry);
+    const QString id = entry["id"].toString();
     const QString cat = entry["category"].toString();
-    if (!cat.isEmpty())
-      ++categoryCounts[cat];
+    std::string error;
+    if (id.isEmpty() || entry["title"].toString().isEmpty())
+      error = "missing id or title";
+    else if (worldIds.contains(id))
+      error = "duplicate id";
+    else if (!categoryCounts.contains(cat))
+      error = "unknown category [" + cat.toStdString() + "]";
+    else if (this->ResolveWorldUri(entry).isEmpty())
+      error = "unknown source or missing fileName, owner or fuelName";
+    if (!error.empty())
+    {
+      gzerr << "QuickStart catalog [" << path << "]: skipping worlds[" << i
+            << "] [" << id.toStdString() << "]: " << error << std::endl;
+      continue;
+    }
+
+    worldIds.insert(id);
+    ++categoryCounts[cat];
     if (entry["featured"].toBool())
       ++featuredCount;
+    parsedWorlds.append(entry);
   }
 
-  QVariantList parsedCategories;
-  const QJsonArray categoriesArray = root.value("categories").toArray();
-  for (const QJsonValue &val : categoriesArray)
+  if (parsedWorlds.isEmpty())
   {
-    if (!val.isObject())
-      continue;
+    gzerr << "QuickStart catalog [" << path << "] has no valid worlds"
+          << std::endl;
+    return false;
+  }
 
-    const QJsonObject obj = val.toObject();
-    const QString id = obj.value("id").toString();
-    if (id.isEmpty())
-      continue;
-
-    QVariantMap cat;
-    cat["id"] = id;
-    cat["name"] = obj.value("name").toString();
-    cat["icon"] = obj.value("icon").toString();
-    cat["count"] = (id == "featured")
-        ? featuredCount
-        : categoryCounts.value(id, 0);
-    parsedCategories.append(cat);
+  for (QVariant &catVar : parsedCategories)
+  {
+    QVariantMap cat = catVar.toMap();
+    const QString id = cat["id"].toString();
+    cat["count"] = id == "featured" ? featuredCount : categoryCounts.value(id);
+    catVar = cat;
   }
 
   this->categories = parsedCategories;
