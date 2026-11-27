@@ -156,7 +156,9 @@ Rectangle {
           Layout.preferredHeight: 100
           Layout.minimumHeight: 100
           Image{
-            source: "images/gazebo_horz_pos_topbar.svg"
+            source: quickStart.isDark ?
+                "images/gazebo_horz_neg_topbar.svg" :
+                "images/gazebo_horz_pos_topbar.svg"
             fillMode: Image.PreserveAspectFit
             x: 30
             y: (parent.height - height) / 2
@@ -263,7 +265,8 @@ Rectangle {
                 spacing: 6
                 Image {
                   id: searchIcon
-                  source: "images/search.svg"
+                  source: quickStart.isDark ?
+                      "images/search_dark.svg" : "images/search.svg"
                   Layout.preferredWidth: 18
                   Layout.preferredHeight: 18
                   fillMode: Image.PreserveAspectFit
