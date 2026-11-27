@@ -68,6 +68,9 @@ Rectangle {
 
   FileDialog {
     id: openWorldFileDialog
+    // This item gets its window only after creation, so the dialog cannot
+    // find one by itself and open() would silently do nothing.
+    parentWindow: quickStart.Window.window
     title: qsTr("Open World File")
     fileMode: FileDialog.OpenFile
     nameFilters: [
