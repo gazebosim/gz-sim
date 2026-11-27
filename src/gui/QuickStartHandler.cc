@@ -42,6 +42,36 @@ constexpr const char *kFuelWorldsBaseUrl = "https://fuel.gazebosim.org/1.0/";
 constexpr const char *kWorldStringFields[] = {
     "id", "title", "description", "category", "source", "owner",
     "fileName", "fuelName", "thumbnail", "fuelThumbnail"};
+
+/// \brief World fields, besides tags, matched by the search query.
+constexpr const char *kSearchableFields[] = {
+    "title", "description", "owner", "category", "fileName", "fuelName"};
+
+/// \brief Whether a filter value accepts every entry.
+bool IsWildcard(const QString &_filter)
+{
+  return _filter.isEmpty() || _filter == "all";
+}
+
+/// \brief Whether a searchable field or a tag of a world contains a query.
+/// \param[in] _world Catalog world entry.
+/// \param[in] _query Lower-case search query.
+bool MatchesQuery(const QVariantMap &_world, const QString &_query)
+{
+  for (const char *field : kSearchableFields)
+  {
+    if (_world.value(field).toString().toLower().contains(_query))
+      return true;
+  }
+
+  const QStringList tags = _world.value("tags").toStringList();
+  for (const QString &tag : tags)
+  {
+    if (tag.toLower().contains(_query))
+      return true;
+  }
+  return false;
+}
 }
 
 QuickStartHandler::QuickStartHandler()
@@ -217,52 +247,23 @@ QVariantList QuickStartHandler::Worlds(
   {
     const QVariantMap world = item.toMap();
 
-    if (!catFilter.isEmpty() && catFilter != "all")
+    if (!IsWildcard(catFilter))
     {
-      if (catFilter == "featured")
-      {
-        if (!world.value("featured").toBool())
-          continue;
-      }
-      else if (world.value("category").toString().toLower() != catFilter)
-      {
-        continue;
-      }
-    }
-
-    if (!srcFilter.isEmpty() && srcFilter != "all")
-    {
-      if (world.value("source").toString().toLower() != srcFilter)
+      const bool inCategory = (catFilter == "featured")
+          ? world.value("featured").toBool()
+          : world.value("category").toString().toLower() == catFilter;
+      if (!inCategory)
         continue;
     }
 
-    if (!queryFilter.isEmpty())
+    if (!IsWildcard(srcFilter) &&
+        world.value("source").toString().toLower() != srcFilter)
     {
-      bool matched =
-          world.value("title").toString().toLower().contains(queryFilter) ||
-          world.value("description").toString().toLower().contains(
-              queryFilter) ||
-          world.value("owner").toString().toLower().contains(queryFilter) ||
-          world.value("category").toString().toLower().contains(queryFilter) ||
-          world.value("fileName").toString().toLower().contains(queryFilter) ||
-          world.value("fuelName").toString().toLower().contains(queryFilter);
-
-      if (!matched)
-      {
-        const QStringList tags = world.value("tags").toStringList();
-        for (const QString &tag : tags)
-        {
-          if (tag.toLower().contains(queryFilter))
-          {
-            matched = true;
-            break;
-          }
-        }
-      }
-
-      if (!matched)
-        continue;
+      continue;
     }
+
+    if (!queryFilter.isEmpty() && !MatchesQuery(world, queryFilter))
+      continue;
 
     result.append(world);
   }
