@@ -1,0 +1,387 @@
+{
+  "categories": [
+    {
+      "id": "featured",
+      "name": "Featured",
+      "icon": "star"
+    },
+    {
+      "id": "mobile",
+      "name": "Mobile & Warehouse",
+      "icon": "mobile"
+    },
+    {
+      "id": "manipulators",
+      "name": "Manipulators & Arms",
+      "icon": "arm"
+    },
+    {
+      "id": "drones",
+      "name": "Drones & Aerial",
+      "icon": "drone"
+    },
+    {
+      "id": "driving",
+      "name": "Autonomous Driving",
+      "icon": "car"
+    },
+    {
+      "id": "marine",
+      "name": "Marine & Underwater",
+      "icon": "marine"
+    },
+    {
+      "id": "humanoid",
+      "name": "Humanoid & Legged",
+      "icon": "humanoid"
+    },
+    {
+      "id": "space",
+      "name": "Space & SubT",
+      "icon": "space"
+    }
+  ],
+  "worlds": [
+    {
+      "id": "empty",
+      "title": "Empty World",
+      "description": "Minimal ground plane and directional sun light for building scenes from scratch.",
+      "category": "featured",
+      "featured": true,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "empty.sdf",
+      "thumbnail": "openrobotics.empty.png",
+      "tags": ["empty", "blank", "starter", "offline"]
+    },
+    {
+      "id": "tugbot_warehouse",
+      "title": "Tugbot in Warehouse",
+      "description": "Industrial warehouse with shelves, pallets, and a Tugbot autonomous mobile robot.",
+      "category": "mobile",
+      "featured": true,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "Tugbot in Warehouse",
+      "thumbnail": "OpenRobotics.Tugbot in Warehouse.png",
+      "fuelThumbnail": "/thumbnails/0.png",
+      "tags": ["warehouse", "amr", "mobile", "tugbot", "navigation"]
+    },
+    {
+      "id": "panda_joint_control",
+      "title": "Panda Joint Control",
+      "description": "7-DOF Franka Emika Panda manipulator with interactive joint position control.",
+      "category": "manipulators",
+      "featured": true,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "Panda joint control world",
+      "thumbnail": "OpenRobotics.Panda joint control world.png",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["manipulator", "arm", "panda", "franka", "joint"]
+    },
+    {
+      "id": "quadcopter_teleop",
+      "title": "Quadcopter Teleop",
+      "description": "X3 quadcopter UAV in an open outdoor environment ready for teleoperation.",
+      "category": "drones",
+      "featured": true,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "Quadcopter teleop",
+      "thumbnail": "OpenRobotics.Quadcopter teleop.png",
+      "fuelThumbnail": "/thumbnails/0.png",
+      "tags": ["drone", "quadcopter", "uav", "teleop", "aerial"]
+    },
+    {
+      "id": "prius_sonoma",
+      "title": "Prius on Sonoma Raceway",
+      "description": "Full-scale Toyota Prius with sensors on the Sonoma Raceway road course.",
+      "category": "driving",
+      "featured": true,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "Prius on Sonoma Raceway",
+      "thumbnail": "OpenRobotics.Prius on Sonoma Raceway.png",
+      "fuelThumbnail": "/thumbnails/0.png",
+      "tags": ["car", "driving", "prius", "ackermann", "raceway"]
+    },
+    {
+      "id": "nao_joint_control",
+      "title": "NAO Joint Control",
+      "description": "Bipedal NAO humanoid robot configured with joint position controllers.",
+      "category": "humanoid",
+      "featured": true,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "NAO joint control",
+      "thumbnail": "OpenRobotics.NAO joint control.png",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["humanoid", "nao", "biped", "legged", "joint"]
+    },
+    {
+      "id": "tugbot_depot",
+      "title": "Tugbot Depot",
+      "description": "Industrial depot warehouse scene featuring a Tugbot AMR and logistics racks.",
+      "category": "mobile",
+      "featured": false,
+      "source": "fuel",
+      "owner": "MovAi",
+      "fuelName": "tugbot_depot",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["warehouse", "depot", "tugbot", "mobile", "amr"]
+    },
+    {
+      "id": "husky_depot",
+      "title": "Husky in Depot",
+      "description": "Clearpath Husky skid-steer UGV inside an industrial depot environment.",
+      "category": "mobile",
+      "featured": false,
+      "source": "fuel",
+      "owner": "MovAi",
+      "fuelName": "husky_depot",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["husky", "ugv", "depot", "mobile", "skid-steer"]
+    },
+    {
+      "id": "industrial_warehouse",
+      "title": "Industrial Warehouse",
+      "description": "Compact industrial warehouse layout for SLAM and mobile navigation testing.",
+      "category": "mobile",
+      "featured": false,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "industrial-warehouse",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["warehouse", "indoor", "mobile", "slam"]
+    },
+    {
+      "id": "living_room",
+      "title": "Home Living Room",
+      "description": "Furnished domestic living room for home service robots and obstacle avoidance.",
+      "category": "mobile",
+      "featured": false,
+      "source": "fuel",
+      "owner": "makerspet",
+      "fuelName": "living_room",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["indoor", "home", "living_room", "service", "mobile"]
+    },
+    {
+      "id": "diff_drive",
+      "title": "Diff Drive Sandbox",
+      "description": "Offline differential-drive robot ready for Twist velocity commands.",
+      "category": "mobile",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "diff_drive.sdf",
+      "tags": ["diff_drive", "mobile", "offline", "teleop"]
+    },
+    {
+      "id": "mecanum_drive",
+      "title": "Mecanum Drive",
+      "description": "Omnidirectional mecanum-wheel mobile platform for holonomic motion testing.",
+      "category": "mobile",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "mecanum_drive.sdf",
+      "tags": ["mecanum", "omnidirectional", "mobile", "offline"]
+    },
+    {
+      "id": "kinematic_workshop",
+      "title": "Kinematic Workshop",
+      "description": "Offline workshop scene with articulated mechanisms and joint test rigs.",
+      "category": "manipulators",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "kinematic_workshop.sdf",
+      "tags": ["manipulator", "kinematics", "joints", "offline"]
+    },
+    {
+      "id": "conveyor",
+      "title": "Conveyor Belt Cell",
+      "description": "Moving conveyor belt with graspable boxes for factory automation testing.",
+      "category": "manipulators",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "conveyor.sdf",
+      "tags": ["conveyor", "factory", "manipulation", "offline"]
+    },
+    {
+      "id": "forest_hexarotor",
+      "title": "Forest with X4 Hexarotor",
+      "description": "Outdoor forest terrain with trees, obstacles, and an X4 hexarotor drone.",
+      "category": "drones",
+      "featured": false,
+      "source": "fuel",
+      "owner": "nealtang",
+      "fuelName": "Forest with X4 hexarotor",
+      "fuelThumbnail": "/thumbnails/uav_forest.png",
+      "tags": ["drone", "hexarotor", "forest", "uav", "aerial"]
+    },
+    {
+      "id": "multicopter_velocity_control",
+      "title": "Multicopter Velocity Control",
+      "description": "Offline X3 multicopter equipped with velocity controller plugin.",
+      "category": "drones",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "multicopter_velocity_control.sdf",
+      "tags": ["drone", "multicopter", "uav", "offline"]
+    },
+    {
+      "id": "lighter_than_air_blimp",
+      "title": "Lighter-Than-Air Blimp",
+      "description": "Buoyant aerial airship demonstrating lift, drag, and gentle flight.",
+      "category": "drones",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "lighter_than_air_blimp.sdf",
+      "tags": ["aerial", "blimp", "buoyancy", "offline"]
+    },
+    {
+      "id": "rubicon_world",
+      "title": "Rubicon Off-Road Trail",
+      "description": "Rugged rocky outdoor trail for off-road UGV traversal and perception.",
+      "category": "driving",
+      "featured": false,
+      "source": "fuel",
+      "owner": "Cole",
+      "fuelName": "Rubicon World",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["offroad", "field", "terrain", "driving"]
+    },
+    {
+      "id": "rubicon_snowy",
+      "title": "Rubicon Snowy Terrain",
+      "description": "Snow-covered off-road trail for low-contrast perception and field robotics.",
+      "category": "driving",
+      "featured": false,
+      "source": "fuel",
+      "owner": "Cole",
+      "fuelName": "Rubicon World Snowy",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["snow", "offroad", "field", "driving"]
+    },
+    {
+      "id": "ackermann_steering",
+      "title": "Ackermann Steering",
+      "description": "Offline four-wheel Ackermann vehicle for steering kinematics testing.",
+      "category": "driving",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "ackermann_steering.sdf",
+      "tags": ["ackermann", "driving", "car", "offline"]
+    },
+    {
+      "id": "multi_lrauv_race",
+      "title": "Multi-LRAUV Swimming Race",
+      "description": "Multiple MBARI LRAUV underwater vehicles with buoyancy and thruster plugins.",
+      "category": "marine",
+      "featured": false,
+      "source": "fuel",
+      "owner": "mabelzhang",
+      "fuelName": "Multi-LRAUV Swimming Race",
+      "fuelThumbnail": "/thumbnails/multi_lrauv_race1.png",
+      "tags": ["underwater", "auv", "lrauv", "marine", "multi-robot"]
+    },
+    {
+      "id": "auv_controls",
+      "title": "AUV Controls Sandbox",
+      "description": "Offline underwater vehicle with thruster, rudder, and buoyancy controls.",
+      "category": "marine",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "auv_controls.sdf",
+      "tags": ["auv", "underwater", "marine", "offline"]
+    },
+    {
+      "id": "lrauv_control_demo",
+      "title": "LRAUV Control Demo",
+      "description": "Offline long-range autonomous underwater vehicle hydrodynamics demo.",
+      "category": "marine",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "lrauv_control_demo.sdf",
+      "tags": ["lrauv", "auv", "underwater", "marine", "offline"]
+    },
+    {
+      "id": "actor_crowd",
+      "title": "Pedestrian Actor Crowd",
+      "description": "Animated human actors for social navigation and human-robot interaction.",
+      "category": "humanoid",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "actor_crowd.sdf",
+      "tags": ["human", "crowd", "actors", "social", "offline"]
+    },
+    {
+      "id": "moon_base",
+      "title": "Lunar South Pole Base",
+      "description": "Lunar crater terrain with habitat modules for planetary rover autonomy.",
+      "category": "space",
+      "featured": false,
+      "source": "fuel",
+      "owner": "anastasa",
+      "fuelName": "A base on the Moon",
+      "fuelThumbnail": "/thumbnails/Thumbnail1.png",
+      "tags": ["moon", "lunar", "space", "rover"]
+    },
+    {
+      "id": "cave_world",
+      "title": "SubT Cave World",
+      "description": "Subterranean cavern network for GPS-denied SLAM and exploration.",
+      "category": "space",
+      "featured": false,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "Cave World",
+      "fuelThumbnail": "/thumbnails/1.png",
+      "tags": ["subt", "cave", "underground", "slam"]
+    },
+    {
+      "id": "urban_subt",
+      "title": "SubT Urban Simple 01",
+      "description": "Underground urban infrastructure built for search-and-rescue robotics.",
+      "category": "space",
+      "featured": false,
+      "source": "fuel",
+      "owner": "OpenRobotics",
+      "fuelName": "Urban Simple 01",
+      "fuelThumbnail": "/thumbnails/0.png",
+      "tags": ["subt", "urban", "underground", "rescue"]
+    },
+    {
+      "id": "spacecraft",
+      "title": "Zero-G Spacecraft Thrusters",
+      "description": "Offline zero-gravity orbital thruster simulation for spacecraft control.",
+      "category": "space",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "spacecraft.sdf",
+      "tags": ["space", "zero-g", "orbital", "offline"]
+    },
+    {
+      "id": "dem_moon",
+      "title": "Lunar DEM Terrain",
+      "description": "Offline lunar digital elevation model heightmap for rover traversal.",
+      "category": "space",
+      "featured": false,
+      "source": "local",
+      "owner": "Built-in",
+      "fileName": "dem_moon.sdf",
+      "tags": ["moon", "dem", "heightmap", "space", "offline"]
+    }
+  ]
+}

@@ -53,6 +53,22 @@ Rectangle {
     }
   }
 
+  function loadCatalogWorld(world) {
+    var worldId = world.id;
+    if (quickStart.selectedWorld === worldId) {
+      openWorld.enabled = false;
+      quickStart.selectedWorld = '';
+    } else {
+      var uri = QuickStartHandler.ResolveWorldUri(world);
+      if (uri === "") {
+        return;
+      }
+      quickStart.selectedWorld = worldId;
+      QuickStartHandler.SetStartingWorld(uri);
+      openWorld.enabled = true;
+    }
+  }
+
   function loadFuelWorld(fileName, owner){
     if (quickStart.selectedWorld === fileName) {
       openWorld.enabled = false;
@@ -141,25 +157,19 @@ Rectangle {
           Layout.fillWidth: true
           Layout.fillHeight: true
 
-          FolderListModel {
-            id: folderModel
-            showDirs: false
-            nameFilters: ["*.png"]
-            folder: getWorlds() + "/thumbnails/"
-          }
-
           Component {
             id: fileDelegate
 
             FuelThumbnail {
               id: filePath
-              text: fileName.split('.')[1]
-              owner: fileName.split('.')[0]
+              text: modelData.title
+              owner: modelData.owner
+              worldData: modelData
               width: 220
               height: 150
               smooth: true
-              source: fileUrl
-              border.color: getColor(fileName.split('.')[1])
+              source: QuickStartHandler.ResolveThumbnailUrl(modelData)
+              border.color: getColor(modelData.id)
             }
           }
           GridView {
@@ -177,7 +187,7 @@ Rectangle {
             cellWidth: 240
             cellHeight: 205
 
-            model: folderModel
+            model: QuickStartHandler.FeaturedWorlds()
             delegate: fileDelegate
           }
         }

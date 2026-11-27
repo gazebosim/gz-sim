@@ -73,11 +73,56 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   /// \return True to show again.
   public: Q_INVOKABLE bool ShowAgain() const;
 
+  /// \brief Load world catalog from a JSON file or Qt resource path.
+  /// \param[in] _catalogPath Path to catalog JSON (e.g. Qt resource path).
+  /// \return True if the catalog was loaded and parsed successfully.
+  public: bool LoadCatalog(const QString &_catalogPath);
+
+  /// \brief Get list of robotics categories defined in the catalog.
+  /// Each entry is a QVariantMap with keys: id, name, icon, count.
+  /// \return Category metadata list.
+  public: Q_INVOKABLE QVariantList Categories() const;
+
+  /// \brief Get curated worlds filtered by category, source, and search query.
+  /// \param[in] _category Category id ("", "all", "featured", or category id).
+  /// \param[in] _source Source filter ("all", "local", or "fuel").
+  /// \param[in] _query Case-insensitive search query matched against title,
+  /// description, owner, tags, and file/fuel name.
+  /// \return Matching world entries (each a QVariantMap).
+  public: Q_INVOKABLE QVariantList Worlds(
+      const QString &_category = "",
+      const QString &_source = "all",
+      const QString &_query = "") const;
+
+  /// \brief Get curated worlds marked as featured.
+  /// \return Featured world entries.
+  public: Q_INVOKABLE QVariantList FeaturedWorlds() const;
+
+  /// \brief Resolve a catalog world entry into a launchable SDF filename or
+  /// Gazebo Fuel URL.
+  /// \param[in] _world World metadata map from the catalog.
+  /// \return Local SDF filename or Fuel URL, or empty string if invalid.
+  public: Q_INVOKABLE QString ResolveWorldUri(
+      const QVariantMap &_world) const;
+
+  /// \brief Resolve a catalog world entry into a local thumbnail file URL
+  /// if available on disk.
+  /// \param[in] _world World metadata map from the catalog.
+  /// \return Local file:// URL if thumbnail exists on disk, else empty string.
+  public: Q_INVOKABLE QString ResolveThumbnailUrl(
+      const QVariantMap &_world) const;
+
   /// \brief Show the quick start menu again.
   private: bool showAgain{true};
 
   /// \brief Get starting world url.
   private: std::string startingWorld{""};
+
+  /// \brief Loaded catalog categories.
+  private: QVariantList categories;
+
+  /// \brief Loaded catalog worlds.
+  private: QVariantList worlds;
 
   // Add a member for the transport node
   private: gz::transport::Node node;

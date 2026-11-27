@@ -24,6 +24,7 @@ Rectangle{
   property alias source: root.source
   property alias text: label.text
   property string owner: ''
+  property var worldData: null
   border.color: "#e0e0e0"
   border.width: 2
 
@@ -54,7 +55,13 @@ Rectangle{
 
         MouseArea {
           anchors.fill: parent
-          onClicked: quickStart.loadFuelWorld(main.text, main.owner);
+          onClicked: {
+            if (main.worldData) {
+              quickStart.loadCatalogWorld(main.worldData);
+            } else {
+              quickStart.loadFuelWorld(main.text, main.owner);
+            }
+          }
         }
       }
     }
