@@ -41,7 +41,7 @@ namespace systems
   /// ## System Parameters
   ///
   /// - `<topic>`: Topic to receive commands in. Defaults to
-  ///   `/model/<model_name>/cmd_vel`. without a namespace,
+  ///   `/model/<model_name>/cmd_vel` without a namespace,
   ///   or `{namespace}/cmd_vel` with a namespace.
   ///   Relative topic names are prefixed with the model namespace when
   ///   specified, while absolute topic names remain unchanged.
