@@ -97,6 +97,9 @@ class gz::sim::systems::VelocityControlPrivate
 
   /// \brief All link velocites
   public: std::unordered_map<std::string, msgs::Twist> linkVels;
+
+  /// \brief Resolved topic names
+  public: VelocityControl::TopicNames resolvedTopicNames;
 };
 
 //////////////////////////////////////////////////
@@ -104,6 +107,9 @@ VelocityControl::VelocityControl()
   : dataPtr(std::make_unique<VelocityControlPrivate>())
 {
 }
+
+//////////////////////////////////////////////////
+VelocityControl::~VelocityControl() = default;
 
 //////////////////////////////////////////////////
 void VelocityControl::Configure(const Entity &_entity,
@@ -139,42 +145,103 @@ void VelocityControl::Configure(const Entity &_entity,
            << this->dataPtr->angularVelocity << "]" << std::endl;
   }
 
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  const std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
+
   // Subscribe to model commands
-  std::vector<std::string> modelTopics;
-  if (_sdf->HasElement("topic"))
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "topic";
+  cmdVelTopicOptions.topicNamespace = ns;
+  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+  resolvedTopicNames.modelCmdVelTopic =
+    resolvedTopicName(_sdf, cmdVelTopicOptions);
+  if (resolvedTopicNames.modelCmdVelTopic.empty())
   {
-    modelTopics.push_back(_sdf->Get<std::string>("topic"));
+    gzerr << "VelocityControl failed to find a valid topic name for "
+          << "twist messages. Check the <topic> and the namespace attribute "
+          << "in the SDF." << std::endl;
+    return;
   }
-  modelTopics.push_back(
-    "/model/" + this->dataPtr->model.Name(_ecm) + "/cmd_vel");
-  auto modelTopic = validTopic(modelTopics);
-  this->dataPtr->node.Subscribe(
-    modelTopic, &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
+
+  this->dataPtr->node.Subscribe(resolvedTopicNames.modelCmdVelTopic,
+    &VelocityControlPrivate::OnCmdVel, this->dataPtr.get());
   gzmsg << "VelocityControl subscribing to twist messages on ["
-         << modelTopic << "]"
+         << resolvedTopicNames.modelCmdVelTopic << "]"
          << std::endl;
 
-  if (!_sdf->HasElement("link_name"))
+  auto resolveLinkTopicName = [&](const std::string &_linkName,
+                                  const sdf::ElementConstPtr &_Elem)
+  {
+    TopicNameOptions linkCmdVelTopicOptions;
+    linkCmdVelTopicOptions.sdfElementName = "topic";
+    linkCmdVelTopicOptions.topicNamespace = ns;
+    linkCmdVelTopicOptions.defaultTopicPrefix =
+        defaultPrefix + "/link/" + _linkName;
+    linkCmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+
+    const auto linkCmdVelTopic =
+      resolvedTopicName(_Elem, linkCmdVelTopicOptions);
+    if (linkCmdVelTopic.empty())
+    {
+      gzerr << "VelocityControl failed to find a valid topic name for "
+            << "twist messages for link [" << _linkName << "]. Check the "
+            << "<topic> and the namespace attribute in the SDF." << std::endl;
+      return;
+    }
+
+    auto &linkCmdVelTopics =
+      this->dataPtr->resolvedTopicNames.linkCmdVelTopics;
+    if (linkCmdVelTopics.count(_linkName))
+    {
+      gzwarn << "VelocityControl found duplicate link name [" << _linkName
+             << "]. Skipping the duplicate configuration." << std::endl;
+      return;
+    }
+    this->dataPtr->linkNames.push_back(_linkName);
+    linkCmdVelTopics[_linkName] = linkCmdVelTopic;
+
+    this->dataPtr->node.Subscribe(linkCmdVelTopic,
+      &VelocityControlPrivate::OnLinkCmdVel, this->dataPtr.get());
+    gzmsg << "VelocityControl subscribing to twist messages on ["
+           << linkCmdVelTopic << "] for link [" << _linkName << "]"
+           << std::endl;
+  };
+
+  if (!_sdf->HasElement("link_name") && !_sdf->HasElement("link"))
     return;
 
-  auto sdfElem = _sdf->FindElement("link_name");
-  while (sdfElem)
+  if (_sdf->HasElement("link_name"))
   {
-    this->dataPtr->linkNames.push_back(sdfElem->Get<std::string>());
-    sdfElem = sdfElem->GetNextElement("link_name");
+    gzwarn << "VelocityControl <link_name> is deprecated. "
+           << "Please use <link> instead." << std::endl;
   }
 
   // Subscribe to link commands
-  for (const auto &linkName : this->dataPtr->linkNames)
+  auto sdfElem = _sdf->FindElement("link_name");
+  while (sdfElem)
   {
-    std::string linkTopic{"/model/" + this->dataPtr->model.Name(_ecm) +
-                             "/link/" + linkName + "/cmd_vel"};
-    linkTopic = transport::TopicUtils::AsValidTopic(linkTopic);
-    this->dataPtr->node.Subscribe(
-        linkTopic, &VelocityControlPrivate::OnLinkCmdVel, this->dataPtr.get());
-    gzmsg << "VelocityControl subscribing to twist messages on ["
-           << linkTopic << "]"
-           << std::endl;
+    const auto linkName = sdfElem->Get<std::string>();
+    resolveLinkTopicName(linkName, sdfElem);
+    sdfElem = sdfElem->GetNextElement("link_name");
+  }
+
+  auto linkElem = _sdf->FindElement("link");
+  while (linkElem)
+  {
+    if (linkElem->HasElement("name"))
+    {
+      const auto linkName = linkElem->Get<std::string>("name");
+      resolveLinkTopicName(linkName, linkElem);
+    }
+    else
+    {
+      gzerr << "VelocityControl <link> element is missing a <name> child "
+             << "element. Skipping this link configuration." << std::endl;
+    }
+    linkElem = linkElem->GetNextElement("link");
   }
 }
 
@@ -278,6 +345,12 @@ void VelocityControl::PostUpdate(const UpdateInfo &_info,
 }
 
 //////////////////////////////////////////////////
+VelocityControl::TopicNames VelocityControl::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
+}
+
+//////////////////////////////////////////////////
 void VelocityControlPrivate::UpdateVelocity(
     const UpdateInfo &/*_info*/,
     const EntityComponentManager &/*_ecm*/)
@@ -321,7 +394,9 @@ void VelocityControlPrivate::OnLinkCmdVel(const msgs::Twist &_msg,
   std::lock_guard<std::mutex> lock(this->mutex);
   for (const auto &linkName : this->linkNames)
   {
-    if (_info.Topic().find("/" + linkName + "/cmd_vel") != std::string::npos)
+    auto it = this->resolvedTopicNames.linkCmdVelTopics.find(linkName);
+    if (it != this->resolvedTopicNames.linkCmdVelTopics.end() &&
+        _info.Topic() == it->second)
     {
       this->linkVels.insert({linkName, _msg});
       break;
