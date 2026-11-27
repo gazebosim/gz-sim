@@ -19,7 +19,7 @@
 
 #include <cmath>
 
-#include <Eigen/Eigen>
+#include <Eigen/Core>
 
 #include "gz/sim/config.hh"
 

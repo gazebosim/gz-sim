@@ -22,7 +22,7 @@
 #include <optional>
 #include <vector>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include "gz/sim/config.hh"
 #include "gz/sim/EntityComponentManager.hh"

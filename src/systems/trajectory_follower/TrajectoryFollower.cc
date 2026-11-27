@@ -30,7 +30,7 @@
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/TopicUtils.hh>
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/AngularVelocityCmd.hh"
