@@ -48,8 +48,11 @@ Rectangle {
   focus: true
   property var selectedWorld: ""
 
+  // Esc dismisses the dialog without a world; the server then loads its
+  // default world. Disabled while typing so Esc never closes from the search.
   Shortcut {
     sequence: StandardKey.Cancel
+    enabled: !searchField.activeFocus
     onActivated: {
       QuickStartHandler.SetStartingWorld("");
       Qt.callLater(function() {
