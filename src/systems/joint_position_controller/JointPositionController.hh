@@ -19,6 +19,8 @@
 #define GZ_SIM_SYSTEMS_JOINTPOSITIONCONTROLLER_HH_
 
 #include <memory>
+#include <string>
+
 #include <gz/sim/System.hh>
 
 namespace gz
@@ -37,7 +39,8 @@ namespace systems
   ///
   /// A new Gazebo Transport topic is created to send target joint positions.
   /// The default topic name is
-  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  /// `/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos` without
+  /// a namespace, or `<namespace>/cmd_pos` with a namespace.
   ///
   /// This topic accepts gz::msgs::Double values representing the target
   /// position. If you wish to change the topic on which this plugin listens
@@ -54,7 +57,9 @@ namespace systems
   ///
   /// - `<use_actuator_msg>` True to enable the use of actuator message
   /// for position command. Relies on `<actuator_number>` for the
-  /// index of the position actuator and defaults to topic "/actuators".
+  /// index of the position actuator. When neither `<topic>` nor `<sub_topic>`
+  /// is specified, the default topic is `/actuators` without a namespace, or
+  /// `<namespace>/actuators` with a namespace.
   ///
   /// - `<actuator_number>` used with `<use_actuator_msg>` to set
   /// the index of the position actuator.
@@ -87,12 +92,16 @@ namespace systems
   /// position. The maximum speed on the joint can be set using the `<cmd_max>`
   /// tag.
   ///
-  /// - `<topic>` If you wish to listen on a non-default topic you may specify
-  /// it here, otherwise the controller defaults to listening on
-  /// "/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos".
+  /// - `<topic>` Topic to receive commands in. Defaults to
+  /// `/model/<model_name>/joint/<joint_name>/<joint_index>/cmd_pos` without
+  /// a namespace, or `<namespace>/cmd_pos` with a namespace.
+  /// Relative topic names are prefixed with the model namespace, while
+  /// absolute topic names remain unchanged.
   ///
-  /// - `<sub_topic>` If you wish to listen on a sub_topic you may specify it
-  /// here "/model/<model_name>/<sub_topic>".
+  /// - `<sub_topic>` Deprecated. Use `<topic>` instead.
+  /// When specified, the topic is resolved as
+  /// `/model/<model_name>/<sub_topic>` without a namespace, or
+  /// `<namespace>/<sub_topic>` with a namespace.
   ///
   /// - `<initial_position>` Initial position of a joint. Optional parameter.
   /// The default value is 0.
@@ -102,11 +111,18 @@ namespace systems
         public ISystemConfigureParameters,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+    };
+
     /// \brief Constructor
     public: JointPositionController();
 
     /// \brief Destructor
-    public: ~JointPositionController() override = default;
+    public: ~JointPositionController() override;
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -123,6 +139,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<JointPositionControllerPrivate> dataPtr;

@@ -45,13 +45,13 @@ class gz::sim::systems::BuoyancyEnginePrivateData
     const gz::msgs::Double &_volumeSetPoint);
 
   /// \brief Current volume of bladder in m^3
-  public: double bladderVolume = 3e-5;
+  public: double bladderVolume = 0.0;
 
   /// \brief Maximum inflation rate in m^3*s^-1
   public: double maxInflationRate = 3e-6;
 
   /// \brief Set-point for volume, in m^3
-  public: double volumeSetPoint = 0.000030;
+  public: double volumeSetPoint = 0.0;
 
   /// \brief Minimum volume of bladder in m^3
   public: double minVolume = 0.000030;
@@ -160,12 +160,11 @@ void BuoyancyEnginePlugin::Configure(
     this->dataPtr->fluidDensity = _sdf->Get<double>("fluid_density");
   }
 
-  this->dataPtr->bladderVolume = this->dataPtr->minVolume;
-  if (_sdf->HasElement("default_volume"))
-  {
-    this->dataPtr->bladderVolume = _sdf->Get<double>("default_volume");
-    this->dataPtr->volumeSetPoint = this->dataPtr->bladderVolume;
-  }
+  const double startVolume = _sdf->Get<double>("default_volume", 3e-4).first;
+  this->dataPtr->bladderVolume = std::min(
+      std::max(this->dataPtr->minVolume, startVolume),
+      this->dataPtr->maxVolume);
+  this->dataPtr->volumeSetPoint = this->dataPtr->bladderVolume;
 
   if (_sdf->HasElement("neutral_volume"))
   {

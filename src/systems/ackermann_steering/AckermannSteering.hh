@@ -19,6 +19,7 @@
 #define GZ_SIM_SYSTEMS_ACKERMANNSTEERING_HH_
 
 #include <memory>
+#include <string>
 
 #include <gz/sim/System.hh>
 
@@ -41,8 +42,10 @@ namespace systems
   /// - `<steering_only>`: Boolean used to only control the steering angle
   /// only. Calculates the angles of wheels from steering_limit,  wheel_base,
   /// and wheel_separation. Uses gz::msg::Double on default topic name
-  /// `/model/{name_of_model}/steer_angle`. Automatically set True when
-  /// `<use_actuator_msg>` is True, uses defaults topic name "/actuators".
+  /// `/model/{name_of_model}/steer_angle` or `{namespace}/steer_angle`
+  /// when a model namespace is set. Automatically set to true when
+  /// `<use_actuator_msg>` is true, which uses `/actuators` by default
+  /// or `{namespace}/actuators` when a model namespace is set.
   ///
   /// - `<use_actuator_msg>` True to enable the use of actuator message
   /// for steering angle command. Relies on `<actuator_number>` for the
@@ -101,19 +104,31 @@ namespace systems
   /// - `<topic>`: Custom topic that this system will subscribe to in order to
   /// receive command messages. This element is optional, and the
   /// default value is `/model/{name_of_model}/cmd_vel` or when steering_only
-  /// is true `/model/{name_of_model}/steer_angle`.
+  /// is true `/model/{name_of_model}/steer_angle`. If the model has a
+  /// namespace, the default topic becomes `{namespace}/cmd_vel` or
+  /// `{namespace}/steer_angle`. The custom topic is then prefixed with the
+  /// namespace if it does not start with `/`, or remains unchanged if it
+  /// starts with `/`.
   ///
-  /// - `<sub_topic>`: Custom sub_topic that this system will subscribe to in
-  /// order to receive command messages. This element is optional, and
-  /// creates a topic `/model/{name_of_model}/{sub_topic}`
+  /// - `<sub_topic>`: Deprecated. Use `<topic>` together with the model
+  /// namespace instead. Custom sub_topic that this system will
+  /// subscribe to in order to receive command messages. This element is
+  /// optional, and creates a topic `/model/{name_of_model}/{sub_topic}`.
+  /// The sub_topic is instead prefixed with the namespace if one is set.
   ///
   /// - `<odom_topic>`: Custom topic on which this system will publish odometry
-  /// messages. This element if optional, and the default value is
-  /// `/model/{name_of_model}/odometry`.
+  /// messages. This element is optional, and the default value is
+  /// `/model/{name_of_model}/odometry`. If the model has a namespace, the
+  /// default topic becomes `{namespace}/odometry`. The custom topic is
+  /// then prefixed with the namespace if it does not start with `/`, or
+  /// remains unchanged if it starts with `/`.
   ///
   /// - `<tf_topic>`: Custom topic on which this system will publish the
   /// transform from `frame_id` to `child_frame_id`. This element is optional,
-  /// and the default value is `/model/{name_of_model}/tf`.
+  /// and the default value is `/model/{name_of_model}/tf`. If the model has
+  /// a namespace, the default topic becomes `{namespace}/tf`. The custom topic
+  /// is then prefixed with the namespace if it does not start with `/`, or
+  /// remains unchanged if it starts with `/`.
   ///
   /// - `<frame_id>`: Custom `frame_id` field that this system will use as the
   /// origin of the odometry transform in both the `<tf_topic>`
@@ -143,11 +158,24 @@ namespace systems
         public ISystemPreUpdate,
         public ISystemPostUpdate
   {
+    /// \brief Resolved topic names
+    public: struct TopicNames
+    {
+      /// \brief Command topic name
+      public: std::string cmdTopic;
+
+      /// \brief Odometry topic name
+      public: std::string odomTopic;
+
+      /// \brief TF topic name
+      public: std::string tfTopic;
+    };
+
     /// \brief Constructor
     public: AckermannSteering();
 
     /// \brief Destructor
-    public: ~AckermannSteering() override = default;
+    public: ~AckermannSteering();
 
     // Documentation inherited
     public: void Configure(const Entity &_entity,
@@ -164,6 +192,9 @@ namespace systems
     public: void PostUpdate(
                 const UpdateInfo &_info,
                 const EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Private data pointer
     private: std::unique_ptr<AckermannSteeringPrivate> dataPtr;

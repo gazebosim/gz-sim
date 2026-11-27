@@ -30,6 +30,8 @@
 #include <gz/transport/Node.hh>
 #include <gz/transport/TopicUtils.hh>
 
+#include "gz/sim/Util.hh"
+
 #include <cmath>
 #include <mutex>
 #include <optional>
@@ -63,6 +65,9 @@ class gz::sim::systems::DriveToPoseControllerPrivate
 
   /// \brief Model interface
   public: Model model{kNullEntity};
+
+  /// \brief Resolved topic names
+  public: DriveToPoseController::TopicNames resolvedTopicNames;
 
   /// \brief Velocity message publisher.
   public: transport::Node::Publisher velocityPublisher;
@@ -98,6 +103,9 @@ DriveToPoseController::DriveToPoseController()
 {
   // Do nothing
 }
+
+//////////////////////////////////////////////////
+DriveToPoseController::~DriveToPoseController() = default;
 
 //////////////////////////////////////////////////
 void DriveToPoseController::Configure(
@@ -138,44 +146,111 @@ void DriveToPoseController::Configure(
     this->dataPtr->angularDeviation = _sdf->Get<double>("angular_deviation");
   }
 
-  // Topic namespace for publish and subscribe
-  std::string topicNamespace = "/model/" + this->dataPtr->model.Name(_ecm);
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+  const std::string defaultPrefix = "/model/" + this->dataPtr->model.Name(_ecm);
 
   // Subscribe to odometry pose publisher
-  this->dataPtr->node.Subscribe(
-    topicNamespace + "/pose", &DriveToPoseControllerPrivate::OnCurrentPose,
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions odomTopicOptions;
+  odomTopicOptions.sdfElementName = "odom_topic";
+  odomTopicOptions.topicNamespace = ns;
+  odomTopicOptions.defaultTopicPrefix = defaultPrefix;
+  odomTopicOptions.defaultTopicSuffix = "pose";
+  resolvedTopicNames.odomTopic = resolvedTopicName(_sdf, odomTopicOptions);
+  if (resolvedTopicNames.odomTopic.empty())
+  {
+    gzerr << "DriveToPoseController failed to find a valid topic name for "
+          << "odometry messages. Check the <odom_topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
+    return;
+  }
+  gzmsg << "DriveToPoseController subscribing to odometry pose topic on ["
+        << resolvedTopicNames.odomTopic << "]" << std::endl;
+  this->dataPtr->node.Subscribe(resolvedTopicNames.odomTopic,
+    &DriveToPoseControllerPrivate::OnCurrentPose,
     this->dataPtr.get());
 
   std::vector<transport::MessagePublisher> publishers;
   std::vector<transport::MessagePublisher> subscribers;
   this->dataPtr->node.TopicInfo(
-    topicNamespace + "/pose", publishers, subscribers);
+    resolvedTopicNames.odomTopic, publishers, subscribers);
   if (publishers.size() < 1)
   {
-    gzwarn << "Unable to find publisher on /pose topic!" << std::endl;
+    gzwarn << "Unable to find publisher on [" << resolvedTopicNames.odomTopic
+           << "] topic!" << std::endl;
     gzwarn << "Make sure OdometryPublisher plugin "
            << "is loaded through the SDF." << std::endl;
   }
 
   // Subscribe to command pose topic
-  this->dataPtr->node.Subscribe(
-    topicNamespace + "/cmd_pose", &DriveToPoseControllerPrivate::OnCmdPose,
+  TopicNameOptions cmdPoseTopicOptions;
+  cmdPoseTopicOptions.sdfElementName = "cmd_pose_topic";
+  cmdPoseTopicOptions.topicNamespace = ns;
+  cmdPoseTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdPoseTopicOptions.defaultTopicSuffix = "cmd_pose";
+  resolvedTopicNames.cmdPoseTopic =
+    resolvedTopicName(_sdf, cmdPoseTopicOptions);
+  if (resolvedTopicNames.cmdPoseTopic.empty())
+  {
+    gzerr << "DriveToPoseController failed to find a valid topic name for "
+          << "target pose messages. Check the <cmd_pose_topic> and the "
+          << "namespace attribute in the SDF." << std::endl;
+    return;
+  }
+  gzmsg << "DriveToPoseController subscribing to target pose messages on ["
+        << resolvedTopicNames.cmdPoseTopic << "]" << std::endl;
+  this->dataPtr->node.Subscribe(resolvedTopicNames.cmdPoseTopic,
+    &DriveToPoseControllerPrivate::OnCmdPose,
     this->dataPtr.get());
 
-
   // Create velocity publisher
+  TopicNameOptions cmdVelTopicOptions;
+  cmdVelTopicOptions.sdfElementName = "cmd_vel_topic";
+  cmdVelTopicOptions.topicNamespace = ns;
+  cmdVelTopicOptions.defaultTopicPrefix = defaultPrefix;
+  cmdVelTopicOptions.defaultTopicSuffix = "cmd_vel";
+  resolvedTopicNames.cmdVelTopic = resolvedTopicName(_sdf, cmdVelTopicOptions);
+  if (resolvedTopicNames.cmdVelTopic.empty())
+  {
+    gzerr << "DriveToPoseController failed to find a valid topic name for "
+          << "twist messages. Check the <cmd_vel_topic> and the namespace "
+          << "attribute in the SDF." << std::endl;
+    return;
+  }
+  gzmsg << "DriveToPoseController publishing twist messages on ["
+        << resolvedTopicNames.cmdVelTopic << "]" << std::endl;
+
   this->dataPtr->velocityPublisher =
-    this->dataPtr->node.Advertise<msgs::Twist>(topicNamespace + "/cmd_vel");
+    this->dataPtr->node.Advertise<msgs::Twist>(resolvedTopicNames.cmdVelTopic);
   if (!this->dataPtr->velocityPublisher.HasConnections())
   {
-    gzwarn << "Unable to find a subscriber on /cmd_vel topic!" << std::endl;
+    gzwarn << "Unable to find a subscriber on ["
+           << resolvedTopicNames.cmdVelTopic << "] topic!" << std::endl;
     gzwarn << "Make sure DiffDrive plugin "
            << "is loaded through the SDF." << std::endl;
   }
 
   // Create pose reached publisher
+  TopicNameOptions reachedPoseTopicOptions;
+  reachedPoseTopicOptions.sdfElementName = "reached_pose_topic";
+  reachedPoseTopicOptions.topicNamespace = ns;
+  reachedPoseTopicOptions.defaultTopicPrefix = defaultPrefix;
+  reachedPoseTopicOptions.defaultTopicSuffix = "reached_pose";
+  resolvedTopicNames.reachedPoseTopic =
+    resolvedTopicName(_sdf, reachedPoseTopicOptions);
+  if (resolvedTopicNames.reachedPoseTopic.empty())
+  {
+    gzerr << "DriveToPoseController failed to find a valid topic name for "
+          << "reached pose messages. Check the <reached_pose_topic> and the "
+          << "namespace attribute in the SDF." << std::endl;
+    return;
+  }
+  gzmsg << "DriveToPoseController publishing reached pose messages on ["
+        << resolvedTopicNames.reachedPoseTopic << "]" << std::endl;
   this->dataPtr->poseReachedPublisher =
-    this->dataPtr->node.Advertise<msgs::Pose>(topicNamespace + "/reached_pose");
+    this->dataPtr->node.Advertise<msgs::Pose>(
+      resolvedTopicNames.reachedPoseTopic);
 
   gzdbg << "DriveToPoseController initialized with "
         << "the following parameters:" << std::endl;
@@ -200,6 +275,13 @@ void DriveToPoseController::PostUpdate(
 
   // Calculate velocity and publish
   this->dataPtr->CalculateVelocity();
+}
+
+//////////////////////////////////////////////////
+DriveToPoseController::TopicNames
+  DriveToPoseController::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////

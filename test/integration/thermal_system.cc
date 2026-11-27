@@ -17,6 +17,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include <sdf/Camera.hh>
 #include <sdf/Sensor.hh>
 
@@ -33,11 +35,11 @@
 #include "gz/sim/components/TemperatureRange.hh"
 #include "gz/sim/components/ThermalCamera.hh"
 #include "gz/sim/components/Visual.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -60,58 +62,48 @@ TEST_F(ThermalTest, TemperatureComponent)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Create a system that checks for thermal component
-  test::Relay testSystem;
+  // Run server
+  server.Run(true, 1, false);
+
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
   std::map<std::string, math::Temperature> entityTemp;
   std::map<std::string, components::TemperatureRangeInfo>
     entityTempRange;
   std::map<std::string, std::string> heatSignatures;
-  testSystem.OnPostUpdate([&](const UpdateInfo &,
-    const EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Temperature, components::Name>(
-          [&](const Entity &_id,
-              const components::Temperature *_temp,
-              const components::Name *_name) -> bool
-          {
-            // store temperature data
-            entityTemp[_name->Data()] = _temp->Data();
+  ecm->Each<components::Temperature, components::Name>(
+      [&](const Entity &_id,
+          const components::Temperature *_temp,
+          const components::Name *_name) -> bool
+      {
+        // store temperature data
+        entityTemp[_name->Data()] = _temp->Data();
 
-            // verify temperature data belongs to a visual
-            EXPECT_NE(nullptr, _ecm.Component<components::Visual>(_id));
+        // verify temperature data belongs to a visual
+        EXPECT_NE(nullptr, ecm->Component<components::Visual>(_id));
 
-            return true;
-          });
+        return true;
+      });
 
-      _ecm.Each<components::TemperatureRange, components::SourceFilePath,
-        components::Name>(
-          [&](const gz::sim::Entity &_id,
-              const components::TemperatureRange *_tempRange,
-              const components::SourceFilePath *_heatSigURI,
-              const components::Name *_name) -> bool
-          {
-            // store temperature range data
-            entityTempRange[_name->Data()] = _tempRange->Data();
+  ecm->Each<components::TemperatureRange, components::SourceFilePath,
+    components::Name>(
+      [&](const gz::sim::Entity &_id,
+          const components::TemperatureRange *_tempRange,
+          const components::SourceFilePath *_heatSigURI,
+          const components::Name *_name) -> bool
+      {
+        // store temperature range data
+        entityTempRange[_name->Data()] = _tempRange->Data();
 
-            // store heat signature URI data
-            heatSignatures[_name->Data()] = _heatSigURI->Data();
+        // store heat signature URI data
+        heatSignatures[_name->Data()] = _heatSigURI->Data();
 
-            // verify temperature range data belongs to a visual
-            EXPECT_NE(nullptr, _ecm.Component<components::Visual>(_id));
+        // verify temperature range data belongs to a visual
+        EXPECT_NE(nullptr, ecm->Component<components::Visual>(_id));
 
-            return true;
-          });
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  // verify nothing in the maps at beginning
-  EXPECT_TRUE(entityTemp.empty());
-  EXPECT_TRUE(entityTempRange.empty());
-  EXPECT_TRUE(heatSignatures.empty());
-
-  // Run server
-  server.Run(true, 1, false);
+        return true;
+      });
 
   const std::string sphereVisual = "sphere_visual";
   const std::string cylinderVisual = "cylinder_visual";
@@ -184,56 +176,42 @@ TEST_F(ThermalTest, ThermalSensorSystem)
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Create a system that checks for thermal component
-  test::Relay testSystem;
-
-  double resolution = 0;
-  double minTemp = std::numeric_limits<double>::max();
-  double maxTemp = 0.0;
-  std::string name;
-  sdf::Sensor sensorSdf;
-  testSystem.OnUpdate([&](const sim::UpdateInfo &,
-    sim::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::ThermalCamera, components::Name>(
-          [&](const gz::sim::Entity &_id,
-              const components::ThermalCamera *_sensor,
-              const components::Name *_name) -> bool
-          {
-            // store temperature data
-            sensorSdf = _sensor->Data();
-            name = _name->Data();
-
-            auto resolutionComp =
-                _ecm.Component<components::TemperatureLinearResolution>(
-                _id);
-            EXPECT_NE(nullptr, resolutionComp);
-            resolution = resolutionComp->Data();
-
-            auto temperatureRangeComp =
-                _ecm.Component<components::TemperatureRange>(_id);
-            EXPECT_NE(nullptr, temperatureRangeComp);
-            auto info = temperatureRangeComp->Data();
-            minTemp = info.min.Kelvin();
-            maxTemp = info.max.Kelvin();
-            return true;
-          });
-    });
-  server.AddSystem(testSystem.systemPtr);
-
   // Run server
   server.Run(true, 1, false);
 
-  // verify camera properties from sdf
-  EXPECT_EQ("thermal_camera_8bit", name);
-  const sdf::Camera *cameraSdf = sensorSdf.CameraSensor();
-  ASSERT_NE(nullptr, cameraSdf);
-  EXPECT_EQ(320u, cameraSdf->ImageWidth());
-  EXPECT_EQ(240u, cameraSdf->ImageHeight());
-  EXPECT_EQ(sdf::PixelFormatType::L_INT8, cameraSdf->PixelFormat());
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
-  // verify camera properties set through plugin
-  EXPECT_DOUBLE_EQ(3.0, resolution);
-  EXPECT_DOUBLE_EQ(253.15, minTemp);
-  EXPECT_DOUBLE_EQ(673.15, maxTemp);
+  // Each only visits entities that have all of these components, so we just
+  // need to check the data and make sure there's exactly one thermal camera
+  std::size_t cameraCount{0};
+  ecm->Each<components::ThermalCamera, components::Name,
+            components::TemperatureLinearResolution,
+            components::TemperatureRange>(
+      [&](const Entity &,
+          const components::ThermalCamera *_sensor,
+          const components::Name *_name,
+          const components::TemperatureLinearResolution *_resolution,
+          const components::TemperatureRange *_range)
+      {
+        ++cameraCount;
+
+        // verify camera properties from sdf
+        EXPECT_EQ("thermal_camera_8bit", _name->Data());
+        const sdf::Camera *cameraSdf = _sensor->Data().CameraSensor();
+        EXPECT_NE(nullptr, cameraSdf);
+        if (cameraSdf)
+        {
+          EXPECT_EQ(320u, cameraSdf->ImageWidth());
+          EXPECT_EQ(240u, cameraSdf->ImageHeight());
+          EXPECT_EQ(sdf::PixelFormatType::L_INT8, cameraSdf->PixelFormat());
+        }
+
+        // verify camera properties set through plugin
+        EXPECT_DOUBLE_EQ(3.0, _resolution->Data());
+        EXPECT_DOUBLE_EQ(253.15, _range->Data().min.Kelvin());
+        EXPECT_DOUBLE_EQ(673.15, _range->Data().max.Kelvin());
+        return true;
+      });
+  EXPECT_EQ(1u, cameraCount);
 }
