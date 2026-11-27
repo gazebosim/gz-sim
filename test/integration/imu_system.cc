@@ -19,6 +19,11 @@
 
 #include <gz/msgs/imu.pb.h>
 
+#include <chrono>
+#include <cstddef>
+#include <mutex>
+#include <thread>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Pose3.hh>
@@ -33,11 +38,11 @@
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
 
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 #define TOL 1e-4
@@ -130,85 +135,111 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   auto topic =
       "world/imu_sensor/model/imu_model/link/link/sensor/imu_sensor/imu";
 
-  // Create a system that records imu data
-  test::Relay testSystem;
-  math::Vector3d worldGravity;
-  std::vector<math::Pose3d> poses;
-  std::vector<math::Vector3d> accelerations;
-  std::vector<math::Vector3d> angularVelocities;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::Imu,
-                  components::Name,
-                  components::WorldPose,
-                  components::AngularVelocity,
-                  components::LinearAcceleration>(
-            [&](const Entity &_entity,
-                const components::Imu *,
-                const components::Name *_name,
-                const components::WorldPose *_worldPose,
-                const components::AngularVelocity *_angularVel,
-                const components::LinearAcceleration *_linearAcc) -> bool
-            {
-              EXPECT_EQ(_name->Data(), sensorName);
+  struct ImuState
+  {
+    math::Pose3d pose;
+    math::Vector3d acceleration;
+    math::Vector3d worldGravity;
+  };
 
-              poses.push_back(_worldPose->Data());
-              accelerations.push_back(_linearAcc->Data());
-              angularVelocities.push_back(_angularVel->Data());
+  // Read the imu world pose and linear acceleration and the world gravity
+  // from the ECM, checking the sensor components along the way.
+  auto imuState = [&](const EntityComponentManager &_ecm)
+  {
+    ImuState state;
+    std::size_t count = 0u;
+    _ecm.Each<components::Imu,
+              components::Name,
+              components::WorldPose,
+              components::AngularVelocity,
+              components::LinearAcceleration>(
+        [&](const Entity &_entity,
+            const components::Imu *,
+            const components::Name *_name,
+            const components::WorldPose *_worldPose,
+            const components::AngularVelocity *,
+            const components::LinearAcceleration *_linearAcc) -> bool
+        {
+          ++count;
+          EXPECT_EQ(_name->Data(), sensorName);
 
-              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-              EXPECT_NE(nullptr, sensorComp);
+          state.pose = _worldPose->Data();
+          state.acceleration = _linearAcc->Data();
 
-              if (_info.iterations == 1)
-                return true;
+          auto sensorComp = _ecm.Component<components::Sensor>(_entity);
+          EXPECT_NE(nullptr, sensorComp);
 
-              // This component is created on the 2nd PreUpdate
-              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-              EXPECT_NE(nullptr, topicComp);
-              if (topicComp)
-              {
-                EXPECT_EQ(topic, topicComp->Data());
-              }
+          auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
+          EXPECT_NE(nullptr, topicComp);
+          if (topicComp)
+          {
+            EXPECT_EQ(topic, topicComp->Data());
+          }
 
-              return true;
-            });
+          return true;
+        });
+    EXPECT_EQ(1u, count);
 
-        _ecm.Each<components::Gravity>(
-            [&](const Entity &,
-                const components::Gravity *_gravity) -> bool
-            {
-              // gtest is having a hard time with ASSERTs inside nested lambdas
-              EXPECT_NE(nullptr, _gravity);
-              if (nullptr != _gravity)
-                worldGravity = _gravity->Data();
-              return false;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
+    _ecm.Each<components::Gravity>(
+        [&](const Entity &,
+            const components::Gravity *_gravity) -> bool
+        {
+          // gtest is having a hard time with ASSERTs inside nested lambdas
+          EXPECT_NE(nullptr, _gravity);
+          if (nullptr != _gravity)
+            state.worldGravity = _gravity->Data();
+          return false;
+        });
+    return state;
+  };
 
   // subscribe to imu topic
   transport::Node node;
   node.Subscribe(topic, &imuCb);
 
+  // Wait for all the messages published so far to be received
+  const double updateRate = 30;
+  auto waitForMsgs = [&]()
+  {
+    const auto expected = static_cast<size_t>(
+        *server.IterationCount() * stepSize * updateRate + 1);
+    for (int sleep = 0; sleep < 30; ++sleep)
+    {
+      {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (imuMsgs.size() >= expected)
+          break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    std::lock_guard<std::mutex> lock(mutex);
+    EXPECT_EQ(expected, imuMsgs.size());
+  };
+
   // step world and verify imu's linear acceleration is zero on free fall
   // Run server
   size_t iters200 = 200u;
   server.Run(true, iters200, false);
-  EXPECT_EQ(iters200, accelerations.size());
+  ASSERT_EQ(iters200, *server.IterationCount());
+  ImuState state;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    state = imuState(*ecm);
+  }
+  const math::Vector3d worldGravity = state.worldGravity;
 
   EXPECT_NEAR(worldGravity.X(), 0, TOL);
   EXPECT_NEAR(worldGravity.Y(), 0, TOL);
   EXPECT_NEAR(worldGravity.Z(), -5, TOL);
 
-  EXPECT_NEAR(accelerations.back().X(), 0, TOL);
-  EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
-  EXPECT_NEAR(accelerations.back().Z(), worldGravity.Z(), TOL);
+  EXPECT_NEAR(state.acceleration.X(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.Y(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.Z(), worldGravity.Z(), TOL);
 
   // Check we received messages
-
-  EXPECT_GT(imuMsgs.size(), 0u);
+  waitForMsgs();
+  ASSERT_GT(imuMsgs.size(), 0u);
   mutex.lock();
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->y(), 0, TOL);
@@ -216,9 +247,15 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   mutex.unlock();
 
   server.Run(true, 1u, false);
-  EXPECT_NEAR(accelerations.back().X(), 0, TOL);
-  EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
-  EXPECT_NEAR(accelerations.back().Z(), worldGravity.Z(), TOL);
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    state = imuState(*ecm);
+  }
+  EXPECT_NEAR(state.acceleration.X(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.Y(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.Z(), worldGravity.Z(), TOL);
+  waitForMsgs();
   mutex.lock();
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(), 0, TOL);
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->y(), 0, TOL);
@@ -233,15 +270,21 @@ TEST_F(ImuTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(ModelFalling))
   int steps = static_cast<int>(ceil(dtHit / stepSize));
   ASSERT_GT(steps, 0);
   server.Run(true, steps, false);
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    state = imuState(*ecm);
+  }
 
   // Get the gravity vector for the final position of the box
   math::Vector3d gravity =
-    poses.back().Rot().Inverse().RotateVector(worldGravity);
+    state.pose.Rot().Inverse().RotateVector(worldGravity);
 
-  EXPECT_NEAR(accelerations.back().X(), 0, TOL);
-  EXPECT_NEAR(accelerations.back().Y(), 0, TOL);
-  EXPECT_NEAR(accelerations.back().Z(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.X(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.Y(), 0, TOL);
+  EXPECT_NEAR(state.acceleration.Z(), 0, TOL);
   // Compare sensed gravity values against the gravity sensed for that position
+  waitForMsgs();
   mutex.lock();
   EXPECT_NEAR(imuMsgs.back().mutable_linear_acceleration()->x(),
       -gravity.X(), TOL);
