@@ -25,9 +25,8 @@ Rectangle {
   property alias source: root.source
   property alias text: label.text
   property var worldData: null
-  property bool isDark: Material.theme === Material.Dark
-  color: isDark ? Material.color(Material.Grey, Material.Shade800) : "#ffffff"
-  border.color: isDark ? Material.color(Material.Grey, Material.Shade700) : "#e0e0e0"
+  color: quickStart.isDark ?
+      Material.color(Material.Grey, Material.Shade800) : "#ffffff"
   border.width: 2
   radius: 4
   clip: true
@@ -50,7 +49,7 @@ Rectangle {
         anchors.rightMargin: 8
         id: label
         text: qsTr("Label")
-        color: main.isDark ? "#f1f5f9" : "#263238"
+        color: quickStart.textColor
         font.pixelSize: 13
         font.weight: Font.DemiBold
         renderType: Text.NativeRendering
@@ -68,7 +67,6 @@ Rectangle {
         source: ""
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
-        smooth: true
       }
     }
   }
