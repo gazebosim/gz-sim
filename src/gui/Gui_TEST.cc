@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <QQuickItem>
+#include <QQuickWindow>
+
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
@@ -34,6 +37,19 @@
 #include "QuickStartHandler.hh"
 
 #include "../../test/helpers/EnvTestFixture.hh"
+
+/// \brief Find an item or one of its descendant items by object name.
+QQuickItem *findItem(QQuickItem *_item, const QString &_name)
+{
+  if (_item->objectName() == _name)
+    return _item;
+  for (QQuickItem *child : _item->childItems())
+  {
+    if (QQuickItem *found = findItem(child, _name))
+      return found;
+  }
+  return nullptr;
+}
 
 int gg_argc = 1;
 char* gg_argv[] =
@@ -256,6 +272,25 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     while (!gui::App()->allWindows()[0]->isExposed())
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    // Select and deselect a featured card through the dialog's QML
+    auto window = qobject_cast<QQuickWindow *>(gui::App()->allWindows()[0]);
+    ASSERT_NE(nullptr, window);
+    QQuickItem *quickStart = findItem(window->contentItem(), "quickStart");
+    ASSERT_NE(nullptr, quickStart);
+    auto grid = quickStart->findChild<QQuickItem *>("featuredGrid");
+    ASSERT_NE(nullptr, grid);
+    EXPECT_EQ(handler->FeaturedWorlds().size(),
+              grid->property("count").toInt());
+    const QVariant emptyWorld = handler->Worlds("featured", "local").value(0);
+    for (const char *expected : {"empty.sdf", ""})
+    {
+      QMetaObject::invokeMethod(quickStart, "loadCatalogWorld",
+          Qt::BlockingQueuedConnection, Q_ARG(QVariant, emptyWorld));
+      EXPECT_EQ(expected, handler->StartingWorld());
+    }
+    handler->SetStartingWorld("banana");
+
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;

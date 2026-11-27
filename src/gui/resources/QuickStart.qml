@@ -35,6 +35,7 @@ Rectangle {
 
 
   id: quickStart
+  objectName: "quickStart"
   anchors.fill: parent
   property var selectedWorld: ""
 
@@ -145,6 +146,7 @@ Rectangle {
           }
           GridView {
             id: gridView
+            objectName: "featuredGrid"
             width: parent.width
             height: parent.height
             interactive: false
