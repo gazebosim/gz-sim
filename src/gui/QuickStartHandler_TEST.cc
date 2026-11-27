@@ -28,6 +28,7 @@
 #include <QVariantList>
 #include <QVariantMap>
 
+#include <ostream>
 #include <string>
 
 #include "QuickStartHandler.hh"
@@ -35,6 +36,23 @@
 
 using namespace gz;
 using namespace sim::gui;
+
+QT_BEGIN_NAMESPACE
+/// \brief Print QString values as text in test failure messages.
+void PrintTo(const QString &_str, std::ostream *_os)
+{
+  *_os << '"' << _str.toStdString() << '"';
+}
+QT_END_NAMESPACE
+
+/// \brief Expect a non-empty list of worlds whose _key field is _value.
+void ExpectAllWorldsHave(const QVariantList &_worlds, const QString &_key,
+                         const QString &_value)
+{
+  EXPECT_FALSE(_worlds.isEmpty()) << _key.toStdString();
+  for (const QVariant &world : _worlds)
+    EXPECT_EQ(_value, world.toMap().value(_key).toString());
+}
 
 /////////////////////////////////////////////////
 TEST(QuickStartHandlerTest, DefaultCatalogLoaded)
@@ -131,26 +149,9 @@ TEST(QuickStartHandlerTest, FilterByCategorySourceAndQuery)
 {
   QuickStartHandler handler;
 
-  const QVariantList mobileWorlds = handler.Worlds("mobile");
-  EXPECT_GT(mobileWorlds.size(), 0);
-  for (const QVariant &w : mobileWorlds)
-  {
-    EXPECT_EQ("mobile", w.toMap().value("category").toString());
-  }
-
-  const QVariantList localOnly = handler.Worlds("all", "local");
-  EXPECT_GT(localOnly.size(), 0);
-  for (const QVariant &w : localOnly)
-  {
-    EXPECT_EQ("local", w.toMap().value("source").toString());
-  }
-
-  const QVariantList fuelOnly = handler.Worlds("all", "fuel");
-  EXPECT_GT(fuelOnly.size(), 0);
-  for (const QVariant &w : fuelOnly)
-  {
-    EXPECT_EQ("fuel", w.toMap().value("source").toString());
-  }
+  ExpectAllWorldsHave(handler.Worlds("mobile"), "category", "mobile");
+  ExpectAllWorldsHave(handler.Worlds("all", "local"), "source", "local");
+  ExpectAllWorldsHave(handler.Worlds("all", "fuel"), "source", "fuel");
 
   const QVariantList pandaMatches = handler.Worlds("all", "all", "panda");
   ASSERT_EQ(1, pandaMatches.size());
