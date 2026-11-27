@@ -71,7 +71,12 @@ class EnvironmentalSensorSystem:
   public gz::sim::ISystemPreUpdate,
   public gz::sim::ISystemPostUpdate
 {
+  /// Constructor
   public: EnvironmentalSensorSystem();
+
+  /// Destructor
+  public: ~EnvironmentalSensorSystem() override;
+
   /// Documentation inherited
   public: void Configure(
       const gz::sim::Entity &_entity,
