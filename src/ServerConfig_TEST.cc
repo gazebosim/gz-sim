@@ -234,6 +234,27 @@ TEST(ServerConfig, GenerateRecordPlugin)
 }
 
 //////////////////////////////////////////////////
+TEST(ServerConfig, RenderDevice)
+{
+  ServerConfig config;
+
+  // Default is empty, meaning the render engine selects its default device.
+  EXPECT_TRUE(config.RenderDevice().empty());
+
+  config.SetRenderDevice("/dev/dri/card1");
+  EXPECT_EQ("/dev/dri/card1", config.RenderDevice());
+
+  // The copy constructor preserves the value.
+  ServerConfig configCopy(config);
+  EXPECT_EQ("/dev/dri/card1", configCopy.RenderDevice());
+
+  // The assignment operator preserves the value.
+  ServerConfig configAssigned;
+  configAssigned = config;
+  EXPECT_EQ("/dev/dri/card1", configAssigned.RenderDevice());
+}
+
+//////////////////////////////////////////////////
 TEST(ServerConfig, SdfRoot)
 {
   ServerConfig config;

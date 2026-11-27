@@ -56,6 +56,7 @@
 #include "gz/sim/components/RenderEngineGuiPlugin.hh"
 #include "gz/sim/components/RenderEngineServerApiBackend.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
+#include "gz/sim/components/RenderEngineServerHeadlessDevice.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
 #include "gz/sim/Conversions.hh"
 #include "gz/sim/Events.hh"
@@ -749,6 +750,7 @@ void SimulationRunner::UpdateSystems()
 
   {
     GZ_PROFILE("PostUpdate");
+    this->entityCompMgr.LockAddingEntitiesToViews(true);
     if (!this->parallelPostUpdates)
     {
       for (auto &system : this->systemMgr->SystemsPostUpdate())
@@ -770,7 +772,7 @@ void SimulationRunner::UpdateSystems()
         this->postUpdateStopBarrier->Wait();
       }
     }
-    this->entityCompMgr.CreatePendingGroups();
+    this->entityCompMgr.LockAddingEntitiesToViews(false);
   }
 }
 
@@ -1579,7 +1581,7 @@ void SimulationRunner::ProcessRecreateEntitiesRemove()
     return;
   }
   // store the original entities to recreate and put in request to remove them
-  this->entityCompMgr.Each<components::Model,
+  this->entityCompMgr.EachNoCache<components::Model,
                            components::Recreate>(
       [&](const Entity &_entity,
           const components::Model *,
@@ -1876,6 +1878,10 @@ void SimulationRunner::CreateEntities()
   this->entityCompMgr.CreateComponent(worldEntity,
       components::RenderEngineServerHeadless(
       this->serverConfig.HeadlessRendering()));
+
+  this->entityCompMgr.CreateComponent(worldEntity,
+      components::RenderEngineServerHeadlessDevice(
+      this->serverConfig.RenderDevice()));
 
   this->entityCompMgr.CreateComponent(worldEntity,
       components::RenderEngineGuiPlugin(

@@ -113,6 +113,21 @@ inline namespace GZ_SIM_VERSION_NAMESPACE {
     /// \return True if headless mode is enable, false otherwise.
     public: bool HeadlessRendering() const;
 
+    /// \brief Set the device to use for headless rendering, e.g.
+    /// `/dev/dri/card1`. This is forwarded to the render engine as the
+    /// `headless_device` parameter. Selecting a device also requires
+    /// render-engine support (the Ogre2 engine in gz-rendering maps
+    /// `headless_device` onto OGRE's `Device` render-system option);
+    /// engines without that support ignore the parameter.
+    /// An empty string means the render engine selects its default device.
+    /// \param[in] _device Device identifier. Empty for the default device.
+    public: void SetRenderDevice(const std::string &_device);
+
+    /// \brief Get the device to use for headless rendering
+    /// \return Device identifier. Empty means the render engine selects
+    /// its default device.
+    public: std::string RenderDevice() const;
+
     /// \brief Set the scene to use
     /// \param[in] _sceneName Name of the engine.
     public: void SetSceneName(const std::string &_sceneName);
