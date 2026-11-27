@@ -67,8 +67,9 @@ release will remove the deprecated code.
     base pointer is no longer supported.
 
 * **Deprecations**
-  * **AckermannSteering**: The `<sub_topic>` SDF parameter originally prefixes
-    the specified value with `/model/{model_name}/`.
+  * **System topic configuration:**: The `<sub_topic>` SDF parameter in
+    `AckermannSteering`, `JointController`, and `JointPositionController`
+    originally prefixes the specified value with `/model/{model_name}/`.
 
     With the new model namespace support, `<sub_topic>` uses the model namespace
     as the prefix when one is specified, while preserving the original behavior
