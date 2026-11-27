@@ -78,10 +78,10 @@ namespace {
   ScalingFactor MakeConstantScalingFactor(double _value)
   {
     return ScalingFactor(
-        _value / 3.,
-        math::Polynomial3d::Constant(_value),
-        math::Polynomial3d::Constant(_value),
-        math::Polynomial3d::Constant(_value));
+        _value,
+        math::Polynomial3d::Constant(1.),
+        math::Polynomial3d::Constant(0.),
+        math::Polynomial3d::Constant(0.));
   }
 
   //////////////////////////////////////////////////

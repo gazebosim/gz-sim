@@ -305,6 +305,86 @@ TEST_F(WindEffectsTest , GZ_UTILS_TEST_DISABLED_ON_WIN32(ComplexWindForce))
 }
 
 ////////////////////////////////////////////////
+/// Check that a numerical constant used as the force approximation scaling
+/// factor is applied as is, i.e. the same as an equivalent scalar field.
+TEST_F(WindEffectsTest,
+       GZ_UTILS_TEST_DISABLED_ON_WIN32(ConstantScalingFactor))
+{
+  // Two identical boxes in a steady wind along +y. The scaling factor is
+  // 0.5 everywhere: a numerical constant for x < 0 and the equivalent field
+  // k = 0.5, p(x) = 1 for x >= 0.
+  const std::string worldSdf = R"(
+  <sdf version="1.6">
+    <world name="wind_constant_scaling">
+      <gravity>0 0 0</gravity>
+      <plugin filename="gz-sim-physics-system"
+              name="gz::sim::systems::Physics"/>
+      <plugin filename="gz-sim-wind-effects-system"
+              name="gz::sim::systems::WindEffects">
+        <force_approximation_scaling_factor>
+          <when xlt="0">0.5</when>
+          <when xge="0"><k>0.5</k><px>0 0 0 1</px></when>
+        </force_approximation_scaling_factor>
+      </plugin>
+      <wind><linear_velocity>0 10 0</linear_velocity></wind>
+      <model name="box_constant">
+        <pose>-5 0 0 0 0 0</pose>
+        <link name="box_constant_link">
+          <enable_wind>true</enable_wind>
+          <inertial>
+            <mass>2</mass>
+            <inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia>
+          </inertial>
+        </link>
+      </model>
+      <model name="box_field">
+        <pose>5 0 0 0 0 0</pose>
+        <link name="box_field_link">
+          <enable_wind>true</enable_wind>
+          <inertial>
+            <mass>2</mass>
+            <inertia><ixx>1</ixx><iyy>1</iyy><izz>1</izz></inertia>
+          </inertial>
+        </link>
+      </model>
+    </world>
+  </sdf>)";
+
+  ServerConfig serverConfig;
+  serverConfig.SetSdfString(worldSdf);
+  this->server = std::make_unique<Server>(serverConfig);
+
+  LinkComponentRecorder<components::WorldLinearAcceleration>
+      constantAccelerations("box_constant_link", true);
+  LinkComponentRecorder<components::WorldLinearAcceleration>
+      fieldAccelerations("box_field_link", true);
+
+  using namespace std::chrono_literals;
+  this->server->SetUpdatePeriod(0ns);
+
+  this->server->AddSystem(constantAccelerations.systemPtr);
+  this->server->AddSystem(fieldAccelerations.systemPtr);
+
+  const std::size_t nIters{1000};
+  this->server->Run(true, nIters, false);
+
+  ASSERT_EQ(nIters, constantAccelerations.values.size());
+  ASSERT_EQ(nIters, fieldAccelerations.values.size());
+
+  double maxAccelMagnitude = 0.;
+  for (std::size_t i = 0; i < nIters; ++i)
+  {
+    const math::Vector3d &constantAccel =
+        constantAccelerations.values[i].Data();
+    const math::Vector3d &fieldAccel = fieldAccelerations.values[i].Data();
+    EXPECT_NEAR(0., (constantAccel - fieldAccel).Length(), 1e-6)
+        << "step " << i;
+    maxAccelMagnitude = std::max(maxAccelMagnitude, fieldAccel.Length());
+  }
+  EXPECT_GT(maxAccelMagnitude, 1e-3);
+}
+
+////////////////////////////////////////////////
 TEST_F(WindEffectsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(TopicsAndServices))
 {
   using namespace std::chrono_literals;

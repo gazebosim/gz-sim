@@ -54,6 +54,14 @@ release will remove the deprecated code.
     fluid interface now float and right themselves per hydrostatic theory;
     models tuned to compensate for the old behavior may need retuning.
 
+* **WindEffects**
+  * A numerical constant `c` given for `<force_approximation_scaling_factor>`
+    (or one of its `<when>` regions) is now applied as `c`. Previously it was
+    applied as `c * c`, so worlds that used a constant other than `1` will
+    see a different wind force; to keep the old behavior, use the square of
+    the old value. A negative constant is now rejected like a negative
+    scalar field.
+
 * **Entity wrapper classes (`Model`, `Link`, `World`)**
   * These now store their private data via `gz::utils::ImplPtr` (matching
     `Joint`, `Sensor`, `Light`, and `Actor`) instead of a hand-written
