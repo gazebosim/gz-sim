@@ -226,3 +226,55 @@ TEST(QuickStartHandlerTest, ResolveWorldUriAndInvalidCatalog)
   EXPECT_TRUE(prevWorlds == handler.Worlds());
   EXPECT_TRUE(prevCategories == handler.Categories());
 }
+
+/////////////////////////////////////////////////
+TEST(QuickStartHandlerTest, RecentWorldsAndLocalUrl)
+{
+  QuickStartHandler handler;
+  handler.SetSettingsGroup("QuickStartTestIsolated");
+  handler.ClearRecentWorlds();
+
+  EXPECT_TRUE(handler.RecentWorlds().isEmpty());
+
+  // Empty URI is ignored
+  handler.RecordRecentWorld("   ", "Ignored");
+  EXPECT_TRUE(handler.RecentWorlds().isEmpty());
+
+  // Record 6 worlds; should cap at 5, most recent first
+  for (int i = 1; i <= 6; ++i)
+  {
+    handler.RecordRecentWorld(
+        QString("world_%1.sdf").arg(i),
+        QString("World %1").arg(i));
+  }
+  QVariantList recents = handler.RecentWorlds();
+  ASSERT_EQ(5, recents.size());
+  EXPECT_EQ("world_6.sdf", recents[0].toMap().value("uri").toString());
+  EXPECT_EQ("world_2.sdf", recents[4].toMap().value("uri").toString());
+
+  // Re-recording an existing world moves it to the front without duplicating
+  handler.RecordRecentWorld("world_3.sdf", "World 3 Updated");
+  recents = handler.RecentWorlds();
+  ASSERT_EQ(5, recents.size());
+  EXPECT_EQ("world_3.sdf", recents[0].toMap().value("uri").toString());
+  EXPECT_EQ("World 3 Updated", recents[0].toMap().value("title").toString());
+
+  // Persistence across handler instances
+  QuickStartHandler secondHandler;
+  secondHandler.SetSettingsGroup("QuickStartTestIsolated");
+  EXPECT_EQ(5, secondHandler.RecentWorlds().size());
+  EXPECT_EQ("world_3.sdf",
+            secondHandler.RecentWorlds()[0].toMap().value("uri").toString());
+
+  // LocalPathFromUrl
+  EXPECT_EQ("/tmp/example.sdf",
+            handler.LocalPathFromUrl(QUrl::fromLocalFile("/tmp/example.sdf")));
+  EXPECT_EQ("https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/Empty",
+            handler.LocalPathFromUrl(
+                QUrl("https://fuel.gazebosim.org/1.0/OpenRobotics/worlds/"
+                     "Empty")));
+
+  // Cleanup test settings
+  handler.ClearRecentWorlds();
+  EXPECT_TRUE(handler.RecentWorlds().isEmpty());
+}

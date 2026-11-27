@@ -30,6 +30,7 @@
 #include <gz/gui/Dialog.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Plugin.hh>
+#include <algorithm>
 #include <iostream>
 #include <memory>
 
@@ -272,17 +273,22 @@ std::string launchQuickStart(int &_argc, char **_argv,
   auto quickStartHandler = new QuickStartHandler();
   quickStartHandler->setParent(app->Engine());
 
-  // This is the fixed window size for the quick start dialog
-  QSize winSize(960, 540);
+  // Configure resizable quick start dialog size clamped to available screen
+  const QRect availGeom = dialog->QuickWindow()->screen()->availableGeometry();
+  const int targetW = std::min(1120, static_cast<int>(availGeom.width() * 0.9));
+  const int targetH = std::min(680, static_cast<int>(availGeom.height() * 0.9));
+  const QSize winSize(std::max(1, targetW), std::max(1, targetH));
+  const QSize minSize(
+      std::min(880, winSize.width()),
+      std::min(540, winSize.height()));
+  dialog->QuickWindow()->setMinimumSize(minSize);
   dialog->QuickWindow()->resize(winSize);
-  dialog->QuickWindow()->setMaximumSize(dialog->QuickWindow()->size());
-  dialog->QuickWindow()->setTitle("Gazebo quick start");
+  dialog->QuickWindow()->setTitle("Gazebo Quick Start");
 
-  // Position the quick start in the center of the screen
-  QSize screenSize = dialog->QuickWindow()->screen()->size();
-  screenSize /= 2.0;
-  screenSize -= winSize / 2.0;
-  dialog->QuickWindow()->setPosition(screenSize.width(), screenSize.height());
+  // Position the quick start in the center of the available screen area
+  const int posX = availGeom.x() + (availGeom.width() - winSize.width()) / 2;
+  const int posY = availGeom.y() + (availGeom.height() - winSize.height()) / 2;
+  dialog->QuickWindow()->setPosition(posX, posY);
 
   auto context = new QQmlContext(app->Engine()->rootContext());
   context->setContextProperty("QuickStartHandler", quickStartHandler);

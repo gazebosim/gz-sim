@@ -18,6 +18,7 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
 import QtQuick.Controls.Material 2.1
+import QtQuick.Dialogs
 import QtQuick.Layouts 1.3
 import QtQml.Models 2.3
 import Qt.labs.folderlistmodel 2.1
@@ -26,18 +27,60 @@ import "qrc:/qml"
 
 Rectangle {
 
+  property bool isDark: Material.theme === Material.Dark
+
   /**
    * Color for search bar
    */
-  property color searchColor: (Material.theme == Material.Light) ?
-      Material.color(Material.Grey, Material.Shade200):
-      Material.color(Material.Grey, Material.Shade900);
+  property color searchColor: isDark ?
+      Material.color(Material.Grey, Material.Shade900) :
+      Material.color(Material.Grey, Material.Shade200);
 
+  property color borderColor: isDark ?
+      Material.color(Material.Grey, Material.Shade700) : "#e0e0e0";
+
+  property color textColor: isDark ? "#f1f5f9" : "#263238";
 
   id: quickStart
   objectName: "quickStart"
   anchors.fill: parent
+  color: Material.background
+  focus: true
   property var selectedWorld: ""
+  property string selectedWorldUri: ""
+  property string selectedWorldTitle: ""
+
+  Shortcut {
+    sequence: StandardKey.Cancel
+    onActivated: {
+      QuickStartHandler.SetStartingWorld("");
+      Qt.callLater(function() {
+        if (quickStart.Window.window) {
+          quickStart.Window.window.close();
+        }
+      });
+    }
+  }
+
+  Shortcut {
+    sequences: ["Return", "Enter"]
+    enabled: openWorld.enabled && !searchField.activeFocus
+    onActivated: quickStart.launchSelected()
+  }
+
+  FileDialog {
+    id: openWorldFileDialog
+    title: qsTr("Open World File")
+    fileMode: FileDialog.OpenFile
+    nameFilters: [
+      qsTr("SDF / World files (*.sdf *.world)"),
+      qsTr("All files (*)")
+    ]
+    onAccepted: {
+      var localPath = QuickStartHandler.LocalPathFromUrl(selectedFile);
+      quickStart.launchWorld(localPath, localPath);
+    }
+  }
 
   function changeDefault(checked) {
     QuickStartHandler.SetShowAgain(checked);
@@ -46,11 +89,39 @@ Rectangle {
   // Select the world identified by key to launch uri, or deselect it if it
   // is already selected or uri is empty. A deselected world is not launched
   // on close.
-  function selectWorld(key, uri) {
+  function selectWorld(key, uri, title) {
     var select = key !== quickStart.selectedWorld && uri !== "";
     quickStart.selectedWorld = select ? key : "";
+    quickStart.selectedWorldUri = select ? uri : "";
+    quickStart.selectedWorldTitle = select ? (title || key) : "";
     openWorld.enabled = select;
     QuickStartHandler.SetStartingWorld(select ? uri : "");
+  }
+
+  // Select the world identified by key and launch uri right away, unless uri
+  // is empty.
+  function launchWorld(key, uri, title) {
+    if (uri === "")
+      return;
+    quickStart.selectedWorld = key;
+    quickStart.selectedWorldUri = uri;
+    quickStart.selectedWorldTitle = title || key;
+    QuickStartHandler.SetStartingWorld(uri);
+    openWorld.enabled = true;
+    quickStart.launchSelected();
+  }
+
+  function launchSelected() {
+    if (!openWorld.enabled || quickStart.selectedWorldUri === "") {
+      return;
+    }
+    QuickStartHandler.RecordRecentWorld(
+      quickStart.selectedWorldUri, quickStart.selectedWorldTitle);
+    Qt.callLater(function() {
+      if (quickStart.Window.window) {
+        quickStart.Window.window.close();
+      }
+    });
   }
 
   function loadWorld(file){
@@ -61,7 +132,12 @@ Rectangle {
     var uri = QuickStartHandler.ResolveWorldUri(world);
     if (uri === "")
       console.error("QuickStart: cannot resolve world [" + world.id + "]");
-    selectWorld(world.id, uri);
+    selectWorld(world.id, uri, world.title);
+  }
+
+  function selectAndLaunchCatalogWorld(world) {
+    launchWorld(world.id, QuickStartHandler.ResolveWorldUri(world),
+                world.title);
   }
 
   function getWorlds(){
@@ -71,7 +147,7 @@ Rectangle {
   function getColor(worldId){
     if(worldId == selectedWorld)
       return Material.primary;
-    return "#e0e0e0";
+    return borderColor;
   }
 
   ColumnLayout {
@@ -100,11 +176,16 @@ Rectangle {
           }
         }
         ColumnLayout {
-          Text{
+          Text {
             text: QuickStartHandler.Distribution()
+            color: quickStart.textColor
+            font.weight: Font.DemiBold
+            renderType: Text.NativeRendering
           }
-          Text{
+          Text {
             text: 'v ' + QuickStartHandler.SimVersion()
+            color: quickStart.textColor
+            renderType: Text.NativeRendering
           }
         }
         Item {
@@ -116,9 +197,10 @@ Rectangle {
     // Middle row, which holds the world selection elements.
     Rectangle {
       Layout.fillWidth: true
-      height: 360
+      Layout.fillHeight: true
+      color: "transparent"
       RowLayout {
-        spacing: 0
+        spacing: 12
         anchors {
           fill: parent
           leftMargin: 15
@@ -138,8 +220,7 @@ Rectangle {
               text: modelData.title
               worldData: modelData
               width: 220
-              height: 150
-              smooth: true
+              height: 156
               source: QuickStartHandler.ResolveThumbnailUrl(modelData)
               border.color: getColor(modelData.id)
             }
@@ -147,9 +228,7 @@ Rectangle {
           GridView {
             id: gridView
             objectName: "featuredGrid"
-            width: parent.width
-            height: parent.height
-            interactive: false
+            clip: true
 
             anchors {
               fill: parent
@@ -158,22 +237,26 @@ Rectangle {
             }
 
             cellWidth: 240
-            cellHeight: 205
+            cellHeight: 176
 
             model: QuickStartHandler.FeaturedWorlds()
             delegate: fileDelegate
+
+            ScrollBar.vertical: ScrollBar {
+              policy: ScrollBar.AsNeeded
+            }
           }
         }
 
         // SDF file list with search bar
         Rectangle {
           color: 'transparent'
-          width: 200
+          Layout.preferredWidth: 240
           Layout.fillHeight: true
           Layout.topMargin: 5
           border {
             width: 1
-            color: searchColor
+            color: borderColor
           }
 
           ColumnLayout {
@@ -183,27 +266,25 @@ Rectangle {
             Rectangle {
               id: searchSortBar
               color: searchColor
-              height: 50
-              width: parent.width
+              Layout.fillWidth: true
+              Layout.preferredHeight: 48
               RowLayout {
                 id: rowLayout
                 anchors.fill: parent
-                spacing: 0
-                Rectangle {
-                  color: "transparent"
-                  height: 25
-                  width: 25
-                  Layout.leftMargin: 5
-                  Image {
-                    id: searchIcon
-                    source: "images/search.svg"
-                    anchors.verticalCenter: parent.verticalCenter
-                  }
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 6
+                Image {
+                  id: searchIcon
+                  source: "images/search.svg"
+                  Layout.preferredWidth: 18
+                  Layout.preferredHeight: 18
+                  fillMode: Image.PreserveAspectFit
                 }
                 TextField {
                   id: searchField
-                  Layout.fillHeight: true
-                  Layout.preferredWidth: parent.width - 50
+                  Layout.fillWidth: true
+                  placeholderText: qsTr("Search local .sdf...")
                   selectByMouse: true
                   onTextEdited: {
                     sdfFileModel.update();
@@ -216,12 +297,13 @@ Rectangle {
               id: sdfFileDelegate
 
               ItemDelegate {
-                x: 1
+                width: pluginMenuListView.width
                 text: fileName
                 highlighted: selectedWorld == fileName
                 onClicked: {
                   quickStart.loadWorld(fileName);
                 }
+                onDoubleClicked: quickStart.launchWorld(fileName, fileName)
               }
             }
 
@@ -253,8 +335,8 @@ Rectangle {
             ListView {
               id: pluginMenuListView
 
+              Layout.fillWidth: true
               Layout.fillHeight: true
-              width: parent.width
               clip: true
               model: sdfFileModel
 
@@ -270,8 +352,7 @@ Rectangle {
     // Bottom row, which holds the run button and don't show checkbox.
     Rectangle {
       Layout.fillWidth: true
-      Layout.fillHeight: true
-      height: 60
+      Layout.preferredHeight: 64
       color: 'transparent'
 
       RowLayout {
@@ -280,32 +361,35 @@ Rectangle {
           leftMargin: 20
           rightMargin: 20
         }
+        spacing: 10
         CheckBox {
           id: showByDefault
-          text: "Don't show this dialog again"
+          text: qsTr("Don't show this dialog again")
           Layout.fillWidth: true
           onClicked: {
             quickStart.changeDefault(showByDefault.checked)
           }
         }
         Button {
+          id: openFileBtn
+          text: qsTr("Open File...")
+          flat: true
+          onClicked: openWorldFileDialog.open()
+        }
+        Button {
+          id: emptyWorldBtn
+          text: qsTr("Empty World")
+          flat: true
+          onClicked: quickStart.launchWorld(
+              "empty.sdf", "empty.sdf", qsTr("Empty World"))
+        }
+        Button {
           id: openWorld
           visible: true
-          text: "Run"
+          text: qsTr("Run")
           enabled: false
-          onClicked: {
-            quickStart.Window.window.close()
-          }
-          background: Rectangle {
-            implicitWidth: 60
-            implicitHeight: 40
-            radius: 4
-            color: openWorld.hovered ? "#efefef" : 'transparent'
-            border {
-              width: 2
-              color: openWorld.enabled ? Material.primary : "#efefef"
-            }
-         }
+          highlighted: true
+          onClicked: quickStart.launchSelected()
         }
       }
     }

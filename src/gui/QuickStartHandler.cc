@@ -28,6 +28,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSet>
+#include <QSettings>
 #include <QStringList>
 #include <QUrl>
 
@@ -77,6 +78,11 @@ bool MatchesQuery(const QVariantMap &_world, const QString &_query)
                      }) ||
          std::any_of(tags.begin(), tags.end(), contains);
 }
+
+constexpr const char *kSettingsOrg = "OpenRobotics";
+constexpr const char *kSettingsApp = "GazeboSim";
+constexpr const char *kRecentWorldsKey = "recentWorlds";
+constexpr int kMaxRecentWorlds = 5;
 }
 
 QuickStartHandler::QuickStartHandler()
@@ -345,4 +351,90 @@ QString QuickStartHandler::ResolveThumbnailUrl(const QVariantMap &_world) const
     return "";
 
   return QUrl::fromLocalFile(fullPath).toString();
+}
+
+/////////////////////////////////////////////////
+QString QuickStartHandler::LocalPathFromUrl(const QUrl &_url) const
+{
+  if (_url.isLocalFile())
+    return _url.toLocalFile();
+  return _url.toString();
+}
+
+/////////////////////////////////////////////////
+QVariantList QuickStartHandler::RecentWorlds() const
+{
+  QSettings settings(
+      QString::fromUtf8(kSettingsOrg), QString::fromUtf8(kSettingsApp));
+  settings.beginGroup(this->settingsGroup);
+  const QVariantList stored =
+      settings.value(QString::fromUtf8(kRecentWorldsKey)).toList();
+  settings.endGroup();
+
+  QVariantList result;
+  for (const QVariant &item : stored)
+  {
+    const QVariantMap map = item.toMap();
+    if (!map.value("uri").toString().isEmpty())
+      result.append(map);
+  }
+  return result;
+}
+
+/////////////////////////////////////////////////
+void QuickStartHandler::RecordRecentWorld(
+    const QString &_uri, const QString &_title)
+{
+  const QString trimmedUri = _uri.trimmed();
+  if (trimmedUri.isEmpty())
+    return;
+
+  QString resolvedTitle = _title.trimmed();
+  if (resolvedTitle.isEmpty())
+  {
+    const QFileInfo fi(trimmedUri);
+    resolvedTitle = fi.fileName().isEmpty() ? trimmedUri : fi.fileName();
+  }
+
+  QVariantList recents = this->RecentWorlds();
+  for (int i = recents.size() - 1; i >= 0; --i)
+  {
+    if (recents[i].toMap().value("uri").toString() == trimmedUri)
+      recents.removeAt(i);
+  }
+
+  QVariantMap entry;
+  entry["uri"] = trimmedUri;
+  entry["title"] = resolvedTitle;
+  recents.prepend(entry);
+
+  while (recents.size() > kMaxRecentWorlds)
+    recents.removeLast();
+
+  QSettings settings(
+      QString::fromUtf8(kSettingsOrg), QString::fromUtf8(kSettingsApp));
+  settings.beginGroup(this->settingsGroup);
+  settings.setValue(QString::fromUtf8(kRecentWorldsKey), recents);
+  settings.endGroup();
+
+  emit this->recentWorldsChanged();
+}
+
+/////////////////////////////////////////////////
+void QuickStartHandler::ClearRecentWorlds()
+{
+  QSettings settings(
+      QString::fromUtf8(kSettingsOrg), QString::fromUtf8(kSettingsApp));
+  settings.beginGroup(this->settingsGroup);
+  settings.remove(QString::fromUtf8(kRecentWorldsKey));
+  settings.endGroup();
+
+  emit this->recentWorldsChanged();
+}
+
+/////////////////////////////////////////////////
+void QuickStartHandler::SetSettingsGroup(const QString &_group)
+{
+  if (!_group.isEmpty())
+    this->settingsGroup = _group;
 }

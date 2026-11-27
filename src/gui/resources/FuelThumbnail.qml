@@ -17,46 +17,66 @@
 
 import QtQuick 2.9
 import QtQuick.Controls 2.2
+import QtQuick.Controls.Material 2.1
 import QtQuick.Layouts 1.3
 
-Rectangle{
+Rectangle {
   id: main
   property alias source: root.source
   property alias text: label.text
   property var worldData: null
-  border.color: "#e0e0e0"
+  property bool isDark: Material.theme === Material.Dark
+  color: isDark ? Material.color(Material.Grey, Material.Shade800) : "#ffffff"
+  border.color: isDark ? Material.color(Material.Grey, Material.Shade700) : "#e0e0e0"
   border.width: 2
+  radius: 4
+  clip: true
 
   ColumnLayout {
+    anchors.fill: parent
+    anchors.margins: 2
+    spacing: 0
+
     Rectangle {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 26
+      color: "transparent"
+
       Text {
-        x: 10
-        y: 5
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
         id: label
-        font.capitalization: Font.Capitalize
         text: qsTr("Label")
-        color: "#443224"
-        font.pixelSize: 14
+        color: main.isDark ? "#f1f5f9" : "#263238"
+        font.pixelSize: 13
+        font.weight: Font.DemiBold
+        renderType: Text.NativeRendering
+        elide: Text.ElideRight
       }
     }
 
-    Rectangle {
+    Item {
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+
       Image {
         id: root
+        anchors.fill: parent
         source: ""
         fillMode: Image.PreserveAspectCrop
-        width: 216
-        height: 124
-
-        x: 2
-        y: 24
-        signal clicked
-
-        MouseArea {
-          anchors.fill: parent
-          onClicked: quickStart.loadCatalogWorld(main.worldData);
-        }
+        asynchronous: true
+        smooth: true
       }
     }
+  }
+
+  MouseArea {
+    anchors.fill: parent
+    cursorShape: Qt.PointingHandCursor
+    onClicked: quickStart.loadCatalogWorld(main.worldData)
+    onDoubleClicked: quickStart.selectAndLaunchCatalogWorld(main.worldData)
   }
 }
