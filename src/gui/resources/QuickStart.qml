@@ -42,31 +42,25 @@ Rectangle {
     QuickStartHandler.SetShowAgain(checked);
   }
 
+  // Select the world identified by key to launch uri, or deselect it if it
+  // is already selected. A deselected world is not launched on close.
+  function selectWorld(key, uri) {
+    var select = key !== quickStart.selectedWorld;
+    quickStart.selectedWorld = select ? key : "";
+    openWorld.enabled = select;
+    QuickStartHandler.SetStartingWorld(select ? uri : "");
+  }
+
   function loadWorld(file){
-    if (file === quickStart.selectedWorld) {
-      openWorld.enabled = false;
-      quickStart.selectedWorld = "";
-    } else {
-      QuickStartHandler.SetStartingWorld(file);
-      openWorld.enabled = true;
-      quickStart.selectedWorld = file;
-    }
+    selectWorld(file, file);
   }
 
   function loadCatalogWorld(world) {
-    var worldId = world.id;
-    if (quickStart.selectedWorld === worldId) {
-      openWorld.enabled = false;
-      quickStart.selectedWorld = '';
-    } else {
-      var uri = QuickStartHandler.ResolveWorldUri(world);
-      if (uri === "") {
-        return;
-      }
-      quickStart.selectedWorld = worldId;
-      QuickStartHandler.SetStartingWorld(uri);
-      openWorld.enabled = true;
+    var uri = QuickStartHandler.ResolveWorldUri(world);
+    if (uri === "") {
+      return;
     }
+    selectWorld(world.id, uri);
   }
 
   function getWorlds(){
