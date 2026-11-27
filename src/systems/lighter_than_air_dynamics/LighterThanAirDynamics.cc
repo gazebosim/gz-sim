@@ -16,7 +16,7 @@
  */
 #include <string>
 
-#include <Eigen/Eigen>
+#include <Eigen/Core>
 
 #include <gz/msgs/vector3d.pb.h>
 #include <gz/msgs/Utility.hh>

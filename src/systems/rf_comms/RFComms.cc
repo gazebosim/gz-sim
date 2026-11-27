@@ -25,7 +25,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 #include <gz/common/Profiler.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Rand.hh>
