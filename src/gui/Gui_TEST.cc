@@ -39,14 +39,15 @@
 #include "../../test/helpers/EnvTestFixture.hh"
 
 /// \brief Find an item or one of its descendant items by object name.
-QQuickItem *findItem(QQuickItem *_item, const QString &_name)
+QQuickItem *findItem(QQuickItem *_root, const QString &_name)
 {
-  if (_item->objectName() == _name)
-    return _item;
-  for (QQuickItem *child : _item->childItems())
+  QList<QQuickItem *> items{_root};
+  while (!items.isEmpty())
   {
-    if (QQuickItem *found = findItem(child, _name))
-      return found;
+    QQuickItem *item = items.takeFirst();
+    if (item->objectName() == _name)
+      return item;
+    items.append(item->childItems());
   }
   return nullptr;
 }

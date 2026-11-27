@@ -17,6 +17,9 @@
 
 #include "QuickStartHandler.hh"
 
+#include <algorithm>
+#include <iterator>
+
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -59,19 +62,18 @@ bool IsWildcard(const QString &_filter)
 /// \param[in] _query Lower-case search query.
 bool MatchesQuery(const QVariantMap &_world, const QString &_query)
 {
-  for (const char *field : kSearchableFields)
+  const auto contains = [&_query](const QString &_text)
   {
-    if (_world.value(field).toString().toLower().contains(_query))
-      return true;
-  }
-
+    return _text.toLower().contains(_query);
+  };
   const QStringList tags = _world.value("tags").toStringList();
-  for (const QString &tag : tags)
-  {
-    if (tag.toLower().contains(_query))
-      return true;
-  }
-  return false;
+  return std::any_of(std::begin(kSearchableFields),
+                     std::end(kSearchableFields),
+                     [&](const char *_field)
+                     {
+                       return contains(_world.value(_field).toString());
+                     }) ||
+         std::any_of(tags.begin(), tags.end(), contains);
 }
 }
 
