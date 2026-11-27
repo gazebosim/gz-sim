@@ -18,7 +18,6 @@
 #include <gtest/gtest.h>
 
 #include <gz/msgs/altimeter.pb.h>
-#include <cstddef>
 #include <mutex>
 
 #include <gz/common/Console.hh>
@@ -27,7 +26,6 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
@@ -82,49 +80,32 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
 
   struct AltimeterState
   {
+    Entity entity{kNullEntity};
     math::Pose3d pose;
     math::Vector3d velocity;
   };
 
-  // Read the altimeter world pose and velocity from the ECM, checking the
-  // sensor components along the way. The SensorTopic component is only
-  // created on the 2nd PreUpdate, so it is optionally skipped.
-  auto altimeterState = [&](const EntityComponentManager &_ecm,
-                            bool _checkTopic)
+  // Read the altimeter world pose and velocity from the ECM
+  auto altimeterState = [&](const EntityComponentManager &_ecm)
   {
     AltimeterState state;
-    std::size_t count = 0u;
-    _ecm.Each<components::Altimeter, components::Name,
-              components::WorldPose,
-              components::WorldLinearVelocity>(
-        [&](const Entity &_entity,
-            const components::Altimeter *,
-            const components::Name *_name,
-            const components::WorldPose *_worldPose,
-            const components::WorldLinearVelocity *_worldLinearVel) -> bool
-        {
-          ++count;
-          EXPECT_EQ(_name->Data(), sensorName);
+    const auto entities = _ecm.EntitiesByComponents(
+        components::Sensor(), components::Name(sensorName));
+    EXPECT_EQ(1u, entities.size());
+    if (entities.empty())
+      return state;
 
-          state.pose = _worldPose->Data();
-          state.velocity = _worldLinearVel->Data();
-
-          auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-          EXPECT_NE(nullptr, sensorComp);
-
-          if (!_checkTopic)
-            return true;
-
-          auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-          EXPECT_NE(nullptr, topicComp);
-          if (topicComp)
-          {
-            EXPECT_EQ(topic, topicComp->Data());
-          }
-
-          return true;
-        });
-    EXPECT_EQ(1u, count);
+    state.entity = entities.front();
+    const auto worldPose =
+        _ecm.Component<components::WorldPose>(state.entity);
+    const auto worldLinearVel =
+        _ecm.Component<components::WorldLinearVelocity>(state.entity);
+    EXPECT_NE(nullptr, worldPose);
+    EXPECT_NE(nullptr, worldLinearVel);
+    if (worldPose)
+      state.pose = worldPose->Data();
+    if (worldLinearVel)
+      state.velocity = worldLinearVel->Data();
     return state;
   };
 
@@ -138,7 +119,7 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    firstState = altimeterState(*ecm, false);
+    firstState = altimeterState(*ecm);
   }
 
   // Run server
@@ -149,7 +130,7 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    lastState = altimeterState(*ecm, true);
+    lastState = altimeterState(*ecm);
   }
 
   // Wait for messages to be received
@@ -202,7 +183,12 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   {
     auto ecm = server.EcmScope();
     ASSERT_TRUE(ecm.Valid());
-    lastState = altimeterState(*ecm, true);
+    lastState = altimeterState(*ecm);
+
+    auto topicComp =
+        ecm->Component<components::SensorTopic>(lastState.entity);
+    ASSERT_NE(nullptr, topicComp);
+    EXPECT_EQ(topic, topicComp->Data());
   }
 
   // Wait for messages to be received

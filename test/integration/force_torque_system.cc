@@ -156,22 +156,20 @@ TEST_F(ForceTorqueTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(MeasureWeightECM))
   server.Run(true, iters, false);
   ASSERT_EQ(iters, *server.IterationCount());
 
-  // Get the MeasuredWrench for //test1/scale/sensor_joint/force_torque_sensor
-  msgs::Wrench wrench;
-  {
-    auto ecm = server.EcmScope();
-    ASSERT_TRUE(ecm.Valid());
-    auto measuredWrench =
-        ecm->Component<components::WrenchMeasured>(sensorEntity);
-    ASSERT_NE(nullptr, measuredWrench);
-    wrench = measuredWrench->Data();
-  }
-
   const double kSensorMass = 0.2;
   const double kWeightMass = 10;
   const double kGravity = 9.8;
   const math::Vector3 expectedForce =
       math::Vector3d{0, 0, kGravity * (kSensorMass + kWeightMass)};
+
+  // Check the MeasuredWrench for
+  // //test1/scale/sensor_joint/force_torque_sensor
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+  auto measuredWrench =
+      ecm->Component<components::WrenchMeasured>(sensorEntity);
+  ASSERT_NE(nullptr, measuredWrench);
+  const auto &wrench = measuredWrench->Data();
   EXPECT_EQ(expectedForce, msgs::Convert(wrench.force()));
   EXPECT_EQ(math::Vector3d::Zero, msgs::Convert(wrench.torque()));
 }
