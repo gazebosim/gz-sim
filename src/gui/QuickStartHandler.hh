@@ -42,7 +42,8 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
 {
   Q_OBJECT
 
-  // Explicitly declare the constructor
+  /// \brief Constructor. Checks for an already running world and loads the
+  /// bundled world catalog.
   public: QuickStartHandler();
 
   /// \brief Get worlds path
@@ -73,22 +74,38 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   /// \return True to show again.
   public: Q_INVOKABLE bool ShowAgain() const;
 
-  /// \brief Load world catalog from a JSON file or Qt resource path.
-  /// \param[in] _catalogPath Path to catalog JSON (e.g. Qt resource path).
-  /// \return True if the catalog was loaded and parsed successfully.
+  /// \brief Load the world catalog, replacing the current one on success.
+  ///
+  /// The catalog is a JSON object with two arrays:
+  /// * "categories": objects with "id", "name" and "icon". Ids are
+  ///   case-insensitive, "all" is reserved, and "featured" lists the worlds
+  ///   that are featured.
+  /// * "worlds": objects with "id", "title", "description", "category",
+  ///   "featured", "tags", a "thumbnail" file in WorldsPath()/thumbnails, and
+  ///   either "source": "local" with an SDF "fileName", or "source": "fuel"
+  ///   with "owner", "fuelName" and a "fuelThumbnail" path inside the files
+  ///   of the Fuel world. Worlds in the "featured" category are featured.
+  /// Invalid, duplicate or unresolvable entries are skipped with an error.
+  /// \param[in] _catalogPath Catalog file, such as
+  /// ":/Gazebo/quickstart_worlds.json".
+  /// \return False, keeping the current catalog, if the file cannot be read,
+  /// is not a catalog, or has no valid world.
   public: bool LoadCatalog(const QString &_catalogPath);
 
-  /// \brief Get list of robotics categories defined in the catalog.
-  /// Each entry is a QVariantMap with keys: id, name, icon, count.
-  /// \return Category metadata list.
+  /// \brief Get the catalog categories.
+  /// \return One QVariantMap per category, with keys id, name, icon and
+  /// count, the number of worlds that Worlds(id) returns.
   public: Q_INVOKABLE QVariantList Categories() const;
 
-  /// \brief Get curated worlds filtered by category, source, and search query.
-  /// \param[in] _category Category id ("", "all", "featured", or category id).
-  /// \param[in] _source Source filter ("all", "local", or "fuel").
-  /// \param[in] _query Case-insensitive search query matched against title,
-  /// description, owner, tags, and file/fuel name.
-  /// \return Matching world entries (each a QVariantMap).
+  /// \brief Get the catalog worlds, in catalog order, that pass all filters.
+  ///
+  /// Filters are trimmed and case-insensitive.
+  /// \param[in] _category Category id, "featured" for the featured worlds,
+  /// or "" or "all" for every category.
+  /// \param[in] _source "local", "fuel", or "" or "all" for both.
+  /// \param[in] _query Text that the title, description, owner, category,
+  /// fileName, fuelName or a tag must contain, or "" for no search.
+  /// \return One QVariantMap per world, with the catalog keys.
   public: Q_INVOKABLE QVariantList Worlds(
       const QString &_category = "",
       const QString &_source = "all",
@@ -98,17 +115,21 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   /// \return Featured world entries.
   public: Q_INVOKABLE QVariantList FeaturedWorlds() const;
 
-  /// \brief Resolve a catalog world entry into a launchable SDF filename or
-  /// Gazebo Fuel URL.
-  /// \param[in] _world World metadata map from the catalog.
-  /// \return Local SDF filename or Fuel URL, or empty string if invalid.
+  /// \brief Get the world to launch for a catalog world: the "fileName" of a
+  /// local world, which is not checked on disk, or
+  /// https://fuel.gazebosim.org/1.0/OWNER/worlds/FUEL_NAME for a Fuel
+  /// world.
+  /// \param[in] _world World entry, as returned by Worlds().
+  /// \return The world to launch, or an empty string if the source is
+  /// unknown or one of its fields is missing.
   public: Q_INVOKABLE QString ResolveWorldUri(
       const QVariantMap &_world) const;
 
-  /// \brief Resolve a catalog world entry into a local thumbnail file URL
-  /// if available on disk.
-  /// \param[in] _world World metadata map from the catalog.
-  /// \return Local file:// URL if thumbnail exists on disk, else empty string.
+  /// \brief Get the local thumbnail of a catalog world, the "thumbnail" file
+  /// in WorldsPath()/thumbnails.
+  /// \param[in] _world World entry, as returned by Worlds().
+  /// \return file:// URL of the thumbnail, or an empty string if the world
+  /// has none or the file does not exist.
   public: Q_INVOKABLE QString ResolveThumbnailUrl(
       const QVariantMap &_world) const;
 
@@ -118,10 +139,10 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   /// \brief Get starting world url.
   private: std::string startingWorld{""};
 
-  /// \brief Loaded catalog categories.
+  /// \brief Catalog categories, as returned by Categories().
   private: QVariantList categories;
 
-  /// \brief Loaded catalog worlds.
+  /// \brief Catalog worlds, as returned by Worlds().
   private: QVariantList worlds;
 
   // Add a member for the transport node
