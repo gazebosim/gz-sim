@@ -139,6 +139,7 @@ if(ENABLE_GUI)
       Quick
       QuickControls2
     REQUIRED
+    PKGCONFIG_VER_COMPARISON >=
     PKGCONFIG "Qt${QT_MAJOR_VERSION}Core Qt${QT_MAJOR_VERSION}Quick Qt${QT_MAJOR_VERSION}QuickControls2")
 endif()
 
