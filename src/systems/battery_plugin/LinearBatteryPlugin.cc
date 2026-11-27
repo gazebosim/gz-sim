@@ -418,7 +418,7 @@ void LinearBatteryPlugin::Configure(const Entity &_entity,
           std::placeholders::_3));
       gzmsg << "LinearBatteryPlugin subscribes to stop power draining topic ["
             << topic << "]." << std::endl;
-      sdfElem = sdfElem->GetNextElement("power_draining_topic");
+      sdfElem = sdfElem->GetNextElement("stop_power_draining_topic");
     }
   }
 

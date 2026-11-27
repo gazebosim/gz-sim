@@ -87,6 +87,7 @@
         <power_load>500</power_load>  <!-- high load to quickly drain battery -->
         <power_draining_topic>/battery/discharge</power_draining_topic>
         <stop_power_draining_topic>/battery/stop_discharge</stop_power_draining_topic>
+        <stop_power_draining_topic>/battery/stop2</stop_power_draining_topic>
       </plugin>
 
     </model>

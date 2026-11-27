@@ -404,34 +404,47 @@ TEST_F(BatteryPluginTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PowerDrainTopic))
   // and the <initial_charge> is equivalent to the <capacity>.
   EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
 
-  // Send a message on one of the <power_draining_topic> topics, which will
-  // start the battery draining when the server starts again.
   gz::transport::Node node;
   auto dischargePub = node.Advertise<msgs::StringMsg>("/battery/discharge");
+  ASSERT_TRUE(gz::sim::test::WaitUntil(5s, [&dischargePub]
+      {
+        return dischargePub.HasConnections();
+      }));
+
   msgs::StringMsg msg;
-  dischargePub.Publish(msg);
+  for (const char *stopTopic : {"/battery/stop_discharge", "/battery/stop2"})
+  {
+    SCOPED_TRACE(stopTopic);
+    auto stopPub = node.Advertise<msgs::StringMsg>(stopTopic);
+    EXPECT_TRUE(gz::sim::test::WaitUntil(5s, [&stopPub]
+        {
+          return stopPub.HasConnections();
+        }));
 
-  // Run the server again.
-  server.Run(true, 100, false);
+    const double initialCharge = batComp->Data();
+    ASSERT_TRUE(dischargePub.Publish(msg));
+    ASSERT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]
+    {
+      return batComp->Data() < initialCharge;
+    }));
 
-  // Send a message on one of the <stop_power_draining_topic> topics, which
-  // will stop the battery draining when the server starts again.
-  auto stopPub = node.Advertise<msgs::StringMsg>("/battery/stop_discharge");
-  stopPub.Publish(msg);
+    EXPECT_TRUE(stopPub.Publish(msg));
 
-  // Run the server a little bit to allow msg be propagated inside plugin
-  server.Run(true, 50, false);
+    // Seed the comparison with the pre-drain charge so at least one step
+    // runs before the charge can be observed to hold steady.
+    double previousCharge = initialCharge;
+    EXPECT_TRUE(gz::sim::test::StepUntil(server, 200u, [&]
+    {
+      const double charge = batComp->Data();
+      const bool stopped = std::abs(charge - previousCharge) < 1e-12;
+      previousCharge = charge;
+      return stopped;
+    }));
+    EXPECT_LT(previousCharge, initialCharge);
 
-  // The state of charge should be <1, since the battery has started
-  // draining.
-  const double stateOfCharge = batComp->Data();
-  EXPECT_LT(batComp->Data(), 1.0);
-
-  // Run the server again.
-  server.Run(true, 100, false);
-
-  // The state of charge should be the same since the discharge was stopped
-  EXPECT_DOUBLE_EQ(batComp->Data(), stateOfCharge);
+    server.Run(true, 100, false);
+    EXPECT_DOUBLE_EQ(batComp->Data(), previousCharge);
+  }
 }
 
 /////////////////////////////////////////////////
