@@ -43,9 +43,10 @@ Rectangle {
   }
 
   // Select the world identified by key to launch uri, or deselect it if it
-  // is already selected. A deselected world is not launched on close.
+  // is already selected or uri is empty. A deselected world is not launched
+  // on close.
   function selectWorld(key, uri) {
-    var select = key !== quickStart.selectedWorld;
+    var select = key !== quickStart.selectedWorld && uri !== "";
     quickStart.selectedWorld = select ? key : "";
     openWorld.enabled = select;
     QuickStartHandler.SetStartingWorld(select ? uri : "");
@@ -57,9 +58,8 @@ Rectangle {
 
   function loadCatalogWorld(world) {
     var uri = QuickStartHandler.ResolveWorldUri(world);
-    if (uri === "") {
-      return;
-    }
+    if (uri === "")
+      console.error("QuickStart: cannot resolve world [" + world.id + "]");
     selectWorld(world.id, uri);
   }
 
