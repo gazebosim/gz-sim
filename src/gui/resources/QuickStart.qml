@@ -69,33 +69,12 @@ Rectangle {
     }
   }
 
-  function loadFuelWorld(fileName, owner){
-    if (quickStart.selectedWorld === fileName) {
-      openWorld.enabled = false;
-      quickStart.selectedWorld = '';
-    } else {
-
-      quickStart.selectedWorld = fileName;
-
-      if (fileName === "empty") {
-        QuickStartHandler.SetStartingWorld("empty.sdf");
-        openWorld.enabled = true;
-      } else {
-        // Construct fuel URL
-        var fuelUrl = "https://fuel.gazebosim.org/1.0/" + owner + "/worlds/";
-        fuelUrl += fileName;
-        QuickStartHandler.SetStartingWorld(fuelUrl);
-        openWorld.enabled = true;
-      }
-    }
-  }
-
   function getWorlds(){
     return "file://" + QuickStartHandler.WorldsPath()
   }
 
-  function getColor(fileName){
-    if(fileName == selectedWorld)
+  function getColor(worldId){
+    if(worldId == selectedWorld)
       return Material.primary;
     return "#e0e0e0";
   }
@@ -161,9 +140,7 @@ Rectangle {
             id: fileDelegate
 
             FuelThumbnail {
-              id: filePath
               text: modelData.title
-              owner: modelData.owner
               worldData: modelData
               width: 220
               height: 150
