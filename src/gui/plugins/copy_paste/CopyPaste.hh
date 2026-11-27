@@ -26,6 +26,16 @@
 
 #include "gz/sim/gui/GuiSystem.hh"
 
+#ifndef _WIN32
+#  define CopyPaste_EXPORTS_API __attribute__ ((visibility ("default")))
+#else
+#  if (defined(CopyPaste_EXPORTS))
+#    define CopyPaste_EXPORTS_API __declspec(dllexport)
+#  else
+#    define CopyPaste_EXPORTS_API __declspec(dllimport)
+#  endif
+#endif
+
 namespace gz
 {
 namespace sim
@@ -33,7 +43,7 @@ namespace sim
   class CopyPastePrivate;
 
   /// \brief Plugin for copying/pasting entities in the GUI.
-  class CopyPaste : public gz::sim::GuiSystem
+  class CopyPaste_EXPORTS_API CopyPaste : public gz::sim::GuiSystem
   {
     Q_OBJECT
 
