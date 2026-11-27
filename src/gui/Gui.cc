@@ -30,7 +30,6 @@
 #include <gz/gui/Dialog.hh>
 #include <gz/gui/MainWindow.hh>
 #include <gz/gui/Plugin.hh>
-#include <algorithm>
 #include <iostream>
 #include <memory>
 
@@ -275,13 +274,8 @@ std::string launchQuickStart(int &_argc, char **_argv,
 
   // Configure resizable quick start dialog size clamped to available screen
   const QRect availGeom = dialog->QuickWindow()->screen()->availableGeometry();
-  const int targetW = std::min(1120, static_cast<int>(availGeom.width() * 0.9));
-  const int targetH = std::min(680, static_cast<int>(availGeom.height() * 0.9));
-  const QSize winSize(std::max(1, targetW), std::max(1, targetH));
-  const QSize minSize(
-      std::min(880, winSize.width()),
-      std::min(540, winSize.height()));
-  dialog->QuickWindow()->setMinimumSize(minSize);
+  const QSize winSize = QSize(1120, 680).boundedTo(availGeom.size() * 0.9);
+  dialog->QuickWindow()->setMinimumSize(QSize(880, 540).boundedTo(winSize));
   dialog->QuickWindow()->resize(winSize);
   dialog->QuickWindow()->setTitle("Gazebo Quick Start");
 
