@@ -40,6 +40,7 @@
 #include "test_config.hh"
 
 #include "helpers/Relay.hh"
+#include "helpers/Util.hh"
 #include "helpers/UniqueTestDirectoryEnv.hh"
 #include "helpers/EnvTestFixture.hh"
 
@@ -663,6 +664,54 @@ TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(LevelLoadUnload))
 
   this->server->AddSystem(testSystem.systemPtr);
   this->server->Run(true, nIters, false);
+}
+
+/////////////////////////////////////////////////
+// Check world-frame deployment from a nested model.
+TEST_F(BreadcrumbsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(NestedHost))
+{
+  this->LoadWorld(
+      common::joinPaths("test", "worlds", "breadcrumbs_nested.sdf"));
+
+  std::optional<math::Pose3d> deployedPose;
+  test::Relay testSystem;
+  testSystem.OnPostUpdate(
+      [&](const UpdateInfo &, const EntityComponentManager &_ecm)
+      {
+        const Entity breadcrumb = _ecm.EntityByComponents(
+            components::Model(), components::Name("B_0"));
+        if (breadcrumb == kNullEntity)
+          return;
+
+        // A world child has a world-frame Pose component.
+        const Entity world =
+            _ecm.EntityByComponents(components::Name("breadcrumbs_nested"));
+        ASSERT_NE(kNullEntity, world);
+        EXPECT_EQ(world, _ecm.ParentEntity(breadcrumb));
+        const auto *pose = _ecm.Component<components::Pose>(breadcrumb);
+        ASSERT_NE(nullptr, pose);
+        deployedPose = pose->Data();
+      });
+  this->server->AddSystem(testSystem.systemPtr);
+
+  transport::Node node;
+  auto deploy = node.Advertise<msgs::Empty>("/breadcrumbs_nested/deploy");
+  const uint64_t maxWaitSteps{1000};
+  ASSERT_TRUE(test::StepUntil(
+      *this->server, maxWaitSteps, [&]() { return deploy.HasConnections(); }));
+  ASSERT_TRUE(deploy.Publish(msgs::Empty()));
+
+  ASSERT_TRUE(test::StepUntil(
+      *this->server, maxWaitSteps, [&]() { return deployedPose.has_value(); }));
+
+  const math::Pose3d outer(10, 0, 0, 0, 0, 0.5);
+  const math::Pose3d inner(2, 1, 0, 0, 0, 0.2);
+  const math::Pose3d offset(0.5, -0.2, 0.1, 0, 0, 0.1);
+  const auto expected = outer * inner * offset;
+  EXPECT_NEAR(deployedPose->Pos().X(), expected.Pos().X(), 1e-3);
+  EXPECT_NEAR(deployedPose->Pos().Y(), expected.Pos().Y(), 1e-3);
+  EXPECT_NEAR(deployedPose->Pos().Z(), expected.Pos().Z(), 1e-3);
+  EXPECT_NEAR(deployedPose->Rot().Yaw(), expected.Rot().Yaw(), 1e-3);
 }
 
 /////////////////////////////////////////////////
