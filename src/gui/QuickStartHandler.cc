@@ -37,6 +37,11 @@ namespace
 constexpr const char *kDefaultCatalogResource =
     ":/Gazebo/quickstart_worlds.json";
 constexpr const char *kFuelWorldsBaseUrl = "https://fuel.gazebosim.org/1.0/";
+
+/// \brief String fields copied from each catalog world entry.
+constexpr const char *kWorldStringFields[] = {
+    "id", "title", "description", "category", "source", "owner",
+    "fileName", "fuelName", "thumbnail", "fuelThumbnail"};
 }
 
 QuickStartHandler::QuickStartHandler()
@@ -117,8 +122,7 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
   }
 
   const QJsonObject root = doc.object();
-  if (!root.contains("categories") || !root.value("categories").isArray() ||
-      !root.contains("worlds") || !root.value("worlds").isArray())
+  if (!root.value("categories").isArray() || !root.value("worlds").isArray())
   {
     gzerr << "QuickStart catalog [" << _catalogPath.toStdString()
           << "] is missing required 'categories' or 'worlds' arrays"
@@ -138,18 +142,16 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
 
     const QJsonObject obj = val.toObject();
     QVariantMap entry;
-    entry["id"] = obj.value("id").toString();
-    entry["title"] = obj.value("title").toString();
-    entry["description"] = obj.value("description").toString();
-    entry["category"] = obj.value("category").toString();
-    entry["featured"] = obj.value("featured").toBool(false);
-    entry["source"] = obj.value("source").toString();
-    entry["owner"] = obj.value("owner").toString();
-    entry["fileName"] = obj.value("fileName").toString();
-    entry["fuelName"] = obj.value("fuelName").toString();
-    entry["thumbnail"] = obj.value("thumbnail").toString();
-    entry["fuelThumbnail"] = obj.value("fuelThumbnail").toString();
+    for (const char *field : kWorldStringFields)
+      entry[field] = obj.value(field).toString();
 
+    if (entry["id"].toString().isEmpty() ||
+        entry["title"].toString().isEmpty())
+    {
+      continue;
+    }
+
+    entry["featured"] = obj.value("featured").toBool();
     QStringList tags;
     const QJsonArray tagsArray = obj.value("tags").toArray();
     for (const QJsonValue &tagVal : tagsArray)
@@ -159,16 +161,10 @@ bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
     }
     entry["tags"] = tags;
 
-    if (entry["id"].toString().isEmpty() ||
-        entry["title"].toString().isEmpty())
-    {
-      continue;
-    }
-
     parsedWorlds.append(entry);
     const QString cat = entry["category"].toString();
     if (!cat.isEmpty())
-      categoryCounts[cat] = categoryCounts.value(cat, 0) + 1;
+      ++categoryCounts[cat];
     if (entry["featured"].toBool())
       ++featuredCount;
   }
