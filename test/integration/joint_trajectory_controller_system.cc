@@ -21,6 +21,8 @@
 #include <gz/msgs/joint_trajectory.pb.h>
 
 #include <array>
+#include <chrono>
+#include <thread>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
@@ -48,6 +50,31 @@ using namespace sim;
 class JointTrajectoryControllerTestFixture
   : public InternalFixture<::testing::Test>
 {
+  /// \brief Record the position of a joint while running without throttling.
+  protected: void RecordJointPosition(Server &_server,
+      const std::string &_jointName)
+  {
+    using namespace std::chrono_literals;
+    _server.SetUpdatePeriod(0ns);
+
+    test::Relay testSystem;
+    testSystem.OnPostUpdate([this, _jointName](const UpdateInfo &,
+        const EntityComponentManager &_ecm)
+        {
+          const auto joint = _ecm.EntityByComponents(components::Joint(),
+              components::Name(_jointName));
+          const auto *position =
+              _ecm.Component<components::JointPosition>(joint);
+          if (position && !position->Data().empty())
+          {
+            this->jointPosition = position->Data()[0];
+          }
+        });
+    _server.AddSystem(testSystem.systemPtr);
+  }
+
+  /// \brief Latest sampled position of the joint, in radians.
+  protected: double jointPosition{0.0};
 };
 
 /////////////////////////////////////////////////
@@ -395,4 +422,150 @@ TEST_F(JointTrajectoryControllerTestFixture,
     // Keep track of how many iterations have already passed
     previousIterFromStart = iterFromStart;
   }
+}
+
+namespace
+{
+constexpr char kHeaderStartWorld[] =
+    "joint_trajectory_controller_header_start_time.sdf";
+constexpr char kRotorTopic[] = "/model/rotor/joint_trajectory";
+
+ServerConfig TrajectoryConfig(const std::string &_world)
+{
+  ServerConfig config;
+  config.SetSdfFile(
+      std::string(PROJECT_SOURCE_PATH) + "/test/worlds/" + _world);
+  return config;
+}
+
+msgs::JointTrajectory RotorTrajectory()
+{
+  msgs::JointTrajectory msg;
+  msg.add_joint_names("hinge");
+  auto *first = msg.add_points();
+  first->add_positions(0.3);
+  first->mutable_time_from_start()->set_sec(1);
+  first->mutable_time_from_start()->set_nsec(500000000);
+  auto *second = msg.add_points();
+  second->add_positions(0.6);
+  second->mutable_time_from_start()->set_sec(3);
+  return msg;
+}
+
+void PublishTrajectory(transport::Node::Publisher &_publisher,
+    const msgs::JointTrajectory &_msg)
+{
+  using namespace std::chrono_literals;
+  EXPECT_TRUE(_publisher.Publish(_msg));
+  std::this_thread::sleep_for(100ms);
+}
+}  // namespace
+
+/////////////////////////////////////////////////
+TEST_F(JointTrajectoryControllerTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerHeaderStartTime))
+{
+  Server server(TrajectoryConfig(kHeaderStartWorld));
+  this->RecordJointPosition(server, "hinge");
+  transport::Node node;
+  auto pub = node.Advertise<msgs::JointTrajectory>(kRotorTopic);
+
+  ASSERT_TRUE(server.Run(true, 10, false));
+  // The controller must keep driving toward -0.2 rad during the wait.
+  EXPECT_GT(this->jointPosition, -0.1);
+
+  auto msg = RotorTrajectory();
+  msg.mutable_header()->mutable_stamp()->set_sec(3);
+  PublishTrajectory(pub, msg);
+
+  ASSERT_TRUE(server.Run(true, 1990, false));  // t = 2.0 s
+  EXPECT_NEAR(this->jointPosition, -0.2, 0.01);
+  ASSERT_TRUE(server.Run(true, 999, false));  // t = 2.999 s
+  EXPECT_NEAR(this->jointPosition, -0.2, 0.01);
+
+  ASSERT_TRUE(server.Run(true, 1501, false));  // t = 4.5 s
+  EXPECT_NEAR(this->jointPosition, 0.3, 0.01);
+  ASSERT_TRUE(server.Run(true, 2000, false));  // t = 6.5 s
+  EXPECT_NEAR(this->jointPosition, 0.6, 0.01);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointTrajectoryControllerTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(
+        JointTrajectoryControllerUnstampedAfterStamped))
+{
+  Server server(TrajectoryConfig(kHeaderStartWorld));
+  this->RecordJointPosition(server, "hinge");
+  transport::Node node;
+  auto pub = node.Advertise<msgs::JointTrajectory>(kRotorTopic);
+
+  ASSERT_TRUE(server.Run(true, 10, false));
+  PublishTrajectory(pub, RotorTrajectory());
+  ASSERT_TRUE(server.Run(true, 1500, false));  // t = 1.51 s
+  ASSERT_NEAR(this->jointPosition, 0.3, 0.01);
+
+  auto stamped = RotorTrajectory();
+  stamped.mutable_header()->mutable_stamp()->set_sec(5);
+  PublishTrajectory(pub, stamped);
+  // Without the stamped command, the active trajectory would reach 0.6 rad.
+  ASSERT_TRUE(server.Run(true, 1500, false));  // t = 3.01 s
+  ASSERT_NEAR(this->jointPosition, 0.3, 0.01);
+
+  msgs::JointTrajectory replacement;
+  replacement.mutable_header()->add_data()->set_key("frame_id");
+  replacement.add_joint_names("hinge");
+  auto *first = replacement.add_points();
+  first->add_positions(0.3);
+  first->mutable_time_from_start()->set_nsec(100000000);
+  auto *last = replacement.add_points();
+  last->add_positions(-0.6);
+  last->mutable_time_from_start()->set_sec(1);
+  PublishTrajectory(pub, replacement);
+
+  ASSERT_TRUE(server.Run(true, 1800, false));  // t = 4.81 s, before 5 s
+  EXPECT_NEAR(this->jointPosition, -0.6, 0.01);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointTrajectoryControllerTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerPastStartTime))
+{
+  Server server(TrajectoryConfig(kHeaderStartWorld));
+  this->RecordJointPosition(server, "hinge");
+  transport::Node node;
+  auto pub = node.Advertise<msgs::JointTrajectory>(kRotorTopic);
+
+  ASSERT_TRUE(server.Run(true, 3000, false));
+  auto msg = RotorTrajectory();
+  msg.mutable_header()->mutable_stamp()->set_sec(1);
+  PublishTrajectory(pub, msg);
+
+  ASSERT_TRUE(server.Run(true, 1500, false));  // t = 4.5 s
+  EXPECT_NEAR(this->jointPosition, 0.3, 0.01);
+  ASSERT_TRUE(server.Run(true, 2000, false));  // t = 6.5 s
+  EXPECT_NEAR(this->jointPosition, 0.6, 0.01);
+}
+
+/////////////////////////////////////////////////
+TEST_F(JointTrajectoryControllerTestFixture,
+    GZ_UTILS_TEST_DISABLED_ON_WIN32(JointTrajectoryControllerDefaultStartTime))
+{
+  Server server(TrajectoryConfig("joint_trajectory_controller.sdf"));
+  this->RecordJointPosition(server, "RR_position_control_joint1");
+  transport::Node node;
+  auto pub = node.Advertise<msgs::JointTrajectory>(
+      "/model/RR_position_control/joint_trajectory");
+
+  ASSERT_TRUE(server.Run(true, 10, false));
+  msgs::JointTrajectory msg;
+  msg.mutable_header()->mutable_stamp()->set_sec(3);
+  msg.add_joint_names("RR_position_control_joint1");
+  msg.add_joint_names("RR_position_control_joint2");
+  auto *point = msg.add_points();
+  point->add_positions(-0.7854);
+  point->add_positions(0.7854);
+  PublishTrajectory(pub, msg);
+
+  ASSERT_TRUE(server.Run(true, 666, false));  // t = 0.676 s, before 3 s
+  EXPECT_NEAR(this->jointPosition, -0.7854, TOL);
 }

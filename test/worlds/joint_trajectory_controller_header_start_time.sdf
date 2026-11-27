@@ -1,0 +1,44 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="default">
+    <gravity>0 0 0</gravity>
+    <physics name="fast" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <model name="rotor">
+      <link name="base"/>
+      <link name="arm">
+        <pose>0 0.5 0 0 0 0</pose>
+        <inertial>
+          <mass>1</mass>
+          <inertia>
+            <ixx>1</ixx>
+            <iyy>1</iyy>
+            <izz>1</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="fixed" type="fixed">
+        <parent>world</parent>
+        <child>base</child>
+      </joint>
+      <joint name="hinge" type="revolute">
+        <parent>base</parent>
+        <child>arm</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-joint-trajectory-controller-system"
+              name="gz::sim::systems::JointTrajectoryController">
+        <joint_name>hinge</joint_name>
+        <use_header_start_time>true</use_header_start_time>
+        <initial_position>-0.2</initial_position>
+        <position_p_gain>50</position_p_gain>
+        <position_d_gain>8</position_d_gain>
+      </plugin>
+    </model>
+  </world>
+</sdf>
