@@ -19,6 +19,8 @@
 
 #include <QObject>
 #include <QString>
+#include <QVariantList>
+#include <QVariantMap>
 #include <string>
 
 #include "gz/sim/config.hh"

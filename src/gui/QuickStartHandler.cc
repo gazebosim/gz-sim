@@ -23,10 +23,12 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSet>
+#include <QStringList>
 #include <QUrl>
 
 #include "gz/sim/InstallationDirectories.hh"
