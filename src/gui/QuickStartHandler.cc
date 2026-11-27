@@ -133,30 +133,31 @@ bool QuickStartHandler::ShowAgain() const
 /////////////////////////////////////////////////
 bool QuickStartHandler::LoadCatalog(const QString &_catalogPath)
 {
+  const std::string path = _catalogPath.toStdString();
   QFile file(_catalogPath);
   if (!file.open(QIODevice::ReadOnly))
   {
-    gzerr << "Failed to open QuickStart catalog ["
-          << _catalogPath.toStdString() << "]" << std::endl;
+    gzerr << "Failed to open QuickStart catalog [" << path << "]: "
+          << file.errorString().toStdString() << std::endl;
     return false;
   }
 
   QJsonParseError parseErr;
   const QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &parseErr);
-  if (parseErr.error != QJsonParseError::NoError || !doc.isObject())
+  if (parseErr.error != QJsonParseError::NoError)
   {
-    gzerr << "Failed to parse QuickStart catalog ["
-          << _catalogPath.toStdString() << "]: "
+    gzerr << "Failed to parse QuickStart catalog [" << path << "] at offset "
+          << parseErr.offset << ": "
           << parseErr.errorString().toStdString() << std::endl;
     return false;
   }
 
+  // doc.object() is empty when the root is not an object
   const QJsonObject root = doc.object();
   if (!root.value("categories").isArray() || !root.value("worlds").isArray())
   {
-    gzerr << "QuickStart catalog [" << _catalogPath.toStdString()
-          << "] is missing required 'categories' or 'worlds' arrays"
-          << std::endl;
+    gzerr << "QuickStart catalog [" << path << "] must be a JSON object "
+          << "with 'categories' and 'worlds' arrays" << std::endl;
     return false;
   }
 
