@@ -130,6 +130,9 @@ struct SimOptions
   /// download before starting simulation. A value of 0 (false) will
   /// download simulation assets in a separate thread.
   int waitForAssets{0};
+
+  /// \brief Simulation policies (<name>=<value>) to apply to the world.
+  std::vector<std::string> policies{};
 };
 
 #ifdef WITH_GUI
@@ -412,6 +415,11 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
 
   _app.add_flag("--wait-for-assets", _opt->waitForAssets,
                 "Wait assets before starting simulation.");
+
+  _app.add_option("--policy", _opt->policies,
+                  "Set or override a simulation policy (<gz:policies>).\n"
+                  "Format: <policy_name>=<value> (e.g. frame_ids=namespaced).\n"
+                  "Can be specified multiple times.");
 }
 
 //////////////////////////////////////////////////
@@ -525,7 +533,8 @@ int main(int argc, char** argv)
               opt->renderEngineGui.c_str(),
               opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
               opt->recordTopics, opt->waitGui, opt->headlessRendering,
-              opt->recordPeriod, opt->seed, opt->waitForAssets) != 0)
+              opt->recordPeriod, opt->seed, opt->waitForAssets,
+              opt->policies) != 0)
     {
       return -1;
     }
@@ -580,7 +589,8 @@ int main(int argc, char** argv)
                 opt->renderEngineGui.c_str(),
                 opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
                 opt->recordTopics, opt->waitGui, opt->headlessRendering,
-                opt->recordPeriod, opt->seed, opt->waitForAssets) != 0)
+                opt->recordPeriod, opt->seed, opt->waitForAssets,
+                opt->policies) != 0)
       {
         return -1;
       }

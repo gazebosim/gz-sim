@@ -1,0 +1,145 @@
+<?xml version="1.0" ?>
+<!--
+  URDF Fixed-Joint Lumping & Frame ID Demo
+
+  When SDFormat parses a URDF (`frame_ids_lumped_robot.urdf`), it lumps fixed
+  joints unless `<preserveFixedJoint>true</preserveFixedJoint>` is set:
+    - `imu_link` and `lidar_link` are removed as `<link>` elements and merged
+      into `base_link`, moving `imu_sensor` and `gpu_lidar` onto `base_link`
+      (notice their auto-generated topics are under `.../link/base_link/sensor/...`).
+    - `preserved_imu_link` has `<preserveFixedJoint>true</preserveFixedJoint>`,
+      so it remains a separate `<link>` entity (`.../link/preserved_imu_link/sensor/...`).
+
+  This world spawns the same URDF twice to compare `PosePublisher` behavior:
+    1. `robot1` (`publish_sensor_pose = false`, the default):
+       - `/model/robot1/pose_static` ONLY has `base_link -> preserved_imu_link`!
+       - `base_link -> lidar_link` is MISSING because `lidar_link` was lumped
+         into `base_link` and is no longer a link entity in Gazebo, even though
+         `gpu_lidar` publishes scans with `frame_id: "lidar_link"`.
+    2. `robot2` (`publish_sensor_pose = true`):
+       - `/model/robot2/pose_static` reconstructs `base_link -> lidar_link`
+         (pose 0.6 0 0.4) and `base_link -> imu_sensor` (pose 0.2 0 0.3) from
+         the lumped sensors on `base_link`.
+       - For `preserved_imu_link` (which was NOT lumped), `PosePublisher`
+         publishes the link transform `base_link -> preserved_imu_link` (pose -0.4 0 0.3)
+         and automatically skips the redundant `preserved_imu_link -> preserved_imu_link`
+         sensor self-transform!
+
+  Run (default `local` policy, or add `--policy frame_ids=namespaced` / `--policy frame_ids=scoped`):
+    export GZ_IP=127.0.0.1
+    /opt/homebrew/bin/pixi run gz sim -s -r frame_ids_joint_lumping.sdf
+    # or:
+    /opt/homebrew/bin/pixi run gz sim -s -r --policy frame_ids=namespaced frame_ids_joint_lumping.sdf
+
+  Compare static transforms published for robot1 vs robot2:
+    export GZ_IP=127.0.0.1
+    /opt/homebrew/bin/pixi run gz topic -e -t /model/robot1/pose_static -n 1
+    /opt/homebrew/bin/pixi run gz topic -e -t /model/robot2/pose_static -n 1
+
+  Inspect sensor message headers (note `/link/base_link/` in the lumped sensor topics):
+    /opt/homebrew/bin/pixi run gz topic -e -t /world/frame_ids_joint_lumping/model/robot2/link/base_link/sensor/imu_sensor/imu -n 1
+    /opt/homebrew/bin/pixi run gz topic -e -t /world/frame_ids_joint_lumping/model/robot2/link/base_link/sensor/gpu_lidar/scan -n 1
+    /opt/homebrew/bin/pixi run gz topic -e -t /world/frame_ids_joint_lumping/model/robot2/link/preserved_imu_link/sensor/preserved_imu/imu -n 1
+-->
+<sdf version="1.12">
+  <world name="frame_ids_joint_lumping">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="obstacle_box">
+      <static>true</static>
+      <pose>3 0 0.5 0 0 0</pose>
+      <link name="box_link">
+        <collision name="collision">
+          <geometry><box><size>1 4 1</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>1 4 1</size></box></geometry>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Instance 1: publish_sensor_pose = false (default)
+         Demonstrates that lumped URDF links (`lidar_link`, `imu_link`) disappear
+         from PosePublisher's static TF output. -->
+    <include>
+      <name>robot1</name>
+      <namespace>robot1</namespace>
+      <pose>0 1.5 0.325 0 0 0</pose>
+      <uri>gz/gz-sim/worlds/frame_ids_lumped_robot.urdf</uri>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_sensor_pose>false</publish_sensor_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <static_publisher>true</static_publisher>
+        <update_frequency>5</update_frequency>
+        <static_update_frequency>1</static_update_frequency>
+      </plugin>
+    </include>
+
+    <!-- Instance 2: publish_sensor_pose = true
+         Reconstructs `base_link -> lidar_link` (from `<frame_id>lidar_link</frame_id>`)
+         and `base_link -> imu_sensor` for the lumped sensors, while skipping the
+         redundant `preserved_imu_link -> preserved_imu_link` self-transform. -->
+    <include>
+      <name>robot2</name>
+      <namespace>robot2</namespace>
+      <pose>0 -1.5 0.325 0 0 0</pose>
+      <uri>gz/gz-sim/worlds/frame_ids_lumped_robot.urdf</uri>
+      <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>true</publish_link_pose>
+        <publish_sensor_pose>true</publish_sensor_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+        <static_publisher>true</static_publisher>
+        <update_frequency>5</update_frequency>
+        <static_update_frequency>1</static_update_frequency>
+      </plugin>
+    </include>
+
+  </world>
+</sdf>

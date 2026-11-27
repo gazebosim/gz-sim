@@ -436,6 +436,22 @@ void DiffDrive::Configure(const Entity &_entity,
 
   if (_sdf->HasElement("child_frame_id"))
     this->dataPtr->sdfChildFrameId = _sdf->Get<std::string>("child_frame_id");
+
+  if (frameIdPolicy(_ecm) != FrameIdPolicy::kScoped)
+  {
+    const std::string prefix = framePrefix(_ecm, this->dataPtr->model.Entity());
+    this->dataPtr->sdfFrameId = resolveFrameId(prefix,
+        this->dataPtr->sdfFrameId.empty() ? "odom" : this->dataPtr->sdfFrameId);
+
+    std::optional<std::string> linkName =
+        this->dataPtr->canonicalLink.Name(_ecm);
+    std::string rawChild = this->dataPtr->sdfChildFrameId.empty() ?
+        linkName.value_or("") : this->dataPtr->sdfChildFrameId;
+    if (!rawChild.empty())
+    {
+      this->dataPtr->sdfChildFrameId = resolveFrameId(prefix, rawChild);
+    }
+  }
 }
 
 //////////////////////////////////////////////////

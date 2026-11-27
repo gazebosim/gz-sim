@@ -43,6 +43,12 @@ namespace components
       serializers::StringSerializer>;
   GZ_SIM_DECLARE_COMPONENT("gz_sim_components.SensorTopic",
       SensorTopic)
+
+  /// \brief Explicit frame_id or gz_frame_id configured on a sensor in SDF.
+  using SensorFrameId = Component<std::string, class SensorFrameIdTag,
+      serializers::StringSerializer>;
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.SensorFrameId",
+      SensorFrameId)
 }
 }
 }
