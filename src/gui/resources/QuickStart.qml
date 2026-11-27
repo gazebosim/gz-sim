@@ -35,6 +35,7 @@ Rectangle {
 
 
   id: quickStart
+  objectName: "quickStart"
   anchors.fill: parent
   property var selectedWorld: ""
 
@@ -42,44 +43,33 @@ Rectangle {
     QuickStartHandler.SetShowAgain(checked);
   }
 
-  function loadWorld(file){
-    if (file === quickStart.selectedWorld) {
-      openWorld.enabled = false;
-      quickStart.selectedWorld = "";
-    } else {
-      QuickStartHandler.SetStartingWorld(file);
-      openWorld.enabled = true;
-      quickStart.selectedWorld = file;
-    }
+  // Select the world identified by key to launch uri, or deselect it if it
+  // is already selected or uri is empty. A deselected world is not launched
+  // on close.
+  function selectWorld(key, uri) {
+    var select = key !== quickStart.selectedWorld && uri !== "";
+    quickStart.selectedWorld = select ? key : "";
+    openWorld.enabled = select;
+    QuickStartHandler.SetStartingWorld(select ? uri : "");
   }
 
-  function loadFuelWorld(fileName, owner){
-    if (quickStart.selectedWorld === fileName) {
-      openWorld.enabled = false;
-      quickStart.selectedWorld = '';
-    } else {
+  function loadWorld(file){
+    selectWorld(file, file);
+  }
 
-      quickStart.selectedWorld = fileName;
-
-      if (fileName === "empty") {
-        QuickStartHandler.SetStartingWorld("empty.sdf");
-        openWorld.enabled = true;
-      } else {
-        // Construct fuel URL
-        var fuelUrl = "https://fuel.gazebosim.org/1.0/" + owner + "/worlds/";
-        fuelUrl += fileName;
-        QuickStartHandler.SetStartingWorld(fuelUrl);
-        openWorld.enabled = true;
-      }
-    }
+  function loadCatalogWorld(world) {
+    var uri = QuickStartHandler.ResolveWorldUri(world);
+    if (uri === "")
+      console.error("QuickStart: cannot resolve world [" + world.id + "]");
+    selectWorld(world.id, uri);
   }
 
   function getWorlds(){
     return "file://" + QuickStartHandler.WorldsPath()
   }
 
-  function getColor(fileName){
-    if(fileName == selectedWorld)
+  function getColor(worldId){
+    if(worldId == selectedWorld)
       return Material.primary;
     return "#e0e0e0";
   }
@@ -141,29 +131,22 @@ Rectangle {
           Layout.fillWidth: true
           Layout.fillHeight: true
 
-          FolderListModel {
-            id: folderModel
-            showDirs: false
-            nameFilters: ["*.png"]
-            folder: getWorlds() + "/thumbnails/"
-          }
-
           Component {
             id: fileDelegate
 
             FuelThumbnail {
-              id: filePath
-              text: fileName.split('.')[1]
-              owner: fileName.split('.')[0]
+              text: modelData.title
+              worldData: modelData
               width: 220
               height: 150
               smooth: true
-              source: fileUrl
-              border.color: getColor(fileName.split('.')[1])
+              source: QuickStartHandler.ResolveThumbnailUrl(modelData)
+              border.color: getColor(modelData.id)
             }
           }
           GridView {
             id: gridView
+            objectName: "featuredGrid"
             width: parent.width
             height: parent.height
             interactive: false
@@ -177,7 +160,7 @@ Rectangle {
             cellWidth: 240
             cellHeight: 205
 
-            model: folderModel
+            model: QuickStartHandler.FeaturedWorlds()
             delegate: fileDelegate
           }
         }

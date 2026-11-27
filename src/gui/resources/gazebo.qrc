@@ -3,6 +3,7 @@
     <file>FuelThumbnail.qml</file>
     <file>GazeboDrawer.qml</file>
     <file>QuickStart.qml</file>
+    <file>quickstart_worlds.json</file>
     <file>images/actor.png</file>
     <file>images/chevron-down.svg</file>
     <file>images/chevron-right.svg</file>

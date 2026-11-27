@@ -17,6 +17,9 @@
 
 #include <gtest/gtest.h>
 
+#include <QQuickItem>
+#include <QQuickWindow>
+
 #include <gz/msgs/gui.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
 #include <gz/msgs/stringmsg_v.pb.h>
@@ -34,6 +37,20 @@
 #include "QuickStartHandler.hh"
 
 #include "../../test/helpers/EnvTestFixture.hh"
+
+/// \brief Find an item or one of its descendant items by object name.
+QQuickItem *findItem(QQuickItem *_root, const QString &_name)
+{
+  QList<QQuickItem *> items{_root};
+  while (!items.isEmpty())
+  {
+    QQuickItem *item = items.takeFirst();
+    if (item->objectName() == _name)
+      return item;
+    items.append(item->childItems());
+  }
+  return nullptr;
+}
 
 int gg_argc = 1;
 char* gg_argv[] =
@@ -230,7 +247,8 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     for (int sleep = 0;
         (nullptr == gui::App( ) ||
          gui::App()->allWindows().empty() ||
-         !gui::App()->allWindows()[0]->isVisible())
+         !gui::App()->allWindows()[0]->isVisible() ||
+         nullptr == gui::App()->Engine()->findChild<QuickStartHandler *>())
         && sleep < 30; ++sleep)
     {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -255,6 +273,25 @@ TEST_F(GuiTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(QuickStart))
     std::this_thread::sleep_for(std::chrono::milliseconds(3000));
     while (!gui::App()->allWindows()[0]->isExposed())
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    // Select and deselect a featured card through the dialog's QML
+    auto window = qobject_cast<QQuickWindow *>(gui::App()->allWindows()[0]);
+    ASSERT_NE(nullptr, window);
+    QQuickItem *quickStart = findItem(window->contentItem(), "quickStart");
+    ASSERT_NE(nullptr, quickStart);
+    auto grid = quickStart->findChild<QQuickItem *>("featuredGrid");
+    ASSERT_NE(nullptr, grid);
+    EXPECT_EQ(handler->FeaturedWorlds().size(),
+              grid->property("count").toInt());
+    const QVariant emptyWorld = handler->Worlds("featured", "local").value(0);
+    for (const char *expected : {"empty.sdf", ""})
+    {
+      QMetaObject::invokeMethod(quickStart, "loadCatalogWorld",
+          Qt::BlockingQueuedConnection, Q_ARG(QVariant, emptyWorld));
+      EXPECT_EQ(expected, handler->StartingWorld());
+    }
+    handler->SetStartingWorld("banana");
+
     gui::App()->allWindows()[0]->close();
 
     gzdbg << "Waiting for main window" << std::endl;

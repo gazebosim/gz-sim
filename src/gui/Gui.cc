@@ -250,9 +250,6 @@ std::string launchQuickStart(int &_argc, char **_argv,
     _argc, _argv, gz::gui::WindowType::kDialog);
   app->SetDefaultConfigPath(_defaultConfig);
 
-  auto quickStartHandler = new QuickStartHandler();
-  quickStartHandler->setParent(app->Engine());
-
   auto dialog = new gz::gui::Dialog();
   dialog->setObjectName("quick_start");
 
@@ -270,6 +267,10 @@ std::string launchQuickStart(int &_argc, char **_argv,
     gzmsg << "Not showing Quick start menu." << std::endl;
     return "";
   }
+
+  // Created only when the dialog is shown, since it loads the world catalog
+  auto quickStartHandler = new QuickStartHandler();
+  quickStartHandler->setParent(app->Engine());
 
   // This is the fixed window size for the quick start dialog
   QSize winSize(960, 540);
