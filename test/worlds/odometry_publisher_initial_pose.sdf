@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<!--
+  Four models that start at rest away from the world origin. There is no
+  gravity and nothing pushes them, so the odometry must report zero twist.
+-->
+<sdf version="1.6">
+  <world name="odometry_initial_pose">
+
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <gravity>0 0 0</gravity>
+
+    <!-- 2D odometry (default) -->
+    <model name="vehicle_2d">
+      <pose>3 -2 1 0 0 0.7</pose>
+      <link name="link"/>
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+        <odom_publish_frequency>1000</odom_publish_frequency>
+      </plugin>
+    </model>
+
+    <!-- 3D odometry, with roll and pitch -->
+    <model name="vehicle_3d">
+      <pose>3 -2 1 0.2 -0.3 0.7</pose>
+      <link name="link"/>
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>1000</odom_publish_frequency>
+      </plugin>
+    </model>
+
+    <!-- 3D odometry with an offset in the model frame, the pose that is
+         reported differs from the pose of the model -->
+    <model name="vehicle_offset">
+      <pose>3 -2 1 0.2 -0.3 0.7</pose>
+      <link name="link"/>
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>1000</odom_publish_frequency>
+        <xyz_offset>1 -1 0</xyz_offset>
+        <rpy_offset>1.5708 0 0</rpy_offset>
+      </plugin>
+    </model>
+
+    <!-- 3D odometry with offsets in the model frame and in the world frame -->
+    <model name="vehicle_global_offset">
+      <pose>3 -2 1 0.2 -0.3 0.7</pose>
+      <link name="link"/>
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>1000</odom_publish_frequency>
+        <xyz_offset>1 -1 0</xyz_offset>
+        <rpy_offset>1.5708 0 0</rpy_offset>
+        <xyz_global_offset>5 4 0</xyz_global_offset>
+        <rpy_global_offset>0 0 0.3</rpy_global_offset>
+      </plugin>
+    </model>
+
+  </world>
+</sdf>

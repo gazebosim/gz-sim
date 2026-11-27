@@ -453,7 +453,7 @@ void LookupWheelSlipPrivate::UpdateParams(
         linkEnt, kFrictionCoefficientSecondaryParamName, _ecm);
 
     const unsigned int channels = 3u;
-    unsigned int idx = (v * this->slipMapImg.Height() + u) * channels;
+    unsigned int idx = (v * this->slipMapImg.Width() + u) * channels;
 
     int latDeltaScale = static_cast<int>(
         this->slipMapRgb[idx + kLateralColorChannel] - kNominalColor);

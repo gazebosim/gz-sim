@@ -16,11 +16,14 @@
  */
 #include <gtest/gtest.h>
 
+#include <cstddef>
+
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/math/Pose3.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "gz/sim/components/Link.hh"
@@ -30,7 +33,6 @@
 
 #include "test_config.hh"
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -62,70 +64,73 @@ TEST_F(NestedModelPhysicsTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(Movement))
   using namespace std::chrono_literals;
   server.SetUpdatePeriod(1ms);
 
-  std::size_t iterations = 1000;
+  constexpr std::size_t kIterations = 1000;
+  constexpr double kEpsilon = 1e-2;
+  // base_link does not move in this world
+  const math::Pose3d expectedBaseLinkPose(0, 0, 0.5, 0, 0, 0);
+  // link_01 starts 2m from link_00, which sits 3m above its model origin
+  const math::Pose3d expectedLink01StartPose(0, 2, 3, 0, 0, 0);
 
-  bool finished = false;
-  test::Relay testSystem;
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &_info,
-                             const sim::EntityComponentManager &_ecm)
+  auto expectBaseLinkStatic = [&](const EntityComponentManager &_ecm,
+                                  Entity _baseLink)
   {
-    // Check pose
-    Entity baseLink = _ecm.EntityByComponents(
-        components::Link(),
-        components::Name("base_link"));
-    ASSERT_NE(baseLink, kNullEntity);
+    auto baseLinkPose = _ecm.Component<components::Pose>(_baseLink);
+    ASSERT_NE(nullptr, baseLinkPose);
+    EXPECT_NEAR(expectedBaseLinkPose.X(), baseLinkPose->Data().Pos().X(),
+        kEpsilon);
+    EXPECT_NEAR(expectedBaseLinkPose.Y(), baseLinkPose->Data().Pos().Y(),
+        kEpsilon);
+    EXPECT_NEAR(expectedBaseLinkPose.Z(), baseLinkPose->Data().Pos().Z(),
+        kEpsilon);
+  };
 
-    Entity link01 = _ecm.EntityByComponents(
-        components::Link(), components::Name("link_01"));
-    ASSERT_NE(link01, kNullEntity);
+  // Run one iteration so that the physics entities are created
+  server.Run(true, 1, false);
+
+  Entity baseLink{kNullEntity};
+  Entity link01{kNullEntity};
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
 
     // Get the top level model
-    auto topModel = _ecm.EntityByComponents(
-      components::Name(
-        "include_connected_nested_new_name"),
-      components::Model());
-    ASSERT_NE(topModel, kNullEntity);
+    EXPECT_NE(kNullEntity, ecm->EntityByComponents(
+        components::Name("include_connected_nested_new_name"),
+        components::Model()));
 
-    auto baseLinkPose = _ecm.Component<components::Pose>(baseLink);
-    ASSERT_NE(baseLinkPose , nullptr);
+    baseLink = ecm->EntityByComponents(
+        components::Link(), components::Name("base_link"));
+    ASSERT_NE(kNullEntity, baseLink);
+    link01 = ecm->EntityByComponents(
+        components::Link(), components::Name("link_01"));
+    ASSERT_NE(kNullEntity, link01);
 
-    auto link01Pose = _ecm.Component<components::Pose>(link01);
-    ASSERT_NE(link01Pose , nullptr);
+    expectBaseLinkStatic(*ecm, baseLink);
 
-    constexpr double epsilon = 1e-2;
-    // base_link does not move in this world
-    const gz::math::Pose3d expectedBazeLinkPose(0, 0, 0.5, 0, 0, 0);
-    const gz::math::Pose3d expectedLink01StartPose(0, 2, 0, 0, 0, 0);
+    // link_01 is still at its initial pose
+    auto link01Pose = ecm->Component<components::Pose>(link01);
+    ASSERT_NE(nullptr, link01Pose);
+    EXPECT_NEAR(expectedLink01StartPose.X(), link01Pose->Data().Pos().X(),
+        kEpsilon);
+    EXPECT_NEAR(expectedLink01StartPose.Y(), link01Pose->Data().Pos().Y(),
+        kEpsilon);
+    EXPECT_NEAR(expectedLink01StartPose.Z(), link01Pose->Data().Pos().Z(),
+        kEpsilon);
+  }
 
-    EXPECT_NEAR(
-      expectedBazeLinkPose.X(), baseLinkPose->Data().Pos().X(), epsilon);
-    EXPECT_NEAR(
-      expectedBazeLinkPose.Y(), baseLinkPose->Data().Pos().Y(), epsilon);
-    EXPECT_NEAR(
-      expectedBazeLinkPose.Z(), baseLinkPose->Data().Pos().Z(), epsilon);
+  server.Run(true, kIterations - 1, false);
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
 
-    if (_info.iterations == 0)
-    {
-      EXPECT_NEAR(
-        expectedLink01StartPose.X(), link01Pose->Data().Pos().X(), epsilon);
-      EXPECT_NEAR(
-        expectedLink01StartPose.Y(), link01Pose->Data().Pos().Y(), epsilon);
-      EXPECT_NEAR(
-        expectedLink01StartPose.Z(), link01Pose->Data().Pos().Z(), epsilon);
-    }
-    else if (_info.iterations == iterations)
-    {
-      EXPECT_NEAR(
-        expectedLink01StartPose.X(), link01Pose->Data().Pos().X(), epsilon);
+    expectBaseLinkStatic(*ecm, baseLink);
 
-      // Rough approximation on its whereabouts after 1 second
-      EXPECT_NEAR(-0.36, link01Pose->Data().Pos().Y(), 0.1);
-      EXPECT_NEAR(1.03, link01Pose->Data().Pos().Z(), 0.1);
-      finished = true;
-    }
-  });
-
-  server.AddSystem(testSystem.systemPtr);
-  server.Run(true, iterations, false);
-  EXPECT_TRUE(finished);
+    auto link01Pose = ecm->Component<components::Pose>(link01);
+    ASSERT_NE(nullptr, link01Pose);
+    EXPECT_NEAR(expectedLink01StartPose.X(), link01Pose->Data().Pos().X(),
+        kEpsilon);
+    // Rough approximation on its whereabouts after 1 second
+    EXPECT_NEAR(-0.36, link01Pose->Data().Pos().Y(), 0.1);
+    EXPECT_NEAR(1.03, link01Pose->Data().Pos().Z(), 0.1);
+  }
 }

@@ -42,7 +42,7 @@ namespace components
   using Atmosphere =
       Component<sdf::Atmosphere, class AtmosphereTag,
       serializers::AtmosphereSerializer>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.Atmosphere", Atmosphere)
 }
 }

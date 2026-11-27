@@ -610,10 +610,12 @@ void AdvancedLiftDragPrivate::Update(EntityComponentManager &_ecm)
   // trigonometric functions for the post-stall regime. Both functions are
   // blended in with the sigmoid function.
   // CL_prestall = this->CL0 + this->CLa*ths->alpha
-  // CL_poststall = 2*(this->alpha/abs(this->alpha))*pow(sinAlpha,2.0)*cosAlpha
+  // CL_poststall = 2*sign(alpha)*pow(sinAlpha,2.0)*cosAlpha
 
+  // Use a finite sign at zero, where the post-stall lift vanishes.
+  const double alphaSign = std::copysign(1.0, this->alpha);
   CL = (1-sigma)*(this->CL0 + this->CLa*this->alpha) + sigma*(
-    2*(this->alpha/abs(this->alpha))*sinAlpha*sinAlpha*cosAlpha);
+    2*alphaSign*sinAlpha*sinAlpha*cosAlpha);
 
   // Add sideslip effect, if any
   CL = CL + this->CLb*this->beta;

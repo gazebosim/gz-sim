@@ -17,14 +17,22 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <string>
+#include <vector>
+
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/double.pb.h>
+#include <gz/msgs/Utility.hh>
 
 #include <gz/common/Console.hh>
 #include <gz/common/Util.hh>
 #include <gz/math/Helpers.hh>
 #include <gz/transport/Node.hh>
 #include <gz/transport/Publisher.hh>
+#include <gz/transport/WaitHelpers.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "gz/sim/Link.hh"
@@ -35,6 +43,7 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/World.hh"
 
+#include "gz/sim/components/ExternalWorldWrenchCmd.hh"
 #include "gz/sim/components/JointAxis.hh"
 #include "gz/sim/components/Pose.hh"
 
@@ -91,6 +100,8 @@ void ThrusterTest::TestWorld(const std::string &_world,
   math::Pose3d jointPose, linkWorldPose;
   math::Vector3d jointAxis;
   double dt{0.0};
+  // Magnitude of the wrench the thruster applied in the current step.
+  double appliedThrust{0.0};
   fixture.
   OnConfigure(
     [&](const gz::sim::Entity &_worldEntity,
@@ -117,6 +128,18 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propeller = Link(propellerEntity);
       propeller.EnableVelocityChecks(_ecm);
     }).
+  OnPreUpdate([&](const sim::UpdateInfo &/*_info*/,
+                  sim::EntityComponentManager &_ecm)
+    {
+      // The thruster system runs before this hook, so the wrench it added
+      // to the propeller link for this step is still pending here. Physics
+      // clears it afterwards.
+      appliedThrust = 0.0;
+      auto wrench = _ecm.Component<components::ExternalWorldWrenchCmd>(
+          propeller.Entity());
+      if (wrench)
+        appliedThrust = msgs::Convert(wrench->Data().force()).Length();
+    }).
   OnPostUpdate([&](const sim::UpdateInfo &_info,
                             const sim::EntityComponentManager &_ecm)
     {
@@ -134,6 +157,34 @@ void ThrusterTest::TestWorld(const std::string &_world,
       propellerLinVels.push_back(proellerLinVel.value());
     }).
   Finalize();
+
+  // Commands are delivered asynchronously by the transport publish thread,
+  // so stepping right after publishing may run several iterations before
+  // the thruster receives the command. Step one iteration at a time until
+  // the thruster applies the expected thrust, keeping only the last sample
+  // recorded before that, so the checks that follow start from the state
+  // right before the command took effect.
+  auto waitForThrust = [&](double _thrust)
+  {
+    auto keepLast = [](auto &_samples)
+    {
+      if (_samples.size() > 1)
+        _samples.erase(_samples.begin(), _samples.end() - 1);
+    };
+
+    const int maxSteps{5000};
+    int steps{0};
+    for (; !math::equal(appliedThrust, _thrust, 1e-6) && steps < maxSteps;
+         ++steps)
+    {
+      keepLast(modelPoses);
+      keepLast(propellerAngVels);
+      keepLast(propellerLinVels);
+      fixture.Server()->Run(true, 1, false);
+    }
+    EXPECT_LT(steps, maxSteps);
+    EXPECT_NEAR(_thrust, appliedThrust, 1e-6);
+  };
 
   // Check initial position
   fixture.Server()->Run(true, 100, false);
@@ -166,28 +217,11 @@ void ThrusterTest::TestWorld(const std::string &_world,
     db_pub = node.Advertise<msgs::Boolean>(_db_topic);
   }
 
-  int sleep{0};
-  int maxSleep{30};
-  if (_namespace != "deadband")
-  {
-    for (; !pub.HasConnections() && sleep < maxSleep; ++sleep) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-  else
-  {
-    for (;
-         !(pub.HasConnections() && db_pub.HasConnections()) && sleep < maxSleep;
-         ++sleep) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-  EXPECT_LT(sleep, maxSleep);
-  EXPECT_TRUE(pub.HasConnections());
-  if (_namespace == "deadband")
-  {
-    EXPECT_TRUE(db_pub.HasConnections());
-  }
+  EXPECT_TRUE(transport::waitUntil([&]
+    {
+      return pub.HasConnections() &&
+          (_db_topic.empty() || db_pub.HasConnections());
+    }, std::chrono::seconds(3), std::chrono::milliseconds(100)));
 
   // Test the cmd limits specified in the world file. These should be:
   //    if (use_angvel_cmd && thrust_coefficient < 0):
@@ -216,9 +250,6 @@ void ThrusterTest::TestWorld(const std::string &_world,
   EXPECT_EQ(100u, modelPoses.size());
   EXPECT_EQ(100u, propellerAngVels.size());
   EXPECT_EQ(100u, propellerLinVels.size());
-  modelPoses.clear();
-  propellerAngVels.clear();
-  propellerLinVels.clear();
 
   // max allowed force
   double force{300.0};
@@ -241,21 +272,24 @@ void ThrusterTest::TestWorld(const std::string &_world,
     msg.set_data(omega);
   }
   pub.Publish(msg);
+  waitForThrust(force);
+  auto samplesBeforeRun = modelPoses.size();
 
   // Check movement
   if (_namespace != "lowbattery")
   {
-    for (sleep = 0; (modelPoses.empty() || modelPoses.back().Pos().X() < 5.0) &&
-         sleep < maxSleep; ++sleep)
+    const int maxRuns{30};
+    int runs{0};
+    for (; modelPoses.back().Pos().X() < 5.0 && runs < maxRuns; ++runs)
     {
       fixture.Server()->Run(true, 100, false);
     }
-    EXPECT_LT(sleep, maxSleep);
+    EXPECT_LT(runs, maxRuns);
     EXPECT_LT(5.0, modelPoses.back().Pos().X());
 
-    EXPECT_EQ(100u * sleep, modelPoses.size());
-    EXPECT_EQ(100u * sleep, propellerAngVels.size());
-    EXPECT_EQ(100u * sleep, propellerLinVels.size());
+    EXPECT_EQ(100u * runs + samplesBeforeRun, modelPoses.size());
+    EXPECT_EQ(100u * runs + samplesBeforeRun, propellerAngVels.size());
+    EXPECT_EQ(100u * runs + samplesBeforeRun, propellerLinVels.size());
   }
 
   // F = m * a
@@ -346,14 +380,16 @@ void ThrusterTest::TestWorld(const std::string &_world,
     // And we send a command that is below the deadband threshold
     msg.set_data(force);
     pub.Publish(msg);
+    waitForThrust(force);
+    samplesBeforeRun = modelPoses.size();
     // When the deadband is disabled, any command value
     // (especially values below the deadband threshold) should move the model
     fixture.Server()->Run(true, 1000, false);
 
     // make sure we have run a 1000 times
-    EXPECT_EQ(1000u, modelPoses.size());
-    EXPECT_EQ(1000u, propellerAngVels.size());
-    EXPECT_EQ(1000u, propellerLinVels.size());
+    EXPECT_EQ(1000u + samplesBeforeRun, modelPoses.size());
+    EXPECT_EQ(1000u + samplesBeforeRun, propellerAngVels.size());
+    EXPECT_EQ(1000u + samplesBeforeRun, propellerLinVels.size());
 
     // the model should have moved. Note that the distance moved is small
     // This is because we are sending small forces (deadband/2)
@@ -439,6 +475,145 @@ TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDControl))
   // Tolerance could be lower (1e-6) if the joint pose had a precise 180
   // rotation
   this->TestWorld(world, ns, topic, 0.004, 1000, 0.2, 1e-4);
+}
+
+/////////////////////////////////////////////////
+TEST_F(ThrusterTest, GZ_UTILS_TEST_DISABLED_ON_WIN32(PIDGains))
+{
+  const unsigned int sampleCount{501};
+  auto recordTrace = [&](const std::string &_gains, std::vector<double> &_trace)
+  {
+    ServerConfig serverConfig;
+    serverConfig.SetSdfString(R"(
+<sdf version="1.9">
+  <world name="thruster_pid_gains">
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>0</real_time_factor>
+    </physics>
+    <gravity>0 0 0</gravity>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <model name="sub">
+      <link name="body">
+        <pose>0 0 0 0 1.57 0</pose>
+        <inertial>
+          <mass>100</mass>
+          <inertia>
+            <ixx>33.89</ixx>
+            <iyy>33.89</iyy>
+            <izz>1.125</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <link name="propeller">
+        <pose>-1.05 0 0 0 0 0</pose>
+        <inertial>
+          <mass>0.1</mass>
+          <inertia>
+            <ixx>0.000354167</ixx>
+            <iyy>0.000021667</iyy>
+            <izz>0.000334167</izz>
+          </inertia>
+        </inertial>
+      </link>
+      <joint name="propeller_joint" type="revolute">
+        <pose>0 0 0 0 3.14159265 0</pose>
+        <parent>body</parent>
+        <child>propeller</child>
+        <axis>
+          <xyz>-1 0 0</xyz>
+          <limit>
+            <lower>-1e+12</lower>
+            <upper>1e+12</upper>
+            <effort>-1</effort>
+            <velocity>-1</velocity>
+          </limit>
+        </axis>
+      </joint>
+      <plugin filename="gz-sim-thruster-system"
+              name="gz::sim::systems::Thruster">
+        <joint_name>propeller_joint</joint_name>
+        <thrust_coefficient>0.004</thrust_coefficient>
+        <fluid_density>1000</fluid_density>
+        <propeller_diameter>0.2</propeller_diameter>
+        <max_thrust_cmd>300</max_thrust_cmd>
+        <min_thrust_cmd>0</min_thrust_cmd>
+        )" + _gains + R"(
+      </plugin>
+    </model>
+  </world>
+</sdf>)");
+
+    Link propeller;
+    TestFixture fixture(serverConfig);
+    fixture.OnConfigure([&](const Entity &_worldEntity,
+        const std::shared_ptr<const sdf::Element> &,
+        EntityComponentManager &_ecm, EventManager &)
+    {
+      const World world(_worldEntity);
+      const auto modelEntity = world.ModelByName(_ecm, "sub");
+      ASSERT_NE(modelEntity, kNullEntity);
+      const Model model(modelEntity);
+      const auto propellerEntity = model.LinkByName(_ecm, "propeller");
+      ASSERT_NE(propellerEntity, kNullEntity);
+      propeller = Link(propellerEntity);
+      propeller.EnableVelocityChecks(_ecm);
+    });
+    fixture.OnPostUpdate([&](const UpdateInfo &,
+        const EntityComponentManager &_ecm)
+    {
+      const auto angularVelocity = propeller.WorldAngularVelocity(_ecm);
+      ASSERT_TRUE(angularVelocity);
+      const double speed = angularVelocity.value().Length();
+      // Begin each trace at the first response to the asynchronous command.
+      if (!_trace.empty() || speed > 1e-3)
+        _trace.push_back(speed);
+    });
+    fixture.Finalize();
+
+    transport::Node node;
+    auto pub = node.Advertise<msgs::Double>(
+        "/model/sub/joint/propeller_joint/cmd_thrust");
+    ASSERT_TRUE(transport::waitUntil([&]
+    {
+      return pub.HasConnections();
+    }, std::chrono::seconds(3), std::chrono::milliseconds(100)));
+
+    msgs::Double msg;
+    msg.set_data(10.0);
+    ASSERT_TRUE(pub.Publish(msg));
+    ASSERT_TRUE(transport::waitUntil([&]
+    {
+      fixture.Server()->Run(true, 1, false);
+      return !_trace.empty();
+    }, std::chrono::seconds(3), std::chrono::milliseconds(100)))
+        << "No propeller motion with " << _gains;
+    fixture.Server()->Run(true, sampleCount - 1, false);
+  };
+
+  const std::string pGain{"<p_gain>0.002</p_gain>"};
+  std::vector<double> pOnly, withIntegral, withDerivative, doubledP;
+  recordTrace(pGain, pOnly);
+  recordTrace(pGain + "<i_gain>0.05</i_gain>", withIntegral);
+  recordTrace(pGain + "<d_gain>0.00005</d_gain>", withDerivative);
+  recordTrace("<p_gain>0.004</p_gain>", doubledP);
+
+  ASSERT_EQ(sampleCount, pOnly.size());
+  ASSERT_EQ(sampleCount, withIntegral.size());
+  ASSERT_EQ(sampleCount, withDerivative.size());
+  ASSERT_EQ(sampleCount, doubledP.size());
+
+  auto maxDifference = [&](const std::vector<double> &_trace)
+  {
+    double difference{0.0};
+    for (unsigned int i = 0; i < sampleCount; ++i)
+      difference = std::max(difference, std::abs(_trace[i] - pOnly[i]));
+    return difference;
+  };
+  const double minDifference{0.1};  // rad/s
+  EXPECT_GT(maxDifference(withIntegral), minDifference) << "i_gain";
+  EXPECT_GT(maxDifference(withDerivative), minDifference) << "d_gain";
+  EXPECT_GT(maxDifference(doubledP), minDifference) << "p_gain control";
 }
 
 /////////////////////////////////////////////////

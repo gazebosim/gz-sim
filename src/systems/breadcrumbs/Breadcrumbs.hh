@@ -58,17 +58,20 @@ namespace systems
   ///
   /// ## System Parameters
   ///
-  /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. If topic is
-  /// not set, the default topic with the following pattern would be used
-  /// `/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy`. The topic
-  /// type is gz.msgs.Empty
+  /// - `<topic>`: Custom topic to be used to deploy breadcrumbs. This element
+  /// is optional, and the default topic is
+  /// `/model/<model_name>/breadcrumbs/<breadcrumb_name>/deploy`. If the model
+  /// has a namespace, the default topic becomes
+  /// `<namespace>/breadcrumbs/<breadcrumb_name>/deploy`. A relative custom
+  /// topic is prefixed with the namespace when one is present, while an
+  /// absolute custom topic remains unchanged. The topic type is gz.msgs.Empty.
   /// - `<max_deployments>`: The maximum number of times this breadcrumb can be
   /// deployed. Once this many are deployed, publishing on the deploy topic
   /// will have no effect. If a negative number is set, the maximum deployment
   /// will be unbounded. If a value of zero is used, then the breadcrumb system
   /// will be disabled. A zero value is useful for situations where SDF files
   /// are programmatically created. The remaining deployment count is available
-  /// on the `<topic>/remaining` topic.
+  /// on the resolved `<topic>/remaining` topic.
   /// - `<disable_physics_time>`: The time in which the breadcrumb entity's
   /// dynamics remain enabled. After his specified time, the breadcrumb will
   /// be made static. If this value is <= 0 or the param is not specified, the
@@ -90,6 +93,16 @@ namespace systems
         public ISystemConfigure,
         public ISystemPreUpdate
   {
+    /// \brief Resolved topic names.
+    public: struct TopicNames
+    {
+      /// \brief Deploy topic name.
+      public: std::string deployTopic;
+
+      /// \brief Remaining deployments topic name.
+      public: std::string remainingTopic;
+    };
+
     /// \brief Constructor
     public: Breadcrumbs() = default;
 
@@ -103,6 +116,9 @@ namespace systems
     public: void PreUpdate(
                 const gz::sim::UpdateInfo &_info,
                 gz::sim::EntityComponentManager &_ecm) override;
+
+    /// \brief Get the resolved topic names.
+    public: TopicNames ResolvedTopicNames() const;
 
     /// \brief Callback to deployment topic
     private: void OnDeploy(const msgs::Empty &_msg);
@@ -173,8 +189,8 @@ namespace systems
     /// \brief True when topic statistics are enabled.
     public: bool topicStatistics{false};
 
-    /// \brief Name of the deploy topic.
-    public: std::string topic;
+    /// \brief Resolved topic names.
+    private: TopicNames resolvedTopicNames;
   };
   }
 }

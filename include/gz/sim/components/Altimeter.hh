@@ -36,7 +36,7 @@ namespace components
   /// sdf::Altimeter, information.
   using Altimeter =
       Component<sdf::Sensor, class AltimeterTag, serializers::SensorSerializer>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Altimeter", Altimeter)
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Altimeter", Altimeter)
 }
 }
 }

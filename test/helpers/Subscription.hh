@@ -26,9 +26,12 @@
 #include <chrono>
 #include <condition_variable>
 #include <deque>
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <utility>
 
 #include <gz/transport/Node.hh>
 
@@ -56,14 +59,24 @@ class Subscription
     {
       throw std::logic_error("Subscription already subscribed");
     }
-    std::lock_guard<std::mutex> lock(this->mutex);
-    const auto callback = &Subscription::OnMessage;
-    this->subscriber = _node.CreateSubscriber(_topicName, callback, this);
+    {
+      std::lock_guard<std::mutex> lock(this->state->mutex);
+      this->state->messageHistoryDepth = _messageHistoryDepth;
+    }
+    // The callback holds its own reference to the state. Unsubscribing does
+    // not wait for a callback that is already running, so capturing `this`
+    // would let such a callback write to a destroyed Subscription.
+    auto callbackState = this->state;
+    std::function<void(const MessageT &)> callback =
+        [callbackState](const MessageT &_message)
+        {
+          OnMessage(*callbackState, _message);
+        };
+    this->subscriber = _node.CreateSubscriber(_topicName, callback);
     if (!this->subscriber)
     {
       throw std::runtime_error("Cannot subscribe to " + _topicName);
     }
-    this->messageHistoryDepth = _messageHistoryDepth;
     this->subscribed = true;
   }
 
@@ -74,9 +87,9 @@ class Subscription
   /// received since first subscription, false otherwise.
   public: bool WaitForMessages(size_t _count, std::chrono::nanoseconds _timeout)
   {
-    std::unique_lock<std::mutex> lock(this->mutex);
-    auto predicate = [&]() { return this->messageCount >= _count; };
-    return this->messageArrival.wait_for(lock, _timeout, predicate);
+    std::unique_lock<std::mutex> lock(this->state->mutex);
+    auto predicate = [&]() { return this->state->messageCount >= _count; };
+    return this->state->messageArrival.wait_for(lock, _timeout, predicate);
   }
 
   /// \brief Read all messages received so far.
@@ -85,16 +98,16 @@ class Subscription
   /// specified depth. May be empty.
   public: std::deque<MessageT> ReadMessages()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    return std::move(this->messageHistory);
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    return std::move(this->state->messageHistory);
   }
 
   /// \brief Current number of messages stored.
   /// \return number of messages stored in the messageHistory container.
   public: int MessageHistorySize()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    return this->messageHistory.size();
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    return this->state->messageHistory.size();
   }
 
   /// \brief Read the message according to the index.
@@ -102,32 +115,32 @@ class Subscription
   /// based on its index.
   public: MessageT GetMessageByIndex(int _index)
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    return this->messageHistory.at(_index);
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    return this->state->messageHistory.at(_index);
   }
 
   /// \brief Reset the messageHistory container by clearing
   /// existing messages.
   public: void ResetMessageHistory()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    this->messageHistory.clear();
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    this->state->messageHistory.clear();
   }
 
   /// \brief Clear received messages and reset the message count.
   public: void Clear()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    this->messageHistory.clear();
-    this->messageCount = 0u;
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    this->state->messageHistory.clear();
+    this->state->messageCount = 0u;
   }
 
   /// \brief Return the number of messages received since subscription or clear.
   /// \return Number of messages received.
   public: size_t Count()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    return this->messageCount;
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    return this->state->messageCount;
   }
 
   /// \brief Read last message received without removing it.
@@ -135,12 +148,12 @@ class Subscription
   /// \return Last message received.
   public: MessageT Last()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    if (this->messageHistory.empty())
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    if (this->state->messageHistory.empty())
     {
       throw std::runtime_error("No messages to read");
     }
-    return this->messageHistory.back();
+    return this->state->messageHistory.back();
   }
 
   /// \brief Read last message received.
@@ -149,55 +162,65 @@ class Subscription
   /// no message to be read.
   public: MessageT ReadLastMessage()
   {
-    std::lock_guard<std::mutex> lock(this->mutex);
-    if (this->messageHistory.empty())
+    std::lock_guard<std::mutex> lock(this->state->mutex);
+    if (this->state->messageHistory.empty())
     {
       throw std::runtime_error("No messages to read");
     }
-    MessageT message = std::move(this->messageHistory.back());
-    this->messageHistory.pop_back();
+    MessageT message = std::move(this->state->messageHistory.back());
+    this->state->messageHistory.pop_back();
     return message;
   }
 
+  /// \brief Data shared with the subscriber callback.
+  private: struct State
+  {
+    /// \brief Number of messages
+    size_t messageCount{0u};
+
+    /// \brief Number of messages to keep
+    size_t messageHistoryDepth{0u};
+
+    /// \brief Queue of messages
+    std::deque<MessageT> messageHistory;
+
+    /// \brief Condition for message arrival
+    std::condition_variable messageArrival;
+
+    /// \brief Mutex to protect message queue
+    std::mutex mutex;
+  };
+
   /// \brief Callback when a message is received
+  /// \param[in] _state State to store the message in
   /// \param[in] _message Message
-  private: void OnMessage(const MessageT &_message)
+  private: static void OnMessage(State &_state, const MessageT &_message)
   {
     {
-      std::lock_guard<std::mutex> lock(this->mutex);
-      this->messageHistory.push_back(_message);
-      if (this->messageHistoryDepth > 0u)
+      std::lock_guard<std::mutex> lock(_state.mutex);
+      _state.messageHistory.push_back(_message);
+      if (_state.messageHistoryDepth > 0u)
       {
-        if (this->messageHistory.size() > this->messageHistoryDepth)
+        if (_state.messageHistory.size() > _state.messageHistoryDepth)
         {
-          this->messageHistory.pop_front();
+          _state.messageHistory.pop_front();
         }
       }
-      ++this->messageCount;
+      ++_state.messageCount;
     }
-    this->messageArrival.notify_all();
+    _state.messageArrival.notify_all();
   }
-
-  /// \brief Transport subscriber object.
-  private: transport::Node::Subscriber subscriber;
 
   /// \brief Flag to indicate if topic is subscribed or not
   private: bool subscribed{false};
 
-  /// \brief Number of messages
-  private: size_t messageCount{0u};
+  /// \brief Message state, shared with the subscriber callback so it
+  /// outlives any callback still running when this object is destroyed.
+  private: std::shared_ptr<State> state{std::make_shared<State>()};
 
-  /// \brief Number of messages to keep
-  private: size_t messageHistoryDepth{0u};
-
-  /// \brief Queue of messages
-  private: std::deque<MessageT> messageHistory;
-
-  /// \brief Condition for message arrival
-  private: std::condition_variable messageArrival;
-
-  /// \brief Mutex to protect message queue
-  private: std::mutex mutex;
+  /// \brief Transport subscriber object. Declared last so it is destroyed
+  /// first, which stops new messages before the rest is torn down.
+  private: transport::Node::Subscriber subscriber;
 };
 
 #endif  // GZ_SIM_TEST_HELPERS_SUBSCRIPTION_HH

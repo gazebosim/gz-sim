@@ -31,6 +31,7 @@
 #include "gz/sim/components/Gravity.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
+#include "gz/sim/components/Kinematic.hh"
 #include "gz/sim/components/LinearAcceleration.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/LinearVelocityCmd.hh"
@@ -188,6 +189,13 @@ std::optional<bool> Link::GravityEnabled(
 }
 
 //////////////////////////////////////////////////
+std::optional<bool> Link::Kinematic(
+    const EntityComponentManager &_ecm) const
+{
+  return _ecm.ComponentData<components::Kinematic>(this->dataPtr->id);
+}
+
+//////////////////////////////////////////////////
 std::optional<math::Pose3d> Link::WorldPose(
     const EntityComponentManager &_ecm) const
 {
@@ -333,6 +341,29 @@ void Link::SetGravityEnabled(EntityComponentManager &_ecm,
           [](const bool &, const bool &){return false;});
       _ecm.SetChanged(this->dataPtr->id,
           components::GravityEnabledCmd::typeId,
+          ComponentState::OneTimeChange);
+    }
+}
+
+//////////////////////////////////////////////////
+void Link::SetKinematic(EntityComponentManager &_ecm,
+  bool _kinematic) const
+{
+    auto comp =
+      _ecm.Component<components::KinematicCmd>(this->dataPtr->id);
+
+    if (comp == nullptr)
+    {
+      _ecm.CreateComponent(
+          this->dataPtr->id,
+          components::KinematicCmd(_kinematic));
+    }
+    else
+    {
+      comp->SetData(_kinematic,
+          [](const bool &, const bool &){return false;});
+      _ecm.SetChanged(this->dataPtr->id,
+          components::KinematicCmd::typeId,
           ComponentState::OneTimeChange);
     }
 }

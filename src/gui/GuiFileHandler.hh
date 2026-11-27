@@ -19,7 +19,8 @@
 
 #include <gz/msgs/sdf_generator_config.pb.h>
 
-#include <QtCore>
+#include <QObject>
+#include <QString>
 #include <string>
 
 #include <gz/transport/Node.hh>

@@ -15,7 +15,21 @@
  *
  */
 
+// Definition translation unit for all components shipped with gz-sim.
+//
+// Component headers only *declare* components (GZ_SIM_DECLARE_COMPONENT
+// expands to the ADL typeId/typeName helpers). Defining
+// GZ_SIM_COMPONENT_DEFINITION_TU before including them expands the static
+// Factory registration objects here — once per library instead of
+// once per consumer translation unit, which is what makes including
+// component headers cheap. Putting these registrations in the same
+// translation unit as Factory::Instance() also ensures static linkers
+// always pull in this object file whenever Factory::Instance() is referenced.
+#define GZ_SIM_COMPONENT_DEFINITION_TU
+
 #include "gz/sim/components/Factory.hh"
+
+#include "gz/sim/components/components.hh"
 
 using Factory = gz::sim::components::Factory;
 
