@@ -47,8 +47,6 @@ Rectangle {
   color: Material.background
   focus: true
   property var selectedWorld: ""
-  property string selectedWorldUri: ""
-  property string selectedWorldTitle: ""
 
   Shortcut {
     sequence: StandardKey.Cancel
@@ -89,34 +87,28 @@ Rectangle {
   // Select the world identified by key to launch uri, or deselect it if it
   // is already selected or uri is empty. A deselected world is not launched
   // on close.
-  function selectWorld(key, uri, title) {
+  function selectWorld(key, uri) {
     var select = key !== quickStart.selectedWorld && uri !== "";
     quickStart.selectedWorld = select ? key : "";
-    quickStart.selectedWorldUri = select ? uri : "";
-    quickStart.selectedWorldTitle = select ? (title || key) : "";
     openWorld.enabled = select;
     QuickStartHandler.SetStartingWorld(select ? uri : "");
   }
 
   // Select the world identified by key and launch uri right away, unless uri
   // is empty.
-  function launchWorld(key, uri, title) {
+  function launchWorld(key, uri) {
     if (uri === "")
       return;
     quickStart.selectedWorld = key;
-    quickStart.selectedWorldUri = uri;
-    quickStart.selectedWorldTitle = title || key;
     QuickStartHandler.SetStartingWorld(uri);
     openWorld.enabled = true;
     quickStart.launchSelected();
   }
 
   function launchSelected() {
-    if (!openWorld.enabled || quickStart.selectedWorldUri === "") {
+    if (!openWorld.enabled) {
       return;
     }
-    QuickStartHandler.RecordRecentWorld(
-      quickStart.selectedWorldUri, quickStart.selectedWorldTitle);
     Qt.callLater(function() {
       if (quickStart.Window.window) {
         quickStart.Window.window.close();
@@ -132,12 +124,11 @@ Rectangle {
     var uri = QuickStartHandler.ResolveWorldUri(world);
     if (uri === "")
       console.error("QuickStart: cannot resolve world [" + world.id + "]");
-    selectWorld(world.id, uri, world.title);
+    selectWorld(world.id, uri);
   }
 
   function selectAndLaunchCatalogWorld(world) {
-    launchWorld(world.id, QuickStartHandler.ResolveWorldUri(world),
-                world.title);
+    launchWorld(world.id, QuickStartHandler.ResolveWorldUri(world));
   }
 
   function getWorlds(){
@@ -380,8 +371,7 @@ Rectangle {
           id: emptyWorldBtn
           text: qsTr("Empty World")
           flat: true
-          onClicked: quickStart.launchWorld(
-              "empty.sdf", "empty.sdf", qsTr("Empty World"))
+          onClicked: quickStart.launchWorld("empty.sdf", "empty.sdf")
         }
         Button {
           id: openWorld

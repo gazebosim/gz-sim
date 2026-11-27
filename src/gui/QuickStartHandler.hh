@@ -137,34 +137,12 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
   public: Q_INVOKABLE QString ResolveThumbnailUrl(
       const QVariantMap &_world) const;
 
-  /// \brief Convert a file:// URL (e.g. from QML FileDialog) into a local
-  /// filesystem path. Non-local URLs or plain paths are returned as-is.
-  /// \param[in] _url URL or filesystem path.
-  /// \return Local filesystem path if _url is a local file URL.
+  /// \brief Convert a file URL (e.g. from the QML FileDialog) into a local
+  /// filesystem path.
+  /// \param[in] _url File URL.
+  /// \return Local filesystem path, or an empty string if _url is not a
+  /// local file URL.
   public: Q_INVOKABLE QString LocalPathFromUrl(const QUrl &_url) const;
-
-  /// \brief Get recently launched worlds persisted in QSettings.
-  /// Each entry is a QVariantMap with keys: uri, title.
-  /// \return List of recent worlds, most recent first (up to 5).
-  public: Q_INVOKABLE QVariantList RecentWorlds() const;
-
-  /// \brief Record a launched world in the recent worlds history (persisted
-  /// in QSettings, deduplicated, capped at 5 entries).
-  /// \param[in] _uri World path or Fuel URL.
-  /// \param[in] _title Optional human-readable title.
-  public: Q_INVOKABLE void RecordRecentWorld(
-      const QString &_uri, const QString &_title = "");
-
-  /// \brief Clear persisted recent worlds history.
-  public: Q_INVOKABLE void ClearRecentWorlds();
-
-  /// \brief Override the QSettings group name used for recent worlds.
-  /// Useful for isolated unit testing.
-  /// \param[in] _group Settings group name.
-  public: void SetSettingsGroup(const QString &_group);
-
-  /// \brief Emitted when the recent worlds list changes.
-  signals: void recentWorldsChanged();
 
   /// \brief Show the quick start menu again.
   private: bool showAgain{true};
@@ -177,9 +155,6 @@ class GZ_SIM_GUI_VISIBLE QuickStartHandler : public QObject
 
   /// \brief Catalog worlds, as returned by Worlds().
   private: QVariantList worlds;
-
-  /// \brief QSettings group for QuickStart persistence.
-  private: QString settingsGroup{"QuickStart"};
 
   // Add a member for the transport node
   private: gz::transport::Node node;
