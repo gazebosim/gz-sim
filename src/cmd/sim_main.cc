@@ -130,6 +130,11 @@ struct SimOptions
   /// download before starting simulation. A value of 0 (false) will
   /// download simulation assets in a separate thread.
   int waitForAssets{0};
+
+  /// \brief A value of 1 (true) will exit the server if a system plugin
+  /// fails to load at startup. A value of 0 (false) will skip the plugin
+  /// and continue loading.
+  int exitOnPluginError{0};
 };
 
 #ifdef WITH_GUI
@@ -412,6 +417,10 @@ void addSimFlags(CLI::App &_app, std::shared_ptr<SimOptions> _opt)
 
   _app.add_flag("--wait-for-assets", _opt->waitForAssets,
                 "Wait assets before starting simulation.");
+
+  _app.add_flag("--exit-on-plugin-error", _opt->exitOnPluginError,
+                "Exit the server with a non-zero exit code if a system\n"
+                "plugin fails to load at startup.");
 }
 
 //////////////////////////////////////////////////
@@ -525,7 +534,8 @@ int main(int argc, char** argv)
               opt->renderEngineGui.c_str(),
               opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
               opt->recordTopics, opt->waitGui, opt->headlessRendering,
-              opt->recordPeriod, opt->seed, opt->waitForAssets) != 0)
+              opt->recordPeriod, opt->seed, opt->waitForAssets,
+              opt->exitOnPluginError) != 0)
     {
       return -1;
     }
@@ -554,6 +564,12 @@ int main(int argc, char** argv)
     #endif
 
     gzdbg << "Shutting down gz-sim-server" << std::endl;
+
+    if (opt->exitOnPluginError &&
+        server.GetStatus() == sim::Server::Status::EXITED)
+    {
+      return -1;
+    }
   }
   else
   {
@@ -580,7 +596,8 @@ int main(int argc, char** argv)
                 opt->renderEngineGui.c_str(),
                 opt->renderEngineGuiApiBackend.c_str(), opt->file.c_str(),
                 opt->recordTopics, opt->waitGui, opt->headlessRendering,
-                opt->recordPeriod, opt->seed, opt->waitForAssets) != 0)
+                opt->recordPeriod, opt->seed, opt->waitForAssets,
+                opt->exitOnPluginError) != 0)
       {
         return -1;
       }
@@ -590,6 +607,12 @@ int main(int argc, char** argv)
       server.Run(true, opt->iterations, opt->runOnStart == 0);
 
       gzdbg << "Shutting down gz-sim-server" << std::endl;
+
+      if (opt->exitOnPluginError &&
+          server.GetStatus() == sim::Server::Status::EXITED)
+      {
+        return -1;
+      }
     }
     else if(opt->launchGui)
     {

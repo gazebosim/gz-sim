@@ -60,7 +60,7 @@ SystemManager::SystemManager(
 }
 
 //////////////////////////////////////////////////
-void SystemManager::LoadPlugin(const Entity _entity,
+bool SystemManager::LoadPlugin(const Entity _entity,
                                const sdf::Plugin &_plugin)
 {
   std::optional<SystemPluginPtr> system;
@@ -79,7 +79,10 @@ void SystemManager::LoadPlugin(const Entity _entity,
     this->AddSystemImpl(ss, ss.configureSdf);
     gzdbg << "Loaded system [" << _plugin.Name()
            << "] for entity [" << _entity << "]" << std::endl;
+    return true;
   }
+
+  return false;
 }
 
 //////////////////////////////////////////////////

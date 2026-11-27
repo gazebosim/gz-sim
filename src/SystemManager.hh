@@ -74,7 +74,8 @@ namespace gz
       /// \brief Load system plugin for a given entity.
       /// \param[in] _entity Entity
       /// \param[in] _plugin Plugin to load
-      public: void LoadPlugin(const Entity _entity,
+      /// \return True if the system was loaded, false otherwise.
+      public: bool LoadPlugin(const Entity _entity,
                               const sdf::Plugin &_plugin);
 
       /// \brief Add a system to the manager

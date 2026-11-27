@@ -69,6 +69,17 @@ namespace gz
         CONTINUE_LOADING
       };
 
+      /// \brief System plugin load error behavior
+      public: enum class PluginErrorBehavior
+      {
+        /// \brief Exit the server immediately if a system plugin fails
+        /// to load while the server is starting
+        EXIT_IMMEDIATELY,
+        /// \brief Skip system plugins that fail to load and continue
+        /// loading the server
+        CONTINUE_LOADING
+      };
+
       class PluginInfoPrivate;
       /// \brief Information about a plugin that should be loaded by the
       /// server.
@@ -405,6 +416,19 @@ namespace gz
       //// loading the server.
       /// \return Server behavior when SDF errors are encountered.
       public: SdfErrorBehavior BehaviorOnSdfErrors() const;
+
+      /// \brief Set the server behavior when a system plugin fails to load
+      /// while the server is starting.
+      /// The default value is PluginErrorBehavior::CONTINUE_LOADING.
+      /// \param[in] _behavior Server behavior when a system plugin fails
+      /// to load.
+      public: void SetBehaviorOnPluginErrors(PluginErrorBehavior _behavior);
+
+      /// \brief Get the server behavior when a system plugin fails to load
+      /// while the server is starting.
+      /// The default value is PluginErrorBehavior::CONTINUE_LOADING.
+      /// \return Server behavior when a system plugin fails to load.
+      public: PluginErrorBehavior BehaviorOnPluginErrors() const;
 
       /// \brief Instruct simulation to attach a plugin to a specific
       /// entity when simulation starts.

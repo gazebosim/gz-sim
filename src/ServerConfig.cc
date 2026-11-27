@@ -215,7 +215,8 @@ class gz::sim::ServerConfigPrivate
             sdfRoot(_cfg->sdfRoot),
             source(_cfg->source),
             behaviorOnSdfErrors(_cfg->behaviorOnSdfErrors),
-            waitForAssets(_cfg->waitForAssets) { }
+            waitForAssets(_cfg->waitForAssets),
+            behaviorOnPluginErrors(_cfg->behaviorOnPluginErrors) { }
 
   // \brief The SDF file that the server should load
   public: std::string sdfFile = "";
@@ -306,6 +307,10 @@ class gz::sim::ServerConfigPrivate
 
   /// \brief True to block while simulation assets download.
   public: bool waitForAssets{true};
+
+  /// \brief Server loading behavior when a system plugin fails to load.
+  public: ServerConfig::PluginErrorBehavior behaviorOnPluginErrors{
+      ServerConfig::PluginErrorBehavior::CONTINUE_LOADING};
 };
 
 //////////////////////////////////////////////////
@@ -623,6 +628,19 @@ void ServerConfig::SetBehaviorOnSdfErrors(
 ServerConfig::SdfErrorBehavior ServerConfig::BehaviorOnSdfErrors() const
 {
   return this->dataPtr->behaviorOnSdfErrors;
+}
+
+//////////////////////////////////////////////////
+void ServerConfig::SetBehaviorOnPluginErrors(
+    ServerConfig::PluginErrorBehavior _behavior)
+{
+  this->dataPtr->behaviorOnPluginErrors = _behavior;
+}
+
+//////////////////////////////////////////////////
+ServerConfig::PluginErrorBehavior ServerConfig::BehaviorOnPluginErrors() const
+{
+  return this->dataPtr->behaviorOnPluginErrors;
 }
 
 /////////////////////////////////////////////////

@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<!-- World with a system plugin that does not exist, used to test
+     behavior when a system plugin fails to load -->
+<sdf version="1.12">
+  <world name="plugin_load_error">
+    <plugin
+      filename="gz-sim-nonexistent-test-system"
+      name="gz::sim::systems::NonexistentTestSystem">
+    </plugin>
+  </world>
+</sdf>
