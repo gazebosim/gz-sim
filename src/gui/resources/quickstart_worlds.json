@@ -187,18 +187,18 @@
       "source": "local",
       "owner": "Built-in",
       "fileName": "mecanum_drive.sdf",
-      "tags": ["mecanum", "omnidirectional", "mobile", "offline"]
+      "tags": ["mecanum", "omnidirectional", "mobile"]
     },
     {
       "id": "kinematic_workshop",
       "title": "Kinematic Workshop",
-      "description": "Offline workshop scene with articulated mechanisms and joint test rigs.",
+      "description": "Workshop scene with articulated mechanisms and joint test rigs.",
       "category": "manipulators",
       "featured": false,
       "source": "local",
       "owner": "Built-in",
       "fileName": "kinematic_workshop.sdf",
-      "tags": ["manipulator", "kinematics", "joints", "offline"]
+      "tags": ["manipulator", "kinematics", "joints"]
     },
     {
       "id": "conveyor",
@@ -226,13 +226,13 @@
     {
       "id": "multicopter_velocity_control",
       "title": "Multicopter Velocity Control",
-      "description": "Offline X3 multicopter equipped with velocity controller plugin.",
+      "description": "X3 multicopter equipped with velocity controller plugin.",
       "category": "drones",
       "featured": false,
       "source": "local",
       "owner": "Built-in",
       "fileName": "multicopter_velocity_control.sdf",
-      "tags": ["drone", "multicopter", "uav", "offline"]
+      "tags": ["drone", "multicopter", "uav"]
     },
     {
       "id": "lighter_than_air_blimp",
@@ -243,7 +243,7 @@
       "source": "local",
       "owner": "Built-in",
       "fileName": "lighter_than_air_blimp.sdf",
-      "tags": ["aerial", "blimp", "buoyancy", "offline"]
+      "tags": ["aerial", "blimp", "buoyancy"]
     },
     {
       "id": "rubicon_world",
@@ -295,24 +295,24 @@
     {
       "id": "auv_controls",
       "title": "AUV Controls Sandbox",
-      "description": "Offline underwater vehicle with thruster, rudder, and buoyancy controls.",
+      "description": "Underwater vehicle with thruster, rudder, and buoyancy controls.",
       "category": "marine",
       "featured": false,
       "source": "local",
       "owner": "Built-in",
       "fileName": "auv_controls.sdf",
-      "tags": ["auv", "underwater", "marine", "offline"]
+      "tags": ["auv", "underwater", "marine"]
     },
     {
       "id": "lrauv_control_demo",
       "title": "LRAUV Control Demo",
-      "description": "Offline long-range autonomous underwater vehicle hydrodynamics demo.",
+      "description": "Long-range autonomous underwater vehicle hydrodynamics demo.",
       "category": "marine",
       "featured": false,
       "source": "local",
       "owner": "Built-in",
       "fileName": "lrauv_control_demo.sdf",
-      "tags": ["lrauv", "auv", "underwater", "marine", "offline"]
+      "tags": ["lrauv", "auv", "underwater", "marine"]
     },
     {
       "id": "actor_crowd",
@@ -323,7 +323,7 @@
       "source": "local",
       "owner": "Built-in",
       "fileName": "actor_crowd.sdf",
-      "tags": ["human", "crowd", "actors", "social", "offline"]
+      "tags": ["human", "crowd", "actors", "social"]
     },
     {
       "id": "moon_base",
@@ -364,24 +364,24 @@
     {
       "id": "spacecraft",
       "title": "Zero-G Spacecraft Thrusters",
-      "description": "Offline zero-gravity orbital thruster simulation for spacecraft control.",
+      "description": "Zero-gravity orbital thruster simulation for spacecraft control.",
       "category": "space",
       "featured": false,
       "source": "local",
       "owner": "Built-in",
       "fileName": "spacecraft.sdf",
-      "tags": ["space", "zero-g", "orbital", "offline"]
+      "tags": ["space", "zero-g", "orbital"]
     },
     {
       "id": "dem_moon",
       "title": "Lunar DEM Terrain",
-      "description": "Offline lunar digital elevation model heightmap for rover traversal.",
+      "description": "Lunar digital elevation model heightmap for rover traversal.",
       "category": "space",
       "featured": false,
       "source": "local",
       "owner": "Built-in",
       "fileName": "dem_moon.sdf",
-      "tags": ["moon", "dem", "heightmap", "space", "offline"]
+      "tags": ["moon", "dem", "heightmap", "space"]
     }
   ]
 }

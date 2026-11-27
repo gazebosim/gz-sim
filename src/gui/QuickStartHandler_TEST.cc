@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 #include <QDir>
-#include <QFileInfo>
+#include <QFile>
 #include <QTemporaryFile>
 #include <QVariantList>
 #include <QVariantMap>
@@ -79,8 +79,16 @@ TEST(QuickStartHandlerTest, DefaultCatalogLoaded)
     const QString source = world.value("source").toString();
     if (source == "local")
     {
-      EXPECT_TRUE(QFileInfo::exists(examplesDir.filePath(uri)))
+      QFile sdf(examplesDir.filePath(uri));
+      EXPECT_TRUE(sdf.exists())
           << "Local example world missing: " << uri.toStdString();
+      // Worlds tagged as offline must not download models from Fuel
+      if (world.value("tags").toStringList().contains("offline") &&
+          sdf.open(QIODevice::ReadOnly))
+      {
+        EXPECT_FALSE(sdf.readAll().contains("fuel.gazebosim.org"))
+            << "Offline world [" << id << "] downloads from Fuel";
+      }
     }
     else if (source == "fuel")
     {
