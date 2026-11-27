@@ -35,7 +35,6 @@ find_package(gz-plugin REQUIRED COMPONENTS register)
 find_package(gz-sim REQUIRED)
 
 add_library(${SERVER_PLUGIN} SHARED ${SERVER_PLUGIN}.cc)
-set_property(TARGET ${SERVER_PLUGIN} PROPERTY CXX_STANDARD 17)
 target_link_libraries(${SERVER_PLUGIN}
   PRIVATE
     gz-plugin::gz-plugin

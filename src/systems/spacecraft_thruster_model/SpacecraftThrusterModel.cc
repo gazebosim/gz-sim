@@ -44,7 +44,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/Utility.hh>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"
@@ -77,11 +77,8 @@ class gz::sim::systems::SpacecraftThrusterModelPrivate
   /// \brief Model interface
   public: Model model{kNullEntity};
 
-  /// \brief sub topic for actuator commands.
-  public: std::string subTopic;
-
-  /// \brief Topic namespace.
-  public: std::string topic;
+  /// \brief Resolved topic names
+  public: SpacecraftThrusterModel::TopicNames resolvedTopicNames;
 
   /// \brief Simulation time tracker
   public: double simTime = 0.01;
@@ -119,6 +116,9 @@ SpacecraftThrusterModel::SpacecraftThrusterModel()
 }
 
 //////////////////////////////////////////////////
+SpacecraftThrusterModel::~SpacecraftThrusterModel() = default;
+
+//////////////////////////////////////////////////
 void SpacecraftThrusterModel::Configure(const Entity &_entity,
     const std::shared_ptr<const sdf::Element> &_sdf,
     EntityComponentManager &_ecm,
@@ -134,19 +134,6 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
   }
 
   auto sdfClone = _sdf->Clone();
-
-  this->dataPtr->topic.clear();
-
-  if (sdfClone->HasElement("topic"))
-  {
-    this->dataPtr->topic =
-        sdfClone->Get<std::string>("topic");
-  }
-  else
-  {
-    gzwarn << "No topic set using entity name.\n";
-    this->dataPtr->topic = this->dataPtr->model.Name(_ecm);
-  }
 
   if (sdfClone->HasElement("link_name"))
   {
@@ -192,32 +179,39 @@ void SpacecraftThrusterModel::Configure(const Entity &_entity,
           << this->dataPtr->actuatorNumber <<" duty_cycle_frequency.\n";
   }
 
-  std::string topic;
+  // Generate namespace
+  const std::string ns = scopedNamespace(_ecm, this->dataPtr->model.Entity());
+
+  // Subscribe to actuator command
+  auto &resolvedTopicNames = this->dataPtr->resolvedTopicNames;
+  TopicNameOptions cmdTopicOptions;
+  cmdTopicOptions.sdfElementName = "topic";
+  cmdTopicOptions.topicNamespace = ns;
+  cmdTopicOptions.defaultTopicSuffix = this->dataPtr->model.Name(_ecm);
+  resolvedTopicNames.cmdTopic = resolvedTopicName(sdfClone, cmdTopicOptions);
+
   if (sdfClone->HasElement("sub_topic"))
   {
-    this->dataPtr->subTopic =
-        sdfClone->Get<std::string>("sub_topic");
-    topic = transport::TopicUtils::AsValidTopic(
-      this->dataPtr->topic + "/" + this->dataPtr->subTopic);
-  }
-  else
-  {
-    topic = transport::TopicUtils::AsValidTopic(
-      this->dataPtr->topic);
+    gzwarn << "The <sub_topic> element is deprecated. Use <topic> together "
+           << "with the model namespace to configure the desired topic name "
+           << "instead." << std::endl;
+    const std::string subTopic = sdfClone->Get<std::string>("sub_topic");
+    resolvedTopicNames.cmdTopic = transport::TopicUtils::AsValidTopic(
+      resolvedTopicNames.cmdTopic + "/" + subTopic);
   }
 
   // Subscribe to actuator command message
-  if (topic.empty())
+  if (resolvedTopicNames.cmdTopic.empty())
   {
-    gzerr << "Failed to create topic for [" << this->dataPtr->topic
+    gzerr << "Failed to create topic for [" << resolvedTopicNames.cmdTopic
            << "]" << std::endl;
     return;
   }
   else
   {
-    gzdbg << "Listening to topic: " << topic << std::endl;
+    gzdbg << "Listening to topic: " << resolvedTopicNames.cmdTopic << std::endl;
   }
-  this->dataPtr->node.Subscribe(topic,
+  this->dataPtr->node.Subscribe(resolvedTopicNames.cmdTopic,
       &SpacecraftThrusterModelPrivate::OnActuatorMsg, this->dataPtr.get());
 
   // Look for components
@@ -277,6 +271,13 @@ void SpacecraftThrusterModel::PreUpdate(const UpdateInfo &_info,
 
   this->dataPtr->simTime = std::chrono::duration<double>(_info.simTime).count();
   this->dataPtr->UpdateForcesAndMoments(_ecm);
+}
+
+//////////////////////////////////////////////////
+SpacecraftThrusterModel::TopicNames
+  SpacecraftThrusterModel::ResolvedTopicNames() const
+{
+  return this->dataPtr->resolvedTopicNames;
 }
 
 //////////////////////////////////////////////////

@@ -34,7 +34,7 @@ namespace components
   /// \brief Holds the render engine server API backend name.
   using RenderEngineServerApiBackend = Component<std::string,
       class RenderEngineServerApiBackendTag, serializers::StringSerializer>;
-  GZ_SIM_REGISTER_COMPONENT(
+  GZ_SIM_DECLARE_COMPONENT(
       "gz_sim_components.RenderEngineServerApiBackend",
       RenderEngineServerApiBackend)
 }

@@ -33,7 +33,7 @@ namespace components
   /// e.g. visual entities. Value is in the range from 0 (opaque) to
   /// 1 (transparent).
   using Transparency = Component<float, class TransparencyTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.Transparency",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.Transparency",
       Transparency)
 }
 }

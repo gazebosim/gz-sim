@@ -39,7 +39,7 @@
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/Utility.hh>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 
 #include "gz/sim/components/Actuators.hh"
 #include "gz/sim/components/ExternalWorldWrenchCmd.hh"

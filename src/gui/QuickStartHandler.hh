@@ -17,7 +17,8 @@
 #ifndef GZ_SIM_GUI_QUICKSTARTHANDLER_HH_
 #define GZ_SIM_GUI_QUICKSTARTHANDLER_HH_
 
-#include <QtCore>
+#include <QObject>
+#include <QString>
 #include <string>
 
 #include "gz/sim/config.hh"

@@ -20,11 +20,14 @@
 #include <string>
 
 #include <gz/common/Console.hh>
+#include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
 #include "../helpers/EnvTestFixture.hh"
-#include "gz/sim/TestFixture.hh"
+#include "gz/sim/EntityComponentManager.hh"
+#include "gz/sim/Server.hh"
+#include "gz/sim/ServerConfig.hh"
 #include "gz/sim/components/SemanticCategory.hh"
 #include "gz/sim/components/SemanticDescription.hh"
 #include "gz/sim/components/SemanticTags.hh"
@@ -33,7 +36,6 @@
 namespace common = gz::common;
 namespace sim = gz::sim;
 namespace components = gz::sim::components;
-using gz::sim::TestFixture;
 
 /// \brief Test EntitySemantics system
 class EntitySemanticsTest : public InternalFixture<::testing::Test>
@@ -43,48 +45,35 @@ class EntitySemanticsTest : public InternalFixture<::testing::Test>
 /////////////////////////////////////////////////
 TEST_F(EntitySemanticsTest, CanSetCategoriesAndTags)
 {
-  TestFixture fixture(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
-                                        "test", "worlds",
-                                        "entity_semantics.sdf"));
+  sim::ServerConfig serverConfig;
+  serverConfig.SetSdfFile(common::joinPaths(std::string(PROJECT_SOURCE_PATH),
+                                            "test", "worlds",
+                                            "entity_semantics.sdf"));
+  sim::Server server(serverConfig);
+  server.Run(true, 1, false);
 
-  bool testsExecuted = false;
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
 
-  // Put the checks in an extra lambda as opposed to doing it OnPostUpdate so we
-  // can call ASSERT_*
-  auto runChecks = [](const gz::sim::EntityComponentManager &_ecm)
-  {
-    auto robots = _ecm.EntitiesByComponents(components::SemanticCategory(1));
-    ASSERT_EQ(1u, robots.size());
+  auto robots = ecm->EntitiesByComponents(components::SemanticCategory(1));
+  ASSERT_EQ(1u, robots.size());
 
-    auto robotDescription =
-        _ecm.ComponentData<components::SemanticDescription>(robots[0]);
-    ASSERT_TRUE(robotDescription .has_value());
-    EXPECT_EQ("Food delivery mobile robot", *robotDescription);
+  auto robotDescription =
+      ecm->ComponentData<components::SemanticDescription>(robots[0]);
+  ASSERT_TRUE(robotDescription.has_value());
+  EXPECT_EQ("Food delivery mobile robot", *robotDescription);
 
-    auto robotTags = _ecm.ComponentData<components::SemanticTags>(robots[0]);
-    ASSERT_TRUE(robotTags.has_value());
-    ASSERT_EQ(2u, robotTags->size());
-    EXPECT_EQ("mobile", (*robotTags)[0]);
-    EXPECT_EQ("diff_drive", (*robotTags)[1]);
+  auto robotTags = ecm->ComponentData<components::SemanticTags>(robots[0]);
+  ASSERT_TRUE(robotTags.has_value());
+  ASSERT_EQ(2u, robotTags->size());
+  EXPECT_EQ("mobile", (*robotTags)[0]);
+  EXPECT_EQ("diff_drive", (*robotTags)[1]);
 
-    auto dynamicObjects =
-        _ecm.EntitiesByComponents(components::SemanticCategory(4));
-    EXPECT_EQ(2u, dynamicObjects.size());
+  auto dynamicObjects =
+      ecm->EntitiesByComponents(components::SemanticCategory(4));
+  EXPECT_EQ(2u, dynamicObjects.size());
 
-    auto staticObjects =
-        _ecm.EntitiesByComponents(components::SemanticCategory(5));
-    EXPECT_EQ(1u, staticObjects.size());
-  };
-
-  fixture.OnPostUpdate(
-      [&](const sim::UpdateInfo &, const sim::EntityComponentManager &_ecm)
-      {
-        runChecks(_ecm);
-        testsExecuted = true;
-        return true;
-      });
-
-  fixture.Finalize();
-  fixture.Server()->Run(true, 1, false);
-  EXPECT_TRUE(testsExecuted);
+  auto staticObjects =
+      ecm->EntitiesByComponents(components::SemanticCategory(5));
+  EXPECT_EQ(1u, staticObjects.size());
 }

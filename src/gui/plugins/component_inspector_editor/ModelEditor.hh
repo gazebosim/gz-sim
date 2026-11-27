@@ -20,7 +20,8 @@
 
 #include <memory>
 
-#include <QtCore>
+#include <QEvent>
+#include <QObject>
 
 #include <gz/sim/Types.hh>
 

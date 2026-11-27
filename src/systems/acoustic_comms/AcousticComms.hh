@@ -27,7 +27,7 @@
 #include <tuple>
 #include <unordered_map>
 
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 #include <gz/math/Rand.hh>
 #include "gz/sim/comms/ICommsModel.hh"
 #include <gz/sim/System.hh>

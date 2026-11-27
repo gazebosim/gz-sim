@@ -23,7 +23,7 @@
 #include <string>
 #include <gz/common/Filesystem.hh>
 #include <gz/common/Util.hh>
-#include <gz/msgs.hh>
+#include <gz/msgs/clock.pb.h>
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 

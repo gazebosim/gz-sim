@@ -16,6 +16,9 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <string>
+#include <vector>
+
 #include "EntityComponentManager.hh"
 #include "gz/sim/Types.hh"
 #include "gz/sim/python/ComponentPybindRegistry.hh"
@@ -28,6 +31,99 @@ namespace python
 {
 using detail::ComponentProxy;
 using detail::ComponentPybindRegistry;
+
+namespace
+{
+/////////////////////////////////////////////////
+/// \brief Convert the positional arguments of a query into component type
+/// ids.
+/// \param[in] _compTypes Python arguments, each of which must be a
+/// ComponentProxy.
+/// \return The component type ids, in the order they were given.
+/// \throws pybind11::type_error if any argument is not a component type.
+std::vector<gz::sim::ComponentTypeId> ParseComponentTypes(
+    const pybind11::args &_compTypes)
+{
+  std::vector<gz::sim::ComponentTypeId> types;
+  types.reserve(_compTypes.size());
+  for (auto item : _compTypes)
+  {
+    if (!pybind11::isinstance<ComponentProxy>(item))
+    {
+      throw pybind11::type_error(
+          "All arguments must be component types (did you forget to "
+          "unpack a list with *?)");
+    }
+    types.push_back(pybind11::cast<ComponentProxy>(item).typeId);
+  }
+  return types;
+}
+
+/////////////////////////////////////////////////
+/// \brief Run a runtime-typed ECM query and collect the result as a list of
+/// tuples.
+///
+/// Each tuple is (entity, value...) with one value per requested component
+/// type. Data components yield a snapshot of their data; tag (NoData)
+/// components yield their ComponentProxy, since they have no data.
+///
+/// \param[in] _ecm The EntityComponentManager to query.
+/// \param[in] _types Component types every matched entity must have.
+/// \param[in] _each Callable that invokes the desired ECM query.
+/// \return A list of tuples, each 1 + _types.size() wide.
+/// \throws pybind11::type_error if a component type has no Python bindings.
+template <typename EachFn>
+pybind11::list EachToList(const gz::sim::EntityComponentManager &_ecm,
+                          const std::vector<gz::sim::ComponentTypeId> &_types,
+                          EachFn _each)
+{
+  namespace py = pybind11;
+  auto *reg = ComponentPybindRegistry::Instance();
+
+  // Hoisted once per query: registry lookups, mutex acquisitions and tag
+  // proxy construction all stay out of the entity loop.
+  std::vector<ComponentPybindRegistry::RawGetterFn> getters;
+  std::vector<py::object> tagProxies;
+  getters.reserve(_types.size());
+  tagProxies.reserve(_types.size());
+
+  for (const auto typeId : _types)
+  {
+    if (!reg->HasBindings(typeId))
+    {
+      throw py::type_error(
+          "Component type with type_id " + std::to_string(typeId) +
+          " is not registered for Python manipulation");
+    }
+
+    // A null raw getter means a tag (NoData) component: there is no data to
+    // return, so the proxy itself is handed back instead.
+    auto getter = reg->RawGetter(typeId);
+    getters.push_back(getter);
+    tagProxies.push_back(getter
+        ? py::none()
+        : py::cast(ComponentProxy{reg->ComponentName(typeId), typeId}));
+  }
+
+  py::list result;
+  _each(_ecm, _types,
+      [&](gz::sim::Entity _entity,
+          const std::vector<const gz::sim::components::BaseComponent *>
+              &_comps)
+      {
+        py::tuple row(1 + _comps.size());
+        row[0] = py::cast(_entity);
+        for (size_t i = 0; i < _comps.size(); ++i)
+        {
+          row[1 + i] = getters[i] ? getters[i](_comps[i]) : tagProxies[i];
+        }
+        result.append(row);
+        return true;
+      });
+  return result;
+}
+}  // namespace
+
 /////////////////////////////////////////////////
 void defineSimEntityComponentManager(pybind11::object module)
 {
@@ -198,7 +294,41 @@ void defineSimEntityComponentManager(pybind11::object module)
          },
          pybind11::arg("entity"), pybind11::arg("comp_type"),
          "Get the changed state of a component. Returns "
-         "ComponentState.NoChange if the component does not exist.");
+         "ComponentState.NoChange if the component does not exist.")
+    .def("each_data",
+         [](const gz::sim::EntityComponentManager &_self,
+            const pybind11::args &_compTypes)
+         {
+           return EachToList(_self, ParseComponentTypes(_compTypes),
+               [](const auto &_e, const auto &_t, const auto &_f)
+               { _e.Each(_t, _f); });
+         },
+         "Get all entities and their component data matching the given "
+         "component types, as a list of tuples. Each tuple is "
+         "(entity, value...) with one value per component type; tag (NoData) "
+         "components yield their component type. Component values follow the "
+         "same copy semantics as component_data(), including the "
+         "pointer-payload exception; use set_component_data() to write. "
+         "Entities marked for removal but not yet processed are included.")
+    .def("each_new_data",
+         [](const gz::sim::EntityComponentManager &_self,
+            const pybind11::args &_compTypes)
+         {
+           return EachToList(_self, ParseComponentTypes(_compTypes),
+               [](const auto &_e, const auto &_t, const auto &_f)
+               { _e.EachNew(_t, _f); });
+         },
+         "Same as each_data(), restricted to entities created during this "
+         "simulation step.")
+    .def("each_removed_data",
+         [](const gz::sim::EntityComponentManager &_self,
+            const pybind11::args &_compTypes)
+         {
+           return EachToList(_self, ParseComponentTypes(_compTypes),
+               [](const auto &_e, const auto &_t, const auto &_f)
+               { _e.EachRemoved(_t, _f); });
+         },
+         "Same as each_data(), restricted to entities marked for removal.");
 }
 }  // namespace python
 }  // namespace sim
