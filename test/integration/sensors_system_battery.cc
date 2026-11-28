@@ -26,14 +26,12 @@
 
 #include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
-#include "gz/sim/SystemLoader.hh"
 #include "gz/sim/Types.hh"
 #include "test_config.hh"
 
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/Name.hh"
 
-#include "plugins/MockSystem.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -59,26 +57,8 @@ void depthCb(const msgs::Image &)
 }
 
 //////////////////////////////////////////////////
-class SensorsFixture : public InternalFixture<InternalFixture<::testing::Test>>
+class SensorsFixture : public InternalFixture<::testing::Test>
 {
-  protected: void SetUp() override
-  {
-    InternalFixture::SetUp();
-
-    sdf::Plugin sdfPlugin;
-    sdfPlugin.SetName("gz::sim::MockSystem");
-    sdfPlugin.SetFilename("MockSystem");
-    auto plugin = sm.LoadPlugin(sdfPlugin);
-    EXPECT_TRUE(plugin.has_value());
-    this->systemPtr = plugin.value();
-    this->mockSystem = static_cast<sim::MockSystem *>(
-        systemPtr->QueryInterface<sim::System>());
-  }
-
-  public: gz::sim::SystemPluginPtr systemPtr;
-  public: sim::MockSystem *mockSystem;
-
-  private: sim::SystemLoader sm;
 };
 
 /////////////////////////////////////////////////
@@ -94,36 +74,33 @@ TEST_F(SensorsFixture, SensorsBatteryState)
   ServerConfig serverConfig;
   serverConfig.SetSdfFile(sdfPath);
 
-  // A pointer to the ecm. This will be valid once we run the mock system
-  sim::EntityComponentManager *ecm = nullptr;
-  this->mockSystem->preUpdateCallback =
-    [&ecm](const sim::UpdateInfo &, sim::EntityComponentManager &_ecm)
-    {
-      ecm = &_ecm;
-    };
-
   // Start server
   Server server(serverConfig);
-  server.AddSystem(this->systemPtr);
   server.Run(true, 100, false);
-  EXPECT_NE(nullptr, ecm);
 
-  // Check a battery exists
-  EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
+  // Check a battery exists and verify initial state of charge
+  Entity batEntity = kNullEntity;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
 
-  // Find the battery entity
-  Entity batEntity = ecm->EntityByComponents(components::Name(
-    "linear_battery"));
-  EXPECT_NE(kNullEntity, batEntity);
+    EXPECT_TRUE(ecm->HasComponentType(components::BatterySoC::typeId));
 
-  // Find the battery component
-  EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
-    components::BatterySoC::typeId));
-  auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+    // Find the battery entity
+    batEntity = ecm->EntityByComponents(components::Name(
+      "linear_battery"));
+    EXPECT_NE(kNullEntity, batEntity);
 
-  // Check state of charge should be 1, since the battery has not drained
-  // and the <initial_charge> is equivalent of the <capacity>.
-  EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
+    // Find the battery component
+    EXPECT_TRUE(ecm->EntityHasComponentType(batEntity,
+      components::BatterySoC::typeId));
+    auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+    ASSERT_NE(nullptr, batComp);
+
+    // Check state of charge should be 1, since the battery has not drained
+    // and the <initial_charge> is equivalent of the <capacity>.
+    EXPECT_DOUBLE_EQ(batComp->Data(), 1.0);
+  }
 
   gz::transport::Node node;
 
@@ -142,7 +119,13 @@ TEST_F(SensorsFixture, SensorsBatteryState)
 
   // The state of charge should be <1, since the battery has started
   // draining.
-  EXPECT_LT(batComp->Data(), 1.0);
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+    ASSERT_NE(nullptr, batComp);
+    EXPECT_LT(batComp->Data(), 1.0);
+  }
 
   // wait and make sure camera is publishing images
   int sleep = 0;
@@ -168,12 +151,20 @@ TEST_F(SensorsFixture, SensorsBatteryState)
   unsigned int iterToRun = 50u;
 
   // Run until battery is completely drained
-  while (batComp->Data() > 0.0 && totalIter < 1000)
+  double batCharge = 1.0;
+  while (batCharge > 0.0 && totalIter < 1000)
   {
     server.Run(true, iterToRun, false);
     totalIter += iterToRun;
+    {
+      auto ecm = server.EcmScope();
+      ASSERT_TRUE(ecm.Valid());
+      auto batComp = ecm->Component<components::BatterySoC>(batEntity);
+      ASSERT_NE(nullptr, batComp);
+      batCharge = batComp->Data();
+    }
   }
-  EXPECT_LE(batComp->Data(), 0.0);
+  EXPECT_LE(batCharge, 0.0);
 
   // wait and make sure we receive expected no. of images
   int rate = 30;
