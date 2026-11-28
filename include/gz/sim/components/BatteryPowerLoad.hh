@@ -40,7 +40,7 @@ namespace components
   /// \brief A component that indicates the total consumption of a battery.
   using BatteryPowerLoad =
     Component<BatteryPowerLoadInfo, class BatteryPowerLoadTag>;
-  GZ_SIM_REGISTER_COMPONENT("gz_sim_components.BatteryPowerLoad",
+  GZ_SIM_DECLARE_COMPONENT("gz_sim_components.BatteryPowerLoad",
                                 BatteryPowerLoad)
 }
 }
