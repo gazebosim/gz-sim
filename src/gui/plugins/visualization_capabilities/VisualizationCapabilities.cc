@@ -1251,10 +1251,12 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
     descriptor.mesh = meshManager->Load(descriptor.meshName);
     if (descriptor.mesh)
     {
-      if (_geom.MeshShape()->Optimization() != sdf::MeshOptimization::NONE)
+      const sdf::Mesh *meshSdf = _geom.MeshShape();
+      if (meshSdf->Optimization() != sdf::MeshOptimization::NONE ||
+          meshSdf->AssertConvex() != sdf::ConvexAssertion::NONE)
       {
         const common::Mesh *optimizedMesh =
-            optimizeMesh(*_geom.MeshShape(), *descriptor.mesh);
+            optimizeMesh(*meshSdf, *descriptor.mesh);
         if (optimizedMesh)
         {
           descriptor.mesh = optimizedMesh;
@@ -1263,6 +1265,15 @@ rendering::GeometryPtr VisualizationCapabilitiesPrivate::CreateGeometry(
           // gz-rendering
           descriptor.subMeshName = "";
           descriptor.centerSubMesh = false;
+        }
+        else if (meshSdf->AssertConvex() == sdf::ConvexAssertion::FAIL &&
+            meshSdf->Optimization() !=
+            sdf::MeshOptimization::CONVEX_DECOMPOSITION)
+        {
+          // The physics engine does not create the collision of a mesh
+          // asserted to be convex with an error on failure when it is not
+          // convex, so there is nothing to visualize.
+          return geom;
         }
       }
       geom = this->scene->CreateMesh(descriptor);
