@@ -36,7 +36,6 @@
 #include "test_config.hh"
 
 #include "../helpers/EnvTestFixture.hh"
-#include "../helpers/Relay.hh"
 
 using namespace gz;
 using namespace sim;
@@ -85,8 +84,12 @@ TEST_F(ThermalSensorTest,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  // Create a system that checks for thermal component
-  test::Relay testSystem;
+  // subscribe to thermal topic
+  transport::Node node;
+  node.Subscribe("/thermal_camera_invalid/image", &thermalCb);
+
+  // Run server
+  server.Run(true, 1, false);
 
   double resolution = 0;
   double minTemp = std::numeric_limits<double>::max();
@@ -95,61 +98,49 @@ TEST_F(ThermalSensorTest,
   std::string name;
   sdf::Sensor sensorSdf;
 
-  testSystem.OnPostUpdate([&](const sim::UpdateInfo &,
-    const sim::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::Temperature, components::Name>(
-          [&](const gz::sim::Entity &_id,
-              const components::Temperature *_temp,
-              const components::Name *_name) -> bool
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+
+    ecm->Each<components::Temperature, components::Name>(
+        [&](const gz::sim::Entity &_id,
+            const components::Temperature *_temp,
+            const components::Name *_name) -> bool
+        {
+          // store temperature data
+          entityTemp[_name->Data()] = _temp->Data();
+
+          // verify temperature data belongs to a visual
+          EXPECT_NE(nullptr, ecm->Component<components::Visual>(_id));
+
+          return true;
+        });
+
+    ecm->Each<components::ThermalCamera, components::Name>(
+        [&](const gz::sim::Entity &_id,
+            const components::ThermalCamera *_sensor,
+            const components::Name *_name) -> bool
+        {
+          // store temperature data
+          sensorSdf = _sensor->Data();
+          name = _name->Data();
+
+          auto resolutionComp =
+              ecm->Component<components::TemperatureLinearResolution>(_id);
+          if (resolutionComp)
+            resolution = resolutionComp->Data();
+
+          auto temperatureRangeComp =
+              ecm->Component<components::TemperatureRange>(_id);
+          if (temperatureRangeComp)
           {
-            // store temperature data
-            entityTemp[_name->Data()] = _temp->Data();
-
-            // verify temperature data belongs to a visual
-            EXPECT_NE(nullptr, _ecm.Component<components::Visual>(_id));
-
-            return true;
-          });
-    });
-  testSystem.OnUpdate([&](const sim::UpdateInfo &,
-    sim::EntityComponentManager &_ecm)
-    {
-      _ecm.Each<components::ThermalCamera, components::Name>(
-          [&](const gz::sim::Entity &_id,
-              const components::ThermalCamera *_sensor,
-              const components::Name *_name) -> bool
-          {
-            // store temperature data
-            sensorSdf = _sensor->Data();
-            name = _name->Data();
-
-            auto resolutionComp =
-                _ecm.Component<components::TemperatureLinearResolution>(
-                _id);
-            if (resolutionComp)
-              resolution = resolutionComp->Data();
-
-            auto temperatureRangeComp =
-                _ecm.Component<components::TemperatureRange>(_id);
-            if (temperatureRangeComp)
-            {
-              auto info = temperatureRangeComp->Data();
-              minTemp = info.min.Kelvin();
-              maxTemp = info.max.Kelvin();
-            }
-            return true;
-          });
-    });
-
-  server.AddSystem(testSystem.systemPtr);
-
-  // subscribe to thermal topic
-  transport::Node node;
-  node.Subscribe("/thermal_camera_invalid/image", &thermalCb);
-
-  // Run server
-  server.Run(true, 1, false);
+            auto info = temperatureRangeComp->Data();
+            minTemp = info.min.Kelvin();
+            maxTemp = info.max.Kelvin();
+          }
+          return true;
+        });
+  }
 
   // verify camera properties from sdf
   unsigned int width = 320u;
