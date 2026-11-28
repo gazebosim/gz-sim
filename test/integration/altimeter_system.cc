@@ -26,17 +26,16 @@
 #include <gz/transport/Node.hh>
 #include <gz/utils/ExtraTestMacros.hh>
 
-#include "gz/sim/components/Altimeter.hh"
 #include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Sensor.hh"
+#include "gz/sim/EntityComponentManager.hh"
 #include "gz/sim/Server.hh"
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -79,61 +78,66 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   auto topic = "world/altimeter_sensor/"
       "model/altimeter_model/link/link/sensor/altimeter_sensor/altimeter";
 
-  // Create a system that records altimeter data
-  test::Relay testSystem;
-  std::vector<math::Pose3d> poses;
-  std::vector<math::Vector3d> velocities;
-  testSystem.OnPostUpdate([&](const UpdateInfo &_info,
-                              const EntityComponentManager &_ecm)
-      {
-        _ecm.Each<components::Altimeter, components::Name,
-                  components::WorldPose,
-                  components::WorldLinearVelocity>(
-            [&](const Entity &_entity,
-                const components::Altimeter *,
-                const components::Name *_name,
-                const components::WorldPose *_worldPose,
-                const components::WorldLinearVelocity *_worldLinearVel) -> bool
-            {
-              EXPECT_EQ(_name->Data(), sensorName);
+  struct AltimeterState
+  {
+    Entity entity{kNullEntity};
+    math::Pose3d pose;
+    math::Vector3d velocity;
+  };
 
-              poses.push_back(_worldPose->Data());
-              velocities.push_back(_worldLinearVel->Data());
+  // Read the altimeter world pose and velocity from the ECM
+  auto altimeterState = [&](const EntityComponentManager &_ecm)
+  {
+    AltimeterState state;
+    const auto entities = _ecm.EntitiesByComponents(
+        components::Sensor(), components::Name(sensorName));
+    EXPECT_EQ(1u, entities.size());
+    if (entities.empty())
+      return state;
 
-              auto sensorComp = _ecm.Component<components::Sensor>(_entity);
-              EXPECT_NE(nullptr, sensorComp);
-
-              if (_info.iterations == 1)
-                return true;
-
-              // This component is created on the 2nd PreUpdate
-              auto topicComp = _ecm.Component<components::SensorTopic>(_entity);
-              EXPECT_NE(nullptr, topicComp);
-              if (topicComp)
-              {
-                EXPECT_EQ(topic, topicComp->Data());
-              }
-
-              return true;
-            });
-      });
-
-  server.AddSystem(testSystem.systemPtr);
+    state.entity = entities.front();
+    const auto worldPose =
+        _ecm.Component<components::WorldPose>(state.entity);
+    const auto worldLinearVel =
+        _ecm.Component<components::WorldLinearVelocity>(state.entity);
+    EXPECT_NE(nullptr, worldPose);
+    EXPECT_NE(nullptr, worldLinearVel);
+    if (worldPose)
+      state.pose = worldPose->Data();
+    if (worldLinearVel)
+      state.velocity = worldLinearVel->Data();
+    return state;
+  };
 
   // subscribe to altimeter topic
   transport::Node node;
   node.Subscribe(topic, &altimeterCb);
 
+  // Run one iteration to record the initial state
+  server.Run(true, 1u, false);
+  AltimeterState firstState;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    firstState = altimeterState(*ecm);
+  }
+
   // Run server
   size_t iters100 = 100u;
-  server.Run(true, iters100, false);
-  EXPECT_EQ(iters100, poses.size());
+  server.Run(true, iters100 - 1u, false);
+  ASSERT_EQ(iters100, *server.IterationCount());
+  AltimeterState lastState;
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    lastState = altimeterState(*ecm);
+  }
 
   // Wait for messages to be received
   size_t updateRate = 30;
   double stepSize = 0.001;
   size_t waitForMsgs =
-      static_cast<size_t>(poses.size() * stepSize * updateRate + 1);
+      static_cast<size_t>(*server.IterationCount() * stepSize * updateRate + 1);
   for (int sleep = 0; sleep < 30; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -154,11 +158,11 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
 
   // check altimeter world pose
   // verify the altimeter model z pos is decreasing
-  EXPECT_GT(poses.front().Pos().Z(), poses.back().Pos().Z());
-  EXPECT_GT(poses.back().Pos().Z(), 0.0);
+  EXPECT_GT(firstState.pose.Pos().Z(), lastState.pose.Pos().Z());
+  EXPECT_GT(lastState.pose.Pos().Z(), 0.0);
   // velocity should be negative in z
-  EXPECT_GT(velocities.front().Z(), velocities.back().Z());
-  EXPECT_LT(velocities.back().Z(), 0.0);
+  EXPECT_GT(firstState.velocity.Z(), lastState.velocity.Z());
+  EXPECT_LT(lastState.velocity.Z(), 0.0);
 
   // check altimeter sensor data
   // vertical position = world position - initial position
@@ -175,10 +179,21 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   // on the ground plane
   size_t iters1000 = 1000u;
   server.Run(true, iters1000, false);
-  EXPECT_EQ(iters100 + iters1000, poses.size());
+  ASSERT_EQ(iters100 + iters1000, *server.IterationCount());
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    lastState = altimeterState(*ecm);
+
+    auto topicComp =
+        ecm->Component<components::SensorTopic>(lastState.entity);
+    ASSERT_NE(nullptr, topicComp);
+    EXPECT_EQ(topic, topicComp->Data());
+  }
 
   // Wait for messages to be received
-  waitForMsgs = static_cast<size_t>(poses.size() * stepSize * updateRate + 1);
+  waitForMsgs = static_cast<size_t>(
+      *server.IterationCount() * stepSize * updateRate + 1);
   for (int sleep = 0; sleep < 30; ++sleep)
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -200,9 +215,9 @@ TEST_F(AltimeterTest, GZ_UTILS_TEST_ENABLED_ONLY_ON_LINUX(ModelFalling))
   // altimeter should be on the ground
   // note that altimeter's parent link is at an 0.05 offset
   // set high tol due to instablity
-  EXPECT_NEAR(poses.back().Pos().Z(), 0.05, 1e-2);
+  EXPECT_NEAR(lastState.pose.Pos().Z(), 0.05, 1e-2);
   // velocity should now be zero as the model is resting on the ground
-  EXPECT_NEAR(velocities.back().Z(), 0u, 1e-3);
+  EXPECT_NEAR(lastState.velocity.Z(), 0u, 1e-3);
 
   // check altimeter sensor data
   // altimeter vertical position = 0.05 (world pos) - 3.05 (initial position)
