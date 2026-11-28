@@ -21,7 +21,6 @@
 
 #include "../helpers/EnvTestFixture.hh"
 #include "gz/sim/Server.hh"
-#include "plugins/MockSystem.hh"
 
 using namespace gz;
 using namespace sim;
@@ -69,20 +68,15 @@ TEST_F(LoadSystemStaticRegistryTest, LoadWorks)
   std::optional<Entity> model2Id = server.EntityByName("test_model2");
   ASSERT_NE(model2Id, std::nullopt);
 
+  server.RunOnce();
+
   // Verify that the System was instantiated for both models by checking the ECM
   // for the configured `ModelPluginComponent`.
-  auto mockSystem = std::make_shared<MockSystem>();
-  mockSystem->postUpdateCallback =
-      [model1Id, model2Id](const sim::UpdateInfo &,
-                           const sim::EntityComponentManager &_ecm)
-      {
-        const std::string modelComponentName{"ModelPluginComponent"};
-        auto modelComponentId = common::hash64(modelComponentName);
-        EXPECT_TRUE(_ecm.HasComponentType(modelComponentId));
-        EXPECT_TRUE(_ecm.EntityHasComponentType(*model1Id, modelComponentId));
-        EXPECT_TRUE(_ecm.EntityHasComponentType(*model2Id, modelComponentId));
-      };
-  ASSERT_TRUE(server.AddSystem(mockSystem));
-  server.RunOnce();
-  EXPECT_EQ(1, mockSystem->postUpdateCallCount);
+  auto ecm = server.EcmScope();
+  ASSERT_TRUE(ecm.Valid());
+  const std::string modelComponentName{"ModelPluginComponent"};
+  auto modelComponentId = common::hash64(modelComponentName);
+  EXPECT_TRUE(ecm->HasComponentType(modelComponentId));
+  EXPECT_TRUE(ecm->EntityHasComponentType(*model1Id, modelComponentId));
+  EXPECT_TRUE(ecm->EntityHasComponentType(*model2Id, modelComponentId));
 }
