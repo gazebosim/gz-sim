@@ -62,6 +62,7 @@
 #include "gz/sim/components/Performer.hh"
 #include "gz/sim/components/PerformerAffinity.hh"
 #include "gz/sim/components/Physics.hh"
+#include "gz/sim/components/PhysicsEngineInfo.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "gz/sim/components/Pose.hh"
 #include "gz/sim/components/Recreate.hh"
@@ -618,6 +619,12 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
       continue;
     }
 
+    // Shown as part of the PhysicsEnginePlugin row
+    if (typeId == components::PhysicsEngineInfo::typeId)
+    {
+      continue;
+    }
+
     // Get component item
     QStandardItem *item;
     auto itemIt = this->dataPtr->componentsModel.items.find(typeId);
@@ -803,6 +810,19 @@ void ComponentInspectorEditor::Update(const UpdateInfo &_info,
       auto comp = _ecm.Component<components::PhysicsCollisionDetector>(
           this->dataPtr->entity);
       if (comp)
+        setData(item, comp->Data());
+    }
+    else if (typeId == components::PhysicsEnginePlugin::typeId)
+    {
+      // Show the engine in use once the physics system has loaded it,
+      // otherwise the plugin that was requested
+      auto info = _ecm.Component<components::PhysicsEngineInfo>(
+          this->dataPtr->entity);
+      auto comp = _ecm.Component<components::PhysicsEnginePlugin>(
+          this->dataPtr->entity);
+      if (info && !info->Data().empty())
+        setData(item, info->Data());
+      else if (comp)
         setData(item, comp->Data());
     }
     else if (typeId == components::PhysicsSolver::typeId)

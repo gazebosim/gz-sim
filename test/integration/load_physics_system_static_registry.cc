@@ -29,6 +29,7 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/components/Link.hh"
 #include "gz/sim/components/Name.hh"
+#include "gz/sim/components/PhysicsEngineInfo.hh"
 #include "gz/sim/components/PhysicsEnginePlugin.hh"
 #include "plugins/MockSystem.hh"
 
@@ -96,6 +97,12 @@ TEST_F(LoadPhysicsSystemStaticRegistryTest, LoadDartsim)
       worldEntity(*ecm));
   ASSERT_TRUE(plugin.has_value());
   EXPECT_EQ("static://gz::physics::dartsim::Plugin", plugin.value());
+
+  // The engine that was loaded is kept in its own component
+  auto info = ecm->ComponentData<components::PhysicsEngineInfo>(
+      worldEntity(*ecm));
+  ASSERT_TRUE(info.has_value());
+  EXPECT_EQ(0u, info->find("dartsim ")) << *info;
 
   // Verify that physics engine is running by checking that
   // the link is falling and has negative world linear velocity.
