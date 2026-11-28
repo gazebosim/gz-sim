@@ -39,7 +39,6 @@
 #include "gz/sim/SystemLoader.hh"
 #include "test_config.hh"  // NOLINT(build/include)
 
-#include "../helpers/Relay.hh"
 #include "../helpers/EnvTestFixture.hh"
 
 using namespace gz;
@@ -50,6 +49,46 @@ using namespace std::chrono_literals;
 
 class RecreateEntitiesFixture : public InternalFixture<::testing::Test>
 {
+  /// \brief Add components::Recreate to all models in the ECM.
+  /// \param[in] _ecm Entity Component Manager.
+  public: void RecreateAllModels(EntityComponentManager &_ecm)
+  {
+    _ecm.Each<components::Model>(
+        [&](const gz::sim::Entity &_entity,
+            const components::Model *) -> bool
+        {
+          _ecm.CreateComponent(_entity, components::Recreate());
+          return true;
+        });
+  }
+
+  /// \brief Add components::Recreate to all models in the server's ECM.
+  /// \param[in] _server Server instance.
+  public: void RecreateAllModels(Server &_server)
+  {
+    auto ecm = _server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    this->RecreateAllModels(*ecm);
+  }
+
+  /// \brief Verify that no model entities have components::Recreate in the ECM.
+  /// \param[in] _ecm Entity Component Manager.
+  public: void ExpectNoRecreateEntities(const EntityComponentManager &_ecm)
+  {
+    auto entities = _ecm.EntitiesByComponents(
+        components::Model(), components::Recreate());
+    EXPECT_TRUE(entities.empty());
+  }
+
+  /// \brief Verify that no model entities have components::Recreate in the
+  /// server's ECM.
+  /// \param[in] _server Server instance.
+  public: void ExpectNoRecreateEntities(Server &_server)
+  {
+    auto ecm = _server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    this->ExpectNoRecreateEntities(*ecm);
+  }
 };
 
 /////////////////////////////////////////////////
@@ -65,45 +104,8 @@ TEST_F(RecreateEntitiesFixture,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  EntityComponentManager *ecm = nullptr;
-  bool recreateEntities = false;
-
-  // Create a system that adds a recreate component to models
-  test::Relay testSystem;
-  testSystem.OnUpdate([&](const sim::UpdateInfo &,
-    sim::EntityComponentManager &_ecm)
-    {
-      // cppcheck-suppress knownConditionTrueFalse
-      if (!ecm)
-      {
-        ecm = &_ecm;
-        recreateEntities = true;
-        return;
-      }
-
-      if (recreateEntities)
-      {
-        _ecm.Each<components::Model>(
-            [&](const gz::sim::Entity &_entity,
-                const components::Model *) -> bool
-            {
-              // add a components::Recreate to indicate that this entity
-              // needs to be recreated
-              _ecm.CreateComponent(_entity, components::Recreate());
-              return true;
-            });
-
-        // recreate entities only once so set it back to false
-        recreateEntities = false;
-        return;
-      }
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check we have the ECM
-  EXPECT_EQ(nullptr, ecm);
+  // Run server
   server.Run(true, 1, false);
-  EXPECT_NE(nullptr, ecm);
 
   // model entity ids
   Entity boxModelEntity = kNullEntity;
@@ -119,7 +121,7 @@ TEST_F(RecreateEntitiesFixture,
   Entity capLinkEntity = kNullEntity;
   Entity ellipLinkEntity = kNullEntity;
 
-  auto validateEntities = [&]()
+  auto validateEntities = [&](const EntityComponentManager &_ecm)
   {
     boxModelEntity = kNullEntity;
     cylModelEntity = kNullEntity;
@@ -136,18 +138,18 @@ TEST_F(RecreateEntitiesFixture,
     // Check entities
     // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
     // collision + 5 x visual + 1 x light (light + visual)
-    EXPECT_EQ(25u, ecm->EntityCount());
+    EXPECT_EQ(25u, _ecm.EntityCount());
 
     Entity worldEntity =
-        ecm->EntityByComponents(components::World());
+        _ecm.EntityByComponents(components::World());
     EXPECT_NE(kNullEntity, worldEntity);
 
     // Check models
     unsigned int modelCount{0};
-    ecm->Each<components::Model,
-                              components::Pose,
-                              components::ParentEntity,
-                              components::Name>(
+    _ecm.Each<components::Model,
+              components::Pose,
+              components::ParentEntity,
+              components::Name>(
       [&](const Entity &_entity,
           const components::Model *_model,
           const components::Pose *_pose,
@@ -204,7 +206,7 @@ TEST_F(RecreateEntitiesFixture,
 
     // Check links
     unsigned int linkCount{0};
-    ecm->Each<components::Link,
+    _ecm.Each<components::Link,
               components::Pose,
               components::ParentEntity,
               components::Name>(
@@ -267,8 +269,13 @@ TEST_F(RecreateEntitiesFixture,
     EXPECT_NE(kNullEntity, ellipLinkEntity);
   };
 
-  // validate initial state
-  validateEntities();
+  // validate initial state and add components::Recreate to models
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+    this->RecreateAllModels(*ecm);
+  }
 
   // store the original entity ids
   Entity originalboxModelEntity = boxModelEntity;
@@ -282,14 +289,15 @@ TEST_F(RecreateEntitiesFixture,
   Entity originalcapLinkEntity = capLinkEntity;
   Entity originalellipLinkEntity = ellipLinkEntity;
 
-  // Run once to let the test relay system creates the components::Recreate
-  server.Run(true, 1, false);
-
-  // Run again so that entities get recreated in the ECM
+  // Run so that entities get recreated in the ECM
   server.Run(true, 1, false);
 
   // validate that the entities are recreated
-  validateEntities();
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // check that the newly recreated entities should have a different entity id
   EXPECT_NE(originalboxModelEntity, boxModelEntity);
@@ -304,12 +312,10 @@ TEST_F(RecreateEntitiesFixture,
   EXPECT_NE(originalellipLinkEntity, ellipLinkEntity);
 
   // Run again to make sure the recreate components are removed and no
-  // entities to to be recreated
+  // entities to be recreated
   server.Run(true, 1, false);
 
-  auto entities = ecm->EntitiesByComponents(components::Model(),
-      components::Recreate());
-  EXPECT_TRUE(entities.empty());
+  this->ExpectNoRecreateEntities(server);
 }
 
 /////////////////////////////////////////////////
@@ -325,63 +331,26 @@ TEST_F(RecreateEntitiesFixture,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  EntityComponentManager *ecm = nullptr;
-  bool recreateEntities = false;
-
-  // Create a system that adds a recreate component to models
-  test::Relay testSystem;
-  testSystem.OnUpdate([&](const sim::UpdateInfo &,
-    sim::EntityComponentManager &_ecm)
-    {
-      // cppcheck-suppress knownConditionTrueFalse
-      if (!ecm)
-      {
-        ecm = &_ecm;
-        recreateEntities = true;
-        return;
-      }
-
-      if (recreateEntities)
-      {
-        _ecm.Each<components::Model>(
-            [&](const gz::sim::Entity &_entity,
-                const components::Model *) -> bool
-            {
-              // add a components::Recreate to indicate that this entity
-              // needs to be recreated
-              _ecm.CreateComponent(_entity, components::Recreate());
-              return true;
-            });
-
-        // recreate entities only once so set it back to false
-        recreateEntities = false;
-        return;
-      }
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check we have the ECM
-  EXPECT_EQ(nullptr, ecm);
+  // Run server
   server.Run(true, 1, false);
-  EXPECT_NE(nullptr, ecm);
 
-  auto validateEntities = [&]()
+  auto validateEntities = [&](const EntityComponentManager &_ecm)
   {
     // Check entities
     // 1 x world + 1 x (default) level + 1 x wind + 5 x model + 5 x link + 5 x
     // collision + 5 x visual + 1 x light (light + visual)
-    EXPECT_EQ(49u, ecm->EntityCount());
+    EXPECT_EQ(49u, _ecm.EntityCount());
 
     Entity worldEntity =
-        ecm->EntityByComponents(components::World());
+        _ecm.EntityByComponents(components::World());
     EXPECT_NE(kNullEntity, worldEntity);
 
     // Check models
     unsigned int modelCount{0};
-    ecm->Each<components::Model,
-                              components::Pose,
-                              components::ParentEntity,
-                              components::Name>(
+    _ecm.Each<components::Model,
+              components::Pose,
+              components::ParentEntity,
+              components::Name>(
       [&](const Entity &/*_entity*/,
           const components::Model *_model,
           const components::Pose *_pose,
@@ -403,7 +372,7 @@ TEST_F(RecreateEntitiesFixture,
 
     // Check links
     unsigned int linkCount{0};
-    ecm->Each<components::Link,
+    _ecm.Each<components::Link,
               components::Pose,
               components::ParentEntity,
               components::Name>(
@@ -427,7 +396,7 @@ TEST_F(RecreateEntitiesFixture,
 
     // Check links
     unsigned int jointCount{0};
-    ecm->Each<components::Joint,
+    _ecm.Each<components::Joint,
               components::Pose,
               components::ParentEntity,
               components::Name>(
@@ -450,25 +419,29 @@ TEST_F(RecreateEntitiesFixture,
     EXPECT_EQ(4u, jointCount);
   };
 
-  // validate initial state
-  validateEntities();
+  // validate initial state and add components::Recreate to models
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+    this->RecreateAllModels(*ecm);
+  }
 
-  // Run once to let the test relay system creates the components::Recreate
-  server.Run(true, 1, false);
-
-  // Run again so that entities get recreated in the ECM
+  // Run so that entities get recreated in the ECM
   server.Run(true, 1, false);
 
   // validate that the entities are recreated
-  validateEntities();
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // Run again to make sure the recreate components are removed and no
-  // entities to to be recreated
+  // entities to be recreated
   server.Run(true, 1, false);
 
-  auto entities = ecm->EntitiesByComponents(components::Model(),
-      components::Recreate());
-  EXPECT_TRUE(entities.empty());
+  this->ExpectNoRecreateEntities(server);
 }
 
 /////////////////////////////////////////////////
@@ -484,63 +457,26 @@ TEST_F(RecreateEntitiesFixture,
   EXPECT_FALSE(server.Running());
   EXPECT_FALSE(*server.Running(0));
 
-  EntityComponentManager *ecm = nullptr;
-  bool recreateEntities = false;
-
-  // Create a system that adds a recreate component to models
-  test::Relay testSystem;
-  testSystem.OnUpdate([&](const sim::UpdateInfo &,
-    sim::EntityComponentManager &_ecm)
-    {
-      // cppcheck-suppress knownConditionTrueFalse
-      if (!ecm)
-      {
-        ecm = &_ecm;
-        recreateEntities = true;
-        return;
-      }
-
-      if (recreateEntities)
-      {
-        _ecm.Each<components::Model>(
-            [&](const gz::sim::Entity &_entity,
-                const components::Model *) -> bool
-            {
-              // add a components::Recreate to indicate that this entity
-              // needs to be recreated
-              _ecm.CreateComponent(_entity, components::Recreate());
-              return true;
-            });
-
-        // recreate entities only once so set it back to false
-        recreateEntities = false;
-        return;
-      }
-    });
-  server.AddSystem(testSystem.systemPtr);
-
-  // Run server and check we have the ECM
-  EXPECT_EQ(nullptr, ecm);
+  // Run server
   server.Run(true, 1, false);
-  EXPECT_NE(nullptr, ecm);
 
-  auto validateEntities = [&]()
+  auto validateEntities = [&](const EntityComponentManager &_ecm)
   {
     // Check entities
     // 1 x world + 1 x (default) level + 1 x wind + 1 x model + 2 x link + 2 x
     // collision + 2 x visual + 2 x joint
-    EXPECT_EQ(12u, ecm->EntityCount());
+    EXPECT_EQ(12u, _ecm.EntityCount());
 
     Entity worldEntity =
-        ecm->EntityByComponents(components::World());
+        _ecm.EntityByComponents(components::World());
     EXPECT_NE(kNullEntity, worldEntity);
 
     // Check models
     unsigned int modelCount{0};
-    ecm->Each<components::Model,
-                              components::Pose,
-                              components::ParentEntity,
-                              components::Name>(
+    _ecm.Each<components::Model,
+              components::Pose,
+              components::ParentEntity,
+              components::Name>(
       [&](const Entity &/*_entity*/,
           const components::Model *_model,
           const components::Pose *_pose,
@@ -562,7 +498,7 @@ TEST_F(RecreateEntitiesFixture,
 
     // Check links
     unsigned int linkCount{0};
-    ecm->Each<components::Link,
+    _ecm.Each<components::Link,
               components::Pose,
               components::ParentEntity,
               components::Name>(
@@ -586,7 +522,7 @@ TEST_F(RecreateEntitiesFixture,
 
     // Check joint
     unsigned int jointCount{0};
-    ecm->Each<components::Joint,
+    _ecm.Each<components::Joint,
               components::Pose,
               components::ParentEntity,
               components::Name,
@@ -604,7 +540,6 @@ TEST_F(RecreateEntitiesFixture,
         EXPECT_NE(nullptr, _name);
         EXPECT_NE(nullptr, _parentLinkName);
 
-        std::cout << "JointName[" << _name->Data() << "]\n";
         if (_name->Data() == "world_fixed")
         {
           EXPECT_EQ("world", _parentLinkName->Data());
@@ -617,23 +552,27 @@ TEST_F(RecreateEntitiesFixture,
     EXPECT_EQ(2u, jointCount);
   };
 
-  // validate initial state
-  validateEntities();
+  // validate initial state and add components::Recreate to models
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+    this->RecreateAllModels(*ecm);
+  }
 
-  // Run once to let the test relay system creates the components::Recreate
-  server.Run(true, 1, false);
-
-  // Run again so that entities get recreated in the ECM
+  // Run so that entities get recreated in the ECM
   server.Run(true, 1, false);
 
   // validate that the entities are recreated
-  validateEntities();
+  {
+    auto ecm = server.EcmScope();
+    ASSERT_TRUE(ecm.Valid());
+    validateEntities(*ecm);
+  }
 
   // Run again to make sure the recreate components are removed and no
-  // entities to to be recreated
+  // entities to be recreated
   server.Run(true, 1, false);
 
-  auto entities = ecm->EntitiesByComponents(components::Model(),
-      components::Recreate());
-  EXPECT_TRUE(entities.empty());
+  this->ExpectNoRecreateEntities(server);
 }
