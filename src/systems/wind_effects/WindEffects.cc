@@ -236,6 +236,21 @@ class gz::sim::systems::WindEffectsPrivate
   public: void UpdateWindVelocity(const UpdateInfo &_info,
                                   EntityComponentManager &_ecm);
 
+  /// \brief Reset the wind: zero the wind entity's WorldLinearVelocity,
+  /// reset the low pass filters and publish the zero wind velocity.
+  /// Called when the wind gets disabled, so that systems reading that
+  /// component (e.g. LiftDrag) and subscribers of the wind information
+  /// topic see no wind, and so that the wind rises from zero in the
+  /// direction of the current seed when it is enabled again.
+  /// \param[in] _ecm Mutable reference to the EntityComponentManager.
+  public: void ResetWind(EntityComponentManager &_ecm);
+
+  /// \brief Publish the wind information (ENU) if there are subscribers.
+  /// \param[in] _windVel Current wind velocity.
+  /// \param[in] _enabled Whether the wind is enabled.
+  public: void PublishWindInfo(const math::Vector3d &_windVel,
+                               bool _enabled);
+
   /// \brief Calculate and apply forces on links affected by wind.
   /// \param[in] _info Simulation update info.
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
@@ -247,7 +262,8 @@ class gz::sim::systems::WindEffectsPrivate
   /// \param[in] _msg msgs::Wind message.
   public: void OnWindMsg(const msgs::Wind &_msg);
 
-  /// \brief Process commands received from transport
+  /// \brief Process commands received from transport. Only the newest
+  /// command is applied. If it disables the wind, the wind is reset.
   /// \param[in] _ecm Mutable reference to the EntityComponentManager.
   public: void ProcessCommandQueue(EntityComponentManager &_ecm);
 
@@ -571,15 +587,37 @@ void WindEffectsPrivate::UpdateWindVelocity(const UpdateInfo &_info,
   // Update component
   windLinVel->Data() = windVel;
 
-  // Publish wind information (ENU)
-  msgs::Wind windInfo_gz;
-  windInfo_gz.mutable_linear_velocity()->set_x(windVel.X());
-  windInfo_gz.mutable_linear_velocity()->set_y(windVel.Y());
-  windInfo_gz.mutable_linear_velocity()->set_z(windVel.Z());
-  if (this->windPub.HasConnections()){
-    this->windPub.Publish(windInfo_gz);
-  }
+  this->PublishWindInfo(windVel, true);
+}
 
+//////////////////////////////////////////////////
+void WindEffectsPrivate::ResetWind(EntityComponentManager &_ecm)
+{
+  this->magnitudeMean = 0.0;
+  this->magnitudeMeanVertical = 0.0;
+  this->directionMean.reset();
+
+  auto windLinVel =
+      _ecm.Component<components::WorldLinearVelocity>(this->windEntity);
+  if (!windLinVel)
+    return;
+
+  windLinVel->Data() = math::Vector3d::Zero;
+
+  this->PublishWindInfo(math::Vector3d::Zero, false);
+}
+
+//////////////////////////////////////////////////
+void WindEffectsPrivate::PublishWindInfo(const math::Vector3d &_windVel,
+                                         bool _enabled)
+{
+  if (!this->windPub.HasConnections())
+    return;
+
+  msgs::Wind windInfo;
+  msgs::Set(windInfo.mutable_linear_velocity(), _windVel);
+  windInfo.set_enable_wind(_enabled);
+  this->windPub.Publish(windInfo);
 }
 
 //////////////////////////////////////////////////
@@ -643,28 +681,28 @@ void WindEffectsPrivate::OnWindMsg(const msgs::Wind &_msg)
 //////////////////////////////////////////////////
 void WindEffectsPrivate::ProcessCommandQueue(EntityComponentManager &_ecm)
 {
-  std::lock_guard lock(this->windInfoMutex);
-  if (this->windCmdQueue.size() > 0)
+  bool disabled = false;
   {
-    this->currentWindInfo.CopyFrom(this->windCmdQueue.back());
-    this->windCmdQueue.pop_back();
-
-    // Also update the seed velocity component
-    auto windLinVelSeed =
-        _ecm.Component<components::WorldLinearVelocitySeed>(this->windEntity);
-
-    if (windLinVelSeed)
+    std::lock_guard lock(this->windInfoMutex);
+    if (this->windCmdQueue.size() > 0)
     {
-      windLinVelSeed->Data() =
-          msgs::Convert(this->currentWindInfo.linear_velocity());
-    }
-    else
-    {
-      _ecm.CreateComponent(this->windEntity,
-                           components::WorldLinearVelocitySeed(msgs::Convert(
-                               this->currentWindInfo.linear_velocity())));
+      const bool wasEnabled = this->currentWindInfo.enable_wind();
+
+      // Only the newest command matters, it carries the whole wind state
+      this->currentWindInfo.CopyFrom(this->windCmdQueue.back());
+      this->windCmdQueue.clear();
+
+      // Also update the seed velocity component
+      _ecm.SetComponentData<components::WorldLinearVelocitySeed>(
+          this->windEntity,
+          msgs::Convert(this->currentWindInfo.linear_velocity()));
+
+      disabled = wasEnabled && !this->currentWindInfo.enable_wind();
     }
   }
+
+  if (disabled)
+    this->ResetWind(_ecm);
 }
 
 //////////////////////////////////////////////////
