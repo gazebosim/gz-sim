@@ -183,12 +183,16 @@ void AltimeterPrivate::AddAltimeter(
       removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
   sdf::Sensor data = _altimeter->Data();
   data.SetName(sensorScopedName);
+
   // check topic
-  if (data.Topic().empty())
-  {
-    std::string topic = scopedName(_entity, _ecm) + "/altimeter";
-    data.SetTopic(topic);
-  }
+  TopicNameOptions topicNameOptions;
+  topicNameOptions.sdfElementName = "topic";
+  topicNameOptions.topicNamespace = scopedNamespace(_ecm, _entity);
+  topicNameOptions.defaultTopicPrefix = scopedName(_entity, _ecm);
+  topicNameOptions.defaultTopicSuffix = "altimeter";
+  auto topic = resolvedTopicName(data.Element(), topicNameOptions);
+  data.SetTopic(topic);
+
   std::unique_ptr<sensors::AltimeterSensor> sensor =
       this->sensorFactory.CreateSensor<
       sensors::AltimeterSensor>(data);

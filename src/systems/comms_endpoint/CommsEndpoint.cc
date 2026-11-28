@@ -25,7 +25,7 @@
 #include <gz/common/Profiler.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/transport/Node.hh>
-#include <sdf/sdf.hh>
+#include <sdf/Element.hh>
 #include "gz/sim/Model.hh"
 #include "gz/sim/Util.hh"
 #include "CommsEndpoint.hh"

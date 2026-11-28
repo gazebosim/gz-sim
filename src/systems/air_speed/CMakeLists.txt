@@ -1,6 +1,8 @@
 gz_add_system(air-speed
   SOURCES
     AirSpeed.cc
+  TEST_SOURCES
+    AirSpeed_TEST.cc
   PUBLIC_LINK_LIBS
     gz-common::gz-common
   PRIVATE_LINK_LIBS
