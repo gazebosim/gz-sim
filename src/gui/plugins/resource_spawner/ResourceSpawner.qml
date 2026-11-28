@@ -19,9 +19,7 @@ import QtQuick.Window 2.2
 
 import QtQuick.Controls
 import QtQuick.Controls.Material 2.2
-import QtQuick.Controls.Material.impl 2.2
 import QtQuick.Layouts 1.3
-
 
 import QtQml.Models 2.2
 
@@ -42,7 +40,7 @@ Rectangle {
   /**
    * Height of each item on the grid
    */
-  property int gridItemHeight: 150;
+  property int gridItemHeight: 155;
 
   /**
    * Width of each item on the grid
@@ -50,9 +48,14 @@ Rectangle {
   property int gridItemWidth: 200;
 
   /**
-   * Currently selected path
+   * Currently selected path or owner
    */
   property string currentPath: "";
+
+  /**
+   * True when browsing Fuel resources, false for local paths
+   */
+  property bool browsingFuel: true;
 
   /**
    * Color for odd rows, according to theme
@@ -208,6 +211,7 @@ Rectangle {
                   _ResourceSpawner.OnPathClicked(model.path);
                   _ResourceSpawner.DisplayResources();
                   currentPath = model.path
+                  browsingFuel = false
                   gridView.currentIndex = -1
                   mouse.accepted = false
 
@@ -276,6 +280,7 @@ Rectangle {
             ListView.onCurrentItemChanged: {
               if (index >= 0) {
                 currentPath = model.path
+                browsingFuel = true
                 _ResourceSpawner.OnOwnerClicked(model.path)
                 _ResourceSpawner.DisplayResources();
                 tree.selectionModel.clearSelection()
@@ -397,7 +402,7 @@ Rectangle {
             Layout.leftMargin: 15
             Image {
               id: searchIcon
-              source: "qrc:/Gazebo/images/search.svg"
+              source: "qrc:/qml/images/search.svg"
               anchors.verticalCenter: parent.verticalCenter
             }
           }
@@ -430,10 +435,11 @@ Rectangle {
               anchors.fill: parent
               model: ListModel {
                 id: cbItems
+                // The first one is the default, see Display::sortMethod
+                ListElement { text: "Popular"}
                 ListElement { text: "Most Recent"}
                 ListElement { text: "A - Z"}
                 ListElement { text: "Z - A"}
-                ListElement { text: "Downloaded"}
               }
               onActivated: {
                 _ResourceSpawner.OnSortChosen(cbItems.get(currentIndex).text);
@@ -450,7 +456,9 @@ Rectangle {
         height: 40
         color: Material.accent
         Label {
-          text: currentPath ? "Owner: " + currentPath + " (" + gridView.model.totalCount + ")" : ""
+          text: currentPath ?
+            (browsingFuel ? "Owner: " : "Path: ") + currentPath +
+            " (" + gridView.model.totalCount + ")" : ""
           font.pointSize: 12
           elide: Text.ElideMiddle
           anchors.margins: 5
@@ -478,111 +486,145 @@ Rectangle {
             active: true;
           }
 
-          delegate: Pane {
+          delegate: Item {
             id: itemDelegate
-            width: gridView.cellWidth - 8
-            height: gridView.cellHeight - 8
-            Material.elevation: 6
-            background: Rectangle {
-              color: gridView.currentIndex == index ? Material.accent : Material.background
-              layer.enabled: true
-              layer.effect: ElevationEffect {
-                elevation: 6
-              }
-              border.width: 1
-              border.color: "lightgray"
-            }
+            width: gridView.cellWidth
+            height: gridView.cellHeight
 
-            ColumnLayout {
+            Rectangle {
+              id: cardRect
               anchors.fill: parent
-              Label {
-                text: model.name
-                font.pointSize: 12
-                elide: Text.ElideRight
-                height: 40
-                Layout.fillWidth: true
-              }
-              Image {
-                id: thumbnailImage
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.margins: 1
-                source: (model.isFuel && !model.isDownloaded) ?
-                "DownloadToUse.png" :
-                (model.thumbnail === "" ?
-                "NoThumbnail.png" : "file:" + model.thumbnail)
-                fillMode: Image.PreserveAspectFit
-              }
-            }
-            MouseArea {
-              id: ma2
-              anchors.fill: parent
-              hoverEnabled: true
-              propagateComposedEvents: true
-              onClicked: {
-                if (model.isFuel && !model.isDownloaded)
-                {
-                  downloadDialog.open()
-                }
-                else
-                {
-                  _ResourceSpawner.OnResourceSpawn(model.sdf);
-                  gridView.currentIndex = index;
-                }
-              }
-            }
-            Dialog {
-              id: downloadDialog
-              parent: resourceSpawner.Window.window ? resourceSpawner.Window.window.contentItem : resourceSpawner
-              x: (windowWidth() - width) / 2
-              y: (windowHeight() - height) / 2
-              width: 360
-              height: 150
-              modal: true
-              focus: true
-              title: "Note"
-              standardButtons: Dialog.Ok
-              Rectangle {
-                color: "transparent"
+              anchors.margins: 4
+              radius: 6
+              color: gridView.currentIndex == index ? Material.accent :
+                     (ma2.containsMouse ? evenColor : Material.background)
+              border.width: (gridView.currentIndex == index || ma2.containsMouse) ? 2 : 1
+              border.color: (gridView.currentIndex == index || ma2.containsMouse) ?
+                            Material.accent : Material.frameColor
+
+              ColumnLayout {
                 anchors.fill: parent
+                anchors.margins: 6
+                spacing: 4
+
                 Label {
-                  width: downloadDialog.width - 50
-                  height: downloadDialog.height
-                  text: "Please download the resource first by clicking the cloud icon."
-                  wrapMode: Text.WordWrap
+                  text: model.name
+                  font.pointSize: 11
+                  elide: Text.ElideRight
+                  Layout.fillWidth: true
+                }
+
+                Item {
+                  Layout.fillHeight: true
+                  Layout.fillWidth: true
+
+                  Image {
+                    id: thumbnailImage
+                    anchors.fill: parent
+                    asynchronous: true
+                    cache: true
+                    sourceSize.width: gridItemWidth
+                    sourceSize.height: gridItemHeight
+                    source: model.thumbnailUrl !== "" ?
+                      model.thumbnailUrl : "NoThumbnail.png"
+                    fillMode: Image.PreserveAspectFit
+                  }
+
+                  Image {
+                    anchors.fill: parent
+                    visible: thumbnailImage.status === Image.Error
+                    source: "NoThumbnail.png"
+                    fillMode: Image.PreserveAspectFit
+                  }
+
+                  ProgressBar {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.bottom: parent.bottom
+                    indeterminate: true
+                    visible: model.isDownloading
+                  }
                 }
               }
-            }
-            ToolTip {
-              visible: ma2.containsMouse
-              delay: 500
-              text: model === null ? "N/A" : model.name
-              enter: null
-              exit: null
-            }
-            ToolButton {
-              height: 35
-              width: 35
-              checkable: false
-              ToolTip.text: "Download"
-              ToolTip.visible: hovered
-              ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
-              anchors.bottom: parent.bottom
-              anchors.right: parent.right
-              anchors.rightMargin: -10
-              anchors.bottomMargin: -10
-              visible: model.isFuel && !model.isDownloaded
-              contentItem: Image {
-                fillMode: Image.PreserveAspectFit
-                horizontalAlignment: Image.AlignHCenter
-                verticalAlignment: Image.AlignVCenter
-                source: "CloudDownload.png"
-                sourceSize.width: 35;
-                sourceSize.height: 35;
+
+              MouseArea {
+                id: ma2
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: model.isDownloading ? Qt.BusyCursor : Qt.PointingHandCursor
+                property point pressPos: Qt.point(0, 0)
+                property bool dragSpawned: false
+
+                onPressed: (mouse) => {
+                  pressPos = Qt.point(mouse.x, mouse.y)
+                  dragSpawned = false
+                }
+
+                onPositionChanged: (mouse) => {
+                  if (!pressed || dragSpawned || model.isDownloading)
+                    return
+                  var dx = mouse.x - pressPos.x
+                  var dy = mouse.y - pressPos.y
+                  if ((dx * dx + dy * dy) >
+                      (Qt.styleHints.startDragDistance * Qt.styleHints.startDragDistance)) {
+                    dragSpawned = true
+                    if (!model.isFuel || model.isDownloaded) {
+                      _ResourceSpawner.OnResourceSpawn(model.sdf)
+                      gridView.currentIndex = index
+                    }
+                  }
+                }
+
+                onClicked: {
+                  if (dragSpawned || model.isDownloading)
+                    return
+                  if (model.isFuel && !model.isDownloaded) {
+                    _ResourceSpawner.OnDownloadFuelResource(
+                      model.sdf, model.name, model.owner, model.index, true)
+                  } else {
+                    _ResourceSpawner.OnResourceSpawn(model.sdf)
+                    gridView.currentIndex = index
+                  }
+                }
               }
-              onClicked: {
-                _ResourceSpawner.OnDownloadFuelResource(model.sdf, model.name, model.owner, model.index)
-                model.isDownloaded = true
+
+              ToolTip {
+                visible: ma2.containsMouse
+                delay: 500
+                text: model === null ? "N/A" :
+                      (model.isDownloading ? model.name + " (Downloading...)" :
+                      (model.isFuel && !model.isDownloaded ?
+                        model.name + " (Click to download & spawn)" :
+                        model.name + " (Click or drag to spawn)"))
+                enter: null
+                exit: null
+              }
+
+              ToolButton {
+                height: 30
+                width: 30
+                padding: 2
+                z: 2
+                checkable: false
+                ToolTip.text: "Download only"
+                ToolTip.visible: hovered
+                ToolTip.delay: Qt.styleHints.mousePressAndHoldInterval
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                anchors.margins: 4
+                visible: model.isFuel && !model.isDownloaded && !model.isDownloading
+                contentItem: Image {
+                  fillMode: Image.PreserveAspectFit
+                  horizontalAlignment: Image.AlignHCenter
+                  verticalAlignment: Image.AlignVCenter
+                  source: "CloudDownload.png"
+                  sourceSize.width: 24
+                  sourceSize.height: 24
+                }
+                onClicked: {
+                  _ResourceSpawner.OnDownloadFuelResource(
+                    model.sdf, model.name, model.owner, model.index, false)
+                }
               }
             }
           }
@@ -610,7 +652,7 @@ Rectangle {
 
   Connections {
     target: _ResourceSpawner
-    onResourceSpawnerError : {
+    function onResourceSpawnerError(_errorMsg) {
       messageDialog.contentItem.text = _errorMsg
       messageDialog.visible = true
     }

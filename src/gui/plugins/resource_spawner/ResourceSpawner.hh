@@ -28,6 +28,16 @@
 
 #include <gz/gui/Plugin.hh>
 
+#ifndef _WIN32
+#  define ResourceSpawner_EXPORTS_API __attribute__ ((visibility ("default")))
+#else
+#  if (defined(ResourceSpawner_EXPORTS))
+#    define ResourceSpawner_EXPORTS_API __declspec(dllexport)
+#  else
+#    define ResourceSpawner_EXPORTS_API __declspec(dllimport)
+#  endif
+#endif
+
 namespace gz
 {
 namespace sim
@@ -51,6 +61,23 @@ namespace sim
     /// empty if no thumbnail is found
     std::string thumbnailPath = "";
 
+    /// \brief URL to load the thumbnail in QML (either file:// for local
+    /// thumbnails or https:// for remote Fuel thumbnails).
+    std::string thumbnailUrl = "";
+
+    /// \brief Short description of the resource (populated from Fuel or
+    /// model.config when available).
+    std::string description = "";
+
+    /// \brief File size in bytes (0 if unknown).
+    uint64_t fileSize = 0;
+
+    /// \brief Number of downloads on Fuel (0 for local models).
+    uint32_t downloadCount = 0;
+
+    /// \brief Number of likes on Fuel (0 for local models).
+    uint32_t likeCount = 0;
+
     /// \brief Bool to indicate if this model is fuel or not
     // cppcheck-suppress unusedStructMember
     bool isFuel = false;
@@ -59,6 +86,10 @@ namespace sim
     /// always be false with local models as it is irrelevant in this case
     // cppcheck-suppress unusedStructMember
     bool isDownloaded = false;
+
+    /// \brief Bool to indicate if this model is currently being downloaded.
+    // cppcheck-suppress unusedStructMember
+    bool isDownloading = false;
   };
 
   /// \brief Data used by the `DisplayData()` function to filter and sort
@@ -69,10 +100,10 @@ namespace sim
     /// empty if there is currently no search query.
     std::string searchKeyword = "";
 
-    /// \brief The currently chosen method of sorting, which includes "A - Z",
-    /// "Z - A", "Most Recent", and "Downloaded."  The default sort method is
-    /// "Most Recent" as that is the order the fuel models are initially loaded.
-    std::string sortMethod = "";
+    /// \brief The currently chosen method of sorting: "Popular" (most
+    /// downloaded on Fuel first), "Most Recent" (the order in which the
+    /// resources are loaded), "A - Z" or "Z - A". Defaults to "Popular".
+    std::string sortMethod = "Popular";
 
     /// \brief The name of the owner if the user has Fuel resources chosen,
     /// and the name of the local path if the user has local resources chosen.
@@ -110,7 +141,7 @@ namespace sim
 
   /// \brief Provides a model by which the resource spawner qml plugin pulls
   /// and updates from
-  class ResourceModel : public QStandardItemModel
+  class ResourceSpawner_EXPORTS_API ResourceModel : public QStandardItemModel
   {
     Q_OBJECT
 
@@ -128,6 +159,12 @@ namespace sim
     /// param[in] _resource The local resource to be added
     public: void AddResource(const Resource &_resource);
 
+    /// \brief Insert a resource in the grid view at the given row.
+    /// \param[in] _row Row of the new resource. Values out of range append it
+    /// or prepend it.
+    /// \param[in] _resource The resource to be added
+    public: void InsertResource(int _row, const Resource &_resource);
+
     /// \brief Add a vector of resources to the grid view.
     /// param[in] _resource The vector of local resources to be added
     public: void AddResources(std::vector<Resource> &_resources);
@@ -142,6 +179,15 @@ namespace sim
     /// existing resource
     public: void UpdateResourceModel(int index, Resource &_resource);
 
+    /// \brief Updates any resource matching owner and name with the values in
+    /// the passed in resource.
+    /// \param[in] _owner Owner name (empty for local resources).
+    /// \param[in] _name Resource name.
+    /// \param[in] _resource The updated resource values.
+    /// \return True if a matching item was found and updated.
+    public: bool UpdateResourceByName(const std::string &_owner,
+        const std::string &_name, const Resource &_resource);
+
     // Documentation inherited
     public: QHash<int, QByteArray> roleNames() const override;
 
@@ -155,7 +201,7 @@ namespace sim
 
   /// \brief Provides interface for communicating to backend for generation
   /// of local models
-  class ResourceSpawner : public gz::gui::Plugin
+  class ResourceSpawner_EXPORTS_API ResourceSpawner : public gz::gui::Plugin
   {
     Q_OBJECT
 
@@ -203,10 +249,9 @@ namespace sim
     /// \param[in,out] _resources The vector of resources to filter
     public: void FilterResources(std::vector<Resource> &_resources);
 
-    /// \brief Sorts the vector of resources by the previously entered
-    /// sort method.  The sorting types as a string, are "Most Recent",
-    /// "A - Z", "Z - A", and "Downloaded." The sort defaults to
-    /// "Most Recent."
+    /// \brief Sorts the vector of resources by the chosen sort method, see
+    /// OnSortChosen. Resources that are equal for the sort method keep their
+    /// order.
     /// \param[in,out] _resources The vector of resources to sort
     public: void SortResources(std::vector<Resource> &_resources);
 
@@ -226,17 +271,34 @@ namespace sim
     public slots: void OnOwnerClicked(const QString &_owner);
 
     /// \brief Callback when a request is made to download a fuel resource.
+    /// The download runs on a thread pool; a request for a resource that is
+    /// already being downloaded is ignored. Failures are reported through
+    /// resourceSpawnerError.
     /// \param[in] _path URI to the fuel resource
     /// \param[in] _name Name of the resource
     /// \param[in] _owner The name of the owner
     /// \param[in] index The index of the grid pane to update
+    /// \param[in] _spawnAfterDownload If true, spawn the resource once the
+    /// download finishes.
     public slots: void OnDownloadFuelResource(const QString &_path,
-        const QString &_name, const QString &_owner, int index);
+        const QString &_name, const QString &_owner, int index,
+        bool _spawnAfterDownload = false);
+
+    /// \brief Build the remote Fuel thumbnail URL for a model.
+    /// \param[in] _serverUrl Base Fuel server URL.
+    /// \param[in] _serverVersion Fuel API version (defaults to "1.0").
+    /// \param[in] _owner Model owner name.
+    /// \param[in] _name Model name.
+    /// \return Remote URL pointing to thumbnails/1.png.
+    public: static std::string BuildFuelThumbnailUrl(
+        const std::string &_serverUrl, const std::string &_serverVersion,
+        const std::string &_owner, const std::string &_name);
 
     /// \brief Callback when a sort request is made.
-    /// \param[in] _sortType The sorting type as a string, accepts
-    /// "Most Recent", "A - Z", "Z - A", and "Downloaded." Defaults to
-    /// "Most Recent."
+    /// \param[in] _sortType The sorting type as a string: "Popular" (most
+    /// downloaded on Fuel first), "Most Recent", "A - Z" or "Z - A". Any
+    /// other value keeps the order in which the resources are loaded.
+    /// Defaults to "Popular".
     public slots: void OnSortChosen(const QString &_sortType);
 
     /// \brief Callback when a search request is made.
@@ -253,7 +315,9 @@ namespace sim
                 Resource &_resource);
 
     /// \brief Called form a download thread to update the GUI's list of
-    /// resources.
+    /// resources. If the resource's owner is being displayed and the
+    /// resource matches the search keyword, it is shown at the position
+    /// given by the sort method.
     /// \param[in] _resource The resource fetched from Fuel. Note that it is
     /// passed by value as a copy is necessary to update the resource if it's
     /// cached.
@@ -281,6 +345,20 @@ namespace sim
     /// \brief Starts a thread that fetches the resources list for a given owner
     /// \param[in] _owner Name of owner.
     private: void RunFetchResourceListThread(const std::string &_owner);
+
+    /// \brief Updates the models when a Fuel download finishes, then spawns
+    /// the resource if requested. Runs on the GUI thread.
+    /// \param[in] _owner Owner of the resource.
+    /// \param[in] _name Name of the resource.
+    /// \param[in] _localPath Local path of the downloaded model. Only valid
+    /// if _success is true.
+    /// \param[in] _success True if the download succeeded.
+    /// \param[in] _error Reason of the failure, empty if unknown.
+    /// \param[in] _spawnAfterDownload True to spawn the resource after a
+    /// successful download.
+    private: void OnDownloadFinished(const std::string &_owner,
+        const std::string &_name, const std::string &_localPath,
+        bool _success, const std::string &_error, bool _spawnAfterDownload);
 
     /// \internal
     /// \brief Pointer to private data.
